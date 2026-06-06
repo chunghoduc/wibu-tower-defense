@@ -147,6 +147,8 @@ export class BattleScene extends Phaser.Scene {
     this.heroSprite = null;
     this.towerPanel = null;
     this.towerPanelUid = -1;
+    this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
+    this.placeGhost = null;
 
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
     this.stage = (this.registry.get("selectedStage") as StageDef | undefined) ?? STAGE_1;
@@ -186,6 +188,7 @@ export class BattleScene extends Phaser.Scene {
     this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText]);
 
     this.buildBuildBar();
+    this.setupPlacementDrag(); // register drag handlers once (tiles rebuild without re-registering)
     this.bindInput();
 
     // Camera setup: main shows the whole world zoomed out; uiCam draws the HUD 1:1.
@@ -199,7 +202,7 @@ export class BattleScene extends Phaser.Scene {
       up: KC.UP, down: KC.DOWN, left: KC.LEFT, right: KC.RIGHT,
       w: KC.W, a: KC.A, s: KC.S, d: KC.D,
     }) as typeof this.keys;
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.closeTowerPanel());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.closeTowerPanel(); this.clearGhost(); });
   }
 
   private drawStatic(): void {
@@ -249,7 +252,13 @@ export class BattleScene extends Phaser.Scene {
       this.ui.add(c);
       this.avatarTiles.push(c);
     });
-    this.setupPlacementDrag();
+  }
+
+  /** Recreate the avatar tiles (e.g. to snap a dragged tile home). */
+  private rebuildAvatarTiles(): void {
+    this.avatarTiles.forEach((t) => t.destroy());
+    this.avatarTiles = [];
+    this.buildBuildBar();
   }
 
   private refreshBuildBar(): void {
@@ -276,12 +285,10 @@ export class BattleScene extends Phaser.Scene {
       if (!id) return;
       this.clearGhost();
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
-      if (p.y < 500) this.battle.placeTowerAt(id, { x: wp.x, y: wp.y });
-      // rebuild the bar so the dragged tile snaps home
-      this.avatarTiles.forEach((t) => t.destroy());
-      this.avatarTiles = [];
-      this.input.off("dragstart"); this.input.off("drag"); this.input.off("dragend");
-      this.buildBuildBar();
+      if (p.y < 500 && this.battle.outcome === "ongoing" && !this.towerPanel) {
+        this.battle.placeTowerAt(id, { x: wp.x, y: wp.y });
+      }
+      this.rebuildAvatarTiles(); // snap the dragged tile home (drag handlers stay registered)
     });
   }
 
