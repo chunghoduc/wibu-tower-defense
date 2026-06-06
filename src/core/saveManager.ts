@@ -12,7 +12,7 @@ import { SINGLE_PULL_COST } from "./gacha.ts";
 import { addTowerToCollection } from "./collection.ts";
 
 const DAILY_LOGIN_CRYSTALS = 10;
-const STARTER_CRYSTALS = SINGLE_PULL_COST; // one free pull for new players
+const STARTER_CRYSTALS = SINGLE_PULL_COST * 50; // enough for at least 50 summons
 
 /** A common-rarity character per role, granted to new players so they can play immediately. */
 const STARTER_SQUAD = [
