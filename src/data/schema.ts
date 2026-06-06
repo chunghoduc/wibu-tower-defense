@@ -229,6 +229,12 @@ export interface PetUtility {
   goldFind?: number;
 }
 
+/** One owned tower entry in the hero's collection. */
+export interface TowerCollectionEntry {
+  /** Star rank 1–5. 1 = first copy; each duplicate adds 1 star up to 5. */
+  stars: number;
+}
+
 /** A node in the hero's PoE-style passive skill grid. */
 export interface PassiveNodeDef {
   id: string;

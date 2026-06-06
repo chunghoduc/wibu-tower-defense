@@ -1,6 +1,8 @@
-import type { ItemSlot } from "../data/schema.ts";
+import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 
-export const CURRENT_SAVE_VERSION = 1;
+export const CURRENT_SAVE_VERSION = 2;
+
+export type TowerCollection = Record<string, TowerCollectionEntry>;
 
 export interface RolledAffix {
   type: string;
@@ -41,6 +43,7 @@ export interface HeroSave {
   heroId: string;
   hero: HeroProgressSave;
   inventory: InventorySave;
+  collection: TowerCollection;
   lastSavedAt: number;
 }
 
@@ -62,6 +65,7 @@ export function createFreshSave(): HeroSave {
       items: [],
       equipped: {},
     },
+    collection: {},
     lastSavedAt: 0,
   };
 }
@@ -69,7 +73,7 @@ export function createFreshSave(): HeroSave {
 export function loadAndMigrate(raw: unknown): HeroSave {
   if (!raw || typeof raw !== "object") return createFreshSave();
   let save = raw as HeroSave;
-  // Future migrations added here as: if (save.version < 2) save = migrate_v1_to_v2(save);
+  if ((save.version ?? 0) < 2) save = { ...save, collection: {}, version: 2 };
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }
