@@ -77,6 +77,18 @@ export const ITEM_SLOTS = [
 ] as const;
 export type ItemSlot = (typeof ITEM_SLOTS)[number];
 
+export const WEAPON_TYPES = ["Sword", "Bow", "Staff", "Gun", "Tome", "Fist", "Any"] as const;
+export type WeaponType = (typeof WEAPON_TYPES)[number];
+
+export const PASSIVE_NODE_TYPES = ["path", "notable", "keystone", "mastery", "jewel-socket"] as const;
+export type PassiveNodeType = (typeof PASSIVE_NODE_TYPES)[number];
+
+export const PASSIVE_REGIONS = [
+  "brawler", "arcane", "warden", "tactician",
+  "predator", "phantom", "conduit", "prestige",
+] as const;
+export type PassiveRegion = (typeof PASSIVE_REGIONS)[number];
+
 // ---------------------------------------------------------------------------
 // The canonical 24-stat system
 // ---------------------------------------------------------------------------
@@ -217,23 +229,84 @@ export interface PetUtility {
   goldFind?: number;
 }
 
+/** A node in the hero's PoE-style passive skill grid. */
+export interface PassiveNodeDef {
+  id: string;
+  type: PassiveNodeType;
+  region: PassiveRegion;
+  name: string;
+  description: string;
+  gridX: number;
+  gridY: number;
+  /** Adjacent node ids (graph edges; bidirectional). */
+  neighbors: string[];
+  /** Flat stat bonuses added to the accumulator. */
+  flat?: Partial<Stats>;
+  /** Additive % bonuses (0.1 = +10%). */
+  increased?: Partial<Stats>;
+  /** Multiplicative bonus (0.5 = ×1.5). Reserved for keystones. */
+  more?: Partial<Stats>;
+  /** Keystone/mastery special effect identifier. */
+  effectId?: string;
+  /** Hero level required before this node's region unlocks. */
+  unlockAtLevel?: number;
+}
+
+/** A collectible active skill the hero equips in their single skill slot. */
+export interface ActiveSkillDef {
+  id: string;
+  name: string;
+  description: string;
+  rarity: Rarity;
+  requiresWeapon?: WeaponType;
+  damageType: DamageType;
+  /** Explicitly tuned per skill — NOT derived from rarity. */
+  basePower: number;
+  artRef: string;
+}
+
+export interface RolledAffix {
+  type: string;
+  value: number;
+}
+
 /**
- * A piece of hero equipment. Schema is complete (incl. the Pet and Wing slots);
- * the equipment system that applies stats/utilities/appearance runs in Phase 3.
+ * A live copy of an item in the hero's inventory (in save data).
+ * The catalog entry (ItemDef) is immutable; ItemInstance holds the rolled values.
+ */
+export interface ItemInstance {
+  id: string;               // uuid generated at drop
+  defId: string;            // points to ItemDef.id
+  acquiredLevel: number;    // requiredLevel at time of acquisition
+  rolledStats: Partial<Stats>;
+  rolledPrimaryAffix: number;
+  rolledAffixes: RolledAffix[];
+}
+
+/**
+ * Named item definition. Every copy of the same named item has the same
+ * slot/weaponType/primaryAffix type, but values roll ±10% at acquisition.
  */
 export interface ItemDef {
   id: string;
   name: string;
   slot: ItemSlot;
+  /** Required for Weapon slot; determines which active skills can be equipped. */
+  weaponType?: WeaponType;
   rarity: Rarity;
-  /** The built-in affix every item of this type always carries. */
-  primaryAffix: string;
-  /** Affixes this item TYPE may roll (rarity gates how many + their quality). */
+  /** Hero must be >= this level to equip. Also scales base stats. */
+  requiredLevel: number;
+  /** Primary stats vary per named item — not locked to slot type. */
+  baseStats: Partial<Stats>;
+  /** Predefined per item name; value rolls ±10% at acquisition. */
+  primaryAffix: { type: string; baseValue: number };
+  /** Random affixes drawn from this pool; rarity gates count. */
   affixPool: string[];
-  baseStats: Stats;
-  /** Pet-slot utility (gold generation, etc.). */
+  /** Pet slot only — utility properties. */
   petUtility?: PetUtility;
-  /** Sprite/overlay applied to the hero when equipped (changes appearance). */
+  /** Wing slot only — rarity-gated passive id. */
+  wingPassive?: string;
+  /** Overlay ref applied to hero visual when equipped (Phase 4). */
   appearanceRef?: string;
   artRef: string;
 }
@@ -387,4 +460,37 @@ export function validateStage(s: StageDef): StageDef {
   assert(s.castleHp > 0, `stage ${s.id}: castleHp must be > 0`);
   assert(s.waves.length >= 1, `stage ${s.id}: needs >= 1 wave`);
   return s;
+}
+
+export function validateActiveSkill(s: ActiveSkillDef): ActiveSkillDef {
+  assert(s.id.trim().length > 0, "activeSkill: missing id");
+  assert(s.name.trim().length > 0, `activeSkill ${s.id}: missing name`);
+  assert(s.description.trim().length > 0, `activeSkill ${s.id}: missing description`);
+  assert((RARITIES as readonly string[]).includes(s.rarity), `activeSkill ${s.id}: bad rarity`);
+  assert((DAMAGE_TYPES as readonly string[]).includes(s.damageType), `activeSkill ${s.id}: bad damageType`);
+  assert(s.basePower > 0, `activeSkill ${s.id}: basePower must be > 0`);
+  if (s.requiresWeapon !== undefined) {
+    assert((WEAPON_TYPES as readonly string[]).includes(s.requiresWeapon), `activeSkill ${s.id}: bad requiresWeapon`);
+  }
+  return s;
+}
+
+export function validatePassiveNode(n: PassiveNodeDef): PassiveNodeDef {
+  assert(n.id.trim().length > 0, "passiveNode: missing id");
+  assert((PASSIVE_NODE_TYPES as readonly string[]).includes(n.type), `passiveNode ${n.id}: bad type`);
+  assert((PASSIVE_REGIONS as readonly string[]).includes(n.region), `passiveNode ${n.id}: bad region`);
+  assert(n.neighbors.length >= 1, `passiveNode ${n.id}: must have at least 1 neighbor`);
+  return n;
+}
+
+export function validateItemDef(item: ItemDef): ItemDef {
+  assert(item.id.trim().length > 0, "item: missing id");
+  assert((ITEM_SLOTS as readonly string[]).includes(item.slot), `item ${item.id}: bad slot`);
+  assert((RARITIES as readonly string[]).includes(item.rarity), `item ${item.id}: bad rarity`);
+  assert(item.requiredLevel >= 1, `item ${item.id}: requiredLevel must be >= 1`);
+  if (item.slot === "Weapon") {
+    assert(item.weaponType !== undefined, `item ${item.id}: Weapon slot requires weaponType`);
+  }
+  assert(item.primaryAffix.baseValue > 0, `item ${item.id}: primaryAffix.baseValue must be > 0`);
+  return item;
 }
