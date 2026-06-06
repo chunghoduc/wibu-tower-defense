@@ -39,6 +39,20 @@ import { isTowerOwned, getTowerStars } from "./collection.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
+/**
+ * Transient visual events emitted by the sim each tick for the renderer to
+ * animate (projectiles, swings, hits, deaths, casts, loot). `BattleState.fx`
+ * holds the current tick's events; it is cleared at the start of every tick.
+ */
+export type FxEvent =
+  | { type: "attack"; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero" }
+  | { type: "hit"; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
+  | { type: "death"; at: Vec2; boss: boolean; bounty: number }
+  | { type: "cast"; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
+  | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
+  | { type: "chain"; from: Vec2; to: Vec2 }
+  | { type: "loot"; at: Vec2; gold: number };
+
 /** How close an enemy must be to the hero to be body-blocked into melee. */
 export const HERO_BLOCK_RANGE = 28;
 /** Default radius of splash / active-skill AoE bursts. */
@@ -143,6 +157,8 @@ export class BattleState {
   readonly stage: StageDef;
   readonly enemies: EnemyRuntime[] = [];
   readonly towers: TowerRuntime[] = [];
+  /** Visual events for the current tick (cleared each tick). */
+  readonly fx: FxEvent[] = [];
   readonly hero: HeroRuntime;
   readonly castlePos: Vec2;
   readonly difficulty: Difficulty;
@@ -282,6 +298,7 @@ export class BattleState {
 
   tick(dt: number): void {
     if (this.outcome !== "ongoing" || dt <= 0) return;
+    this.fx.length = 0; // fresh visual events for this tick
     this.time += dt;
 
     this.updateWaves(dt);
@@ -435,7 +452,7 @@ export class BattleState {
       const survivors: Dot[] = [];
       for (const d of e.dots) {
         const active = Math.min(dt, d.remaining);
-        if (active > 0) this.applyDamage(e, d.type, d.dps * active, d.armorPen, d.magicPen, false);
+        if (active > 0) this.applyDamage(e, d.type, d.dps * active, d.armorPen, d.magicPen, false, false);
         const left = d.remaining - dt;
         if (left > 0 && e.alive) survivors.push({ ...d, remaining: left });
       }
@@ -612,13 +629,13 @@ export class BattleState {
       if (!target) continue;
 
       const effAtk = t.stats.atk * (1 + t.buffAtkPct);
-      this.performAttack(t, effAtk, t.def.damageType, target);
+      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role);
       this.applyRoleEffect(t, effAtk, target);
 
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
         // Skills may deal True damage (the only path to True).
         const activeType = t.def.behavior?.activeType ?? t.def.damageType;
-        this.castActive(t.stats, effAtk, activeType, target.pos);
+        this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.def.active ?? undefined);
         t.mana = 0;
       }
       t.attackCd = 1 / effAs;
@@ -676,9 +693,9 @@ export class BattleState {
     const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
     if (!target) return;
 
-    this.performAttack(h, h.stats.atk, h.damageType, target);
+    this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero");
     if (h.stats.maxMana > 0 && h.mana >= h.stats.maxMana) {
-      this.castActive(h.stats, h.stats.atk, h.damageType, target.pos);
+      this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero");
       h.mana = 0;
     }
     h.attackCd = 1 / h.stats.attackSpeed;
@@ -686,16 +703,34 @@ export class BattleState {
 
   // ---- Damage application ------------------------------------------------
 
+  /** Append a transient visual event (bounded so a stalled renderer can't grow it). */
+  private emit(e: FxEvent): void {
+    if (this.fx.length < 256) this.fx.push(e);
+  }
+
   /** One single-target attack with crit + mana credit + omnivamp. */
   private performAttack(
     unit: { stats: Stats; mana: number; hp: number },
+    fromPos: Vec2,
     rawAtk: number,
     damageType: DamageType,
     target: EnemyRuntime,
+    source: "tower" | "hero",
+    role: string,
   ): void {
     const wasAlive = target.alive;
     const didCrit = this.rng.chance(unit.stats.critRate);
     const raw = didCrit ? rawAtk * Math.max(1, unit.stats.critDamage) : rawAtk;
+    this.emit({
+      type: "attack",
+      from: { x: fromPos.x, y: fromPos.y },
+      to: { x: target.pos.x, y: target.pos.y },
+      ranged: dist(fromPos, target.pos) > 44,
+      damageType,
+      crit: didCrit,
+      role,
+      source,
+    });
     const dealt = this.applyDamage(target, damageType, raw, unit.stats.armorPen, unit.stats.magicPen, false);
 
     if (unit.stats.maxMana > 0) {
@@ -721,6 +756,7 @@ export class BattleState {
     armorPen: number,
     magicPen: number,
     isAoE: boolean,
+    emitHit = true,
   ): number {
     if (!target.alive) return 0;
     if (this.isImmune(target, damageType, isAoE)) return 0;
@@ -728,6 +764,9 @@ export class BattleState {
     const incoming = mitigatedDamage(packet, target.stats);
     if (incoming <= 0) return 0;
 
+    if (emitHit) {
+      this.emit({ type: "hit", at: { x: target.pos.x, y: target.pos.y }, damageType, amount: incoming, aoe: isAoE });
+    }
     const { shield, overflow } = absorbWithShield(target.shield, incoming);
     target.shield = shield;
     target.hp -= overflow;
@@ -752,6 +791,7 @@ export class BattleState {
     primary: EnemyRuntime,
     radius: number,
   ): void {
+    this.emit({ type: "splash", at: { x: center.x, y: center.y }, radius, damageType });
     for (const e of this.enemies) {
       if (!e.alive || e === primary) continue;
       if (dist(e.pos, center) <= radius) {
@@ -779,6 +819,7 @@ export class BattleState {
         }
       }
       if (!next) break;
+      this.emit({ type: "chain", from: { x: from.pos.x, y: from.pos.y }, to: { x: next.pos.x, y: next.pos.y } });
       this.applyDamage(next, t.def.damageType, dmg, t.stats.armorPen, t.stats.magicPen, false);
       hit.add(next.uid);
       from = next;
@@ -814,7 +855,15 @@ export class BattleState {
     target.stunTimer = Math.max(target.stunTimer, ccDuration(duration, target.stats.tenacity));
   }
 
-  private castActive(attacker: Stats, effAtk: number, damageType: DamageType, center: Vec2): void {
+  private castActive(
+    attacker: Stats,
+    effAtk: number,
+    damageType: DamageType,
+    center: Vec2,
+    source: "tower" | "hero",
+    skillId?: string,
+  ): void {
+    this.emit({ type: "cast", at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
     const burst = effAtk * 2 * Math.max(1, attacker.skillPower);
     for (const e of this.enemies) {
       if (!e.alive) continue;
@@ -828,7 +877,11 @@ export class BattleState {
     if (!e.alive) return;
     e.alive = false;
     const scale = DIFFICULTY_SCALING[this.difficulty];
-    this.gold += Math.round(e.def.bounty * scale.bountyMult * (1 + this.hero.stats.goldFind));
+    const reward = Math.round(e.def.bounty * scale.bountyMult * (1 + this.hero.stats.goldFind));
+    this.gold += reward;
+    const boss = e.def.archetype === "Boss";
+    this.emit({ type: "death", at: { x: e.pos.x, y: e.pos.y }, boss, bounty: e.def.bounty });
+    this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, gold: reward });
     const split = e.def.special?.splitInto;
     if (split) {
       for (let i = 0; i < split.count; i++) {
