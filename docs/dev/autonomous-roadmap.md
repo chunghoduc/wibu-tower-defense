@@ -19,7 +19,7 @@ progresses (survives context compaction).
 - [ ] **T2** Tower interaction: click tower → upgrade / sell panel.
 - [x] **T5** Loot drops: gold + item drop animations from killed enemies.
 - [ ] **T15** Boss animations (rig the bosses / animated boss sheets).
-- [ ] **T7** More bosses as famous anime homages; expand boss roster.
+- [x] **T7** More bosses as famous anime homages; expand boss roster.
 - [ ] **T16** Stage select: enemy info "?" popup (full enemy list + specialties).
 - [ ] **T12** Battle tower bar = character avatars; drag & drop onto field.
 - [ ] **T13** Map terrain elements (stone, sand, water, jungle, mountain, ...). Brainstorm more.

@@ -80,6 +80,12 @@ const LAYOUTS: Layout[] = [
   },
 ];
 
+/** Final boss for each of the 10 stages (1-indexed), escalating in difficulty. */
+const BOSS_BY_STAGE = [
+  "champion", "zabro", "ryomen", "kura", "warden",
+  "akai", "mukade", "madarok", "overlord", "meruon",
+];
+
 const spawn = (enemyId: string, count: number, interval = 0.8, delay = 0): SpawnEntry => ({
   enemyId,
   count,
@@ -124,8 +130,8 @@ function buildWaves(n: number): WaveDef[] {
     w.push({ spawns: wx });
   }
 
-  // Final boss wave: champion (early), warden (mid), overlord (stage 10).
-  const finalBoss = n >= 10 ? "overlord" : n >= 5 ? "warden" : "champion";
+  // Each stage ends in a distinct themed boss (anime-homage), escalating.
+  const finalBoss = BOSS_BY_STAGE[n - 1] ?? "overlord";
   const wb: SpawnEntry[] = [spawn("grunt", 6, 0.6), spawn("brute", 2, 2, 3)];
   if (n >= 8) wb.push(spawn("stormflyer", 2, 1.5, 4));
   wb.push(spawn(finalBoss, 1, 1, 10));

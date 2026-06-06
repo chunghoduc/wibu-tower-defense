@@ -24,6 +24,14 @@ export const ENEMY_SPECS = {
   champion: { type: "boss", size: 44, skin: "#cfcad0", armor: "#8a8f9c", trim: "#caa84a", weapon: "sword", eye: "#d23b3b" },
   warden: { type: "boss", size: 46, skin: "#b0b4bc", armor: "#5a6070", trim: "#9aa6b8", weapon: "axe", shield: "#6a7280", eye: "#bfe8ff" },
   overlord: { type: "boss", size: 48, skin: "#7a6a8a", armor: "#3a2a4a", trim: "#b07ad8", cape: "#2a1a3a", orb: "#c77dde", eye: "#ff5a5a" },
+  // anime-homage bosses
+  zabro: { type: "boss", size: 44, skin: "#dfe3ea", armor: "#3a4a66", trim: "#8a98b4", weapon: "sword", eye: "#1b2a4a" },
+  ryomen: { type: "boss", size: 45, skin: "#e8c0a0", armor: "#7a2a3a", trim: "#1b1b26", horns: true, eye: "#d23b3b" },
+  kura: { type: "boss", size: 46, skin: "#e8902a", armor: "#b85a2a", trim: "#ffd24a", horns: true, eye: "#ffd24a" },
+  akai: { type: "boss", size: 46, skin: "#c89a7a", armor: "#7a2424", trim: "#ff7a2a", weapon: "axe", eye: "#ff6a2a" },
+  mukade: { type: "boss", size: 46, skin: "#9aae8a", armor: "#4a5a4a", trim: "#7a8a6a", eye: "#cfe87a" },
+  madarok: { type: "boss", size: 47, skin: "#d8d0d8", armor: "#6a1f2a", trim: "#3a2a3a", cape: "#3a1f28", horns: true, eye: "#d23b3b" },
+  meruon: { type: "boss", size: 48, skin: "#b07ad8", armor: "#4a2a6a", trim: "#ffd24a", cape: "#2a1a3a", horns: true, eye: "#fff3a0" },
 };
 
 function eyes(cv, cx, ey, col) { set(cv, cx - 2, ey, col); set(cv, cx + 2, ey, col); set(cv, cx - 2, ey - 1, shade(col, 1.6)); set(cv, cx + 2, ey - 1, shade(col, 1.6)); }

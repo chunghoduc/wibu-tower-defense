@@ -57,7 +57,7 @@ function saveStatic(kind, id, cv) {
   console.log(kind, id, "static");
 }
 
-const BOSS_IDS = new Set(["champion", "warden", "overlord"]);
+const BOSS_IDS = new Set(["champion", "warden", "overlord", "zabro", "ryomen", "kura", "akai", "mukade", "madarok", "meruon"]);
 
 if (!only || only === "tower") for (const [id, spec] of Object.entries(CHARACTERS)) saveAnim("tower", id, spec, roleOf.get(id));
 if (!only || only === "hero") saveAnim("hero", "hero", HERO, "damage");

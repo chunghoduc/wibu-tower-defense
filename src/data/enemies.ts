@@ -290,4 +290,70 @@ export const ENEMIES: EnemyDef[] = [
     },
     artRef: "placeholder",
   },
+
+  // ===================== Anime-homage bosses (original) =====================
+  // Each evokes an iconic anime antagonist WITHOUT copying name/likeness.
+  {
+    id: "zabro", name: "Zabro the Mist Demon", // homage: Zabuza Momochi (Naruto)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
+    bounty: 80, castleDamage: 7,
+    baseStats: makeStats({ maxHp: 1000, armor: 28, moveSpeed: 32, atk: 36, attackSpeed: 1.1, tenacity: 0.45 }),
+    boss: { enrage: { belowHpPct: 0.5, atkMult: 1.5, speedMult: 1.7 } },
+    artRef: "placeholder",
+  },
+  {
+    id: "ryomen", name: "Ryomen the Cursed King", // homage: Ryomen Sukuna (Jujutsu Kaisen)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
+    bounty: 95, castleDamage: 9,
+    baseStats: makeStats({ maxHp: 1200, armor: 36, moveSpeed: 26, atk: 50, attackSpeed: 1.0, tenacity: 0.55 }),
+    boss: { enrage: { belowHpPct: 0.45, atkMult: 1.8, speedMult: 1.5 } },
+    artRef: "placeholder",
+  },
+  {
+    id: "kura", name: "Kura the Tailed Calamity", // homage: Kurama / the Nine-Tails (Naruto)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
+    bounty: 105, castleDamage: 10,
+    baseStats: makeStats({ maxHp: 1450, magicResist: 40, moveSpeed: 24, atk: 44, attackSpeed: 0.9, tenacity: 0.5 }),
+    boss: { summon: { enemyId: "imp", count: 2, interval: 6 }, enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 } },
+    artRef: "placeholder",
+  },
+  {
+    id: "akai", name: "Akai the Magma Admiral", // homage: Akainu / magma-logia admiral (One Piece)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
+    bounty: 140, castleDamage: 12,
+    baseStats: makeStats({ maxHp: 2000, armor: 40, magicResist: 22, moveSpeed: 22, atk: 52, attackSpeed: 0.85, tenacity: 0.6 }),
+    boss: { towerDisable: { radius: 110, duration: 2.5, interval: 10 }, enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 } },
+    artRef: "placeholder",
+  },
+  {
+    id: "mukade", name: "Mukade the Undying", // homage: regenerating immortals (e.g. Mahito / Kabuto)
+    archetype: "Boss", flying: false, immunity: null, damageType: "True",
+    bounty: 155, castleDamage: 13,
+    baseStats: makeStats({ maxHp: 2200, armor: 30, moveSpeed: 20, atk: 48, attackSpeed: 0.9, hpRegen: 32, tenacity: 0.6 }),
+    boss: { enrage: { belowHpPct: 0.35, atkMult: 1.7, speedMult: 1.5 } },
+    artRef: "placeholder",
+  },
+  {
+    id: "madarok", name: "Madarok the Eternal Eye", // homage: Madara Uchiha (Naruto)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
+    bounty: 180, castleDamage: 15,
+    baseStats: makeStats({ maxHp: 2700, armor: 40, magicResist: 40, moveSpeed: 20, atk: 54, attackSpeed: 0.85, tenacity: 0.65 }),
+    boss: {
+      summon: { enemyId: "imp", count: 3, interval: 6 },
+      towerDisable: { radius: 140, duration: 3, interval: 11 },
+      enrage: { belowHpPct: 0.4, atkMult: 1.7, speedMult: 1.5 },
+    },
+    artRef: "placeholder",
+  },
+  {
+    id: "meruon", name: "Meruon the Ant Sovereign", // homage: Meruem the Chimera Ant King (Hunter x Hunter)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
+    bounty: 260, castleDamage: 18,
+    baseStats: makeStats({ maxHp: 3800, armor: 55, magicResist: 35, moveSpeed: 22, atk: 66, attackSpeed: 1.0, hpRegen: 14, tenacity: 0.75 }),
+    boss: {
+      summon: { enemyId: "imp", count: 2, interval: 8 },
+      enrage: { belowHpPct: 0.35, atkMult: 2.0, speedMult: 1.7 },
+    },
+    artRef: "placeholder",
+  },
 ];
