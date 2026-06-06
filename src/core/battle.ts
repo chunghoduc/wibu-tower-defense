@@ -20,6 +20,7 @@ import {
   type DamageType,
   type Difficulty,
   type EnemyDef,
+  type PassiveNodeDef,
   type StageDef,
   type Stats,
   type TargetType,
@@ -29,7 +30,11 @@ import { mitigatedDamage, type DamagePacket } from "./damage.ts";
 import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
+import { heroStatPipeline } from "./stats.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
+import { PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
+import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import type { HeroSave } from "./save.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -103,6 +108,7 @@ export interface BattleOptions {
   seed?: number;
   hero: HeroConfig;
   difficulty?: Difficulty;
+  heroSave?: HeroSave;
 }
 
 interface Catalogs {
@@ -150,6 +156,9 @@ export class BattleState {
   private readonly rng: Rng;
   private readonly totalPathLen: number;
 
+  private petGoldPerSec = 0;
+  private petGoldCarry = 0;
+
   private schedule: ScheduledSpawn[] = [];
   private schedulePtr = 0;
   private waveActive = false;
@@ -178,6 +187,52 @@ export class BattleState {
       attackCd: 0,
       alive: true,
     };
+
+    if (opts.heroSave) {
+      const save = opts.heroSave;
+      const unlockedNodes = save.hero.unlockedNodes
+        .map((id) => PASSIVE_NODES_MAP.get(id))
+        .filter((n): n is PassiveNodeDef => n !== undefined);
+
+      const itemStats: Partial<Stats>[] = [];
+      const keystoneMore: Partial<Stats>[] = [];
+
+      for (const [slot, instanceId] of Object.entries(save.inventory.equipped)) {
+        if (!instanceId) continue;
+        const instance = save.inventory.items.find((it) => it.id === instanceId);
+        if (!instance) continue;
+        const def = ITEM_CATALOG_MAP.get(instance.defId);
+        if (!def) continue;
+        itemStats.push(instance.rolledStats as Partial<Stats>);
+        if (slot === "Pet" && def.petUtility?.goldPerSec) {
+          this.petGoldPerSec = def.petUtility.goldPerSec;
+        }
+      }
+
+      for (const node of unlockedNodes) {
+        if (node.type === "keystone" && node.more) keystoneMore.push(node.more);
+      }
+
+      const resolvedStats = heroStatPipeline(
+        opts.hero.stats,
+        save.hero.level,
+        unlockedNodes,
+        itemStats,
+        [],
+        keystoneMore,
+      );
+
+      this.hero = {
+        stats: resolvedStats,
+        damageType: opts.hero.damageType ?? "Physical",
+        pos: { ...opts.hero.startPos },
+        moveTarget: { ...opts.hero.startPos },
+        hp: resolvedStats.maxHp,
+        mana: 0,
+        attackCd: 0,
+        alive: true,
+      };
+    }
   }
 
   // ---- Input -------------------------------------------------------------
@@ -584,6 +639,14 @@ export class BattleState {
   }
 
   private updateHero(dt: number): void {
+    if (this.petGoldPerSec > 0) {
+      this.petGoldCarry += this.petGoldPerSec * dt * (1 + this.hero.stats.goldFind);
+      while (this.petGoldCarry >= 1) {
+        this.gold += 1;
+        this.petGoldCarry -= 1;
+      }
+    }
+
     const h = this.hero;
     if (!h.alive) return;
 
