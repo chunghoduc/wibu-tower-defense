@@ -21,6 +21,8 @@ import { TOWERS } from "../data/towers.ts";
 import { Rng } from "../core/rng.ts";
 import type { HeroSave } from "../core/save.ts";
 import { hasSprite } from "./PreloadScene.ts";
+import { FxLayer } from "./fx.ts";
+import type { FxEvent } from "../core/battle.ts";
 
 /** Preferred squad order — one per role plus a Unique marquee. */
 const PREFERRED_SQUAD: string[] = [
@@ -105,6 +107,7 @@ export class BattleScene extends Phaser.Scene {
   private towerSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
   private heroSprite: Phaser.GameObjects.Sprite | null = null;
+  private fx!: FxLayer;
 
   constructor() {
     super("BattleScene");
@@ -141,6 +144,7 @@ export class BattleScene extends Phaser.Scene {
 
     this.staticGfx = this.add.graphics();
     this.dynGfx = this.add.graphics().setDepth(5); // bars/rings render above sprites (depth 2)
+    this.fx = new FxLayer(this, 6);
     this.drawStatic();
 
     this.hud = this.add.text(10, 8, "", { fontSize: "16px", color: "#ffffff" }).setDepth(10);
@@ -260,6 +264,7 @@ export class BattleScene extends Phaser.Scene {
     g.clear();
 
     this.manageSprites();
+    for (const ev of this.battle.fx) this.playFx(ev);
     for (const t of this.battle.towers) this.drawTower(g, t);
     for (const e of this.battle.enemies) this.drawEnemy(g, e);
     this.drawHero(g);
@@ -333,6 +338,48 @@ export class BattleScene extends Phaser.Scene {
         .setPadding(16, 10, 16, 10)
         .setDepth(25);
     }
+  }
+
+  /** Render one sim FX event, and trigger sprite animations (attack swing, hit flash). */
+  private playFx(ev: FxEvent): void {
+    this.fx.play(ev);
+    if (ev.type === "attack") {
+      const s = ev.source === "hero" ? this.heroSprite : this.spriteNear(this.towerSprites, ev.from);
+      this.playAttack(s);
+    } else if (ev.type === "hit") {
+      const e = this.spriteNear(this.enemySprites, ev.at);
+      if (e) this.flash(e);
+    }
+  }
+
+  /** Nearest pooled sprite to a world position (towers static, enemies move). */
+  private spriteNear(map: Map<number, Phaser.GameObjects.Sprite>, at: { x: number; y: number }): Phaser.GameObjects.Sprite | null {
+    let best: Phaser.GameObjects.Sprite | null = null, bd = 18 * 18;
+    for (const s of map.values()) {
+      const dx = s.x - at.x, dy = s.y - at.y, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = s; }
+    }
+    return best;
+  }
+
+  /** Play a sprite's attack animation once, then return to idle. */
+  private playAttack(s: Phaser.GameObjects.Sprite | null): void {
+    if (!s) return;
+    const key = s.texture.key;
+    const atk = `${key}_attack`;
+    if (!this.anims.exists(atk)) return;
+    const cur = s.anims.currentAnim?.key;
+    if (cur === atk && s.anims.isPlaying) return; // already swinging
+    s.play(atk);
+    s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (this.anims.exists(`${key}_idle`)) s.play(`${key}_idle`);
+    });
+  }
+
+  /** White hit-flash on an enemy sprite. */
+  private flash(s: Phaser.GameObjects.Sprite): void {
+    s.setTintFill(0xffffff);
+    this.time.delayedCall(70, () => s.clearTint());
   }
 
   /** Acquire/update a pooled sprite for an entity; null if no art for this key. */
