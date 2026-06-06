@@ -45,18 +45,28 @@ export class MainMenuScene extends Phaser.Scene {
       { label: "◈  Collection", scene: "CollectionScene" },
       { label: "🏪  Shop", scene: "ShopScene" },
       { label: "⬡  Passive Tree", scene: "PassiveGridScene" },
+      { label: "⚔  Hero Loadout", scene: "HeroScene" },
     ];
 
+    // 2-column grid: 3 rows × 2 cols
+    const COL_X = [W / 2 - 165, W / 2 + 165];
+    const ROW_Y = 270;
+    const ROW_H = 78;
     buttons.forEach(({ label, scene }, i) => {
-      const y = 270 + i * 80;
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = COL_X[col];
+      const y = ROW_Y + row * ROW_H;
       const btn = this.add
-        .text(W / 2, y, label, {
-          fontSize: "22px",
+        .text(x, y, label, {
+          fontSize: "20px",
           color: "#ffffff",
           backgroundColor: "#223355",
+          fixedWidth: 280,
+          align: "center",
         })
         .setOrigin(0.5)
-        .setPadding(24, 12, 24, 12)
+        .setPadding(0, 12, 0, 12)
         .setInteractive({ useHandCursor: true });
 
       btn.on("pointerover", () => btn.setBackgroundColor("#335588"));

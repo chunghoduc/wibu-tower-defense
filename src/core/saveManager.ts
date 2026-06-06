@@ -2,7 +2,9 @@ import { checkAndGrantAchievements } from "./achievements.ts";
 import { processStageClear, type DropResult } from "./drops.ts";
 import { performMultiSummon, performSummon, type SummonResult } from "./gacha.ts";
 import { awardHeroXp } from "./hero.ts";
+import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
 import { purchaseShopItem, type PurchaseResult } from "./shop.ts";
+import type { ItemSlot } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
 import { createFreshSave, type HeroSave, type SaveProvider } from "./save.ts";
@@ -67,6 +69,32 @@ export class SaveManager {
     save.hero.skillPoints -= 1;
     this.persist();
     return true;
+  }
+
+  /** Equip an owned item instance. Returns false if not equippable. Persists on success. */
+  equipItem(instanceId: string): boolean {
+    const ok = equipItem(this.save, instanceId);
+    if (ok) this.persist();
+    return ok;
+  }
+
+  /** Clear an equipment slot and persist. */
+  unequipSlot(slot: ItemSlot): void {
+    unequipSlot(this.save, slot);
+    this.persist();
+  }
+
+  /** Equip an owned active skill. Returns false if not owned. Persists on success. */
+  equipSkill(skillId: string): boolean {
+    const ok = equipSkill(this.save, skillId);
+    if (ok) this.persist();
+    return ok;
+  }
+
+  /** Clear the equipped active skill and persist. */
+  unequipSkill(): void {
+    unequipSkill(this.save);
+    this.persist();
   }
 
   afterShopPurchase(entryId: string): PurchaseResult {
