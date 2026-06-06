@@ -35,6 +35,11 @@ export interface ArtPromptEntry {
   prompt: string;
 }
 
+/** Classify an enemy as a boss or a regular enemy sprite kind. */
+export function spriteKind(def: Pick<EnemyDef, "archetype">): "enemy" | "boss" {
+  return def.archetype === "Boss" ? "boss" : "enemy";
+}
+
 function dims(kind: ArtKind): string {
   const d = SPRITE_DIMENSIONS[kind];
   return `${d.w}x${d.h}`;
@@ -63,7 +68,7 @@ export function towerPrompt(def: CharacterDef): string {
 
 /** Build a prompt for an enemy or boss. */
 export function enemyPrompt(def: EnemyDef): string {
-  const kind: ArtKind = def.archetype === "Boss" ? "boss" : "enemy";
+  const kind: ArtKind = spriteKind(def);
   const motion = def.flying ? "flying creature with wings, airborne pose" : "ground unit, grounded stance";
   const immune = def.immunity ? `Visually telegraph ${def.immunity} immunity.` : "";
   const menace = kind === "boss" ? "imposing boss, large and threatening, " : "";
@@ -99,7 +104,7 @@ export function allArtPrompts(): ArtPromptEntry[] {
     entries.push({ key: spriteKey("tower", t.id), path: spritePath("tower", t.id), prompt: towerPrompt(t) });
   }
   for (const e of ENEMIES) {
-    const kind: ArtKind = e.archetype === "Boss" ? "boss" : "enemy";
+    const kind: ArtKind = spriteKind(e);
     entries.push({ key: spriteKey(kind, e.id), path: spritePath(kind, e.id), prompt: enemyPrompt(e) });
   }
   for (const it of ITEM_CATALOG) {

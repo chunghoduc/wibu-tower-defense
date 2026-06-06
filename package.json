@@ -11,12 +11,14 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen:art-prompts": "vite-node scripts/genArtPrompts.ts"
+    "gen:art-prompts": "vite-node scripts/genArtPrompts.ts",
+    "gen:sprites": "vite-node scripts/genSprites.ts"
   },
   "dependencies": {
     "phaser": "^3.80.1"
   },
   "devDependencies": {
+    "@types/node": "^25.9.2",
     "typescript": "^5.5.4",
     "vite": "^5.4.0",
     "vitest": "^2.0.5"
