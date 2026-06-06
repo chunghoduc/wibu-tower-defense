@@ -5,7 +5,8 @@
  *
  * Logical play area is 960x540; the scene scales this to the screen.
  */
-import { makeStats, type SpawnEntry, type StageDef, type Vec2, type WaveDef } from "./schema.ts";
+import { makeStats, type SpawnEntry, type StageDef, type TerrainFeature, type TerrainType, type Vec2, type WaveDef } from "./schema.ts";
+import { Rng } from "../core/rng.ts";
 
 export const GAME_WIDTH = 960;
 export const GAME_HEIGHT = 540;
@@ -151,16 +152,57 @@ const WSX = WORLD_WIDTH / GAME_WIDTH;
 const WSY = WORLD_HEIGHT / GAME_HEIGHT;
 const scaleV = (p: Vec2): Vec2 => ({ x: Math.round(p.x * WSX), y: Math.round(p.y * WSY) });
 
-export const STAGES: StageDef[] = LAYOUTS.map((l, i) => ({
-  id: `ch1-s${i + 1}`,
-  name: l.name,
-  path: l.path.map(scaleV),
-  airSpawns: l.air.map(scaleV),
-  castleHp: 28 + i * 2,
-  startingGold: 170 + i * 10,
-  towerSlots: l.slots.map(scaleV),
-  waves: buildWaves(i + 1),
-}));
+/** Distance from point p to segment a-b. */
+function segDist(p: Vec2, a: Vec2, b: Vec2): number {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const l2 = dx * dx + dy * dy || 1;
+  let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+function nearPath(p: Vec2, path: Vec2[], clearance: number): boolean {
+  for (let i = 1; i < path.length; i++) if (segDist(p, path[i - 1], path[i]) < clearance) return true;
+  return false;
+}
+
+const BLOCK_TYPES: TerrainType[] = ["water", "stone", "jungle", "mountain"];
+const DECOR_TYPES: TerrainType[] = ["grass", "sand"];
+
+/** Deterministically scatter terrain features that keep the lane corridor clear. */
+function generateTerrain(path: Vec2[], seed: number): TerrainFeature[] {
+  const rng = new Rng(seed * 7919 + 13);
+  const feats: TerrainFeature[] = [];
+  let attempts = 0;
+  while (feats.length < 16 && attempts < 500) {
+    attempts++;
+    const x = 50 + rng.next() * (WORLD_WIDTH - 100);
+    const y = 50 + rng.next() * (WORLD_HEIGHT - 100);
+    const r = 26 + rng.next() * 36;
+    if (nearPath({ x, y }, path, r + 30)) continue;             // keep the lane walkable + buildable beside it
+    if (feats.some((f) => Math.hypot(f.x - x, f.y - y) < f.r + r + 12)) continue;
+    const blocks = rng.next() < 0.6;
+    const type = blocks
+      ? BLOCK_TYPES[Math.floor(rng.next() * BLOCK_TYPES.length)]
+      : DECOR_TYPES[Math.floor(rng.next() * DECOR_TYPES.length)];
+    feats.push({ type, x: Math.round(x), y: Math.round(y), r: Math.round(r), blocks });
+  }
+  return feats;
+}
+
+export const STAGES: StageDef[] = LAYOUTS.map((l, i) => {
+  const path = l.path.map(scaleV);
+  return {
+    id: `ch1-s${i + 1}`,
+    name: l.name,
+    path,
+    airSpawns: l.air.map(scaleV),
+    castleHp: 28 + i * 2,
+    startingGold: 170 + i * 10,
+    towerSlots: l.slots.map(scaleV),
+    terrain: generateTerrain(path, i + 1),
+    waves: buildWaves(i + 1),
+  };
+});
 
 /** Backwards-compatible alias for the first stage. */
 export const STAGE_1: StageDef = STAGES[0];

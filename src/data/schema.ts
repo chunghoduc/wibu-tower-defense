@@ -403,6 +403,16 @@ export interface WaveDef {
   spawns: SpawnEntry[];
 }
 
+/** A terrain feature on the battlefield (decorative, or a blocking obstacle). */
+export type TerrainType = "grass" | "sand" | "water" | "stone" | "jungle" | "mountain";
+export interface TerrainFeature {
+  type: TerrainType;
+  x: number;
+  y: number;
+  r: number;       // radius (circular blob)
+  blocks: boolean; // true = towers cannot be placed here
+}
+
 export interface StageDef {
   id: string;
   name: string;
@@ -412,8 +422,10 @@ export interface StageDef {
   airSpawns: Vec2[];
   castleHp: number;
   startingGold: number;
-  /** Discrete tower placement slots (Phase 1 uses fixed slots). */
+  /** Discrete tower placement slots (legacy; free placement uses terrain instead). */
   towerSlots: Vec2[];
+  /** Terrain features for rendering + obstacle-based free placement. */
+  terrain?: TerrainFeature[];
   waves: WaveDef[];
 }
 

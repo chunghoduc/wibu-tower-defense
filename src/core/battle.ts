@@ -34,10 +34,20 @@ import { heroStatPipeline, towerStatPipeline } from "./stats.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
 import type { HeroSave } from "./save.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
+
+/** Distance from point p to segment a-b (for lane-clearance checks). */
+function segDist(p: Vec2, a: Vec2, b: Vec2): number {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const l2 = dx * dx + dy * dy || 1;
+  let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
 
 /**
  * Transient visual events emitted by the sim each tick for the renderer to
@@ -60,6 +70,12 @@ export const HERO_BLOCK_RANGE = 28;
 export const SPLASH_RADIUS = 60;
 /** Pause between waves once the current wave is fully cleared. */
 export const INTER_WAVE_DELAY = 3;
+/** Free-placement: towers can't be placed within this distance of the lane. */
+export const LANE_CLEARANCE = 30;
+/** Free-placement: minimum spacing between two towers. */
+export const MIN_TOWER_DIST = 34;
+/** Free-placement: keep towers this far inside the world edges. */
+export const PLACE_MARGIN = 14;
 /** Max in-battle upgrade levels a tower can buy. */
 export const MAX_TOWER_UPGRADES = 5;
 /** Fraction of a tower's invested gold refunded on sell. */
@@ -282,6 +298,39 @@ export class BattleState {
     // With heroSave: only allow placement of owned towers
     if (this._heroSave && !isTowerOwned(this._heroSave, characterId)) return false;
 
+    this.spawnTower(characterId, def, { ...this.stage.towerSlots[slotIndex] }, slotIndex);
+    return true;
+  }
+
+  /** Whether a free-placement position is buildable (bounds, lane, obstacles, spacing). */
+  canPlaceAt(pos: Vec2): boolean {
+    if (pos.x < PLACE_MARGIN || pos.y < PLACE_MARGIN || pos.x > WORLD_WIDTH - PLACE_MARGIN || pos.y > WORLD_HEIGHT - PLACE_MARGIN) return false;
+    const path = this.stage.path;
+    for (let i = 1; i < path.length; i++) {
+      if (segDist(pos, path[i - 1], path[i]) < LANE_CLEARANCE) return false;
+    }
+    for (const f of this.stage.terrain ?? []) {
+      if (f.blocks && dist(pos, f) < f.r) return false;
+    }
+    for (const t of this.towers) {
+      if (t.alive && dist(pos, t.pos) < MIN_TOWER_DIST) return false;
+    }
+    return true;
+  }
+
+  /** Place a tower at a free position (T14). Validates ownership, gold, and the spot. */
+  placeTowerAt(characterId: string, pos: Vec2): boolean {
+    if (this.outcome !== "ongoing") return false;
+    const def = this.cat.characters.get(characterId);
+    if (!def) return false;
+    if (this.gold < def.cost) return false;
+    if (this._heroSave && !isTowerOwned(this._heroSave, characterId)) return false;
+    if (!this.canPlaceAt(pos)) return false;
+    this.spawnTower(characterId, def, { x: pos.x, y: pos.y }, -1);
+    return true;
+  }
+
+  private spawnTower(characterId: string, def: CharacterDef, pos: Vec2, slotIndex: number): void {
     this.gold -= def.cost;
     const towerLevel = this._heroSave?.hero.level ?? 1;
     const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
@@ -291,7 +340,7 @@ export class BattleState {
       def,
       stats: resolvedStats,
       slotIndex,
-      pos: { ...this.stage.towerSlots[slotIndex] },
+      pos,
       hp: resolvedStats.maxHp,
       mana: 0,
       attackCd: 0,
@@ -304,10 +353,7 @@ export class BattleState {
       battleLevel: 0,
       goldSpent: def.cost,
     });
-    if (this._heroSave) {
-      this._heroSave.progress.totalTowersPlaced += 1;
-    }
-    return true;
+    if (this._heroSave) this._heroSave.progress.totalTowersPlaced += 1;
   }
 
   /** Gold cost to upgrade a tower one battle level (escalates), or 0 if maxed/missing. */

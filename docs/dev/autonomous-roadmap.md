@@ -21,9 +21,9 @@ progresses (survives context compaction).
 - [x] **T15** Boss animations (rig the bosses / animated boss sheets).
 - [x] **T7** More bosses as famous anime homages; expand boss roster.
 - [x] **T16** Stage select: enemy info "?" popup (full enemy list + specialties).
-- [ ] **T12** Battle tower bar = character avatars; drag & drop onto field.
-- [ ] **T13** Map terrain elements (stone, sand, water, jungle, mountain, ...). Brainstorm more.
-- [ ] **T14** Free placement anywhere except obstacle tiles.
+- [x] **T12** Battle tower bar = character avatars; drag & drop onto field.
+- [x] **T13** Map terrain elements (stone, sand, water, jungle, mountain, ...). Brainstorm more.
+- [x] **T14** Free placement anywhere except obstacle tiles.
 - [x] **T6** Larger map via zoom-out / bigger play area + camera.
 - [x] **T3** Fancy hero/active-skill animations & effects.
 - [x] **T8** Squad management + hero active-skill selection screen.

@@ -38,6 +38,10 @@ const PREFERRED_SQUAD: string[] = [
 const SQUAD_SIZE = 7;
 const SLOT_RADIUS = 26;
 
+const TERRAIN_COLOR: Record<string, number> = {
+  grass: 0x35562f, sand: 0xb8a05a, water: 0x2a5f93, stone: 0x6b6c74, jungle: 0x1f4a2a, mountain: 0x5a4d40,
+};
+
 const ROLE_COLOR: Record<string, number> = {
   damage: 0x4fc3f7,
   splash: 0xff8a65,
@@ -95,7 +99,6 @@ export class BattleScene extends Phaser.Scene {
   private stage!: StageDef;
   private difficulty!: Difficulty;
   private buildOrder: CharacterDef[] = [];
-  private selectedTowerId: string | null = null;
   private saveManager!: SaveManager;
 
   private staticGfx!: Phaser.GameObjects.Graphics;
@@ -106,7 +109,8 @@ export class BattleScene extends Phaser.Scene {
   private hud!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private info!: Phaser.GameObjects.Text;
-  private buildButtons: Phaser.GameObjects.Text[] = [];
+  private avatarTiles: Phaser.GameObjects.Container[] = [];
+  private placeGhost: Phaser.GameObjects.Container | null = null;
   private hudLevelText!: Phaser.GameObjects.Text;
   private hudSkillText!: Phaser.GameObjects.Text;
 
@@ -150,7 +154,6 @@ export class BattleScene extends Phaser.Scene {
 
     this.catalog = loadCatalog();
     this.buildOrder = buildSquad(save, this.catalog);
-    this.selectedTowerId = this.buildOrder[0]?.id ?? null;
 
     this.battle = new BattleState(this.stage, this.catalog, {
       seed: 12345,
@@ -202,58 +205,114 @@ export class BattleScene extends Phaser.Scene {
   private drawStatic(): void {
     const g = this.staticGfx;
     g.clear();
-    g.lineStyle(36, 0x2c3446, 1);
+    // ground tint
+    g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    // terrain features (T13)
+    for (const f of this.stage.terrain ?? []) {
+      const col = TERRAIN_COLOR[f.type];
+      g.fillStyle(col, f.blocks ? 0.95 : 0.5).fillCircle(f.x, f.y, f.r);
+      g.lineStyle(2, Phaser.Display.Color.IntegerToColor(col).darken(30).color, f.blocks ? 0.9 : 0.4).strokeCircle(f.x, f.y, f.r);
+      if (f.type === "mountain") { g.fillStyle(0xe8eef4, 0.5).fillTriangle(f.x - f.r * 0.4, f.y + f.r * 0.2, f.x, f.y - f.r * 0.5, f.x + f.r * 0.4, f.y + f.r * 0.2); }
+    }
+    // lane
+    g.lineStyle(36, 0x3a4458, 1);
     const p = this.stage.path;
     g.beginPath();
     g.moveTo(p[0].x, p[0].y);
     for (let i = 1; i < p.length; i++) g.lineTo(p[i].x, p[i].y);
     g.strokePath();
+    // castle
     const c = this.battle.castlePos;
-    g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 22, c.y - 22, 44, 44);
-    g.lineStyle(2, 0x55617a, 1);
-    for (const s of this.stage.towerSlots) g.strokeCircle(s.x, s.y, SLOT_RADIUS);
+    g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 24, c.y - 24, 48, 48);
+    g.lineStyle(3, 0x9ab0e0, 1).strokeRect(c.x - 24, c.y - 24, 48, 48);
   }
 
+  /** Build the bottom bar of draggable character avatars (T12). */
   private buildBuildBar(): void {
+    const TW = 74;
     this.buildOrder.forEach((def, i) => {
-      const btn = this.add
-        .text(10 + i * 130, 510, "", {
-          fontSize: "13px",
-          color: "#fff",
-          backgroundColor: "#333",
-        })
-        .setPadding(6, 4, 6, 4)
-        .setInteractive({ useHandCursor: true })
-        .setDepth(10);
-      this.ui.add(btn);
-      btn.on(
-        "pointerdown",
-        (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
-          this.selectedTowerId = def.id;
-          e.stopPropagation();
-        },
-      );
-      this.buildButtons.push(btn);
+      const x = 14 + i * TW, y = 504;
+      const c = this.add.container(x + TW / 2, y + 16).setSize(TW - 8, 44).setDepth(12);
+      const bg = this.add.graphics();
+      bg.fillStyle(0x1a2230, 1).fillRoundedRect(-(TW - 8) / 2, -16, TW - 8, 44, 6);
+      bg.lineStyle(1.5, 0x3a4a64, 1).strokeRoundedRect(-(TW - 8) / 2, -16, TW - 8, 44, 6);
+      c.add(bg);
+      const key = `tower__${def.id}`;
+      if (this.textures.exists(key)) {
+        const img = this.add.image(0, -2, key, 0).setOrigin(0.5);
+        img.setScale(34 / img.height);
+        c.add(img);
+      }
+      c.add(this.add.text(0, 14, `${def.cost}g`, { fontSize: "9px", color: "#ffd86a" }).setOrigin(0.5));
+      c.setData("towerId", def.id);
+      c.setInteractive({ useHandCursor: true, draggable: true });
+      this.ui.add(c);
+      this.avatarTiles.push(c);
     });
-    this.refreshBuildBar();
-
-    for (let i = 0; i < Math.min(9, this.buildOrder.length); i++) {
-      this.input.keyboard?.on(`keydown-${i + 1 === 10 ? 0 : i + 1}`, () => {
-        this.selectedTowerId = this.buildOrder[i].id;
-      });
-    }
+    this.setupPlacementDrag();
   }
 
   private refreshBuildBar(): void {
-    this.buildButtons.forEach((btn, i) => {
-      const def = this.buildOrder[i];
-      if (!def) return;
-      const selected = def.id === this.selectedTowerId;
-      btn.setText(`${i + 1} ${def.name} (${def.cost}g)`);
-      btn.setBackgroundColor(
-        selected ? "#1565c0" : this.battle.gold >= def.cost ? "#333" : "#5a1f1f",
-      );
+    for (const c of this.avatarTiles) {
+      const id = c.getData("towerId") as string;
+      const def = this.buildOrder.find((d) => d.id === id);
+      c.setAlpha(def && this.battle.gold >= def.cost ? 1 : 0.45);
+    }
+  }
+
+  /** Drag an avatar onto the field to place its tower at a free spot (T12 + T14). */
+  private setupPlacementDrag(): void {
+    this.input.on("dragstart", (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) => {
+      if (!obj.getData || !obj.getData("towerId")) return;
+      this.makeGhost(obj.getData("towerId"));
     });
+    this.input.on("drag", (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => {
+      if (!obj.getData || !obj.getData("towerId")) return;
+      obj.x = x; obj.y = y;
+      this.updateGhost(obj.getData("towerId"), p);
+    });
+    this.input.on("dragend", (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) => {
+      const id = obj.getData && obj.getData("towerId");
+      if (!id) return;
+      this.clearGhost();
+      const wp = this.cameras.main.getWorldPoint(p.x, p.y);
+      if (p.y < 500) this.battle.placeTowerAt(id, { x: wp.x, y: wp.y });
+      // rebuild the bar so the dragged tile snaps home
+      this.avatarTiles.forEach((t) => t.destroy());
+      this.avatarTiles = [];
+      this.input.off("dragstart"); this.input.off("drag"); this.input.off("dragend");
+      this.buildBuildBar();
+    });
+  }
+
+  private makeGhost(towerId: string): void {
+    this.clearGhost();
+    const g = this.add.container(0, 0).setDepth(7).setAlpha(0.7);
+    const ring = this.add.graphics();
+    g.add(ring); g.setData("ring", ring);
+    const key = `tower__${towerId}`;
+    if (this.textures.exists(key)) {
+      const img = this.add.image(0, 0, key, 0).setOrigin(0.5, 0.78);
+      img.setScale(50 / img.height); g.add(img);
+    }
+    this.world.add(g);
+    this.placeGhost = g;
+  }
+
+  private updateGhost(towerId: string, pointer: Phaser.Input.Pointer): void {
+    if (!this.placeGhost) return;
+    const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+    this.placeGhost.setPosition(wp.x, wp.y);
+    const def = this.buildOrder.find((d) => d.id === towerId);
+    const ok = pointer.y < 500 && this.battle.canPlaceAt({ x: wp.x, y: wp.y }) && !!def && this.battle.gold >= def.cost;
+    const ring = this.placeGhost.getData("ring") as Phaser.GameObjects.Graphics;
+    ring.clear().lineStyle(2, ok ? 0x66ff88 : 0xff5a5a, 0.95).strokeCircle(0, 0, 18);
+    ring.fillStyle(ok ? 0x66ff88 : 0xff5a5a, 0.12).fillCircle(0, 0, 18);
+  }
+
+  private clearGhost(): void {
+    this.placeGhost?.destroy(true);
+    this.placeGhost = null;
   }
 
   private bindInput(): void {
@@ -266,24 +325,19 @@ export class BattleScene extends Phaser.Scene {
       // An open tower panel: a tap inside it is for its buttons; outside closes it.
       if (this.towerPanel) {
         const b = this.towerPanel.getBounds();
-        if (Phaser.Geom.Rectangle.Contains(b, pointer.worldX, pointer.worldY)) return;
+        if (Phaser.Geom.Rectangle.Contains(b, world.x, world.y)) return;
         this.closeTowerPanel();
         return;
       }
 
-      // Tap an existing tower → open its upgrade/sell panel.
+      // Tap an existing tower → upgrade/sell panel; else walk the hero there.
       const tower = this.towerAt(world);
       if (tower) { this.openTowerPanel(tower.uid); return; }
-
-      const slotIndex = this.slotAt(world);
-      if (slotIndex >= 0 && this.selectedTowerId) {
-        if (this.battle.placeTower(this.selectedTowerId, slotIndex)) return;
-      }
       this.battle.commandHero(world);
     });
   }
 
-  /** The alive tower whose slot is under a tap, if any. */
+  /** The alive tower under a tap, if any. */
   private towerAt(world: Vec2): TowerRuntime | null {
     for (const t of this.battle.towers) {
       if (t.alive && dist(world, t.pos) <= SLOT_RADIUS) return t;
@@ -363,15 +417,6 @@ export class BattleScene extends Phaser.Scene {
     sellBtn.setText(`✕ Sell +${this.battle.sellValue(t.uid)}g`);
   }
 
-  private slotAt(world: Vec2): number {
-    for (let i = 0; i < this.stage.towerSlots.length; i++) {
-      if (dist(world, this.stage.towerSlots[i]) <= SLOT_RADIUS) {
-        const occupied = this.battle.towers.some((t) => t.slotIndex === i && t.alive);
-        if (!occupied) return i;
-      }
-    }
-    return -1;
-  }
 
   update(_time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.05);
@@ -427,12 +472,7 @@ export class BattleScene extends Phaser.Scene {
 
     this.drawHeroSaveHUD(this.uiGfx);
 
-    const sel = this.buildOrder.find((d) => d.id === this.selectedTowerId);
-    if (sel) {
-      this.info.setText(
-        `${sel.name} — ${sel.rarity} ${sel.role} (${sel.damageType}/${sel.target})  ·  ${sel.description}`,
-      );
-    }
+    this.info.setText("Drag a character onto the field to deploy (avoid obstacles).  ·  WASD / arrows or tap to move your hero.  ·  Tap a tower to upgrade/sell.");
 
     if (b.outcome === "won") {
       this.banner.setText("VICTORY").setColor("#a5d6a7");
