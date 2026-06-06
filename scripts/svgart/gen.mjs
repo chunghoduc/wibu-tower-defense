@@ -5,7 +5,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { pixFrame } from "./pixrig.mjs";
 import { poseSetFor } from "./poses.mjs";
-import { CHARACTERS, HERO } from "../pixelart/specs.mjs";
+import { CHARACTERS, HERO, BOSSES } from "../pixelart/specs.mjs";
 import { composeEnemy, ENEMY_SPECS } from "../pixelart/creatures.mjs";
 import { ITEM_SPECS, composeItem, VFX_SPECS, composeVfx } from "../pixelart/items.mjs";
 import { TOWERS } from "../../src/data/towers.ts";
@@ -30,20 +30,20 @@ function hexRGBA(cells, w, h, scale) {
   return { rgba, W, H };
 }
 
-function saveAnim(kind, id, spec, role) {
+function saveAnim(kind, id, spec, role, cell = CELL) {
   const poses = poseSetFor(role || "damage");
   const N = poses.length;
-  const stripCells = new Array(CELL * N * CELL).fill(null);
+  const stripCells = new Array(cell * N * cell).fill(null);
   poses.forEach((pose, fi) => {
-    const cv = pixFrame(spec, pose, CELL);
-    for (let y = 0; y < CELL; y++) for (let x = 0; x < CELL; x++) {
-      const v = cv.d[y * CELL + x]; if (v) stripCells[y * (CELL * N) + (fi * CELL + x)] = v;
+    const cv = pixFrame(spec, pose, cell);
+    for (let y = 0; y < cell; y++) for (let x = 0; x < cell; x++) {
+      const v = cv.d[y * cell + x]; if (v) stripCells[y * (cell * N) + (fi * cell + x)] = v;
     }
   });
-  const { rgba, W, H } = hexRGBA(stripCells, CELL * N, CELL, SCALE);
+  const { rgba, W, H } = hexRGBA(stripCells, cell * N, cell, SCALE);
   const dir = `${GAME}/${kind}`; mkdirSync(dir, { recursive: true });
   writeFileSync(`${dir}/${id}.png`, encodePng(rgba, W, H));
-  writeFileSync(`${dir}/${id}.json`, JSON.stringify({ frameWidth: CELL * SCALE, frameHeight: CELL * SCALE, frames: N, names: poses.map((p) => p.name) }));
+  writeFileSync(`${dir}/${id}.json`, JSON.stringify({ frameWidth: cell * SCALE, frameHeight: cell * SCALE, frames: N, names: poses.map((p) => p.name) }));
   built.push({ kind, id });
   console.log(kind, id, N, "frames");
 }
@@ -59,10 +59,15 @@ function saveStatic(kind, id, cv) {
 
 const BOSS_IDS = new Set(["champion", "warden", "overlord", "zabro", "ryomen", "kura", "akai", "mukade", "madarok", "meruon"]);
 
+const BOSS_CELL = 64; // bosses render larger + animated via the rig
+
 if (!only || only === "tower") for (const [id, spec] of Object.entries(CHARACTERS)) saveAnim("tower", id, spec, roleOf.get(id));
 if (!only || only === "hero") saveAnim("hero", "hero", HERO, "damage");
-if (!only || only === "enemy" || only === "boss")
-  for (const [id, s] of Object.entries(ENEMY_SPECS)) saveStatic(BOSS_IDS.has(id) ? "boss" : "enemy", id, composeEnemy(s));
+// Non-boss enemies: distinct static creature art. Bosses: animated rig sheets.
+if (!only || only === "enemy")
+  for (const [id, s] of Object.entries(ENEMY_SPECS)) if (!BOSS_IDS.has(id)) saveStatic("enemy", id, composeEnemy(s));
+if (!only || only === "boss")
+  for (const [id, spec] of Object.entries(BOSSES)) saveAnim("boss", id, spec, "damage", BOSS_CELL);
 if (!only || only === "item") for (const [id, spec] of Object.entries(ITEM_SPECS)) saveStatic("item", id, composeItem(spec));
 if (!only || only === "vfx") for (const [id, spec] of Object.entries(VFX_SPECS)) saveStatic("vfx", id, composeVfx(spec));
 

@@ -111,3 +111,27 @@ export const CHARACTERS = {
 export const HERO = { rarity: "Legendary", skin: SKIN, hair: "short", hairColor: BROWN,
   headgear: "helm", helmColor: "#c0cbd8", plume: "#d23b3b", outfit: "#8a96a8", outfitStyle: "armor",
   trim: "#caa84a", pants: "#3a4258", weapon: "broadsword" };
+
+// Bosses — animated rig descriptors (homage-inspired looks), rendered larger.
+export const BOSSES = {
+  champion: { rarity: "Legendary", skin: "#cfcad0", headgear: "helm", helmColor: "#8a8f9c", plume: "#caa84a",
+    outfit: "#8a8f9c", outfitStyle: "armor", trim: "#caa84a", pants: "#3a3f4c", weapon: "broadsword", eye: "#d23b3b" },
+  warden: { rarity: "Legendary", skin: "#b0b4bc", headgear: "helm", helmColor: "#5a6070", plume: "#9aa6b8",
+    outfit: "#5a6070", outfitStyle: "armor", trim: "#9aa6b8", pants: "#2a3038", weapon: "broadsword", eye: "#bfe8ff" },
+  overlord: { rarity: "Unique", skin: "#7a6a8a", headgear: "hood", hoodColor: "#2a1a3a", hairColor: "#3a2a4a",
+    outfit: "#3a2a4a", outfitStyle: "robe", trim: "#b07ad8", back: "cape", capeColor: "#2a1a3a", weapon: "staff", orbColor: "#c77dde", eye: "#ff5a5a" },
+  zabro: { rarity: "Legendary", skin: "#dfe3ea", headgear: "headband", bandColor: "#3a4a66", hair: "spiky", hairColor: "#2a2e3a",
+    outfit: "#3a4a66", outfitStyle: "coat", trim: "#8a98b4", pants: "#2a3040", weapon: "katana", eye: "#1b2a4a" },
+  ryomen: { rarity: "Unique", skin: "#e8c0a0", hair: "spiky", hairColor: "#e8e2e8", headgear: "horns", hornColor: "#1b1b26",
+    outfit: "#7a2a3a", outfitStyle: "robe", trim: "#1b1b26", faceMark: "#7a2a3a", pants: "#4a1f28", weapon: "fists", fistGlow: "#d23b3b", eye: "#d23b3b" },
+  kura: { rarity: "Legendary", skin: "#e8902a", hair: "flame", hairColor: "#e8902a", headgear: "horns", hornColor: "#e8902a",
+    outfit: "#b85a2a", outfitStyle: "robe", trim: "#ffd24a", back: "tails", tailColor: "#e8902a", faceMark: "#b15a2a", pants: "#7a3a1a", weapon: "fists", fistGlow: "#ff9a4a", eye: "#ffd24a" },
+  akai: { rarity: "Legendary", skin: "#c89a7a", hair: "short", hairColor: "#3a3a3a",
+    outfit: "#7a2424", outfitStyle: "coat", trim: "#ff7a2a", pants: "#3a1818", weapon: "fists", fistGlow: "#ff6a2a", eye: "#ff6a2a" },
+  mukade: { rarity: "Unique", skin: "#9aae8a", hair: "short", hairColor: "#6a7a5a", faceMark: "#5a6a4a",
+    outfit: "#4a5a4a", outfitStyle: "robe", trim: "#7a8a6a", pants: "#3a4a3a", weapon: "fists", fistGlow: "#9ad14a", eye: "#cfe87a" },
+  madarok: { rarity: "Unique", skin: "#d8d0d8", hair: "long", hairColor: "#1b1b26",
+    outfit: "#6a1f2a", outfitStyle: "armor", trim: "#3a2a3a", back: "cape", capeColor: "#3a1f28", weapon: "fan", fanColor: "#b07ad8", eye: "#d23b3b" },
+  meruon: { rarity: "Unique", skin: "#b07ad8", headgear: "horns", hornColor: "#ffd24a", hairColor: "#5a2a7a",
+    outfit: "#4a2a6a", outfitStyle: "armor", trim: "#ffd24a", back: "cape", capeColor: "#2a1a3a", weapon: "fists", fistGlow: "#fff3a0", eye: "#fff3a0" },
+};

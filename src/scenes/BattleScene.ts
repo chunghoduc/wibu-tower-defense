@@ -526,7 +526,7 @@ export class BattleScene extends Phaser.Scene {
     for (const e of this.battle.enemies) {
       const boss = e.def.archetype === "Boss";
       const key = `${boss ? "boss" : "enemy"}__${e.def.id}`;
-      const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, boss ? 48 : 30);
+      const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, boss ? 62 : 30);
       if (s) { seenE.add(e.uid); s.setAlpha(e.stealth ? 0.45 : 1); }
     }
     for (const [uid, s] of this.enemySprites) if (!seenE.has(uid)) { s.destroy(); this.enemySprites.delete(uid); }
