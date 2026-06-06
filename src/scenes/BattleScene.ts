@@ -10,8 +10,10 @@ import Phaser from "phaser";
 import { BattleState, type EnemyRuntime, type TowerRuntime } from "../core/battle.ts";
 import { loadCatalog, type Catalog } from "../data/catalog.ts";
 import { defaultHeroStats, STAGE_1 } from "../data/stage.ts";
-import type { CharacterDef, Vec2 } from "../data/schema.ts";
+import type { CharacterDef, ItemSlot, Vec2 } from "../data/schema.ts";
 import { dist } from "../core/path.ts";
+import { type HeroSave } from "../core/save.ts";
+import { xpToNextLevel, totalXpForLevel } from "../core/hero.ts";
 
 /** The 7-character squad shown on the build bar (one per role + a marquee). */
 const SQUAD_IDS = [
@@ -47,6 +49,9 @@ export class BattleScene extends Phaser.Scene {
   private banner!: Phaser.GameObjects.Text;
   private info!: Phaser.GameObjects.Text;
   private buildButtons: Phaser.GameObjects.Text[] = [];
+  private heroSave: HeroSave | null = null;
+  private hudLevelText!: Phaser.GameObjects.Text;
+  private hudSkillText!: Phaser.GameObjects.Text;
 
   constructor() {
     super("BattleScene");
@@ -78,8 +83,20 @@ export class BattleScene extends Phaser.Scene {
       .text(10, 484, "", { fontSize: "11px", color: "#cfd8dc", wordWrap: { width: 940 } })
       .setDepth(10);
 
+    this.hudLevelText = this.add.text(36, 97, "", {
+      fontSize: "11px", color: "#ffffff", align: "center",
+    }).setOrigin(0.5, 0.5).setDepth(20).setVisible(false);
+
+    this.hudSkillText = this.add.text(58, 117, "", {
+      fontSize: "9px", color: "#ddaaff", align: "center",
+    }).setOrigin(0.5, 0.5).setDepth(20).setVisible(false);
+
     this.buildBuildBar();
     this.bindInput();
+  }
+
+  setHeroSave(save: HeroSave): void {
+    this.heroSave = save;
   }
 
   private drawStatic(): void {
@@ -182,6 +199,8 @@ export class BattleScene extends Phaser.Scene {
         `Wave ${Math.max(0, b.waveIndex + 1)}/${STAGE_1.waves.length}`,
     );
 
+    this.drawHeroSaveHUD(g);
+
     const sel = this.buildOrder.find((d) => d.id === this.selectedTowerId);
     if (sel) {
       this.info.setText(
@@ -243,5 +262,53 @@ export class BattleScene extends Phaser.Scene {
       32 * Phaser.Math.Clamp(h.mana / Math.max(1, h.stats.maxMana), 0, 1),
       3,
     );
+  }
+
+  private drawHeroSaveHUD(g: Phaser.GameObjects.Graphics): void {
+    if (!this.heroSave) {
+      this.hudLevelText.setVisible(false);
+      this.hudSkillText.setVisible(false);
+      return;
+    }
+
+    const save = this.heroSave;
+    const lvl = save.hero.level;
+    const xpNeeded = xpToNextLevel(lvl, save.hero.totalXp);
+    const xpGained = lvl < 100 ? save.hero.totalXp - totalXpForLevel(lvl) : 1;
+    const xpTotal = lvl < 100 ? totalXpForLevel(lvl + 1) - totalXpForLevel(lvl) : 1;
+    const xpPct = Math.min(1, xpTotal > 0 ? xpGained / xpTotal : 1);
+
+    // Suppress unused variable warning
+    void xpNeeded;
+
+    // Level badge
+    g.fillStyle(0x2244aa, 1);
+    g.fillRect(8, 88, 56, 18);
+    this.hudLevelText.setText(`Lv ${lvl}`).setVisible(true);
+
+    // XP bar
+    g.fillStyle(0x111133, 1);
+    g.fillRect(68, 88, 140, 8);
+    if (xpPct > 0) {
+      g.fillStyle(0x44aaff, 1);
+      g.fillRect(68, 88, Math.floor(140 * xpPct), 8);
+    }
+
+    // Equipped skill
+    if (save.hero.equippedSkillId) {
+      g.fillStyle(0x442266, 1);
+      g.fillRect(8, 110, 100, 14);
+      this.hudSkillText.setText(`Skill: ${save.hero.equippedSkillId}`).setVisible(true);
+    } else {
+      this.hudSkillText.setVisible(false);
+    }
+
+    // Item slot indicators (dot per slot: gold=equipped, grey=empty)
+    const SLOTS: ItemSlot[] = ["Weapon","Helmet","BodyArmor","Gloves","Boots","Amulet","Ring1","Ring2","Pet","Wing"];
+    SLOTS.forEach((slot, idx) => {
+      const equipped = save.inventory.equipped[slot];
+      g.fillStyle(equipped ? 0xffcc44 : 0x444444, 1);
+      g.fillCircle(12 + idx * 14, 130, 4);
+    });
   }
 }
