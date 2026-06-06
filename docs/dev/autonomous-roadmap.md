@@ -25,7 +25,7 @@ progresses (survives context compaction).
 - [ ] **T13** Map terrain elements (stone, sand, water, jungle, mountain, ...). Brainstorm more.
 - [ ] **T14** Free placement anywhere except obstacle tiles.
 - [ ] **T6** Larger map via zoom-out / bigger play area + camera.
-- [ ] **T3** Fancy hero/active-skill animations & effects.
+- [x] **T3** Fancy hero/active-skill animations & effects.
 - [ ] **T8** Squad management + hero active-skill selection screen.
 - [ ] **T4** Inventory UI like a real game; drag & drop items to equip.
 - [ ] **T10** +130 items with varied primary affixes.

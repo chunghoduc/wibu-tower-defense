@@ -35,8 +35,7 @@ export class FxLayer {
         this.damageNumber(e.at, Math.round(e.amount), DMG_NUM_COLOR[e.damageType], e.aoe);
         break;
       case "cast":
-        this.ring(e.at, e.radius, DMG_COLOR[e.damageType], 520);
-        this.burstStar(e.at, DMG_COLOR[e.damageType]);
+        this.skillBurst(e.at, DMG_COLOR[e.damageType], e.radius, e.skillId, e.source);
         break;
       case "splash":
         this.ring(e.at, e.radius, DMG_COLOR[e.damageType], 320);
@@ -115,14 +114,34 @@ export class FxLayer {
     this.scene.tweens.add({ targets: c, scale: radius / 6, alpha: 0, duration, ease: "Cubic.easeOut", onComplete: () => c.destroy() });
   }
 
-  private burstStar(at: Vec2, color: number): void {
-    for (let i = 0; i < 8; i++) {
-      const a = (Math.PI * 2 * i) / 8;
-      const line = this.scene.add.rectangle(at.x, at.y, 3, 14, color).setOrigin(0.5, 1).setRotation(a).setDepth(this.depth + 1);
-      this.scene.tweens.add({ targets: line, scaleY: 2.4, alpha: 0, duration: 360, ease: "Quad.easeOut", onComplete: () => line.destroy() });
+  /** A fancy layered skill cast: double shockwave + core flash + radial streaks
+   *  + the skill's VFX sprite bursting + sparkles (+ a tiny shake for hero casts). */
+  private skillBurst(at: Vec2, color: number, radius: number, skillId: string | undefined, source: "tower" | "hero"): void {
+    this.ring(at, radius, color, 520);
+    this.scene.time.delayedCall(90, () => this.ring(at, radius * 0.62, 0xffffff, 360));
+
+    const core = this.scene.add.circle(at.x, at.y, 10, 0xffffff, 0.95).setDepth(this.depth + 2);
+    this.scene.tweens.add({ targets: core, scale: 0.15, alpha: 0, duration: 280, onComplete: () => core.destroy() });
+
+    for (let i = 0; i < 12; i++) {
+      const a = (Math.PI * 2 * i) / 12;
+      const line = this.scene.add.rectangle(at.x, at.y, 3, 16, color).setOrigin(0.5, 1).setRotation(a).setDepth(this.depth + 1);
+      this.scene.tweens.add({ targets: line, scaleY: 2.8, alpha: 0, duration: 420, ease: "Quad.easeOut", onComplete: () => line.destroy() });
     }
-    const core = this.scene.add.circle(at.x, at.y, 8, 0xffffff, 0.9).setDepth(this.depth + 1);
-    this.scene.tweens.add({ targets: core, scale: 0.2, alpha: 0, duration: 300, onComplete: () => core.destroy() });
+
+    const key = skillId ? `vfx__${skillId}` : "";
+    if (key && this.scene.textures.exists(key)) {
+      const spr = this.scene.add.image(at.x, at.y, key).setDepth(this.depth + 3).setScale(0.3).setAlpha(0.95);
+      this.scene.tweens.add({ targets: spr, scale: 1.7, angle: 60, alpha: 0, duration: 460, ease: "Cubic.easeOut", onComplete: () => spr.destroy() });
+    }
+
+    for (let i = 0; i < 9; i++) {
+      const a = (Math.PI * 2 * i) / 9 + Math.random() * 0.4;
+      const p = this.scene.add.circle(at.x, at.y, 3, color).setDepth(this.depth + 2);
+      this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * (radius * 0.7), y: at.y + Math.sin(a) * (radius * 0.7), alpha: 0, scale: 0.2, duration: 460, ease: "Quad.easeOut", onComplete: () => p.destroy() });
+    }
+
+    if (source === "hero") this.scene.cameras.main.shake(120, 0.004);
   }
 
   private bolt(from: Vec2, to: Vec2, color: number): void {
