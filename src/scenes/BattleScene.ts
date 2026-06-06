@@ -111,6 +111,12 @@ export class BattleScene extends Phaser.Scene {
   private towerPanel: Phaser.GameObjects.Container | null = null;
   private towerPanelUid = -1;
   private towerPanelRefresh: (() => void) | null = null;
+  private keys?: {
+    up: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key;
+    left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key;
+    w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key;
+    s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key;
+  };
 
   constructor() {
     super("BattleScene");
@@ -176,6 +182,11 @@ export class BattleScene extends Phaser.Scene {
 
     this.buildBuildBar();
     this.bindInput();
+    const KC = Phaser.Input.Keyboard.KeyCodes;
+    this.keys = this.input.keyboard?.addKeys({
+      up: KC.UP, down: KC.DOWN, left: KC.LEFT, right: KC.RIGHT,
+      w: KC.W, a: KC.A, s: KC.S, d: KC.D,
+    }) as typeof this.keys;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.closeTowerPanel());
   }
 
@@ -352,8 +363,27 @@ export class BattleScene extends Phaser.Scene {
 
   update(_time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.05);
+    this.handleKeyboardHero();
     this.battle.tick(dt);
     this.draw();
+  }
+
+  /** WASD / arrow keys steer the hero (held = continuous movement). */
+  private handleKeyboardHero(): void {
+    const k = this.keys;
+    if (!k || this.battle.outcome !== "ongoing" || !this.battle.hero.alive) return;
+    let dx = 0, dy = 0;
+    if (k.left.isDown || k.a.isDown) dx -= 1;
+    if (k.right.isDown || k.d.isDown) dx += 1;
+    if (k.up.isDown || k.w.isDown) dy -= 1;
+    if (k.down.isDown || k.s.isDown) dy += 1;
+    if (dx === 0 && dy === 0) return;
+    const len = Math.hypot(dx, dy);
+    const h = this.battle.hero.pos;
+    this.battle.commandHero({
+      x: Phaser.Math.Clamp(h.x + (dx / len) * 60, 4, this.scale.width - 4),
+      y: Phaser.Math.Clamp(h.y + (dy / len) * 60, 4, 496),
+    });
   }
 
   private draw(): void {
