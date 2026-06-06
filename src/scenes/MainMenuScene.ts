@@ -44,6 +44,7 @@ export class MainMenuScene extends Phaser.Scene {
       { label: "✦  Summon Hall", scene: "GachaScene" },
       { label: "◈  Collection", scene: "CollectionScene" },
       { label: "🏪  Shop", scene: "ShopScene" },
+      { label: "⬡  Passive Tree", scene: "PassiveGridScene" },
     ];
 
     buttons.forEach(({ label, scene }, i) => {

@@ -58,6 +58,17 @@ export class SaveManager {
     return results;
   }
 
+  /** Unlock a passive node. Returns false if not enough skill points or node unreachable. */
+  unlockPassiveNode(nodeId: string): boolean {
+    const save = this.save;
+    if (save.hero.skillPoints <= 0) return false;
+    if (save.hero.unlockedNodes.includes(nodeId)) return false;
+    save.hero.unlockedNodes.push(nodeId);
+    save.hero.skillPoints -= 1;
+    this.persist();
+    return true;
+  }
+
   afterShopPurchase(entryId: string): PurchaseResult {
     const result = purchaseShopItem(this.save, entryId);
     if (result.success) this.persist();
