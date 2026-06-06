@@ -1,8 +1,10 @@
 /**
- * Catalog loader. Validates every content entry against the schema (fail loud)
- * and exposes lookup maps the battle simulation consumes.
+ * Catalog loader. Validates every content entry against the schema and
+ * cross-checks references (wave/summon/split enemy ids must exist), then exposes
+ * lookup maps the battle simulation consumes. Fails loud on bad content.
  */
 import {
+  SchemaError,
   validateCharacter,
   validateEnemy,
   validateStage,
@@ -12,7 +14,7 @@ import {
 } from "./schema.ts";
 import { ENEMIES } from "./enemies.ts";
 import { TOWERS } from "./towers.ts";
-import { STAGE_1 } from "./stage.ts";
+import { STAGES } from "./stage.ts";
 
 export interface Catalog {
   enemies: Map<string, EnemyDef>;
@@ -30,10 +32,27 @@ function indexById<T extends { id: string }>(items: T[], validate: (item: T) => 
   return map;
 }
 
-export function loadCatalog(): Catalog {
-  return {
-    enemies: indexById(ENEMIES, validateEnemy),
-    characters: indexById(TOWERS, validateCharacter),
-    stages: indexById([STAGE_1], validateStage),
+/** Verify every enemy id an enemy/stage references actually exists. */
+function checkReferences(enemies: Map<string, EnemyDef>, stages: Map<string, StageDef>): void {
+  const need = (id: string, where: string) => {
+    if (!enemies.has(id)) throw new SchemaError(`${where} references unknown enemy "${id}"`);
   };
+  for (const e of enemies.values()) {
+    if (e.special?.splitInto) need(e.special.splitInto.enemyId, `enemy ${e.id} splitInto`);
+    if (e.special?.summon) need(e.special.summon.enemyId, `enemy ${e.id} summon`);
+    if (e.boss?.summon) need(e.boss.summon.enemyId, `enemy ${e.id} boss.summon`);
+  }
+  for (const s of stages.values()) {
+    for (const wave of s.waves) {
+      for (const grp of wave.spawns) need(grp.enemyId, `stage ${s.id}`);
+    }
+  }
+}
+
+export function loadCatalog(): Catalog {
+  const enemies = indexById(ENEMIES, validateEnemy);
+  const characters = indexById(TOWERS, validateCharacter);
+  const stages = indexById(STAGES, validateStage);
+  checkReferences(enemies, stages);
+  return { enemies, characters, stages };
 }

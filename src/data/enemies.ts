@@ -1,10 +1,16 @@
 /**
- * Placeholder enemy catalog (Phase 1). A handful of archetypes to prove the
- * loop; the full 12-archetype roster is Phase 2 content work.
+ * Enemy catalog — the 12 design archetypes plus their spawned minions and the
+ * boss/mid-boss units. Tuned for the Normal difficulty baseline; Hard/Nightmare
+ * scale these via DIFFICULTY_SCALING.
+ *
+ * Every archetype demands a distinct answer but stays beatable multiple ways
+ * (the "no lock-and-key" rule): immunities are limited to ONE thing and never
+ * shut out the hero or True damage.
  */
 import { makeStats, type EnemyDef } from "./schema.ts";
 
 export const ENEMIES: EnemyDef[] = [
+  // --- Rushers (fast ground swarm) ---
   {
     id: "grunt",
     name: "Husk Footman",
@@ -14,7 +20,7 @@ export const ENEMIES: EnemyDef[] = [
     damageType: "Physical",
     bounty: 6,
     castleDamage: 1,
-    baseStats: makeStats({ maxHp: 60, moveSpeed: 42, atk: 8, attackSpeed: 1 }),
+    baseStats: makeStats({ maxHp: 64, moveSpeed: 44, atk: 8, attackSpeed: 1 }),
     artRef: "placeholder",
   },
   {
@@ -26,9 +32,10 @@ export const ENEMIES: EnemyDef[] = [
     damageType: "Physical",
     bounty: 5,
     castleDamage: 1,
-    baseStats: makeStats({ maxHp: 32, moveSpeed: 88, atk: 5, attackSpeed: 1.4 }),
+    baseStats: makeStats({ maxHp: 36, moveSpeed: 92, atk: 5, attackSpeed: 1.4 }),
     artRef: "placeholder",
   },
+  // --- Brute (armored tank) ---
   {
     id: "brute",
     name: "Ironhide Ogre",
@@ -38,9 +45,77 @@ export const ENEMIES: EnemyDef[] = [
     damageType: "Physical",
     bounty: 14,
     castleDamage: 3,
-    baseStats: makeStats({ maxHp: 180, armor: 60, moveSpeed: 26, atk: 16, attackSpeed: 0.7 }),
+    baseStats: makeStats({ maxHp: 210, armor: 70, moveSpeed: 26, atk: 16, attackSpeed: 0.7 }),
     artRef: "placeholder",
   },
+  // --- Bulwark (shielded; shrugs off AoE, so use single-target/chain) ---
+  {
+    id: "bulwark",
+    name: "Tower Shieldman",
+    archetype: "Bulwark",
+    flying: false,
+    immunity: "AoE",
+    damageType: "Physical",
+    bounty: 13,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 120, armor: 20, moveSpeed: 34, atk: 10, attackSpeed: 0.8 }),
+    special: { shieldHp: 130 },
+    artRef: "placeholder",
+  },
+  // --- Mender (heals allies; magic-resistant; burst it first) ---
+  {
+    id: "mender",
+    name: "Pale Acolyte",
+    archetype: "Mender",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 16,
+    castleDamage: 1,
+    baseStats: makeStats({ maxHp: 90, magicResist: 60, moveSpeed: 38, atk: 4, attackSpeed: 0.8 }),
+    special: { healAura: { radius: 95, hps: 16 } },
+    artRef: "placeholder",
+  },
+  // --- Regenerator (regrows HP; needs sustained DoT) ---
+  {
+    id: "regenerator",
+    name: "Mosshide Troll",
+    archetype: "Regenerator",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 12,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 150, moveSpeed: 34, atk: 9, attackSpeed: 0.8, hpRegen: 22 }),
+    artRef: "placeholder",
+  },
+  // --- Splitter (spawns minions on death; use splash or kill early) ---
+  {
+    id: "slime",
+    name: "Cleaving Ooze",
+    archetype: "Splitter",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 10,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 120, moveSpeed: 36, atk: 8, attackSpeed: 0.8 }),
+    special: { splitInto: { enemyId: "slimelet", count: 2 } },
+    artRef: "placeholder",
+  },
+  {
+    id: "slimelet",
+    name: "Oozeling",
+    archetype: "Splitter",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 2,
+    castleDamage: 1,
+    baseStats: makeStats({ maxHp: 30, moveSpeed: 52, atk: 4, attackSpeed: 1 }),
+    artRef: "placeholder",
+  },
+  // --- Flyers (ignore the lane, beeline the castle) ---
   {
     id: "gargoyle",
     name: "Cliff Gargoyle",
@@ -50,9 +125,125 @@ export const ENEMIES: EnemyDef[] = [
     damageType: "Physical",
     bounty: 8,
     castleDamage: 2,
-    baseStats: makeStats({ maxHp: 55, moveSpeed: 56, atk: 7, attackSpeed: 1 }),
+    baseStats: makeStats({ maxHp: 58, moveSpeed: 56, atk: 7, attackSpeed: 1 }),
     artRef: "placeholder",
   },
+  {
+    id: "stormflyer",
+    name: "Stormwing Drake",
+    archetype: "StormFlyer",
+    flying: true,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 18,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 140, moveSpeed: 44, atk: 13, attackSpeed: 0.8 }),
+    special: { attacksTowers: { range: 120 } },
+    artRef: "placeholder",
+  },
+  // --- Sapper (stops to shoot down towers) ---
+  {
+    id: "sapper",
+    name: "Demolisher",
+    archetype: "Sapper",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 14,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 95, moveSpeed: 40, atk: 24, attackSpeed: 0.8 }),
+    special: { attacksTowers: { range: 130 } },
+    artRef: "placeholder",
+  },
+  // --- Phantom (stealth; only the hero / untargeted AoE can hit it) ---
+  {
+    id: "phantom",
+    name: "Veil Stalker",
+    archetype: "Phantom",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 15,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 78, moveSpeed: 60, atk: 9, attackSpeed: 1.1 }),
+    special: { stealth: true },
+    artRef: "placeholder",
+  },
+  // --- Summoner (raises adds; kill on priority) ---
+  {
+    id: "summoner",
+    name: "Bone Conductor",
+    archetype: "Summoner",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 20,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 165, moveSpeed: 30, atk: 6, attackSpeed: 0.7 }),
+    special: { summon: { enemyId: "imp", count: 2, interval: 6 } },
+    artRef: "placeholder",
+  },
+  {
+    id: "imp",
+    name: "Risen Imp",
+    archetype: "Summoner",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 1,
+    castleDamage: 1,
+    baseStats: makeStats({ maxHp: 26, moveSpeed: 66, atk: 4, attackSpeed: 1.2 }),
+    artRef: "placeholder",
+  },
+  // --- Raider (fast tower-smasher) ---
+  {
+    id: "raider",
+    name: "Wrecking Berserker",
+    archetype: "Raider",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 15,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 100, moveSpeed: 78, atk: 28, attackSpeed: 1 }),
+    special: { attacksTowers: { range: 95 } },
+    artRef: "placeholder",
+  },
+  // --- Courier (gold pinata; kill before it reaches the castle) ---
+  {
+    id: "courier",
+    name: "Coin Runner",
+    archetype: "Courier",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 45,
+    castleDamage: 1,
+    baseStats: makeStats({ maxHp: 85, moveSpeed: 72, atk: 0, attackSpeed: 0 }),
+    artRef: "placeholder",
+  },
+  // --- Mid-boss: a teaching enrager ---
+  {
+    id: "champion",
+    name: "Pass Champion",
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 60,
+    castleDamage: 6,
+    baseStats: makeStats({
+      maxHp: 700,
+      armor: 50,
+      moveSpeed: 24,
+      atk: 30,
+      attackSpeed: 0.9,
+      tenacity: 0.4,
+    }),
+    boss: { enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.5 } },
+    artRef: "placeholder",
+  },
+  // --- Final boss: enrage + the works ---
   {
     id: "warden",
     name: "Warden of the Pass",
@@ -60,16 +251,43 @@ export const ENEMIES: EnemyDef[] = [
     flying: false,
     immunity: null,
     damageType: "Physical",
-    bounty: 120,
+    bounty: 130,
     castleDamage: 12,
     baseStats: makeStats({
-      maxHp: 1400,
-      armor: 40,
+      maxHp: 1700,
+      armor: 45,
       moveSpeed: 22,
-      atk: 42,
+      atk: 44,
       attackSpeed: 0.8,
       hpRegen: 6,
+      tenacity: 0.55,
     }),
+    boss: { enrage: { belowHpPct: 0.4, atkMult: 1.7, speedMult: 1.6 } },
+    artRef: "placeholder",
+  },
+  // --- Final boss variant: summoner + tower-disabler ---
+  {
+    id: "overlord",
+    name: "Grave Overlord",
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 160,
+    castleDamage: 14,
+    baseStats: makeStats({
+      maxHp: 2200,
+      armor: 30,
+      magicResist: 30,
+      moveSpeed: 20,
+      atk: 40,
+      attackSpeed: 0.8,
+      tenacity: 0.6,
+    }),
+    boss: {
+      summon: { enemyId: "imp", count: 3, interval: 7 },
+      towerDisable: { radius: 130, duration: 3, interval: 12 },
+    },
     artRef: "placeholder",
   },
 ];
