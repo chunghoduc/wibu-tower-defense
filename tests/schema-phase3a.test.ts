@@ -31,6 +31,10 @@ describe("WeaponType", () => {
     expect(WEAPON_TYPES).toContain("Fist");
     expect(WEAPON_TYPES).toContain("Any");
   });
+
+  it("has exactly 7 entries", () => {
+    expect(WEAPON_TYPES).toHaveLength(7);
+  });
 });
 
 describe("validateActiveSkill", () => {
@@ -57,6 +61,24 @@ describe("validateActiveSkill", () => {
   it("rejects basePower <= 0", () => {
     expect(() =>
       validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "Common", damageType: "Physical", basePower: 0, artRef: "x" })
+    ).toThrow();
+  });
+
+  it("rejects bad rarity", () => {
+    expect(() =>
+      validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "SuperRare" as any, damageType: "Physical", basePower: 10, artRef: "x" })
+    ).toThrow();
+  });
+
+  it("rejects bad damageType", () => {
+    expect(() =>
+      validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "Common", damageType: "Poison" as any, basePower: 10, artRef: "x" })
+    ).toThrow();
+  });
+
+  it("rejects bad requiresWeapon", () => {
+    expect(() =>
+      validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "Common", damageType: "Physical", basePower: 10, requiresWeapon: "Axe" as any, artRef: "x" })
     ).toThrow();
   });
 });
@@ -111,5 +133,11 @@ describe("validateItemDef", () => {
     expect(() =>
       validateItemDef({ id: "x", name: "x", slot: "Helmet", rarity: "Common", requiredLevel: 0, baseStats: {}, primaryAffix: { type: "x", baseValue: 1 }, affixPool: [], artRef: "x" })
     ).toThrow(/requiredLevel/);
+  });
+
+  it("rejects primaryAffix.baseValue of 0", () => {
+    expect(() =>
+      validateItemDef({ id: "x", name: "Sword", slot: "Weapon", weaponType: "Sword", rarity: "Common", requiredLevel: 1, baseStats: {}, primaryAffix: { type: "atk", baseValue: 0 }, affixPool: [], artRef: "x" })
+    ).toThrow(/primaryAffix/);
   });
 });

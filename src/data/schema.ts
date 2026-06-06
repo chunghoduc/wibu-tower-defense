@@ -244,7 +244,7 @@ export interface PassiveNodeDef {
   flat?: Partial<Stats>;
   /** Additive % bonuses (0.1 = +10%). */
   increased?: Partial<Stats>;
-  /** Multiplicative bonus (0.5 = ×1.5). Reserved for keystones. */
+  /** Multiplicative bonus, same fractional convention as increased (0.5 = +50% → final ×1.5). Reserved for keystones. */
   more?: Partial<Stats>;
   /** Keystone/mastery special effect identifier. */
   effectId?: string;
@@ -477,6 +477,8 @@ export function validateActiveSkill(s: ActiveSkillDef): ActiveSkillDef {
 
 export function validatePassiveNode(n: PassiveNodeDef): PassiveNodeDef {
   assert(n.id.trim().length > 0, "passiveNode: missing id");
+  assert(n.name.trim().length > 0, `passiveNode ${n.id}: missing name`);
+  assert(n.description.trim().length > 0, `passiveNode ${n.id}: missing description`);
   assert((PASSIVE_NODE_TYPES as readonly string[]).includes(n.type), `passiveNode ${n.id}: bad type`);
   assert((PASSIVE_REGIONS as readonly string[]).includes(n.region), `passiveNode ${n.id}: bad region`);
   assert(n.neighbors.length >= 1, `passiveNode ${n.id}: must have at least 1 neighbor`);
@@ -485,11 +487,13 @@ export function validatePassiveNode(n: PassiveNodeDef): PassiveNodeDef {
 
 export function validateItemDef(item: ItemDef): ItemDef {
   assert(item.id.trim().length > 0, "item: missing id");
+  assert(item.name.trim().length > 0, `item ${item.id}: missing name`);
   assert((ITEM_SLOTS as readonly string[]).includes(item.slot), `item ${item.id}: bad slot`);
   assert((RARITIES as readonly string[]).includes(item.rarity), `item ${item.id}: bad rarity`);
   assert(item.requiredLevel >= 1, `item ${item.id}: requiredLevel must be >= 1`);
   if (item.slot === "Weapon") {
     assert(item.weaponType !== undefined, `item ${item.id}: Weapon slot requires weaponType`);
+    assert((WEAPON_TYPES as readonly string[]).includes(item.weaponType!), `item ${item.id}: invalid weaponType`);
   }
   assert(item.primaryAffix.baseValue > 0, `item ${item.id}: primaryAffix.baseValue must be > 0`);
   return item;
