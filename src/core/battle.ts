@@ -272,7 +272,9 @@ export class BattleState {
       buffAsPct: 0,
       disabledTimer: 0,
     });
-    // NOTE: progress.totalTowersPlaced increment is wired in after ProgressSave is added (3c-1)
+    if (this._heroSave) {
+      this._heroSave.progress.totalTowersPlaced += 1;
+    }
     return true;
   }
 

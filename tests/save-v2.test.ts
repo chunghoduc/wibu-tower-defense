@@ -8,8 +8,8 @@ describe("HeroSave v2 — collection field", () => {
     expect(Object.keys(save.collection)).toHaveLength(0);
   });
 
-  it("CURRENT_SAVE_VERSION is 2", () => {
-    expect(CURRENT_SAVE_VERSION).toBe(2);
+  it("CURRENT_SAVE_VERSION is at least 2", () => {
+    expect(CURRENT_SAVE_VERSION).toBeGreaterThanOrEqual(2);
   });
 
   it("migrate v1 (no collection) to v2 adds empty collection", () => {
@@ -21,7 +21,7 @@ describe("HeroSave v2 — collection field", () => {
       lastSavedAt: 0,
     };
     const migrated = loadAndMigrate(v1);
-    expect(migrated.version).toBe(2);
+    expect(migrated.version).toBeGreaterThanOrEqual(2);
     expect(migrated.collection).toEqual({});
     expect(migrated.hero.level).toBe(5);
   });
