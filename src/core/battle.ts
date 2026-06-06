@@ -30,11 +30,12 @@ import { mitigatedDamage, type DamagePacket } from "./damage.ts";
 import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
-import { heroStatPipeline } from "./stats.ts";
+import { heroStatPipeline, towerStatPipeline } from "./stats.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import type { HeroSave } from "./save.ts";
+import { isTowerOwned, getTowerStars } from "./collection.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -158,6 +159,7 @@ export class BattleState {
 
   private petGoldPerSec = 0;
   private petGoldCarry = 0;
+  private _heroSave: HeroSave | undefined;
 
   private schedule: ScheduledSpawn[] = [];
   private schedulePtr = 0;
@@ -233,6 +235,7 @@ export class BattleState {
         alive: true,
       };
     }
+    this._heroSave = opts.heroSave;
   }
 
   // ---- Input -------------------------------------------------------------
@@ -248,15 +251,20 @@ export class BattleState {
     if (slotIndex < 0 || slotIndex >= this.stage.towerSlots.length) return false;
     if (this.towers.some((t) => t.slotIndex === slotIndex && t.alive)) return false;
     if (this.gold < def.cost) return false;
+    // With heroSave: only allow placement of owned towers
+    if (this._heroSave && !isTowerOwned(this._heroSave, characterId)) return false;
 
     this.gold -= def.cost;
+    const towerLevel = this._heroSave?.hero.level ?? 1;
+    const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
+    const resolvedStats = towerStatPipeline(def.baseStats, towerLevel, towerStars);
     this.towers.push({
       uid: this.nextUid++,
       def,
-      stats: { ...def.baseStats },
+      stats: resolvedStats,
       slotIndex,
       pos: { ...this.stage.towerSlots[slotIndex] },
-      hp: def.baseStats.maxHp,
+      hp: resolvedStats.maxHp,
       mana: 0,
       attackCd: 0,
       alive: true,
@@ -264,6 +272,7 @@ export class BattleState {
       buffAsPct: 0,
       disabledTimer: 0,
     });
+    // NOTE: progress.totalTowersPlaced increment is wired in after ProgressSave is added (3c-1)
     return true;
   }
 
