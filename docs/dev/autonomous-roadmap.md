@@ -20,7 +20,7 @@ progresses (survives context compaction).
 - [x] **T5** Loot drops: gold + item drop animations from killed enemies.
 - [x] **T15** Boss animations (rig the bosses / animated boss sheets).
 - [x] **T7** More bosses as famous anime homages; expand boss roster.
-- [ ] **T16** Stage select: enemy info "?" popup (full enemy list + specialties).
+- [x] **T16** Stage select: enemy info "?" popup (full enemy list + specialties).
 - [ ] **T12** Battle tower bar = character avatars; drag & drop onto field.
 - [ ] **T13** Map terrain elements (stone, sand, water, jungle, mountain, ...). Brainstorm more.
 - [ ] **T14** Free placement anywhere except obstacle tiles.
