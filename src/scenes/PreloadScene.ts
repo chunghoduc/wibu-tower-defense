@@ -1,14 +1,11 @@
 /**
- * PreloadScene — first scene in the boot order.
- *
- * Attempts to load every sprite named by the art manifest. Missing files are
- * NOT fatal: Phaser emits a load error per missing file, we swallow it, and
- * renderers fall back to placeholder shapes via hasSprite(). This lets the game
- * run with zero art today and light up automatically as PNGs are dropped into
- * /public/assets/sprites/ — no code change required.
+ * PreloadScene — first scene in boot order. Loads every pixel-art sprite sheet
+ * from the generated manifest and builds Phaser animations from each sheet's
+ * frame names. Missing files are non-fatal (loaderror swallowed); renderers fall
+ * back to placeholder shapes via hasSprite().
  */
 import Phaser from "phaser";
-import { allArtPrompts } from "../data/artPrompts.ts";
+import { SPRITE_MANIFEST, SPRITE_BY_KEY } from "../data/spriteManifest.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -16,24 +13,37 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload(): void {
-    // Swallow missing-file errors — absent art is expected until generated.
-    this.load.on("loaderror", (file: Phaser.Loader.File) => {
-      // Intentionally silent: hasSprite() will report false for this key.
-      void file;
-    });
-
-    for (const entry of allArtPrompts()) {
-      // entry.path is relative to /public; Phaser resolves it from the base URL.
-      this.load.image(entry.key, entry.path);
+    this.load.on("loaderror", (file: Phaser.Loader.File) => void file);
+    for (const e of SPRITE_MANIFEST) {
+      this.load.spritesheet(e.key, e.path, { frameWidth: e.frameWidth, frameHeight: e.frameHeight });
     }
   }
 
   create(): void {
+    for (const e of SPRITE_MANIFEST) {
+      if (!this.textures.exists(e.key) || e.frames <= 1) continue;
+      const idx = (re: RegExp) => e.names.map((n, i) => ({ n, i })).filter((x) => re.test(x.n)).map((x) => x.i);
+      const mk = (suffix: string, frames: number[], frameRate: number, repeat: number) => {
+        if (!frames.length) return;
+        const key = `${e.key}_${suffix}`;
+        if (this.anims.exists(key)) return;
+        this.anims.create({ key, frames: frames.map((f) => ({ key: e.key, frame: f })), frameRate, repeat });
+      };
+      mk("idle", idx(/idle/), 3, -1);
+      mk("walk", idx(/walk/), 6, -1);
+      mk("attack", idx(/atk|cast/), 9, 0);
+      mk("hurt", idx(/hurt/), 6, 0);
+    }
     this.scene.start("MainMenuScene");
   }
 }
 
-/** True when a generated sprite texture is loaded and usable for `key`. */
+/** True when a generated sprite texture is loaded for `key` (e.g. "tower__karu-sunfist"). */
 export function hasSprite(scene: Phaser.Scene, key: string): boolean {
   return scene.textures.exists(key);
+}
+
+/** Frame count for a sprite key (1 if static / unknown). */
+export function spriteFrames(key: string): number {
+  return SPRITE_BY_KEY.get(key)?.frames ?? 1;
 }

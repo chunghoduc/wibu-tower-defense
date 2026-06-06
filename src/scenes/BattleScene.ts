@@ -20,6 +20,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { TOWERS } from "../data/towers.ts";
 import { Rng } from "../core/rng.ts";
 import type { HeroSave } from "../core/save.ts";
+import { hasSprite } from "./PreloadScene.ts";
 
 /** Preferred squad order — one per role plus a Unique marquee. */
 const PREFERRED_SQUAD: string[] = [
@@ -100,6 +101,11 @@ export class BattleScene extends Phaser.Scene {
   private _victoryProcessed = false;
   private _menuBtn: Phaser.GameObjects.Text | null = null;
 
+  // Pixel-art sprite pools (keyed by entity uid); fall back to shapes if missing.
+  private towerSprites = new Map<number, Phaser.GameObjects.Sprite>();
+  private enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
+  private heroSprite: Phaser.GameObjects.Sprite | null = null;
+
   constructor() {
     super("BattleScene");
   }
@@ -110,6 +116,9 @@ export class BattleScene extends Phaser.Scene {
 
     this._victoryProcessed = false;
     this._menuBtn = null;
+    this.towerSprites.clear();
+    this.enemySprites.clear();
+    this.heroSprite = null;
 
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
     this.stage = (this.registry.get("selectedStage") as StageDef | undefined) ?? STAGE_1;
@@ -131,7 +140,7 @@ export class BattleScene extends Phaser.Scene {
     });
 
     this.staticGfx = this.add.graphics();
-    this.dynGfx = this.add.graphics();
+    this.dynGfx = this.add.graphics().setDepth(5); // bars/rings render above sprites (depth 2)
     this.drawStatic();
 
     this.hud = this.add.text(10, 8, "", { fontSize: "16px", color: "#ffffff" }).setDepth(10);
@@ -250,6 +259,7 @@ export class BattleScene extends Phaser.Scene {
     const g = this.dynGfx;
     g.clear();
 
+    this.manageSprites();
     for (const t of this.battle.towers) this.drawTower(g, t);
     for (const e of this.battle.enemies) this.drawEnemy(g, e);
     this.drawHero(g);
@@ -325,10 +335,65 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
+  /** Acquire/update a pooled sprite for an entity; null if no art for this key. */
+  private ensureSprite(
+    map: Map<number, Phaser.GameObjects.Sprite>,
+    uid: number,
+    key: string,
+    x: number,
+    y: number,
+    displayH: number,
+  ): Phaser.GameObjects.Sprite | null {
+    if (!hasSprite(this, key)) return null;
+    let s = map.get(uid);
+    if (!s) {
+      s = this.add.sprite(x, y, key).setOrigin(0.5, 0.78).setDepth(2);
+      s.setScale(displayH / s.height);
+      map.set(uid, s);
+      if (this.anims.exists(`${key}_idle`)) s.play(`${key}_idle`);
+    }
+    s.setPosition(x, y);
+    return s;
+  }
+
+  /** Create/update/cull pixel-art sprites for towers, enemies and the hero. */
+  private manageSprites(): void {
+    const seenT = new Set<number>();
+    for (const t of this.battle.towers) {
+      if (!t.alive) continue;
+      const s = this.ensureSprite(this.towerSprites, t.uid, `tower__${t.def.id}`, t.pos.x, t.pos.y, 50);
+      if (s) { seenT.add(t.uid); s.setAlpha(t.disabledTimer > 0 ? 0.5 : 1); }
+    }
+    for (const [uid, s] of this.towerSprites) if (!seenT.has(uid)) { s.destroy(); this.towerSprites.delete(uid); }
+
+    const seenE = new Set<number>();
+    for (const e of this.battle.enemies) {
+      const boss = e.def.archetype === "Boss";
+      const key = `${boss ? "boss" : "enemy"}__${e.def.id}`;
+      const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, boss ? 48 : 30);
+      if (s) { seenE.add(e.uid); s.setAlpha(e.stealth ? 0.45 : 1); }
+    }
+    for (const [uid, s] of this.enemySprites) if (!seenE.has(uid)) { s.destroy(); this.enemySprites.delete(uid); }
+
+    const h = this.battle.hero;
+    if (h.alive && hasSprite(this, "hero__hero")) {
+      if (!this.heroSprite) {
+        this.heroSprite = this.add.sprite(h.pos.x, h.pos.y, "hero__hero").setOrigin(0.5, 0.78).setDepth(3);
+        this.heroSprite.setScale(54 / this.heroSprite.height);
+        if (this.anims.exists("hero__hero_idle")) this.heroSprite.play("hero__hero_idle");
+      }
+      this.heroSprite.setPosition(h.pos.x, h.pos.y).setVisible(true);
+    } else if (this.heroSprite && !h.alive) {
+      this.heroSprite.setVisible(false);
+    }
+  }
+
   private drawTower(g: Phaser.GameObjects.Graphics, t: TowerRuntime): void {
     const disabled = t.disabledTimer > 0;
     const color = disabled ? 0x555555 : (ROLE_COLOR[t.def.role] ?? 0xffffff);
-    g.fillStyle(color, 1).fillRect(t.pos.x - 14, t.pos.y - 14, 28, 28);
+    if (!this.towerSprites.has(t.uid)) {
+      g.fillStyle(color, 1).fillRect(t.pos.x - 14, t.pos.y - 14, 28, 28);
+    }
     g.lineStyle(1, color, 0.25).strokeCircle(t.pos.x, t.pos.y, t.stats.range);
     if (t.stats.maxMana > 0) {
       g.fillStyle(0x42a5f5, 0.9);
@@ -350,7 +415,8 @@ export class BattleScene extends Phaser.Scene {
     const r = boss ? 16 : e.flying ? 8 : 10;
     const alpha = e.stealth ? 0.4 : 1;
     const base = e.enraged ? 0xff5252 : e.flying ? 0xce93d8 : boss ? 0xb71c1c : 0xe57373;
-    g.fillStyle(base, alpha).fillCircle(e.pos.x, e.pos.y, r);
+    if (!this.enemySprites.has(e.uid)) g.fillStyle(base, alpha).fillCircle(e.pos.x, e.pos.y, r);
+    else if (e.enraged) g.lineStyle(2, 0xff5252, 0.8).strokeCircle(e.pos.x, e.pos.y, r + 4);
     if (e.stunTimer > 0) g.lineStyle(2, 0xfff176, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
     else if (e.slowPct > 0) g.lineStyle(2, 0x4fc3f7, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
     const w = boss ? 40 : 20;
@@ -375,7 +441,7 @@ export class BattleScene extends Phaser.Scene {
   private drawHero(g: Phaser.GameObjects.Graphics): void {
     const h = this.battle.hero;
     if (!h.alive) return;
-    g.fillStyle(0xffd700, 1).fillCircle(h.pos.x, h.pos.y, 13);
+    if (!this.heroSprite) g.fillStyle(0xffd700, 1).fillCircle(h.pos.x, h.pos.y, 13);
     g.lineStyle(1, 0xffd700, 0.25).strokeCircle(h.pos.x, h.pos.y, h.stats.range);
     g.fillStyle(0x000000, 0.6).fillRect(h.pos.x - 16, h.pos.y - 24, 32, 5);
     g.fillStyle(0x66bb6a, 1).fillRect(
