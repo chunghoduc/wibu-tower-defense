@@ -27,7 +27,7 @@ progresses (survives context compaction).
 - [ ] **T6** Larger map via zoom-out / bigger play area + camera.
 - [x] **T3** Fancy hero/active-skill animations & effects.
 - [x] **T8** Squad management + hero active-skill selection screen.
-- [ ] **T4** Inventory UI like a real game; drag & drop items to equip.
+- [x] **T4** Inventory UI like a real game; drag & drop items to equip.
 - [x] **T10** +130 items with varied primary affixes.
 - [x] **T17** Hero keyboard movement (WASD/arrows).
 - [ ] **LOOP** Brainstorm + add more; playtest; polish until great.
