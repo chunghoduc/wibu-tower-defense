@@ -30,3 +30,8 @@ const game = new Phaser.Game({
 });
 
 game.registry.set("saveManager", saveManager);
+
+// Expose the game for the headless playtest harness (dev, or ?debug on a build).
+if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug")) {
+  (globalThis as unknown as { __game: typeof game }).__game = game;
+}
