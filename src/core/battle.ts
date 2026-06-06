@@ -60,6 +60,10 @@ export const HERO_BLOCK_RANGE = 28;
 export const SPLASH_RADIUS = 60;
 /** Pause between waves once the current wave is fully cleared. */
 export const INTER_WAVE_DELAY = 3;
+/** Max in-battle upgrade levels a tower can buy. */
+export const MAX_TOWER_UPGRADES = 5;
+/** Fraction of a tower's invested gold refunded on sell. */
+export const TOWER_SELL_REFUND = 0.6;
 
 export interface EnemyRuntime {
   uid: number;
@@ -101,6 +105,13 @@ export interface TowerRuntime {
   buffAtkPct: number;
   buffAsPct: number;
   disabledTimer: number;
+  /** Per-tower scaling inputs so in-battle upgrades can recompute stats. */
+  baseLevel: number;
+  stars: number;
+  /** In-battle upgrade levels purchased with gold (0..MAX_TOWER_UPGRADES). */
+  battleLevel: number;
+  /** Total gold sunk into this tower (cost + upgrades), for sell refund. */
+  goldSpent: number;
 }
 
 export interface HeroRuntime {
@@ -288,11 +299,57 @@ export class BattleState {
       buffAtkPct: 0,
       buffAsPct: 0,
       disabledTimer: 0,
+      baseLevel: towerLevel,
+      stars: towerStars,
+      battleLevel: 0,
+      goldSpent: def.cost,
     });
     if (this._heroSave) {
       this._heroSave.progress.totalTowersPlaced += 1;
     }
     return true;
+  }
+
+  /** Gold cost to upgrade a tower one battle level (escalates), or 0 if maxed/missing. */
+  upgradeCost(uid: number): number {
+    const t = this.towers.find((x) => x.uid === uid && x.alive);
+    if (!t || t.battleLevel >= MAX_TOWER_UPGRADES) return 0;
+    return Math.round(t.def.cost * 0.8 * (t.battleLevel + 1));
+  }
+
+  /** Gold refunded when selling a tower (fraction of total invested). */
+  sellValue(uid: number): number {
+    const t = this.towers.find((x) => x.uid === uid && x.alive);
+    return t ? Math.round(t.goldSpent * TOWER_SELL_REFUND) : 0;
+  }
+
+  /** Upgrade a placed tower one battle level; recompute stats, keep HP/mana fractions. */
+  upgradeTower(uid: number): boolean {
+    if (this.outcome !== "ongoing") return false;
+    const t = this.towers.find((x) => x.uid === uid && x.alive);
+    if (!t || t.battleLevel >= MAX_TOWER_UPGRADES) return false;
+    const cost = this.upgradeCost(uid);
+    if (this.gold < cost) return false;
+
+    this.gold -= cost;
+    t.goldSpent += cost;
+    t.battleLevel += 1;
+    const hpFrac = t.stats.maxHp > 0 ? t.hp / t.stats.maxHp : 1;
+    const manaFrac = t.stats.maxMana > 0 ? t.mana / t.stats.maxMana : 0;
+    t.stats = towerStatPipeline(t.def.baseStats, t.baseLevel + t.battleLevel, t.stars);
+    t.hp = t.stats.maxHp * hpFrac;
+    t.mana = t.stats.maxMana * manaFrac;
+    return true;
+  }
+
+  /** Sell a placed tower, refund gold, remove it. Returns the refund (0 if missing). */
+  sellTower(uid: number): number {
+    const i = this.towers.findIndex((x) => x.uid === uid && x.alive);
+    if (i < 0) return 0;
+    const refund = this.sellValue(uid);
+    this.gold += refund;
+    this.towers.splice(i, 1);
+    return refund;
   }
 
   // ---- Simulation --------------------------------------------------------

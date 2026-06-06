@@ -108,6 +108,8 @@ export class BattleScene extends Phaser.Scene {
   private enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
   private heroSprite: Phaser.GameObjects.Sprite | null = null;
   private fx!: FxLayer;
+  private towerPanel: Phaser.GameObjects.Container | null = null;
+  private towerPanelUid = -1;
 
   constructor() {
     super("BattleScene");
@@ -122,6 +124,8 @@ export class BattleScene extends Phaser.Scene {
     this.towerSprites.clear();
     this.enemySprites.clear();
     this.heroSprite = null;
+    this.towerPanel = null;
+    this.towerPanelUid = -1;
 
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
     this.stage = (this.registry.get("selectedStage") as StageDef | undefined) ?? STAGE_1;
@@ -235,12 +239,98 @@ export class BattleScene extends Phaser.Scene {
       if (pointer.worldY >= 500) return;
       const world: Vec2 = { x: pointer.worldX, y: pointer.worldY };
 
+      // An open tower panel: a tap inside it is for its buttons; outside closes it.
+      if (this.towerPanel) {
+        const b = this.towerPanel.getBounds();
+        if (Phaser.Geom.Rectangle.Contains(b, pointer.worldX, pointer.worldY)) return;
+        this.closeTowerPanel();
+        return;
+      }
+
+      // Tap an existing tower → open its upgrade/sell panel.
+      const tower = this.towerAt(world);
+      if (tower) { this.openTowerPanel(tower.uid); return; }
+
       const slotIndex = this.slotAt(world);
       if (slotIndex >= 0 && this.selectedTowerId) {
         if (this.battle.placeTower(this.selectedTowerId, slotIndex)) return;
       }
       this.battle.commandHero(world);
     });
+  }
+
+  /** The alive tower whose slot is under a tap, if any. */
+  private towerAt(world: Vec2): TowerRuntime | null {
+    for (const t of this.battle.towers) {
+      if (t.alive && dist(world, t.pos) <= SLOT_RADIUS) return t;
+    }
+    return null;
+  }
+
+  private closeTowerPanel(): void {
+    this.towerPanel?.destroy(true);
+    this.towerPanel = null;
+    this.towerPanelUid = -1;
+  }
+
+  /** Build the upgrade/sell panel for a placed tower. */
+  private openTowerPanel(uid: number): void {
+    this.closeTowerPanel();
+    const t = this.battle.towers.find((x) => x.uid === uid && x.alive);
+    if (!t) return;
+    this.towerPanelUid = uid;
+
+    const W = 224, H = 96;
+    let px = t.pos.x + 24, py = t.pos.y - H / 2;
+    px = Phaser.Math.Clamp(px, 6, this.scale.width - W - 6);
+    py = Phaser.Math.Clamp(py, 30, 480 - H);
+    const c = this.add.container(px, py).setDepth(40);
+
+    const g = this.add.graphics();
+    g.fillStyle(0x121622, 0.96).fillRoundedRect(0, 0, W, H, 8);
+    g.lineStyle(2, 0x3a4a6a, 1).strokeRoundedRect(0, 0, W, H, 8);
+    c.add(g);
+
+    const title = this.add.text(8, 6, "", { fontSize: "12px", color: "#ffd86a", fontStyle: "bold" });
+    const stats = this.add.text(8, 24, "", { fontSize: "10px", color: "#ccd6e6" });
+    c.add(title); c.add(stats);
+
+    const upBtn = this.add.text(8, H - 26, "", { fontSize: "11px", color: "#fff", backgroundColor: "#1565c0" })
+      .setPadding(6, 4, 6, 4).setInteractive({ useHandCursor: true });
+    const sellBtn = this.add.text(W - 8, H - 26, "", { fontSize: "11px", color: "#fff", backgroundColor: "#7a2e2e" })
+      .setOrigin(1, 0).setPadding(6, 4, 6, 4).setInteractive({ useHandCursor: true });
+    c.add(upBtn); c.add(sellBtn);
+
+    upBtn.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
+      e.stopPropagation();
+      if (this.battle.upgradeTower(uid)) this.refreshTowerPanel(title, stats, upBtn, sellBtn);
+    });
+    sellBtn.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
+      e.stopPropagation();
+      this.battle.sellTower(uid);
+      this.closeTowerPanel();
+    });
+
+    this.towerPanel = c;
+    this.refreshTowerPanel(title, stats, upBtn, sellBtn);
+  }
+
+  private refreshTowerPanel(
+    title: Phaser.GameObjects.Text, stats: Phaser.GameObjects.Text,
+    upBtn: Phaser.GameObjects.Text, sellBtn: Phaser.GameObjects.Text,
+  ): void {
+    const t = this.battle.towers.find((x) => x.uid === this.towerPanelUid && x.alive);
+    if (!t) { this.closeTowerPanel(); return; }
+    title.setText(`${t.def.name}  Lv${t.baseLevel}+${t.battleLevel}`);
+    stats.setText(`ATK ${Math.round(t.stats.atk)}   HP ${Math.round(t.stats.maxHp)}   RNG ${Math.round(t.stats.range)}`);
+    const cost = this.battle.upgradeCost(t.uid);
+    if (cost === 0) {
+      upBtn.setText("MAX").setBackgroundColor("#444").setAlpha(0.7);
+    } else {
+      upBtn.setText(`⬆ Upgrade (${cost}g)`).setAlpha(this.battle.gold >= cost ? 1 : 0.5)
+        .setBackgroundColor(this.battle.gold >= cost ? "#1565c0" : "#444");
+    }
+    sellBtn.setText(`✕ Sell +${this.battle.sellValue(t.uid)}g`);
   }
 
   private slotAt(world: Vec2): number {
@@ -262,6 +352,11 @@ export class BattleScene extends Phaser.Scene {
   private draw(): void {
     const g = this.dynGfx;
     g.clear();
+
+    // Close the tower panel if its tower is gone (sold / destroyed).
+    if (this.towerPanel && !this.battle.towers.some((t) => t.uid === this.towerPanelUid && t.alive)) {
+      this.closeTowerPanel();
+    }
 
     this.manageSprites();
     for (const ev of this.battle.fx) this.playFx(ev);
