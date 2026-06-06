@@ -2,8 +2,11 @@ import { Rng } from "../core/rng.ts";
 import {
   type ItemDef,
   type ItemInstance,
+  type ItemSlot,
+  type Rarity,
   type RolledAffix,
   type Stats,
+  type WeaponType,
   validateItemDef,
 } from "./schema.ts";
 
@@ -118,6 +121,94 @@ export const ITEM_CATALOG: ItemDef[] = [
       wingPassive: "tempest-gale",
       artRef: "placeholder" }),
 ];
+
+// ---------------------------------------------------------------------------
+// Procedurally generated item lines (T10): 26 themed lines × 5 rarities = 130
+// extra items, spanning every slot/weapon type with varied PRIMARY affixes.
+// ---------------------------------------------------------------------------
+interface ItemLine {
+  id: string;
+  base: string;
+  slot: ItemSlot;
+  weaponType?: WeaponType;
+  primary: string;       // primary affix type (a stat label)
+  primaryBase: number;   // primary affix base value at Common tier
+  stats: Partial<Stats>; // base stats at Common tier
+  affixPool: string[];
+  pet?: boolean;
+}
+
+const RARITY_TIERS: { rarity: Rarity; lvl: number; statMult: number; primMult: number; prefix: string }[] = [
+  { rarity: "Common", lvl: 1, statMult: 1, primMult: 1, prefix: "Worn" },
+  { rarity: "Magic", lvl: 10, statMult: 1.35, primMult: 1.5, prefix: "Fine" },
+  { rarity: "Rare", lvl: 22, statMult: 1.8, primMult: 2.1, prefix: "Masterwork" },
+  { rarity: "Legendary", lvl: 40, statMult: 2.4, primMult: 2.9, prefix: "Heroic" },
+  { rarity: "Unique", lvl: 60, statMult: 3.0, primMult: 3.7, prefix: "Mythic" },
+];
+
+const ITEM_LINES: ItemLine[] = [
+  // Weapons (one per weapon type → distinct primary affixes)
+  { id: "warblade", base: "Warblade", slot: "Weapon", weaponType: "Sword", primary: "physicalDamage", primaryBase: 0.08, stats: { atk: 16 }, affixPool: ["critRate", "armorPen", "atk"] },
+  { id: "longbow", base: "Longbow", slot: "Weapon", weaponType: "Bow", primary: "attackSpeed", primaryBase: 0.12, stats: { atk: 13, attackSpeed: 0.2 }, affixPool: ["critRate", "critDamage", "range"] },
+  { id: "wizard-staff", base: "Wizard Staff", slot: "Weapon", weaponType: "Staff", primary: "magicDamage", primaryBase: 0.14, stats: { atk: 11, skillPower: 0.2, maxMana: 14 }, affixPool: ["skillPower", "magicPen", "manaRegen"] },
+  { id: "hand-cannon", base: "Hand Cannon", slot: "Weapon", weaponType: "Gun", primary: "armorPen", primaryBase: 0.12, stats: { atk: 18, armorPen: 0.1 }, affixPool: ["critRate", "critDamage", "attackSpeed"] },
+  { id: "grimoire", base: "Grimoire", slot: "Weapon", weaponType: "Tome", primary: "skillPower", primaryBase: 0.16, stats: { skillPower: 0.18, maxMana: 16 }, affixPool: ["skillPower", "magicPen", "maxMana"] },
+  { id: "war-fists", base: "War Fists", slot: "Weapon", weaponType: "Fist", primary: "critRate", primaryBase: 0.05, stats: { atk: 12, critRate: 0.04 }, affixPool: ["critDamage", "atk", "attackSpeed"] },
+  // Helmets
+  { id: "warhelm", base: "Warhelm", slot: "Helmet", primary: "maxHp", primaryBase: 0.07, stats: { maxHp: 70, armor: 5 }, affixPool: ["armor", "magicResist", "hpRegen"] },
+  { id: "mage-cowl", base: "Mage Cowl", slot: "Helmet", primary: "skillPower", primaryBase: 0.08, stats: { maxMana: 24, skillPower: 0.06 }, affixPool: ["maxMana", "manaRegen", "magicResist"] },
+  // Body armor
+  { id: "platemail", base: "Platemail", slot: "BodyArmor", primary: "armor", primaryBase: 0.09, stats: { armor: 14, maxHp: 90 }, affixPool: ["maxHp", "magicResist", "damageReduction"] },
+  { id: "battle-robe", base: "Battle Robe", slot: "BodyArmor", primary: "magicResist", primaryBase: 0.08, stats: { magicResist: 12, skillPower: 0.06, maxHp: 60 }, affixPool: ["skillPower", "maxMana", "magicResist"] },
+  { id: "brigandine", base: "Brigandine", slot: "BodyArmor", primary: "maxHp", primaryBase: 0.08, stats: { maxHp: 110, armor: 8 }, affixPool: ["maxHp", "armor", "tenacity"] },
+  // Gloves
+  { id: "battle-gloves", base: "Battle Gloves", slot: "Gloves", primary: "critDamage", primaryBase: 0.12, stats: { critDamage: 0.1, atk: 6 }, affixPool: ["critRate", "atk", "armorPen"] },
+  { id: "swift-gloves", base: "Swift Gloves", slot: "Gloves", primary: "attackSpeed", primaryBase: 0.08, stats: { attackSpeed: 0.08 }, affixPool: ["critRate", "atk"] },
+  { id: "assassin-mitts", base: "Assassin Mitts", slot: "Gloves", primary: "critRate", primaryBase: 0.05, stats: { critRate: 0.05, critDamage: 0.08 }, affixPool: ["critDamage", "armorPen", "attackSpeed"] },
+  // Boots
+  { id: "striders", base: "Striders", slot: "Boots", primary: "moveSpeed", primaryBase: 0.1, stats: { moveSpeed: 24 }, affixPool: ["moveSpeed", "tenacity", "armor"] },
+  { id: "war-boots", base: "War Boots", slot: "Boots", primary: "moveSpeed", primaryBase: 0.08, stats: { moveSpeed: 18, armor: 6 }, affixPool: ["armor", "maxHp", "tenacity"] },
+  // Amulets
+  { id: "mana-talisman", base: "Mana Talisman", slot: "Amulet", primary: "maxMana", primaryBase: 0.1, stats: { maxMana: 30, manaRegen: 2 }, affixPool: ["manaRegen", "skillPower", "manaOnHit"] },
+  { id: "focus-gem", base: "Focus Gem", slot: "Amulet", primary: "skillPower", primaryBase: 0.1, stats: { skillPower: 0.1, maxMana: 12 }, affixPool: ["skillPower", "magicPen", "maxMana"] },
+  { id: "pierce-pendant", base: "Pierce Pendant", slot: "Amulet", primary: "magicPen", primaryBase: 0.08, stats: { magicPen: 0.08, skillPower: 0.06 }, affixPool: ["magicPen", "skillPower", "critRate"] },
+  // Rings (Ring1 slot — varied unusual primaries)
+  { id: "blood-ring", base: "Blood Ring", slot: "Ring1", primary: "omnivamp", primaryBase: 0.04, stats: { omnivamp: 0.03, atk: 5 }, affixPool: ["omnivamp", "atk", "critRate"] },
+  { id: "fortune-ring", base: "Fortune Ring", slot: "Ring1", primary: "goldFind", primaryBase: 0.08, stats: { goldFind: 0.06 }, affixPool: ["goldFind", "manaOnKill"] },
+  { id: "precision-ring", base: "Precision Ring", slot: "Ring2", primary: "critRate", primaryBase: 0.05, stats: { critRate: 0.04, critDamage: 0.06 }, affixPool: ["critRate", "critDamage", "armorPen"] },
+  { id: "vital-ring", base: "Vital Ring", slot: "Ring2", primary: "hpRegen", primaryBase: 0.1, stats: { hpRegen: 6, maxHp: 40 }, affixPool: ["hpRegen", "maxHp", "tenacity"] },
+  // Pets
+  { id: "coin-pet", base: "Coin Sprite", slot: "Pet", primary: "goldFind", primaryBase: 0.1, stats: { goldFind: 0.08 }, affixPool: ["goldFind"], pet: true },
+  { id: "fortune-pet", base: "Fortune Beast", slot: "Pet", primary: "goldFind", primaryBase: 0.12, stats: { goldFind: 0.12, maxHp: 30 }, affixPool: ["goldFind", "hpRegen"], pet: true },
+  // Wings
+  { id: "skywings", base: "Skywings", slot: "Wing", primary: "moveSpeed", primaryBase: 0.14, stats: { moveSpeed: 26, tenacity: 0.08 }, affixPool: ["moveSpeed", "tenacity", "attackSpeed"] },
+];
+
+const r2 = (n: number) => Math.round(n * 1000) / 1000;
+const generatedItems: ItemDef[] = [];
+for (const line of ITEM_LINES) {
+  for (const tier of RARITY_TIERS) {
+    const stats: Partial<Stats> = {};
+    for (const [k, v] of Object.entries(line.stats) as [keyof Stats, number][]) {
+      const scaled = v * tier.statMult;
+      stats[k] = v >= 1 ? Math.round(scaled) : r2(scaled);
+    }
+    generatedItems.push(i({
+      id: `${tier.prefix.toLowerCase()}-${line.id}`,
+      name: `${tier.prefix} ${line.base}`,
+      slot: line.slot,
+      ...(line.weaponType ? { weaponType: line.weaponType } : {}),
+      rarity: tier.rarity,
+      requiredLevel: tier.lvl,
+      baseStats: stats,
+      primaryAffix: { type: line.primary, baseValue: r2(line.primaryBase * tier.primMult) },
+      affixPool: line.affixPool,
+      ...(line.pet ? { petUtility: { goldPerSec: r2(0.4 * tier.statMult), goldFind: r2(0.04 * tier.statMult) } } : {}),
+      artRef: "placeholder",
+    }));
+  }
+}
+ITEM_CATALOG.push(...generatedItems);
 
 export const ITEM_CATALOG_MAP = new Map<string, ItemDef>(
   ITEM_CATALOG.map((i) => [i.id, i])
