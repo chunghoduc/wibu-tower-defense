@@ -48,6 +48,7 @@ export type FxEvent =
   | { type: "attack"; uid: number; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero" }
   | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
   | { type: "death"; at: Vec2; boss: boolean; bounty: number }
+  | { type: "enemyAttack"; uid: number; at: Vec2; targetAt: Vec2; target: "hero" | "tower" }
   | { type: "cast"; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
@@ -559,6 +560,7 @@ export class BattleState {
       armorPen: attacker.stats.armorPen,
       magicPen: attacker.stats.magicPen,
     };
+    this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: this.hero.pos.x, y: this.hero.pos.y }, target: "hero" });
     this.hero.hp -= mitigatedDamage(packet, this.hero.stats);
     if (this.hero.hp <= 0) this.hero.alive = false;
   }
@@ -570,6 +572,7 @@ export class BattleState {
       armorPen: attacker.stats.armorPen,
       magicPen: attacker.stats.magicPen,
     };
+    this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: tower.pos.x, y: tower.pos.y }, target: "tower" });
     tower.hp -= mitigatedDamage(packet, tower.stats);
     if (tower.hp <= 0) tower.alive = false;
   }

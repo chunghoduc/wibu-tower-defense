@@ -48,7 +48,20 @@ export class FxLayer {
       case "loot":
         this.coinPop(e.at, e.gold);
         break;
+      case "enemyAttack":
+        this.lunge(e.at, e.targetAt);
+        break;
     }
+  }
+
+  /** A quick enemy strike: a streak toward the target + an impact at the target. */
+  private lunge(from: Vec2, to: Vec2): void {
+    const ang = Math.atan2(to.y - from.y, to.x - from.x);
+    const sx = from.x + Math.cos(ang) * 8, sy = from.y + Math.sin(ang) * 8;
+    const streak = this.scene.add.rectangle(sx, sy, 12, 3, 0xff6a5a).setRotation(ang).setOrigin(0, 0.5).setDepth(this.depth);
+    this.scene.tweens.add({ targets: streak, x: to.x - Math.cos(ang) * 8, y: to.y - Math.sin(ang) * 8, alpha: 0, duration: 160, ease: "Quad.easeIn", onComplete: () => streak.destroy() });
+    const impact = this.scene.add.circle(to.x, to.y, 6, 0xff8a5a, 0.8).setDepth(this.depth + 1);
+    this.scene.tweens.add({ targets: impact, scale: 1.8, alpha: 0, duration: 200, onComplete: () => impact.destroy() });
   }
 
   // ---- primitives ----------------------------------------------------------

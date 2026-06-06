@@ -12,10 +12,10 @@ progresses (survives context compaction).
 - Regenerate art via `npx vite-node scripts/svgart/gen.mjs` when sprites change.
 
 ## Task checklist
-- [ ] **F0** Foundation: dev-only `window.__game`, reusable playtest harness, effects/anim helpers.
-- [ ] **T9** Starter crystals for ≥50 rolls (quick).
-- [ ] **T1** Combat feedback: projectiles for ranged towers; melee attack animation + impact effects; tower-skill effects.
-- [ ] **T11** Enemy feedback: hit flash, attack tell, death effect.
+- [x] **F0** Foundation: dev-only `window.__game`, reusable playtest harness, effects/anim helpers.
+- [x] **T9** Starter crystals for ≥50 rolls (quick).
+- [x] **T1** Combat feedback: projectiles for ranged towers; melee attack animation + impact effects; tower-skill effects.
+- [x] **T11** Enemy feedback: hit flash, attack tell, death effect.
 - [ ] **T2** Tower interaction: click tower → upgrade / sell panel.
 - [ ] **T5** Loot drops: gold + item drop animations from killed enemies.
 - [ ] **T15** Boss animations (rig the bosses / animated boss sheets).

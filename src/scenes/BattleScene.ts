@@ -348,8 +348,21 @@ export class BattleScene extends Phaser.Scene {
       this.playAttack(s);
     } else if (ev.type === "hit") {
       const e = this.enemySprites.get(ev.uid);
-      if (e) this.flash(e);
+      if (e) this.flash(e, 0xffffff);
+    } else if (ev.type === "enemyAttack") {
+      const victim = ev.target === "hero" ? this.heroSprite : this.towerNear(ev.targetAt);
+      if (victim) this.flash(victim, 0xff4444);
     }
+  }
+
+  /** Tower sprite nearest a position (towers are static, so this is exact). */
+  private towerNear(at: { x: number; y: number }): Phaser.GameObjects.Sprite | null {
+    let best: Phaser.GameObjects.Sprite | null = null, bd = 12 * 12;
+    for (const s of this.towerSprites.values()) {
+      const dx = s.x - at.x, dy = s.y - at.y, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = s; }
+    }
+    return best;
   }
 
   /** Play a sprite's attack animation once, then return to idle. Guards against culling. */
@@ -365,13 +378,13 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
-  /** White hit-flash on an enemy sprite. Re-flashing resets the timer; guarded against culling. */
-  private flash(s: Phaser.GameObjects.Sprite): void {
+  /** Brief tint-flash on a sprite. Re-flashing resets the timer; guarded against culling. */
+  private flash(s: Phaser.GameObjects.Sprite, color: number): void {
     if (!s.active) return;
     const prev = s.getData("flashTimer") as Phaser.Time.TimerEvent | undefined;
     prev?.remove();
-    s.setTintFill(0xffffff);
-    s.setData("flashTimer", this.time.delayedCall(70, () => { if (s.active) s.clearTint(); }));
+    s.setTintFill(color);
+    s.setData("flashTimer", this.time.delayedCall(80, () => { if (s.active) s.clearTint(); }));
   }
 
   /** Acquire/update a pooled sprite for an entity; null if no art for this key. */
