@@ -111,6 +111,8 @@ export class BattleScene extends Phaser.Scene {
   private info!: Phaser.GameObjects.Text;
   private avatarTiles: Phaser.GameObjects.Container[] = [];
   private placeGhost: Phaser.GameObjects.Container | null = null;
+  private gameSpeed = 1;
+  private speedBtn!: Phaser.GameObjects.Text;
   private hudLevelText!: Phaser.GameObjects.Text;
   private hudSkillText!: Phaser.GameObjects.Text;
 
@@ -185,7 +187,12 @@ export class BattleScene extends Phaser.Scene {
     this.info = this.add.text(10, 484, "", { fontSize: "11px", color: "#cfd8dc", wordWrap: { width: 940 } }).setDepth(10);
     this.hudLevelText = this.add.text(36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
     this.hudSkillText = this.add.text(58, 117, "", { fontSize: "9px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
-    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText]);
+    this.gameSpeed = 1;
+    this.speedBtn = this.add.text(this.scale.width - 14, 38, "", { fontSize: "14px", color: "#fff", backgroundColor: "#243a5a" })
+      .setOrigin(1, 0).setPadding(10, 5, 10, 5).setDepth(12).setInteractive({ useHandCursor: true });
+    this.speedBtn.on("pointerdown", () => { this.gameSpeed = this.gameSpeed === 0 ? 1 : this.gameSpeed >= 3 ? 0 : this.gameSpeed + 1; this.updateSpeedBtn(); });
+    this.updateSpeedBtn();
+    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn]);
 
     this.buildBuildBar();
     this.setupPlacementDrag(); // register drag handlers once (tiles rebuild without re-registering)
@@ -312,9 +319,12 @@ export class BattleScene extends Phaser.Scene {
     this.placeGhost.setPosition(wp.x, wp.y);
     const def = this.buildOrder.find((d) => d.id === towerId);
     const ok = pointer.y < 500 && this.battle.canPlaceAt({ x: wp.x, y: wp.y }) && !!def && this.battle.gold >= def.cost;
+    const range = def?.baseStats.range ?? 130;
     const ring = this.placeGhost.getData("ring") as Phaser.GameObjects.Graphics;
-    ring.clear().lineStyle(2, ok ? 0x66ff88 : 0xff5a5a, 0.95).strokeCircle(0, 0, 18);
-    ring.fillStyle(ok ? 0x66ff88 : 0xff5a5a, 0.12).fillCircle(0, 0, 18);
+    ring.clear();
+    ring.lineStyle(1.5, ok ? 0x66ff88 : 0xff5a5a, 0.4).strokeCircle(0, 0, range);   // coverage preview
+    ring.fillStyle(ok ? 0x66ff88 : 0xff5a5a, 0.06).fillCircle(0, 0, range);
+    ring.lineStyle(2, ok ? 0x66ff88 : 0xff5a5a, 0.95).strokeCircle(0, 0, 16);        // footprint
   }
 
   private clearGhost(): void {
@@ -428,8 +438,13 @@ export class BattleScene extends Phaser.Scene {
   update(_time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.05);
     this.handleKeyboardHero();
-    this.battle.tick(dt);
+    for (let i = 0; i < this.gameSpeed; i++) this.battle.tick(dt); // 0 = paused, 2/3 = fast-forward
     this.draw();
+  }
+
+  private updateSpeedBtn(): void {
+    const label = this.gameSpeed === 0 ? "⏸ Paused" : `▶ ${this.gameSpeed}×`;
+    this.speedBtn.setText(label).setBackgroundColor(this.gameSpeed === 0 ? "#5a3a2a" : "#243a5a");
   }
 
   /** WASD / arrow keys steer the hero (held = continuous movement). */
