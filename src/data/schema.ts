@@ -1,0 +1,285 @@
+/**
+ * Canonical data schemas — the backbone every system reads.
+ *
+ * Content (characters/towers, items, enemies, stages) is plain data that
+ * conforms to these types. Validators reject malformed entries at load time so
+ * a bad catalog fails loud in development instead of corrupting a battle.
+ *
+ * This is Phase 1: the schemas are complete enough to describe the full game
+ * (so they don't churn later), but the catalogs that fill them in are minimal
+ * placeholders.
+ */
+
+// ---------------------------------------------------------------------------
+// Categorical attributes
+// ---------------------------------------------------------------------------
+
+export const DAMAGE_TYPES = ["Physical", "Magic", "True"] as const;
+export type DamageType = (typeof DAMAGE_TYPES)[number];
+
+export const TARGET_TYPES = ["Ground", "Air", "Both"] as const;
+export type TargetType = (typeof TARGET_TYPES)[number];
+
+export const TOWER_ROLES = [
+  "damage",
+  "splash",
+  "chain",
+  "dot",
+  "support",
+  "debuff",
+  "economy",
+] as const;
+export type TowerRole = (typeof TOWER_ROLES)[number];
+
+export const RARITIES = ["Common", "Magic", "Rare", "Legendary", "Unique"] as const;
+export type Rarity = (typeof RARITIES)[number];
+
+/** An enemy may be immune to at most ONE of these (the "no lock-and-key" rule). */
+export const IMMUNITIES = ["Physical", "Magic", "CC", "AoE"] as const;
+export type Immunity = (typeof IMMUNITIES)[number];
+
+export const ENEMY_ARCHETYPES = [
+  "Rusher",
+  "Brute",
+  "Bulwark",
+  "Mender",
+  "Regenerator",
+  "Splitter",
+  "Gargoyle",
+  "StormFlyer",
+  "Sapper",
+  "Phantom",
+  "Summoner",
+  "Raider",
+  "Courier",
+  "Boss",
+] as const;
+export type EnemyArchetype = (typeof ENEMY_ARCHETYPES)[number];
+
+export const ITEM_SLOTS = [
+  "Weapon",
+  "Helmet",
+  "BodyArmor",
+  "Gloves",
+  "Boots",
+  "Amulet",
+  "Ring1",
+  "Ring2",
+] as const;
+export type ItemSlot = (typeof ITEM_SLOTS)[number];
+
+// ---------------------------------------------------------------------------
+// The canonical 24-stat system
+// ---------------------------------------------------------------------------
+
+/**
+ * Every combat entity (hero, tower, enemy) is described by a subset of these.
+ * Percentage-style stats (critRate, armorPen, damageReduction, omnivamp,
+ * tenacity, goldFind) are expressed as fractions in [0, 1].
+ */
+export interface Stats {
+  // Offense
+  atk: number;
+  attackSpeed: number; // attacks per second
+  critRate: number; // 0..1
+  critDamage: number; // crit multiplier, e.g. 1.5 = +50%
+  range: number; // attack reach in world units
+  armorPen: number; // 0..1 fraction of target armor ignored
+  magicPen: number; // 0..1 fraction of target magic resist ignored
+  skillPower: number; // amplifies active/ability damage (1.0 = baseline)
+
+  // Defense / survival
+  maxHp: number;
+  hpRegen: number; // hp per second
+  armor: number; // reduces Physical damage
+  magicResist: number; // reduces Magic damage
+  damageReduction: number; // 0..1 flat reduction applied to ALL damage incl. True
+  tenacity: number; // 0..1 reduction of crowd-control duration
+
+  // Resource (hero + towers)
+  maxMana: number;
+  manaRegen: number; // mana per second
+  manaOnHit: number;
+  manaOnKill: number;
+  manaCostReduction: number; // 0..1
+
+  // Sustain
+  omnivamp: number; // 0..1 heal as fraction of damage dealt
+
+  // Utility
+  moveSpeed: number; // world units per second (static towers = 0)
+  goldFind: number; // 0..1 bonus gold multiplier
+}
+
+/** A baseline Stats with everything zeroed — entities override what they use. */
+export function defaultStats(): Stats {
+  return {
+    atk: 0,
+    attackSpeed: 0,
+    critRate: 0,
+    critDamage: 1.5,
+    range: 0,
+    armorPen: 0,
+    magicPen: 0,
+    skillPower: 1,
+    maxHp: 0,
+    hpRegen: 0,
+    armor: 0,
+    magicResist: 0,
+    damageReduction: 0,
+    tenacity: 0,
+    maxMana: 0,
+    manaRegen: 0,
+    manaOnHit: 0,
+    manaOnKill: 0,
+    manaCostReduction: 0,
+    omnivamp: 0,
+    moveSpeed: 0,
+    goldFind: 0,
+  };
+}
+
+/** Build a Stats from partial overrides on top of the zeroed baseline. */
+export function makeStats(overrides: Partial<Stats>): Stats {
+  return { ...defaultStats(), ...overrides };
+}
+
+// ---------------------------------------------------------------------------
+// Content definitions
+// ---------------------------------------------------------------------------
+
+/** A collectible character — deployed in battle as a static tower. */
+export interface CharacterDef {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  role: TowerRole;
+  damageType: DamageType;
+  target: TargetType;
+  /** Cost in in-battle gold to place this tower. */
+  cost: number;
+  /** 1–3 predefined passive skill ids. */
+  passives: string[];
+  /** Single active skill id, auto-casts when the tower's mana bar is full. */
+  active: string | null;
+  baseStats: Stats;
+  /** Sprite/asset reference (placeholder in Phase 1). */
+  artRef: string;
+}
+
+/** A piece of hero equipment (schema only in Phase 1; not yet placed in battle). */
+export interface ItemDef {
+  id: string;
+  name: string;
+  slot: ItemSlot;
+  rarity: Rarity;
+  /** The built-in affix every item of this type always carries. */
+  primaryAffix: string;
+  /** Affixes this item TYPE may roll (rarity gates how many + their quality). */
+  affixPool: string[];
+  baseStats: Stats;
+  artRef: string;
+}
+
+/** An enemy archetype definition. */
+export interface EnemyDef {
+  id: string;
+  name: string;
+  archetype: EnemyArchetype;
+  /** Flying enemies ignore the lane and beeline the castle. */
+  flying: boolean;
+  /** The single thing this enemy is immune to, if any. */
+  immunity: Immunity | null;
+  /** Damage type this enemy deals when attacking towers/hero. */
+  damageType: DamageType;
+  /** Gold awarded to the killer's owner on death. */
+  bounty: number;
+  /** Damage dealt to the castle if this enemy reaches it. */
+  castleDamage: number;
+  baseStats: Stats;
+  artRef: string;
+}
+
+/** A point on the map in world coordinates. */
+export interface Vec2 {
+  x: number;
+  y: number;
+}
+
+/** A single spawn instruction within a wave. */
+export interface SpawnEntry {
+  enemyId: string;
+  count: number;
+  /** Seconds between each spawn in this group. */
+  interval: number;
+  /** Seconds to wait (after the wave starts) before this group begins. */
+  delay: number;
+}
+
+export interface WaveDef {
+  spawns: SpawnEntry[];
+}
+
+export interface StageDef {
+  id: string;
+  name: string;
+  /** Lane waypoints; the last point is the castle. */
+  path: Vec2[];
+  /** Where flying enemies spawn (they beeline the castle from here). */
+  airSpawns: Vec2[];
+  castleHp: number;
+  startingGold: number;
+  /** Discrete tower placement slots (Phase 1 uses fixed slots). */
+  towerSlots: Vec2[];
+  waves: WaveDef[];
+}
+
+// ---------------------------------------------------------------------------
+// Validators — fail loud on malformed content
+// ---------------------------------------------------------------------------
+
+export class SchemaError extends Error {}
+
+function assert(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new SchemaError(message);
+}
+
+export function validateCharacter(c: CharacterDef): CharacterDef {
+  assert(c.id, "character: missing id");
+  assert((RARITIES as readonly string[]).includes(c.rarity), `character ${c.id}: bad rarity`);
+  assert((TOWER_ROLES as readonly string[]).includes(c.role), `character ${c.id}: bad role`);
+  assert(
+    (DAMAGE_TYPES as readonly string[]).includes(c.damageType),
+    `character ${c.id}: bad damageType`,
+  );
+  assert((TARGET_TYPES as readonly string[]).includes(c.target), `character ${c.id}: bad target`);
+  assert(c.cost >= 0, `character ${c.id}: cost must be >= 0`);
+  assert(
+    c.passives.length >= 1 && c.passives.length <= 3,
+    `character ${c.id}: must have 1-3 passives`,
+  );
+  return c;
+}
+
+export function validateEnemy(e: EnemyDef): EnemyDef {
+  assert(e.id, "enemy: missing id");
+  assert(
+    (ENEMY_ARCHETYPES as readonly string[]).includes(e.archetype),
+    `enemy ${e.id}: bad archetype`,
+  );
+  assert(
+    e.immunity === null || (IMMUNITIES as readonly string[]).includes(e.immunity),
+    `enemy ${e.id}: bad immunity (must be one of ${IMMUNITIES.join(", ")} or null)`,
+  );
+  assert(e.baseStats.maxHp > 0, `enemy ${e.id}: maxHp must be > 0`);
+  assert(e.bounty >= 0, `enemy ${e.id}: bounty must be >= 0`);
+  return e;
+}
+
+export function validateStage(s: StageDef): StageDef {
+  assert(s.id, "stage: missing id");
+  assert(s.path.length >= 2, `stage ${s.id}: path needs >= 2 waypoints`);
+  assert(s.castleHp > 0, `stage ${s.id}: castleHp must be > 0`);
+  assert(s.waves.length >= 1, `stage ${s.id}: needs >= 1 wave`);
+  return s;
+}

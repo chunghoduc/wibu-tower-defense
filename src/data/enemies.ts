@@ -1,0 +1,75 @@
+/**
+ * Placeholder enemy catalog (Phase 1). A handful of archetypes to prove the
+ * loop; the full 12-archetype roster is Phase 2 content work.
+ */
+import { makeStats, type EnemyDef } from "./schema.ts";
+
+export const ENEMIES: EnemyDef[] = [
+  {
+    id: "grunt",
+    name: "Husk Footman",
+    archetype: "Rusher",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 6,
+    castleDamage: 1,
+    baseStats: makeStats({ maxHp: 60, moveSpeed: 42, atk: 8, attackSpeed: 1 }),
+    artRef: "placeholder",
+  },
+  {
+    id: "runner",
+    name: "Scrabbler",
+    archetype: "Rusher",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 5,
+    castleDamage: 1,
+    baseStats: makeStats({ maxHp: 32, moveSpeed: 88, atk: 5, attackSpeed: 1.4 }),
+    artRef: "placeholder",
+  },
+  {
+    id: "brute",
+    name: "Ironhide Ogre",
+    archetype: "Brute",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 14,
+    castleDamage: 3,
+    baseStats: makeStats({ maxHp: 180, armor: 60, moveSpeed: 26, atk: 16, attackSpeed: 0.7 }),
+    artRef: "placeholder",
+  },
+  {
+    id: "gargoyle",
+    name: "Cliff Gargoyle",
+    archetype: "Gargoyle",
+    flying: true,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 8,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 55, moveSpeed: 56, atk: 7, attackSpeed: 1 }),
+    artRef: "placeholder",
+  },
+  {
+    id: "warden",
+    name: "Warden of the Pass",
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 120,
+    castleDamage: 12,
+    baseStats: makeStats({
+      maxHp: 1400,
+      armor: 40,
+      moveSpeed: 22,
+      atk: 42,
+      attackSpeed: 0.8,
+      hpRegen: 6,
+    }),
+    artRef: "placeholder",
+  },
+];
