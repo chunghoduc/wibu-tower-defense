@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { BattleState } from "../src/core/battle.ts";
 import {
   makeStats,
+  type AttackDamageType,
   type CharacterDef,
   type EnemyDef,
   type Immunity,
-  type DamageType,
   type StageDef,
   type WaveDef,
 } from "../src/data/schema.ts";
@@ -28,7 +28,7 @@ function enemy(over: Partial<EnemyDef> = {}): EnemyDef {
   };
 }
 
-function turret(damageType: DamageType = "Physical", critRate = 0): CharacterDef {
+function turret(damageType: AttackDamageType = "Physical", critRate = 0): CharacterDef {
   return {
     id: "turret",
     name: "Turret",
@@ -141,10 +141,27 @@ describe("single-immunity rule", () => {
     expect(b.outcome).toBe("won");
   });
 
-  it("True damage bypasses a Physical immunity", () => {
-    const { stage, catalog } = world(enemy({ immunity: physImmune }), turret("True"), oneWave(2), 50);
+  it("True damage from a skill (DoT) bypasses a Physical immunity", () => {
+    // Basic attacks are Physical/Magic only; True comes from a skill — here a
+    // DoT with a True damageType override, which should ignore the immunity.
+    const trueDotter: CharacterDef = {
+      id: "dotter",
+      name: "True Dotter",
+      rarity: "Common",
+      role: "dot",
+      damageType: "Magic",
+      target: "Both",
+      cost: 0,
+      description: "applies a True-damage DoT",
+      passives: ["p"],
+      active: null,
+      behavior: { dot: { dps: 300, duration: 5, damageType: "True" } },
+      baseStats: makeStats({ atk: 1, attackSpeed: 2, range: 400, maxHp: 100 }),
+      artRef: "placeholder",
+    };
+    const { stage, catalog } = world(enemy({ immunity: physImmune }), trueDotter, oneWave(2), 50);
     const b = new BattleState(stage, catalog, { hero: inertHero });
-    b.placeTower("turret", 0);
+    b.placeTower("dotter", 0);
     runUntilDone(b);
     expect(b.outcome).toBe("won");
   });

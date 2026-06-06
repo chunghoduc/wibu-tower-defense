@@ -13,15 +13,15 @@ import { defaultHeroStats, STAGE_1 } from "../data/stage.ts";
 import type { CharacterDef, Vec2 } from "../data/schema.ts";
 import { dist } from "../core/path.ts";
 
-/** The 7-character squad shown on the build bar (one per role for Phase 2). */
+/** The 7-character squad shown on the build bar (one per role + a marquee). */
 const SQUAD_IDS = [
-  "verdant-archer",
-  "bulwark-bombard",
-  "spark-weaver",
-  "venom-priestess",
-  "frostward-maiden",
-  "banner-bearer",
-  "coin-sprite",
+  "zoran-thricedraw", // damage
+  "iron-bo-cannonarm", // splash
+  "hyo-frost-arc", // chain
+  "shion-venom-priestess", // dot
+  "yuki-frostward-maiden", // debuff
+  "aldric-banner-bearer", // support
+  "karu-sunfist", // damage (Unique marquee)
 ];
 
 const SLOT_RADIUS = 26;

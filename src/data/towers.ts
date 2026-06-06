@@ -1,109 +1,80 @@
 /**
  * Character / tower catalog — 32 ORIGINAL homage characters, each channelling an
- * iconic all-time anime archetype without copying any real name, likeness, or
- * protected element (the legally-safe "inspired by" approach from the design).
+ * iconic all-time anime archetype WITHOUT copying any real name, likeness, or
+ * protected element (the legally-safe "inspired by" approach).
  *
- * The `// homage:` comment on each entry records the inspiration for designers;
- * it is NOT shipped to players. The player-facing `description` lore is original.
- *
- * Each character carries its own mana bar (on-hit mana -> auto-cast active) and
- * role-driven `behavior` tuning. Stats are the Normal baseline.
+ * Design rules enforced here:
+ * - Every ROLE (damage/splash/chain/dot/debuff/support) has at least one
+ *   character of EACH rarity (Common -> Magic -> Rare -> Legendary -> Unique).
+ * - A character's rarity & stats track its source's power level (a famously weak
+ *   character is Common; a top-tier powerhouse is Unique).
+ * - Basic attacks are Physical or Magic ONLY. TRUE damage comes only from
+ *   skills — modelled via `behavior.activeType` (active skill) or a DoT's
+ *   `damageType` override.
+ * - The `// homage:` comment is a designer note and is NOT shown to players;
+ *   the player-facing `description` lore is original.
  */
 import { makeStats, type CharacterDef } from "./schema.ts";
 
-/** Add the placeholder art reference so entries stay concise. */
 function t(def: Omit<CharacterDef, "artRef">): CharacterDef {
   return { ...def, artRef: "placeholder" };
 }
 
 export const TOWERS: CharacterDef[] = [
-  // ===================== DAMAGE (single-target) =====================
+  // ============================ DAMAGE ============================
   t({
-    id: "verdant-archer",
-    name: "Brae the Keen-Eye", // homage: Sasha Braus (Attack on Titan)
+    id: "yamo-desert-bandit",
+    name: "Yamo the Desert Bandit", // homage: Yamcha (Dragon Ball) — famously outclassed
     rarity: "Common",
     role: "damage",
     damageType: "Physical",
     target: "Both",
-    cost: 50,
+    cost: 45,
     description:
-      "A famished forest scout whose arrows never miss a meal — or a monster. She'd trade her bow for a hot potato, but not until the wave is cleared.",
-    passives: ["keen-eye"],
-    active: "volley",
+      "A reformed bandit and eager martial artist who never quite escapes the punchline. Hits harder than anyone gives him credit for.",
+    passives: ["wolf-fang"],
+    active: "spirit-ball",
     baseStats: makeStats({
-      atk: 16, attackSpeed: 1.3, range: 145, critRate: 0.1, maxHp: 120,
+      atk: 13, attackSpeed: 1.3, range: 130, critRate: 0.1, maxHp: 120,
       maxMana: 60, manaOnHit: 8, manaRegen: 1,
     }),
   }),
   t({
-    id: "pebble-slinger",
-    name: "Gio the Wildling", // homage: Gon Freecss (Hunter x Hunter)
-    rarity: "Common",
+    id: "kazu-spirit-brawler",
+    name: "Kazu the Spirit Brawler", // homage: Kazuma Kuwabara (YuYu Hakusho)
+    rarity: "Magic",
     role: "damage",
-    damageType: "Physical",
-    target: "Both",
-    cost: 40,
+    damageType: "Magic",
+    target: "Ground",
+    cost: 70,
     description:
-      "A barefoot boy raised by beasts, hurling stones with uncanny instinct. Endlessly cheerful, endlessly hungry for the next adventure.",
-    passives: ["quick-hands"],
-    active: "rock-toss",
+      "A loud-mouthed street tough with a heart of gold and a blade of pure spirit energy. Loyal to a fault, tougher than he looks.",
+    passives: ["spirit-sword", "street-code"],
+    active: "dimensional-slash",
     baseStats: makeStats({
-      atk: 12, attackSpeed: 1.5, range: 120, maxHp: 100, maxMana: 50, manaOnHit: 7, manaRegen: 1,
+      atk: 22, attackSpeed: 1.1, range: 105, critRate: 0.15, maxHp: 170,
+      maxMana: 70, manaOnHit: 12, manaRegen: 1,
     }),
   }),
   t({
-    id: "ronin-of-ash",
+    id: "zoran-thricedraw",
     name: "Zoran Thricedraw", // homage: Roronoa Zoro (One Piece)
     rarity: "Rare",
     role: "damage",
     damageType: "Physical",
     target: "Ground",
-    cost: 95,
+    cost: 100,
     description:
-      "A wandering swordsman who fights with three blades — one in each hand and one in his teeth — chasing a vow to become the world's greatest. Gets lost walking in a straight line.",
-    passives: ["blade-flow", "first-strike"],
+      "A three-blade swordsman — one in each hand and one in his teeth — chasing a vow to be the greatest. Reliably gets lost walking in a straight line.",
+    passives: ["three-sword-style", "first-strike"],
     active: "iaido-slash",
     baseStats: makeStats({
-      atk: 40, attackSpeed: 1.1, range: 90, critRate: 0.25, critDamage: 1.9,
-      armorPen: 0.4, omnivamp: 0.1, maxHp: 200, maxMana: 70, manaOnHit: 14, manaRegen: 1,
+      atk: 30, attackSpeed: 1.1, range: 95, critRate: 0.25, critDamage: 1.9,
+      armorPen: 0.4, omnivamp: 0.1, maxHp: 210, maxMana: 70, manaOnHit: 14, manaRegen: 1,
     }),
   }),
   t({
-    id: "skywatch-marksman",
-    name: "Vance the Drifting Gunhand", // homage: Vash the Stampede (Trigun)
-    rarity: "Rare",
-    role: "damage",
-    damageType: "Physical",
-    target: "Both",
-    cost: 110,
-    description:
-      "A red-coated gunslinger with a pacifist's heart and a marksman's aim, wanted across nine provinces for property damage he swears he never meant to cause.",
-    passives: ["high-ground", "armor-breaker", "steady-aim"],
-    active: "piercing-shot",
-    baseStats: makeStats({
-      atk: 46, attackSpeed: 0.5, range: 235, critRate: 0.25, critDamage: 1.8,
-      armorPen: 0.5, maxHp: 90, maxMana: 70, manaOnHit: 16, manaRegen: 1,
-    }),
-  }),
-  t({
-    id: "emberwell-adept",
-    name: "Rynn Tohwa", // homage: Rin Tohsaka (Fate/stay night)
-    rarity: "Rare",
-    role: "damage",
-    damageType: "Magic",
-    target: "Both",
-    cost: 95,
-    description:
-      "A proud magus of a fading bloodline who fuels her spellcraft with jewel-bound mana. Brilliant, impeccably composed, and absolutely not blushing.",
-    passives: ["arcane-focus", "mana-font"],
-    active: "ember-bolt",
-    baseStats: makeStats({
-      atk: 24, attackSpeed: 0.9, range: 155, magicPen: 0.3, skillPower: 1.4,
-      maxHp: 110, maxMana: 80, manaOnHit: 14, manaRegen: 2,
-    }),
-  }),
-  t({
-    id: "duelist-prince",
+    id: "prince-vael",
     name: "Prince Vael", // homage: Vegeta (Dragon Ball)
     rarity: "Legendary",
     role: "damage",
@@ -111,105 +82,126 @@ export const TOWERS: CharacterDef[] = [
     target: "Ground",
     cost: 160,
     description:
-      "The exiled heir of a warrior race, too proud to lose and too stubborn to fall. Trains without rest to surpass the one rival he will never admit he respects.",
-    passives: ["riposte", "noble-resolve", "perfect-form"],
-    active: "thousand-cuts",
+      "The exiled heir of a warrior race, too proud to lose and too stubborn to fall. His final flash answers to no armor.",
+    passives: ["royal-pride", "galick-surge", "perfect-form"],
+    active: "final-flash",
+    behavior: { activeType: "True" }, // ultimate pierces all defense
     baseStats: makeStats({
-      atk: 58, attackSpeed: 1.4, range: 100, critRate: 0.35, critDamage: 2.0,
-      armorPen: 0.45, omnivamp: 0.15, maxHp: 240, maxMana: 80, manaOnHit: 12, manaRegen: 1,
+      atk: 44, attackSpeed: 1.4, range: 110, critRate: 0.35, critDamage: 2.0,
+      armorPen: 0.45, omnivamp: 0.12, maxHp: 260, maxMana: 85, manaOnHit: 13, manaRegen: 1,
     }),
   }),
   t({
-    id: "thunder-fist",
+    id: "karu-sunfist",
     name: "Karu Sunfist", // homage: Son Goku (Dragon Ball)
-    rarity: "Legendary",
+    rarity: "Unique",
     role: "damage",
     damageType: "Magic",
     target: "Both",
-    cost: 155,
+    cost: 210,
     description:
-      "An orphan martial artist with a bottomless appetite and a brighter grin, who turns sunlight into world-shaking ki. Seeks out the strong just to feel alive.",
-    passives: ["overcharge", "static-veins", "second-wind"],
-    active: "lightning-palm",
+      "An orphan martial artist with a bottomless appetite and a brighter grin, who turns sunlight into world-shaking ki and seeks the strong just to feel alive.",
+    passives: ["boundless-ki", "instinct", "second-wind"],
+    active: "kamefist-wave",
+    behavior: { activeType: "True" }, // signature beam ignores defense
     baseStats: makeStats({
-      atk: 44, attackSpeed: 1.3, range: 150, magicPen: 0.35, skillPower: 1.5,
-      maxHp: 180, maxMana: 90, manaOnHit: 16, manaRegen: 2,
+      atk: 56, attackSpeed: 1.4, range: 175, critRate: 0.3, critDamage: 2.0,
+      magicPen: 0.4, skillPower: 1.8, maxHp: 280, maxMana: 100, manaOnHit: 16, manaRegen: 2,
     }),
   }),
   t({
-    id: "voidcaller",
+    id: "jugo-limitless",
     name: "Jugo the Limitless", // homage: Satoru Gojo (Jujutsu Kaisen)
     rarity: "Unique",
     role: "damage",
-    damageType: "True",
+    damageType: "Magic",
     target: "Both",
-    cost: 200,
+    cost: 215,
     description:
       "A blindfolded sorcerer who folds the space around his foes into nothing, so no defense can hold. Insufferably confident — and entirely justified.",
-    passives: ["entropy", "null-field", "ascendant"],
-    active: "oblivion-lance",
+    passives: ["infinity", "six-eyes", "domain"],
+    active: "hollow-purple",
+    behavior: { activeType: "True" },
     baseStats: makeStats({
-      atk: 50, attackSpeed: 0.8, range: 180, critRate: 0.2, skillPower: 1.8,
-      maxHp: 160, maxMana: 100, manaOnHit: 18, manaRegen: 2,
+      atk: 52, attackSpeed: 0.85, range: 185, critRate: 0.2, skillPower: 2.0,
+      magicPen: 0.5, maxHp: 220, maxMana: 100, manaOnHit: 18, manaRegen: 2,
+    }),
+  }),
+  t({
+    id: "sota-caped-fist",
+    name: "Sota the Caped Fist", // homage: Saitama (One Punch Man)
+    rarity: "Unique",
+    role: "damage",
+    damageType: "Physical",
+    target: "Both",
+    cost: 220,
+    description:
+      "A bored hero in a plain cape who ends most fights in a single, world-bending punch. Mostly worried about supermarket sales.",
+    passives: ["no-limiter", "deadpan", "casual-stride"],
+    active: "serious-punch",
+    behavior: { activeType: "True" }, // one punch — nothing survives, nothing resists
+    baseStats: makeStats({
+      atk: 70, attackSpeed: 0.7, range: 150, critRate: 0.2, critDamage: 2.2,
+      maxHp: 300, maxMana: 100, manaOnHit: 20, manaRegen: 1,
     }),
   }),
 
-  // ===================== SPLASH (AoE) =====================
+  // ============================ SPLASH ============================
   t({
-    id: "grenadier-pup",
-    name: "Pip Powderkeg", // homage: Megumin (KonoSuba), junior
+    id: "pip-powderkeg",
+    name: "Pip Powderkeg", // homage: Megumin (KonoSuba), as a junior dabbler
     rarity: "Common",
     role: "splash",
     damageType: "Physical",
     target: "Ground",
     cost: 55,
     description:
-      "An explosion-obsessed apprentice who packs far more gunpowder than sense. Detonates one glorious blast, strikes a pose, then desperately needs a nap.",
+      "An explosion-obsessed apprentice with more gunpowder than sense. Detonates one tiny boom, strikes a pose, and badly needs a nap.",
     passives: ["loose-pin"],
     active: "frag-toss",
     behavior: { splashRadius: 55 },
     baseStats: makeStats({
-      atk: 18, attackSpeed: 0.7, range: 110, maxHp: 120, maxMana: 70, manaOnHit: 11, manaRegen: 1,
+      atk: 16, attackSpeed: 0.7, range: 110, maxHp: 120, maxMana: 70, manaOnHit: 11, manaRegen: 1,
     }),
   }),
   t({
-    id: "bulwark-bombard",
+    id: "iron-bo-cannonarm",
     name: "Iron Bo the Cannonarm", // homage: Franky (One Piece)
     rarity: "Magic",
     role: "splash",
     damageType: "Physical",
     target: "Ground",
-    cost: 80,
+    cost: 85,
     description:
-      "A cola-fueled cyborg shipwright who swapped both forearms for siege cannons. SUPER dependable, allegedly, as long as the soda holds out.",
-    passives: ["siege-payload"],
-    active: "mortar-barrage",
-    behavior: { splashRadius: 70 },
+      "A cola-fueled cyborg shipwright who swapped both forearms for siege cannons. SUPER dependable, allegedly, as long as the soda holds.",
+    passives: ["siege-payload", "cola-boost"],
+    active: "coup-de-burst",
+    behavior: { splashRadius: 72 },
     baseStats: makeStats({
-      atk: 26, attackSpeed: 0.6, range: 120, armorPen: 0.3, maxHp: 160,
+      atk: 24, attackSpeed: 0.6, range: 120, armorPen: 0.3, maxHp: 170,
       maxMana: 90, manaOnHit: 12, manaRegen: 1,
     }),
   }),
   t({
-    id: "blossom-mortar",
+    id: "kanae-petalfall",
     name: "Kanae Petalfall", // homage: the Flower Hashira (Demon Slayer)
     rarity: "Rare",
     role: "splash",
     damageType: "Magic",
     target: "Both",
-    cost: 105,
+    cost: 110,
     description:
-      "A gentle blade-dancer whose every strike scatters a storm of razor petals. She smiles even as the whole battlefield blooms crimson.",
+      "A gentle blade-dancer whose every strike scatters a storm of razor petals. She smiles even as the field blooms crimson.",
     passives: ["wide-bloom", "fuse-master"],
     active: "petal-storm",
-    behavior: { splashRadius: 85 },
+    behavior: { splashRadius: 86 },
     baseStats: makeStats({
       atk: 30, attackSpeed: 0.7, range: 160, magicPen: 0.25, skillPower: 1.3,
-      maxHp: 130, maxMana: 95, manaOnHit: 13, manaRegen: 2,
+      maxHp: 140, maxMana: 95, manaOnHit: 13, manaRegen: 2,
     }),
   }),
   t({
-    id: "magma-drummer",
+    id: "akagan-ashen",
     name: "Akagan the Ashen", // homage: Akainu / magma-logia (One Piece)
     rarity: "Legendary",
     role: "splash",
@@ -219,35 +211,52 @@ export const TOWERS: CharacterDef[] = [
     description:
       "An implacable warlord of molten judgment who drums the earth until it erupts beneath his enemies. Believes in absolute justice — strictly his own.",
     passives: ["eruption", "molten-core", "aftershock"],
-    active: "caldera",
-    behavior: { splashRadius: 95 },
+    active: "great-eruption",
+    behavior: { splashRadius: 96 },
     baseStats: makeStats({
-      atk: 40, attackSpeed: 0.65, range: 150, magicPen: 0.3, skillPower: 1.6,
-      maxHp: 200, maxMana: 100, manaOnHit: 14, manaRegen: 2,
+      atk: 42, attackSpeed: 0.65, range: 150, magicPen: 0.3, skillPower: 1.6,
+      maxHp: 220, maxMana: 100, manaOnHit: 14, manaRegen: 2,
     }),
   }),
   t({
-    id: "tempest-dancer",
-    name: "Sera Skydancer", // homage: weather/storm masters (e.g., Nami, One Piece)
+    id: "megu-explosion-sage",
+    name: "Megu the Explosion Sage", // homage: Megumin at full power (KonoSuba)
     rarity: "Unique",
     role: "splash",
-    damageType: "True",
+    damageType: "Magic",
     target: "Both",
-    cost: 195,
+    cost: 205,
     description:
-      "A sky-priestess who waltzes inside typhoons, scattering foes with edges of pure wind that no armor was ever forged to stop.",
-    passives: ["cyclone", "windborne", "eye-of-storm"],
-    active: "maelstrom",
-    behavior: { splashRadius: 90 },
+      "A one-trick archmage who has poured her entire being into a single, apocalyptic Explosion. Casts once, collapses grinning, regrets nothing.",
+    passives: ["explosion-only", "crimson-pride", "overflow"],
+    active: "explosion",
+    behavior: { splashRadius: 120, activeType: "True" }, // the Explosion brooks no resistance
     baseStats: makeStats({
-      atk: 36, attackSpeed: 0.9, range: 170, skillPower: 1.7, maxHp: 170,
-      maxMana: 100, manaOnHit: 16, manaRegen: 2,
+      atk: 38, attackSpeed: 0.5, range: 190, magicPen: 0.4, skillPower: 2.0,
+      maxHp: 150, maxMana: 120, manaOnHit: 18, manaRegen: 2,
     }),
   }),
 
-  // ===================== CHAIN =====================
+  // ============================ CHAIN ============================
   t({
-    id: "spark-weaver",
+    id: "tobi-skipstone",
+    name: "Tobi the Skipstone", // homage: scrappy ninja trainees (e.g., Konohamaru, Naruto)
+    rarity: "Common",
+    role: "chain",
+    damageType: "Physical",
+    target: "Both",
+    cost: 55,
+    description:
+      "A mischievous trainee who skips energy-charged stones across a crowd just to show off. Surprisingly, infuriatingly effective.",
+    passives: ["bounce"],
+    active: "double-skip",
+    behavior: { chainTargets: 2, chainFalloff: 0.6 },
+    baseStats: makeStats({
+      atk: 14, attackSpeed: 1.1, range: 130, maxHp: 100, maxMana: 60, manaOnHit: 10, manaRegen: 1,
+    }),
+  }),
+  t({
+    id: "zeni-spark",
     name: "Zeni the Spark", // homage: Zenitsu Agatsuma (Demon Slayer)
     rarity: "Magic",
     role: "chain",
@@ -255,73 +264,109 @@ export const TOWERS: CharacterDef[] = [
     target: "Both",
     cost: 85,
     description:
-      "A trembling coward of a swordsman who only unleashes his single thunderclap form while fast asleep — at which point lightning leaps from foe to foe.",
-    passives: ["conduit"],
+      "A trembling coward who unleashes his single thunderclap form only while fast asleep — at which point lightning leaps from foe to foe.",
+    passives: ["conduit", "thunderclap"],
     active: "chain-lightning",
     behavior: { chainTargets: 3, chainFalloff: 0.7 },
     baseStats: makeStats({
-      atk: 20, attackSpeed: 1.0, range: 150, magicPen: 0.25, skillPower: 1.3,
-      maxHp: 110, maxMana: 80, manaOnHit: 13, manaRegen: 2,
+      atk: 22, attackSpeed: 1.0, range: 150, magicPen: 0.25, skillPower: 1.3,
+      maxHp: 120, maxMana: 80, manaOnHit: 13, manaRegen: 2,
     }),
   }),
   t({
-    id: "frost-arc",
+    id: "hyo-frost-arc",
     name: "Hyo the Frost Arc", // homage: Toshiro Hitsugaya (Bleach)
     rarity: "Rare",
     role: "chain",
     damageType: "Magic",
     target: "Both",
-    cost: 100,
+    cost: 110,
     description:
       "A child-prodigy captain wielding the strongest ice in the realm, whose frozen arcs ricochet through entire ranks. Cold of temper, colder of blade.",
     passives: ["cold-snap", "ricochet"],
     active: "glacial-chain",
-    behavior: { chainTargets: 4, chainFalloff: 0.65 },
+    behavior: { chainTargets: 4, chainFalloff: 0.68 },
     baseStats: makeStats({
-      atk: 22, attackSpeed: 0.9, range: 160, skillPower: 1.4, maxHp: 120,
+      atk: 28, attackSpeed: 0.9, range: 165, skillPower: 1.4, maxHp: 130,
       maxMana: 85, manaOnHit: 14, manaRegen: 2,
     }),
   }),
   t({
-    id: "bladestorm-twins",
-    name: "The Ren Twins", // homage: hyper-speed blade duos (e.g., Levi, AoT)
+    id: "kilo-lightning-hand",
+    name: "Kilo the Lightning Hand", // homage: Killua Zoldyck (Hunter x Hunter)
     rarity: "Legendary",
     role: "chain",
-    damageType: "Physical",
-    target: "Ground",
-    cost: 150,
+    damageType: "Magic",
+    target: "Both",
+    cost: 155,
     description:
-      "Two siblings who fight as a single whirling storm of steel, blades flickering between foes faster than the eye can follow.",
-    passives: ["tandem", "whirling-edge", "bloodlink"],
-    active: "crossfire",
-    behavior: { chainTargets: 4, chainFalloff: 0.75 },
+      "A former assassin prodigy who cloaks himself in lightning and moves faster than thought, striking a dozen foes in a heartbeat.",
+    passives: ["godspeed", "whirlwind", "assassin-instinct"],
+    active: "thunderbolt",
+    behavior: { chainTargets: 5, chainFalloff: 0.74 },
     baseStats: makeStats({
-      atk: 34, attackSpeed: 1.2, range: 120, armorPen: 0.35, omnivamp: 0.1,
-      maxHp: 190, maxMana: 80, manaOnHit: 12, manaRegen: 1,
+      atk: 38, attackSpeed: 1.3, range: 160, critRate: 0.25, magicPen: 0.35, skillPower: 1.5,
+      maxHp: 170, maxMana: 85, manaOnHit: 15, manaRegen: 2,
     }),
   }),
   t({
-    id: "skipping-stone",
-    name: "Tobi the Skipstone", // homage: scrappy ninja trainees (e.g., Konohamaru, Naruto)
-    rarity: "Common",
+    id: "sasu-stormblade",
+    name: "Sasu the Stormblade", // homage: Sasuke Uchiha (Naruto)
+    rarity: "Unique",
     role: "chain",
-    damageType: "Physical",
+    damageType: "Magic",
     target: "Both",
-    cost: 60,
+    cost: 205,
     description:
-      "A mischievous trainee who skips energy-charged stones across a crowd just to show off. Surprisingly, infuriatingly effective.",
-    passives: ["bounce"],
-    active: "double-skip",
-    behavior: { chainTargets: 2, chainFalloff: 0.6 },
+      "A brooding clan-last prodigy who calls down a dragon of lightning to leap between every enemy on the field. Power chased at a terrible price.",
+    passives: ["sharingan", "chidori-stream", "vengeance"],
+    active: "kirin",
+    behavior: { chainTargets: 6, chainFalloff: 0.8, activeType: "True" }, // the descending lightning spares nothing
     baseStats: makeStats({
-      atk: 15, attackSpeed: 1.1, range: 130, maxHp: 100, maxMana: 60, manaOnHit: 10, manaRegen: 1,
+      atk: 46, attackSpeed: 1.2, range: 180, critRate: 0.3, critDamage: 1.9, magicPen: 0.4,
+      skillPower: 1.7, maxHp: 200, maxMana: 100, manaOnHit: 16, manaRegen: 2,
     }),
   }),
 
-  // ===================== DOT =====================
+  // ============================ DOT ============================
   t({
-    id: "venom-priestess",
-    name: "Shion the Venom Priestess", // homage: poison/curse users (e.g., Shizuku/Shalnark, HxH)
+    id: "bram-thornling",
+    name: "Bram the Thornling", // homage: wood/plant users (e.g., mokuton, Naruto)
+    rarity: "Common",
+    role: "dot",
+    damageType: "Physical",
+    target: "Ground",
+    cost: 45,
+    description:
+      "A tiny treant sprout that lashes passersby with barbed vines and grumbles, leaf by leaf, about trespassers on its patch.",
+    passives: ["barbs"],
+    active: "bramble",
+    behavior: { dot: { dps: 7, duration: 3 } },
+    baseStats: makeStats({
+      atk: 8, attackSpeed: 1.0, range: 110, maxHp: 120, maxMana: 55, manaOnHit: 9, manaRegen: 1,
+    }),
+  }),
+  t({
+    id: "kona-ember-fox",
+    name: "Kona the Ember Fox", // homage: nine-tailed fox spirits (e.g., Kurama, Naruto)
+    rarity: "Magic",
+    role: "dot",
+    damageType: "Magic",
+    target: "Both",
+    cost: 80,
+    description:
+      "A nine-tailed fox-spirit wearing the shape of a girl, trailing foxfire that smolders in a wound long after the strike lands.",
+    passives: ["smolder", "foxfire"],
+    active: "wildfire",
+    behavior: { dot: { dps: 12, duration: 3.5 } },
+    baseStats: makeStats({
+      atk: 12, attackSpeed: 1.1, range: 140, skillPower: 1.2, maxHp: 110,
+      maxMana: 70, manaOnHit: 11, manaRegen: 2,
+    }),
+  }),
+  t({
+    id: "shion-venom-priestess",
+    name: "Shion the Venom Priestess", // homage: poison users (e.g., Shizuku, HxH)
     rarity: "Rare",
     role: "dot",
     damageType: "Magic",
@@ -334,245 +379,215 @@ export const TOWERS: CharacterDef[] = [
     behavior: { dot: { dps: 16, duration: 4 } },
     baseStats: makeStats({
       atk: 14, attackSpeed: 1.0, range: 150, magicPen: 0.2, skillPower: 1.3,
-      maxHp: 110, maxMana: 80, manaOnHit: 12, manaRegen: 2,
+      maxHp: 120, maxMana: 80, manaOnHit: 12, manaRegen: 2,
     }),
   }),
   t({
-    id: "ember-fox",
-    name: "Kona the Ember Fox", // homage: nine-tailed fox spirits (e.g., Kurama, Naruto)
-    rarity: "Magic",
+    id: "roan-flame-alchemist",
+    name: "Roan the Flame Alchemist", // homage: Roy Mustang (Fullmetal Alchemist)
+    rarity: "Legendary",
     role: "dot",
     damageType: "Magic",
     target: "Both",
-    cost: 80,
+    cost: 155,
     description:
-      "A nine-tailed fox-spirit wearing the shape of a girl, trailing foxfire that smolders in a wound long after the strike lands.",
-    passives: ["smolder"],
-    active: "wildfire",
-    behavior: { dot: { dps: 12, duration: 3.5 } },
+      "A sharp-eyed officer who snaps his gloved fingers to set the very air alight, leaving foes to burn long after the spark.",
+    passives: ["ignition", "pinpoint-flame", "ambition"],
+    active: "inferno-snap",
+    behavior: { dot: { dps: 24, duration: 4.5 } },
     baseStats: makeStats({
-      atk: 12, attackSpeed: 1.1, range: 140, skillPower: 1.2, maxHp: 100,
-      maxMana: 70, manaOnHit: 11, manaRegen: 2,
+      atk: 18, attackSpeed: 1.0, range: 165, magicPen: 0.35, skillPower: 1.6,
+      maxHp: 150, maxMana: 90, manaOnHit: 13, manaRegen: 2,
     }),
   }),
   t({
-    id: "plaguebearer",
+    id: "morren-plaguebearer",
     name: "Morren the Plaguebearer", // homage: decay/curse wielders (e.g., Mahito, JJK)
-    rarity: "Legendary",
+    rarity: "Unique",
     role: "dot",
-    damageType: "True",
+    damageType: "Magic",
     target: "Both",
-    cost: 160,
+    cost: 200,
     description:
       "A hollow-eyed wanderer who carries rot in his very veins, spreading a black corruption that armor and ward alike fail to stop.",
     passives: ["corrosion", "epidemic", "necrosis"],
     active: "black-rot",
-    behavior: { dot: { dps: 26, duration: 5 } },
+    behavior: { dot: { dps: 30, duration: 5, damageType: "True" } }, // the rot bypasses everything
     baseStats: makeStats({
-      atk: 16, attackSpeed: 1.0, range: 160, skillPower: 1.6, maxHp: 150,
-      maxMana: 90, manaOnHit: 13, manaRegen: 2,
-    }),
-  }),
-  t({
-    id: "thornling",
-    name: "Bram the Thornling", // homage: plant/wood users (e.g., mokuton, Naruto)
-    rarity: "Common",
-    role: "dot",
-    damageType: "Physical",
-    target: "Ground",
-    cost: 45,
-    description:
-      "A tiny treant sprout that lashes passersby with barbed vines and grumbles, leaf by leaf, about trespassers on its patch.",
-    passives: ["barbs"],
-    active: "bramble",
-    behavior: { dot: { dps: 7, duration: 3 } },
-    baseStats: makeStats({
-      atk: 8, attackSpeed: 1.0, range: 110, maxHp: 110, maxMana: 55, manaOnHit: 9, manaRegen: 1,
+      atk: 20, attackSpeed: 1.0, range: 170, skillPower: 1.8, maxHp: 170,
+      maxMana: 95, manaOnHit: 13, manaRegen: 2,
     }),
   }),
 
-  // ===================== DEBUFF (slow / stun) =====================
+  // ============================ DEBUFF ============================
   t({
-    id: "frostward-maiden",
-    name: "Yuki the Frostward Maiden", // homage: ice-queen generals (e.g., Esdeath, Akame ga Kill)
-    rarity: "Rare",
-    role: "debuff",
-    damageType: "Magic",
-    target: "Both",
-    cost: 90,
-    description:
-      "A glacial sorceress who freezes the very air, slowing all who dare approach. Beautiful, merciless, and endlessly patient.",
-    passives: ["deep-chill", "hoarfrost"],
-    active: "blizzard",
-    behavior: { slow: { pct: 0.4, duration: 2.5 } },
-    baseStats: makeStats({
-      atk: 12, attackSpeed: 1.0, range: 150, skillPower: 1.2, maxHp: 120,
-      maxMana: 80, manaOnHit: 12, manaRegen: 2,
-    }),
-  }),
-  t({
-    id: "shackle-warden",
-    name: "Garan Sandshackle", // homage: Gaara (Naruto)
-    rarity: "Legendary",
-    role: "debuff",
-    damageType: "Physical",
-    target: "Ground",
-    cost: 150,
-    description:
-      "A somber warden who entombs charging foes in crushing sand, holding the line alone where lesser defenders would break.",
-    passives: ["iron-grip", "concussion", "lockdown"],
-    active: "earthshatter",
-    behavior: { stun: { duration: 1.0, chance: 0.35 }, slow: { pct: 0.25, duration: 1.5 } },
-    baseStats: makeStats({
-      atk: 26, attackSpeed: 0.9, range: 130, armorPen: 0.3, maxHp: 210,
-      maxMana: 85, manaOnHit: 13, manaRegen: 1,
-    }),
-  }),
-  t({
-    id: "mire-spirit",
+    id: "doro-mire-spirit",
     name: "Doro the Mire Spirit", // homage: swamp/mud yokai
     rarity: "Common",
     role: "debuff",
     damageType: "Magic",
     target: "Ground",
-    cost: 55,
+    cost: 50,
     description:
       "A bog-dwelling sprite that drags enemies down into sucking mud. Smells of fresh rain and very old secrets.",
     passives: ["sticky-mud"],
     active: "tar-pit",
-    behavior: { slow: { pct: 0.3, duration: 2 } },
+    behavior: { slow: { pct: 0.28, duration: 2 } },
     baseStats: makeStats({
       atk: 8, attackSpeed: 0.9, range: 130, maxHp: 110, maxMana: 65, manaOnHit: 10, manaRegen: 1,
     }),
   }),
   t({
-    id: "gale-djinn",
-    name: "Zephyr the Gale Djinn", // homage: wish-granting storm spirits (e.g., Enel, One Piece)
-    rarity: "Unique",
+    id: "shika-shadowbinder",
+    name: "Shika the Shadowbinder", // homage: Shikamaru Nara (Naruto)
+    rarity: "Magic",
     role: "debuff",
-    damageType: "True",
-    target: "Both",
-    cost: 190,
-    description:
-      "An ancient djinn of the high winds who cages foes in coils of stasis-wind. He grants wishes — rarely the ones anyone actually wanted.",
-    passives: ["typhoon", "stasis-winds", "wish-granter"],
-    active: "tempest-prison",
-    behavior: { stun: { duration: 1.3, chance: 0.45 }, slow: { pct: 0.45, duration: 2.5 } },
-    baseStats: makeStats({
-      atk: 24, attackSpeed: 1.0, range: 170, skillPower: 1.5, maxHp: 160,
-      maxMana: 95, manaOnHit: 15, manaRegen: 2,
-    }),
-  }),
-
-  // ===================== SUPPORT (buff aura) =====================
-  t({
-    id: "banner-bearer",
-    name: "Aldric the Banner-Bearer", // homage: rallying commanders (e.g., Erwin Smith, AoT)
-    rarity: "Magic",
-    role: "support",
-    damageType: "Physical",
-    target: "Ground",
-    cost: 75,
-    description:
-      "A grizzled standard-bearer whose war-cry steels the resolve of every ally in sight. Dedicate your hearts — and hold the wall.",
-    passives: ["rally"],
-    active: "war-cry",
-    behavior: { buffAura: { radius: 140, atkPct: 0.15 } },
-    baseStats: makeStats({ atk: 6, attackSpeed: 0.8, range: 110, maxHp: 180, maxMana: 0 }),
-  }),
-  t({
-    id: "tempo-bard",
-    name: "Lyra Tempo", // homage: musician buffers (e.g., Brook, One Piece)
-    rarity: "Rare",
-    role: "support",
     damageType: "Magic",
-    target: "Both",
-    cost: 110,
-    description:
-      "A traveling musician whose battle-rhythm quickens her comrades' hands. One more song before the encore, yohoho.",
-    passives: ["allegro", "encore"],
-    active: "crescendo",
-    behavior: { buffAura: { radius: 150, attackSpeedPct: 0.2 } },
-    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 130, maxHp: 140, maxMana: 0 }),
-  }),
-  t({
-    id: "celestial-herald",
-    name: "Orin the Celestial Herald", // homage: rejection/shield healers (e.g., Orihime, Bleach)
-    rarity: "Legendary",
-    role: "support",
-    damageType: "Magic",
-    target: "Both",
-    cost: 170,
-    description:
-      "A radiant herald who refuses to accept fate itself, wrapping allies in divine blessing and an aegis nothing can shatter.",
-    passives: ["blessing", "aegis", "ascension"],
-    active: "divine-hymn",
-    behavior: { buffAura: { radius: 170, atkPct: 0.2, attackSpeedPct: 0.15 } },
-    baseStats: makeStats({ atk: 10, attackSpeed: 0.8, range: 150, maxHp: 200, maxMana: 0 }),
-  }),
-
-  // ===================== ECONOMY (gold generation) =====================
-  t({
-    id: "coin-sprite",
-    name: "Chibi the Coin Sprite", // homage: chibi fortune mascots
-    rarity: "Common",
-    role: "economy",
-    damageType: "Physical",
-    target: "Ground",
-    cost: 60,
-    description:
-      "A palm-sized fortune spirit that sneezes out coins when excited. Hoards bottle caps, shiny pebbles, and the occasional real treasure.",
-    passives: ["pocket-change"],
-    active: null,
-    behavior: { goldPerSec: 3 },
-    baseStats: makeStats({ atk: 4, attackSpeed: 0.6, range: 90, maxHp: 90, maxMana: 0 }),
-  }),
-  t({
-    id: "merchant-tanuki",
-    name: "Ponta the Merchant", // homage: shapeshifting tanuki traders (e.g., Pom Poko)
-    rarity: "Rare",
-    role: "economy",
-    damageType: "Physical",
-    target: "Ground",
-    cost: 120,
-    description:
-      "A shapeshifting raccoon-dog trader who always turns a profit, even mid-siege. Whatever you do, do not sign his contracts.",
-    passives: ["haggle", "lucky-leaf"],
-    active: null,
-    behavior: { goldPerSec: 6 },
-    baseStats: makeStats({ atk: 6, attackSpeed: 0.6, range: 100, maxHp: 120, maxMana: 0, goldFind: 0.1 }),
-  }),
-  t({
-    id: "golden-koi",
-    name: "Kinryu the Golden Koi", // homage: fortune dragons / ascending koi legend
-    rarity: "Legendary",
-    role: "economy",
-    damageType: "Magic",
-    target: "Both",
-    cost: 180,
-    description:
-      "A koi that swam up the great falls and became a dragon of fortune, raining gold upon the defenders it chooses to favor.",
-    passives: ["fortune-stream", "midas-scale", "abundance"],
-    active: "coin-shower",
-    behavior: { goldPerSec: 10 },
-    baseStats: makeStats({
-      atk: 10, attackSpeed: 0.7, range: 140, skillPower: 1.2, maxHp: 150,
-      maxMana: 90, manaOnHit: 10, manaRegen: 2, goldFind: 0.15,
-    }),
-  }),
-  t({
-    id: "piggy-sentinel",
-    name: "Buta the Piggy Sentinel", // homage: piggy-bank guardian mascots
-    rarity: "Magic",
-    role: "economy",
-    damageType: "Physical",
     target: "Ground",
     cost: 85,
     description:
-      "A stout armored piglet that guards the war-chest with its life and skewers anyone foolish enough to reach for it.",
-    passives: ["nest-egg"],
-    active: null,
-    behavior: { goldPerSec: 4 },
-    baseStats: makeStats({ atk: 5, attackSpeed: 0.5, range: 95, maxHp: 200, maxMana: 0 }),
+      "A brilliant, perpetually bored tactician who pins enemies in place with their own shadows. Ten steps ahead, half asleep.",
+    passives: ["shadow-bind", "two-hundred-iq"],
+    active: "shadow-stitch",
+    behavior: { stun: { duration: 0.8, chance: 0.3 }, slow: { pct: 0.2, duration: 1.5 } },
+    baseStats: makeStats({
+      atk: 12, attackSpeed: 0.9, range: 150, skillPower: 1.1, maxHp: 130,
+      maxMana: 80, manaOnHit: 12, manaRegen: 2,
+    }),
+  }),
+  t({
+    id: "glace-ice-maker",
+    name: "Glace the Ice-Maker", // homage: ice-make mages (e.g., Gray, Fairy Tail)
+    rarity: "Rare",
+    role: "debuff",
+    damageType: "Magic",
+    target: "Both",
+    cost: 105,
+    description:
+      "A hot-headed mage who sculpts weapons from ice in an instant, chilling everything around him (and losing his shirt in the process).",
+    passives: ["ice-make", "freezing-touch"],
+    active: "ice-geyser",
+    behavior: { slow: { pct: 0.38, duration: 2.3 } },
+    baseStats: makeStats({
+      atk: 16, attackSpeed: 1.0, range: 155, skillPower: 1.3, maxHp: 140,
+      maxMana: 80, manaOnHit: 12, manaRegen: 2,
+    }),
+  }),
+  t({
+    id: "yuki-frostward-maiden",
+    name: "Yuki the Frostward Maiden", // homage: ice-queen generals (e.g., Esdeath, Akame ga Kill)
+    rarity: "Legendary",
+    role: "debuff",
+    damageType: "Magic",
+    target: "Both",
+    cost: 155,
+    description:
+      "A glacial general who freezes time itself in a radius, slowing all who dare approach. Beautiful, merciless, and endlessly patient.",
+    passives: ["deep-chill", "hoarfrost", "absolute-zero"],
+    active: "blizzard",
+    behavior: { slow: { pct: 0.5, duration: 3 }, stun: { duration: 0.6, chance: 0.2 } },
+    baseStats: makeStats({
+      atk: 22, attackSpeed: 1.0, range: 165, skillPower: 1.5, maxHp: 160,
+      maxMana: 85, manaOnHit: 13, manaRegen: 2,
+    }),
+  }),
+  t({
+    id: "garan-sandshackle",
+    name: "Garan Sandshackle", // homage: Gaara (Naruto)
+    rarity: "Unique",
+    role: "debuff",
+    damageType: "Physical",
+    target: "Ground",
+    cost: 195,
+    description:
+      "A somber warden who entombs charging foes in crushing sand, holding the line alone where lesser defenders would break.",
+    passives: ["sand-armor", "iron-grip", "tailed-rage"],
+    active: "sand-burial",
+    behavior: {
+      stun: { duration: 1.4, chance: 0.45 },
+      slow: { pct: 0.3, duration: 2 },
+      activeType: "True", // the burial crushes regardless of armor
+    },
+    baseStats: makeStats({
+      atk: 30, attackSpeed: 0.9, range: 150, armorPen: 0.3, skillPower: 1.5, maxHp: 240,
+      maxMana: 95, manaOnHit: 14, manaRegen: 1,
+    }),
+  }),
+
+  // ============================ SUPPORT ============================
+  t({
+    id: "mochi-morale-sprite",
+    name: "Mochi the Morale Sprite", // homage: tiny cheer/mascot spirits
+    rarity: "Common",
+    role: "support",
+    damageType: "Magic",
+    target: "Ground",
+    cost: 50,
+    description:
+      "A round, squishy spirit that bounces between defenders shouting encouragement. Small lungs, enormous enthusiasm.",
+    passives: ["cheer"],
+    active: "pep-talk",
+    behavior: { buffAura: { radius: 120, atkPct: 0.08 } },
+    baseStats: makeStats({ atk: 4, attackSpeed: 0.7, range: 100, maxHp: 130, maxMana: 0 }),
+  }),
+  t({
+    id: "lyra-tempo",
+    name: "Lyra Tempo", // homage: musician buffers (e.g., Brook, One Piece)
+    rarity: "Magic",
+    role: "support",
+    damageType: "Magic",
+    target: "Both",
+    cost: 90,
+    description:
+      "A traveling musician whose battle-rhythm quickens her comrades' hands. One more song before the encore, yohoho.",
+    passives: ["allegro"],
+    active: "crescendo",
+    behavior: { buffAura: { radius: 150, attackSpeedPct: 0.15 } },
+    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 130, maxHp: 140, maxMana: 0 }),
+  }),
+  t({
+    id: "orin-celestial-herald",
+    name: "Orin the Celestial Herald", // homage: rejection/shield healers (e.g., Orihime, Bleach)
+    rarity: "Rare",
+    role: "support",
+    damageType: "Magic",
+    target: "Both",
+    cost: 115,
+    description:
+      "A kind-hearted herald whose fairy-blessing shelters her allies and sharpens their resolve in the same breath.",
+    passives: ["blessing", "shun-shield"],
+    active: "reject-fate",
+    behavior: { buffAura: { radius: 150, atkPct: 0.12, attackSpeedPct: 0.08 } },
+    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 140, maxHp: 160, maxMana: 0 }),
+  }),
+  t({
+    id: "aldric-banner-bearer",
+    name: "Aldric the Banner-Bearer", // homage: rallying commanders (e.g., Erwin Smith, AoT)
+    rarity: "Legendary",
+    role: "support",
+    damageType: "Physical",
+    target: "Ground",
+    cost: 160,
+    description:
+      "A grizzled commander whose war-cry steels the resolve of every ally in sight. Dedicate your hearts — and hold the wall.",
+    passives: ["rally", "vanguard", "last-charge"],
+    active: "war-cry",
+    behavior: { buffAura: { radius: 165, atkPct: 0.18, attackSpeedPct: 0.1 } },
+    baseStats: makeStats({ atk: 10, attackSpeed: 0.8, range: 140, maxHp: 220, maxMana: 0 }),
+  }),
+  t({
+    id: "senna-slug-sannin",
+    name: "Senna the Slug Sannin", // homage: Tsunade (Naruto)
+    rarity: "Unique",
+    role: "support",
+    damageType: "Physical",
+    target: "Both",
+    cost: 200,
+    description:
+      "A legendary medic of monstrous strength who empowers an entire line at once. Gambles with everything but her comrades' lives.",
+    passives: ["hundred-healings", "monster-strength", "sannin-resolve"],
+    active: "creation-rebirth",
+    behavior: { buffAura: { radius: 185, atkPct: 0.25, attackSpeedPct: 0.18 } },
+    baseStats: makeStats({ atk: 16, attackSpeed: 0.8, range: 160, maxHp: 260, maxMana: 0 }),
   }),
 ];

@@ -80,7 +80,6 @@ export interface TowerRuntime {
   buffAtkPct: number;
   buffAsPct: number;
   disabledTimer: number;
-  goldCarry: number;
 }
 
 export interface HeroRuntime {
@@ -209,7 +208,6 @@ export class BattleState {
       buffAtkPct: 0,
       buffAsPct: 0,
       disabledTimer: 0,
-      goldCarry: 0,
     });
     return true;
   }
@@ -538,15 +536,6 @@ export class BattleState {
         continue;
       }
 
-      const bhv = t.def.behavior;
-      if (bhv?.goldPerSec) {
-        t.goldCarry += bhv.goldPerSec * dt * (1 + this.hero.stats.goldFind);
-        while (t.goldCarry >= 1) {
-          this.gold += 1;
-          t.goldCarry -= 1;
-        }
-      }
-
       if (t.stats.maxMana > 0) t.mana = Math.min(t.stats.maxMana, t.mana + t.stats.manaRegen * dt);
 
       const effAs = t.stats.attackSpeed * (1 + t.buffAsPct);
@@ -561,7 +550,9 @@ export class BattleState {
       this.applyRoleEffect(t, effAtk, target);
 
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
-        this.castActive(t.stats, effAtk, t.def.damageType, target.pos);
+        // Skills may deal True damage (the only path to True).
+        const activeType = t.def.behavior?.activeType ?? t.def.damageType;
+        this.castActive(t.stats, effAtk, activeType, target.pos);
         t.mana = 0;
       }
       t.attackCd = 1 / effAs;
@@ -579,7 +570,9 @@ export class BattleState {
         this.applyChain(t, effAtk, target, bhv?.chainTargets ?? 2, bhv?.chainFalloff ?? 0.6);
         break;
       case "dot":
-        if (bhv?.dot) this.addDot(target, t.def.damageType, bhv.dot.dps, bhv.dot.duration, t.stats);
+        if (bhv?.dot) {
+          this.addDot(target, bhv.dot.damageType ?? t.def.damageType, bhv.dot.dps, bhv.dot.duration, t.stats);
+        }
         break;
       case "debuff":
         if (bhv?.slow) this.applySlow(target, bhv.slow.pct, bhv.slow.duration);

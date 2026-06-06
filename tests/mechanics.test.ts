@@ -10,22 +10,6 @@ import {
   world,
 } from "./fixtures.ts";
 
-describe("economy role", () => {
-  it("generates passive gold over time", () => {
-    const eco = mkTower({
-      id: "eco",
-      role: "economy",
-      behavior: { goldPerSec: 10 },
-      baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 100 }),
-    });
-    const b = world([mkEnemy()], [eco], mkStage(oneWave("grunt", 1), { castleHp: 1e6, startingGold: 0 }));
-    expect(b.placeTower("eco", 0)).toBe(true);
-    runFor(b, 2); // still before the first wave (t=3)
-    expect(b.gold).toBeGreaterThanOrEqual(18);
-    expect(b.gold).toBeLessThanOrEqual(21);
-  });
-});
-
 describe("support role", () => {
   it("buffs nearby towers via its aura", () => {
     const support = mkTower({

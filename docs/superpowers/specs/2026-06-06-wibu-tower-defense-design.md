@@ -55,7 +55,10 @@ counts).
 
 ### 3.2 Hero Items (ARPG itemization)
 - Two axes: persistent **equipment** + in-run **consumables**.
-- **8 slots:** Weapon, Helmet, Body Armor, Gloves, Boots, Amulet, Ring ×2.
+- **10 slots:** Weapon, Helmet, Body Armor, Gloves, Boots, Amulet, Ring ×2, **Pet, Wing**.
+- **Pet** carries **utilities** (e.g., passive **gold generation** — this replaces dedicated
+  economy towers). **Wing** is a movement/utility slot.
+- **Equipment changes the hero's appearance** (each item carries an appearance overlay).
 - Every item rolls **±10%** off fixed base stats. Each item **type** has a built-in **primary
   affix** (Staff→+magic dmg, Bow→+atk speed/crit, Sword→+phys dmg) and a **per-type affix pool**.
 - **Rarity gates affix count AND quality** (Common→Magic→Rare→Legendary→Unique, up to ~4 affixes).
@@ -69,8 +72,12 @@ counts).
      from stars — skill strength scales with stats, notably Skill Power).
 - **Abilities:** **1–3 predefined passive skills** + **1 active skill** that **auto-casts on
   full mana** (towers have their own mana bar; gain mana on-hit + on-kill (killer) + regen).
-- Combat axes: damage type (single/splash/chain/DoT), target (ground/air/both), role
-  (damage, support/buff, debuff/CC, economy/gold), range & attack speed.
+- **Roles (6):** damage, splash, chain, dot, support/buff, debuff/CC. *(Economy/gold is no
+  longer a tower role — gold generation moved to the Pet item slot.)*
+- **Roster rule:** every role has **at least one character of each rarity**, and a character's
+  rarity & stats **track its source archetype's power level** (a famously weak character is
+  Common; a top-tier powerhouse is Unique).
+- Combat axes: target (ground/air/both), range & attack speed.
 - Towers are **static** but **have HP and are destructible**.
 - **Range is the dominant stat** — long-range must be balanced carefully; short-range must hit
   harder or bring utility.
@@ -78,6 +85,8 @@ counts).
 ### 3.4 Damage & Resistance System
 - **3 damage types:** Physical (cut by armor), Magic (cut by magic-resist), **True** (ignores
   both, but reducible by flat Damage Reduction).
+- **Basic attacks are Physical or Magic only.** **True damage comes only from skills**
+  (a passive/active skill or a skill-applied DoT) — it is the special payoff of high-rarity kits.
 - **Enemy immunity rule:** immune to **at most ONE** of {Physical, Magic, CC, AoE/Splash} —
   enforces "no lock-and-key": an immune enemy always has other valid answers.
 - Armor is **partial** mitigation, never full negation.

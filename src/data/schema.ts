@@ -27,9 +27,16 @@ export const TOWER_ROLES = [
   "dot",
   "support",
   "debuff",
-  "economy",
 ] as const;
 export type TowerRole = (typeof TOWER_ROLES)[number];
+
+/**
+ * Damage type a tower's BASIC ATTACK may deal. Towers auto-attack only in
+ * Physical or Magic; True damage is reserved for passive/active SKILLS (see
+ * TowerBehavior.activeType and the DoT damageType override).
+ */
+export const ATTACK_DAMAGE_TYPES = ["Physical", "Magic"] as const;
+export type AttackDamageType = (typeof ATTACK_DAMAGE_TYPES)[number];
 
 export const RARITIES = ["Common", "Magic", "Rare", "Legendary", "Unique"] as const;
 export type Rarity = (typeof RARITIES)[number];
@@ -65,6 +72,8 @@ export const ITEM_SLOTS = [
   "Amulet",
   "Ring1",
   "Ring2",
+  "Pet",
+  "Wing",
 ] as const;
 export type ItemSlot = (typeof ITEM_SLOTS)[number];
 
@@ -160,16 +169,16 @@ export interface TowerBehavior {
   chainTargets?: number;
   /** chain role: fraction of damage retained per bounce (0..1). */
   chainFalloff?: number;
-  /** dot role: a damage-over-time applied on hit. */
-  dot?: { dps: number; duration: number };
+  /** dot role: a damage-over-time applied on hit (skills may deal True). */
+  dot?: { dps: number; duration: number; damageType?: DamageType };
   /** debuff role: slow applied on hit. */
   slow?: { pct: number; duration: number };
   /** debuff role: stun applied on hit. */
   stun?: { duration: number; chance: number };
   /** support role: aura buffing nearby towers. */
   buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number };
-  /** economy role: passive gold generated per second. */
-  goldPerSec?: number;
+  /** active-skill damage type override — lets a skill deal True (the only path to True). */
+  activeType?: DamageType;
 }
 
 /** A collectible character — deployed in battle as a static tower. */
@@ -178,7 +187,8 @@ export interface CharacterDef {
   name: string;
   rarity: Rarity;
   role: TowerRole;
-  damageType: DamageType;
+  /** Basic-attack damage type — Physical or Magic only (True comes from skills). */
+  damageType: AttackDamageType;
   target: TargetType;
   /** Cost in in-battle gold to place this tower. */
   cost: number;
@@ -195,7 +205,22 @@ export interface CharacterDef {
   artRef: string;
 }
 
-/** A piece of hero equipment (schema only in Phase 1; not yet placed in battle). */
+/**
+ * Pet utilities (the Pet slot). Pets replace the old economy towers: their
+ * primary job is utility such as passive gold generation. Applied by the
+ * equipment system in Phase 3.
+ */
+export interface PetUtility {
+  /** Passive gold generated per second while equipped. */
+  goldPerSec?: number;
+  /** Bonus gold-find fraction added to the hero. */
+  goldFind?: number;
+}
+
+/**
+ * A piece of hero equipment. Schema is complete (incl. the Pet and Wing slots);
+ * the equipment system that applies stats/utilities/appearance runs in Phase 3.
+ */
 export interface ItemDef {
   id: string;
   name: string;
@@ -206,6 +231,10 @@ export interface ItemDef {
   /** Affixes this item TYPE may roll (rarity gates how many + their quality). */
   affixPool: string[];
   baseStats: Stats;
+  /** Pet-slot utility (gold generation, etc.). */
+  petUtility?: PetUtility;
+  /** Sprite/overlay applied to the hero when equipped (changes appearance). */
+  appearanceRef?: string;
   artRef: string;
 }
 
@@ -325,8 +354,8 @@ export function validateCharacter(c: CharacterDef): CharacterDef {
   assert((RARITIES as readonly string[]).includes(c.rarity), `character ${c.id}: bad rarity`);
   assert((TOWER_ROLES as readonly string[]).includes(c.role), `character ${c.id}: bad role`);
   assert(
-    (DAMAGE_TYPES as readonly string[]).includes(c.damageType),
-    `character ${c.id}: bad damageType`,
+    (ATTACK_DAMAGE_TYPES as readonly string[]).includes(c.damageType),
+    `character ${c.id}: basic-attack damageType must be Physical or Magic (True is skill-only)`,
   );
   assert((TARGET_TYPES as readonly string[]).includes(c.target), `character ${c.id}: bad target`);
   assert(c.cost >= 0, `character ${c.id}: cost must be >= 0`);

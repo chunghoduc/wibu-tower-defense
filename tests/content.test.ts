@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadCatalog } from "../src/data/catalog.ts";
-import { TOWER_ROLES, type EnemyArchetype } from "../src/data/schema.ts";
+import { RARITIES, TOWER_ROLES, type EnemyArchetype } from "../src/data/schema.ts";
 
 const cat = loadCatalog();
 
@@ -10,14 +10,30 @@ describe("character roster", () => {
     expect(cat.characters.size).toBeLessThanOrEqual(40);
   });
 
-  it("covers all 7 tower roles", () => {
+  it("covers all tower roles", () => {
     const roles = new Set([...cat.characters.values()].map((c) => c.role));
     for (const role of TOWER_ROLES) expect(roles.has(role)).toBe(true);
   });
 
+  it("has at least one character of every rarity in every role", () => {
+    for (const role of TOWER_ROLES) {
+      for (const rarity of RARITIES) {
+        const match = [...cat.characters.values()].some(
+          (c) => c.role === role && c.rarity === rarity,
+        );
+        expect(match, `missing ${rarity} ${role}`).toBe(true);
+      }
+    }
+  });
+
+  it("only ever uses Physical or Magic for basic attacks (True is skill-only)", () => {
+    for (const c of cat.characters.values()) {
+      expect(["Physical", "Magic"]).toContain(c.damageType);
+    }
+  });
+
   it("gives role-dependent towers the behavior params they need to function", () => {
     for (const c of cat.characters.values()) {
-      if (c.role === "economy") expect(c.behavior?.goldPerSec).toBeGreaterThan(0);
       if (c.role === "support") expect(c.behavior?.buffAura).toBeTruthy();
       if (c.role === "dot") expect(c.behavior?.dot).toBeTruthy();
       if (c.role === "debuff") expect(c.behavior?.slow ?? c.behavior?.stun).toBeTruthy();
