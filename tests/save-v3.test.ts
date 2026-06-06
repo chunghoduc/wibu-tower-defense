@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createFreshSave, loadAndMigrate, CURRENT_SAVE_VERSION } from "../src/core/save.ts";
 
 describe("HeroSave v3", () => {
-  it("CURRENT_SAVE_VERSION is 3", () => {
-    expect(CURRENT_SAVE_VERSION).toBe(3);
+  it("CURRENT_SAVE_VERSION is 4", () => {
+    expect(CURRENT_SAVE_VERSION).toBe(4);
   });
 
   it("createFreshSave has currency with 0 crystals", () => {
@@ -29,7 +29,7 @@ describe("HeroSave v3", () => {
       lastSavedAt: 0,
     };
     const migrated = loadAndMigrate(v1);
-    expect(migrated.version).toBe(3);
+    expect(migrated.version).toBe(4);
     expect(migrated.collection).toEqual({});
     expect(migrated.currency.crystals).toBe(0);
     expect(migrated.progress.totalTowersPlaced).toBe(0);
@@ -45,7 +45,7 @@ describe("HeroSave v3", () => {
       lastSavedAt: 0,
     };
     const migrated = loadAndMigrate(v2);
-    expect(migrated.version).toBe(3);
+    expect(migrated.version).toBe(4);
     expect(migrated.collection["zoran-thricedraw"].stars).toBe(3);
     expect(migrated.currency.crystals).toBe(0);
   });

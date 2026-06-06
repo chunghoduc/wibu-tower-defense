@@ -84,6 +84,13 @@ export class SaveManager {
     return true;
   }
 
+  /** Set the chosen battle squad (owned tower ids, capped at 7). Persists. */
+  setSquad(ids: string[]): void {
+    const owned = ids.filter((id) => id in this.save.collection).slice(0, 7);
+    this.save.squad = owned;
+    this.persist();
+  }
+
   /** Equip an owned item instance. Returns false if not equippable. Persists on success. */
   equipItem(instanceId: string): boolean {
     const ok = equipItem(this.save, instanceId);

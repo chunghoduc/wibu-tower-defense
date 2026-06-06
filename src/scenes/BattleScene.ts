@@ -57,6 +57,13 @@ const ROLE_COLOR: Record<string, number> = {
 function buildSquad(save: HeroSave, catalog: Catalog): CharacterDef[] {
   const owned = new Set(Object.keys(save.collection));
 
+  // A player-chosen squad takes priority (only the still-owned members).
+  const chosen = (save.squad ?? [])
+    .filter((id) => owned.has(id))
+    .map((id) => catalog.characters.get(id))
+    .filter((c): c is CharacterDef => Boolean(c));
+  if (chosen.length > 0) return chosen.slice(0, SQUAD_SIZE);
+
   const preferred = PREFERRED_SQUAD
     .filter((id) => owned.has(id))
     .map((id) => catalog.characters.get(id))

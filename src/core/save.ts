@@ -1,6 +1,6 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 
-export const CURRENT_SAVE_VERSION = 3;
+export const CURRENT_SAVE_VERSION = 4;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -66,6 +66,8 @@ export interface HeroSave {
   collection: TowerCollection;
   currency: CurrencySave;
   progress: ProgressSave;
+  /** Chosen battle squad (tower ids, up to 7). Empty = auto-pick. */
+  squad: string[];
   lastSavedAt: number;
 }
 
@@ -90,6 +92,7 @@ export function createFreshSave(): HeroSave {
     collection: {},
     currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
+    squad: [],
     lastSavedAt: 0,
   };
 }
@@ -104,6 +107,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     version: 3,
   };
+  if ((save.version ?? 0) < 4) save = { ...save, squad: [], version: 4 };
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }

@@ -46,6 +46,7 @@ export class MainMenuScene extends Phaser.Scene {
       { label: "🏪  Shop", scene: "ShopScene" },
       { label: "⬡  Passive Tree", scene: "PassiveGridScene" },
       { label: "⚔  Hero Loadout", scene: "HeroScene" },
+      { label: "👥  Squad & Skill", scene: "SquadScene" },
     ];
 
     // 2-column grid: 3 rows × 2 cols

@@ -21,7 +21,7 @@ describe("SaveManager", () => {
   it("getSave returns fresh save on first use", () => {
     const save = manager.getSave();
     expect(save.hero.level).toBe(1);
-    expect(save.version).toBe(3);
+    expect(save.version).toBe(4);
   });
 
   it("afterBattle awards crystals and persists", () => {
