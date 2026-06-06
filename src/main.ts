@@ -4,6 +4,7 @@ import { MainMenuScene } from "./scenes/MainMenuScene.ts";
 import { GachaScene } from "./scenes/GachaScene.ts";
 import { CollectionScene } from "./scenes/CollectionScene.ts";
 import { StageSelectScene } from "./scenes/StageSelectScene.ts";
+import { ShopScene } from "./scenes/ShopScene.ts";
 import { GAME_HEIGHT, GAME_WIDTH } from "./data/stage.ts";
 import { SaveManager } from "./core/saveManager.ts";
 import { LocalSaveProvider } from "./core/save.ts";
@@ -21,7 +22,7 @@ const game = new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene],
+  scene: [MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene, ShopScene],
 });
 
 game.registry.set("saveManager", saveManager);
