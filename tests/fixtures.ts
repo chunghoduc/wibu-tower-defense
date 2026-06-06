@@ -37,6 +37,7 @@ export function mkTower(over: Partial<CharacterDef> = {}): CharacterDef {
     damageType: "Physical",
     target: "Both",
     cost: 0,
+    description: "test tower",
     passives: ["p"],
     active: null,
     baseStats: makeStats({ atk: 1000, attackSpeed: 5, range: 400, maxHp: 100 }),

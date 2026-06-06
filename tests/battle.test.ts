@@ -37,6 +37,7 @@ function turret(damageType: DamageType = "Physical", critRate = 0): CharacterDef
     damageType,
     target: "Both",
     cost: 0,
+    description: "test turret",
     passives: ["p"],
     active: null,
     baseStats: makeStats({

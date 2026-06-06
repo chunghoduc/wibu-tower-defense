@@ -182,6 +182,8 @@ export interface CharacterDef {
   target: TargetType;
   /** Cost in in-battle gold to place this tower. */
   cost: number;
+  /** Short original lore blurb shown in the collection / tooltip. */
+  description: string;
   /** 1–3 predefined passive skill ids. */
   passives: string[];
   /** Single active skill id, auto-casts when the tower's mana bar is full. */
@@ -319,6 +321,7 @@ function assert(condition: unknown, message: string): asserts condition {
 
 export function validateCharacter(c: CharacterDef): CharacterDef {
   assert(c.id, "character: missing id");
+  assert(c.description.trim().length > 0, `character ${c.id}: missing description`);
   assert((RARITIES as readonly string[]).includes(c.rarity), `character ${c.id}: bad rarity`);
   assert((TOWER_ROLES as readonly string[]).includes(c.role), `character ${c.id}: bad role`);
   assert(

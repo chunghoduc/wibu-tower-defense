@@ -17,6 +17,7 @@ const goodChar: CharacterDef = {
   damageType: "Physical",
   target: "Both",
   cost: 10,
+  description: "a test character",
   passives: ["p"],
   active: null,
   baseStats: makeStats({ atk: 1, maxHp: 1 }),

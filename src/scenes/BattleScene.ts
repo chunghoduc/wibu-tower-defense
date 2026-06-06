@@ -45,6 +45,7 @@ export class BattleScene extends Phaser.Scene {
   private dynGfx!: Phaser.GameObjects.Graphics;
   private hud!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
+  private info!: Phaser.GameObjects.Text;
   private buildButtons: Phaser.GameObjects.Text[] = [];
 
   constructor() {
@@ -72,6 +73,10 @@ export class BattleScene extends Phaser.Scene {
       .text(480, 270, "", { fontSize: "48px", color: "#ffffff", fontStyle: "bold" })
       .setOrigin(0.5)
       .setDepth(20);
+
+    this.info = this.add
+      .text(10, 484, "", { fontSize: "11px", color: "#cfd8dc", wordWrap: { width: 940 } })
+      .setDepth(10);
 
     this.buildBuildBar();
     this.bindInput();
@@ -176,6 +181,13 @@ export class BattleScene extends Phaser.Scene {
         `Hero ${Math.max(0, Math.ceil(b.hero.hp))}/${b.hero.stats.maxHp}   ` +
         `Wave ${Math.max(0, b.waveIndex + 1)}/${STAGE_1.waves.length}`,
     );
+
+    const sel = this.buildOrder.find((d) => d.id === this.selectedTowerId);
+    if (sel) {
+      this.info.setText(
+        `${sel.name} — ${sel.rarity} ${sel.role} (${sel.damageType}/${sel.target})  ·  ${sel.description}`,
+      );
+    }
 
     if (b.outcome === "won") this.banner.setText("VICTORY").setColor("#a5d6a7");
     else if (b.outcome === "lost") this.banner.setText("DEFEAT").setColor("#ef9a9a");

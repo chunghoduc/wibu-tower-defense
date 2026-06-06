@@ -28,6 +28,12 @@ describe("character roster", () => {
   it("has a positive placement cost for every character", () => {
     for (const c of cat.characters.values()) expect(c.cost).toBeGreaterThan(0);
   });
+
+  it("gives every character original lore", () => {
+    for (const c of cat.characters.values()) {
+      expect(c.description.trim().length).toBeGreaterThan(20);
+    }
+  });
 });
 
 describe("enemy roster", () => {
