@@ -30,8 +30,30 @@ progresses (survives context compaction).
 - [x] **T4** Inventory UI like a real game; drag & drop items to equip.
 - [x] **T10** +130 items with varied primary affixes.
 - [x] **T17** Hero keyboard movement (WASD/arrows).
-- [ ] **LOOP** Brainstorm + add more; playtest; polish until great.
+- [~] **LOOP** Brainstorm + add more; playtest; polish until great. (ongoing)
+
+## LOOP polish — done
+- Battle speed controls (Pause / 1× / 2× / 3×).
+- Tower range preview on the placement ghost.
+- Procedural Web-Audio SFX (attacks/hits/deaths/casts/loot/place/win/lose) + mute.
+
+## LOOP polish — ideas (next iterations)
+- Wave-incoming announcement + a "start next wave early" bonus.
+- Castle + tower-placement-count HUD niceties; minimap for the larger world.
+- More chapters/stages; difficulty-tier rewards; boss intro cards.
+- Achievements screen; daily-reward calendar.
+- Tower targeting-priority toggle (first/strongest/closest).
+- Nicer terrain art (tiles instead of blobs); parallax background.
+- Balance pass with the larger map + free placement (tune ranges/gold/wave HP).
+- Hero appearance reflecting equipped weapon (variants exist in sdart pipeline).
 
 ## Progress log
-- 2026-06-07: Roadmap created. Baseline: game playable (menu→stage→battle), animated pixel-art
-  hero/enemy/tower sprites wired, starter squad granted, 224 tests pass. Commit `43195e2`.
+- 2026-06-07: Roadmap created. Baseline playable, 224 tests. Commit `43195e2`.
+- 2026-06-07: All 17 requested tasks (T1–T17) implemented with the full workflow
+  (design → TDD where logic exists → playtest-verify → code review → commit).
+  Highlights: FX/combat feedback, projectiles+skill effects, tower upgrade/sell,
+  enemy attack tells, loot/gold animations, 10 anime-homage bosses (animated),
+  enemy compendium, +130 items, squad/skill screen, drag-drop inventory, larger
+  zoom-out world with dual cameras, terrain + free placement + drag-to-deploy
+  avatars, WASD hero movement. Two subagent code reviews → fixes committed. Then
+  LOOP polish (speed/range/audio). ~255 tests passing throughout. Heads ~6362306.
