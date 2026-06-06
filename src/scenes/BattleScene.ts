@@ -13,7 +13,7 @@ import Phaser from "phaser";
 import { BattleState, type EnemyRuntime, type TowerRuntime } from "../core/battle.ts";
 import { loadCatalog, type Catalog } from "../data/catalog.ts";
 import { defaultHeroStats, STAGE_1 } from "../data/stage.ts";
-import type { CharacterDef, ItemSlot, Vec2 } from "../data/schema.ts";
+import type { CharacterDef, Difficulty, ItemSlot, StageDef, Vec2 } from "../data/schema.ts";
 import { dist } from "../core/path.ts";
 import { totalXpForLevel } from "../core/hero.ts";
 import type { SaveManager } from "../core/saveManager.ts";
@@ -82,6 +82,8 @@ function buildSquad(save: HeroSave, catalog: Catalog): CharacterDef[] {
 export class BattleScene extends Phaser.Scene {
   private catalog!: Catalog;
   private battle!: BattleState;
+  private stage!: StageDef;
+  private difficulty!: Difficulty;
   private buildOrder: CharacterDef[] = [];
   private selectedTowerId: string | null = null;
   private saveManager!: SaveManager;
@@ -109,12 +111,17 @@ export class BattleScene extends Phaser.Scene {
     this._victoryProcessed = false;
     this._menuBtn = null;
 
+    // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
+    this.stage = (this.registry.get("selectedStage") as StageDef | undefined) ?? STAGE_1;
+    this.difficulty = (this.registry.get("selectedDifficulty") as Difficulty | undefined) ?? "Normal";
+
     this.catalog = loadCatalog();
     this.buildOrder = buildSquad(save, this.catalog);
     this.selectedTowerId = this.buildOrder[0]?.id ?? null;
 
-    this.battle = new BattleState(STAGE_1, this.catalog, {
+    this.battle = new BattleState(this.stage, this.catalog, {
       seed: 12345,
+      difficulty: this.difficulty,
       hero: {
         stats: defaultHeroStats(),
         startPos: { x: 480, y: 270 },
@@ -157,7 +164,7 @@ export class BattleScene extends Phaser.Scene {
     const g = this.staticGfx;
     g.clear();
     g.lineStyle(36, 0x2c3446, 1);
-    const p = STAGE_1.path;
+    const p = this.stage.path;
     g.beginPath();
     g.moveTo(p[0].x, p[0].y);
     for (let i = 1; i < p.length; i++) g.lineTo(p[i].x, p[i].y);
@@ -165,7 +172,7 @@ export class BattleScene extends Phaser.Scene {
     const c = this.battle.castlePos;
     g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 22, c.y - 22, 44, 44);
     g.lineStyle(2, 0x55617a, 1);
-    for (const s of STAGE_1.towerSlots) g.strokeCircle(s.x, s.y, SLOT_RADIUS);
+    for (const s of this.stage.towerSlots) g.strokeCircle(s.x, s.y, SLOT_RADIUS);
   }
 
   private buildBuildBar(): void {
@@ -224,8 +231,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private slotAt(world: Vec2): number {
-    for (let i = 0; i < STAGE_1.towerSlots.length; i++) {
-      if (dist(world, STAGE_1.towerSlots[i]) <= SLOT_RADIUS) {
+    for (let i = 0; i < this.stage.towerSlots.length; i++) {
+      if (dist(world, this.stage.towerSlots[i]) <= SLOT_RADIUS) {
         const occupied = this.battle.towers.some((t) => t.slotIndex === i && t.alive);
         if (!occupied) return i;
       }
@@ -250,10 +257,10 @@ export class BattleScene extends Phaser.Scene {
     this.refreshBuildBar();
     const b = this.battle;
     this.hud.setText(
-      `${STAGE_1.name} [${b.difficulty}]   Gold ${b.gold}   ` +
+      `${this.stage.name} [${b.difficulty}]   Gold ${b.gold}   ` +
         `Castle ${Math.max(0, Math.ceil(b.castleHp))}   ` +
         `Hero ${Math.max(0, Math.ceil(b.hero.hp))}/${b.hero.stats.maxHp}   ` +
-        `Wave ${Math.max(0, b.waveIndex + 1)}/${STAGE_1.waves.length}`,
+        `Wave ${Math.max(0, b.waveIndex + 1)}/${this.stage.waves.length}`,
     );
 
     this.drawHeroSaveHUD(g);
@@ -292,7 +299,7 @@ export class BattleScene extends Phaser.Scene {
     this._victoryProcessed = true;
 
     const result = this.saveManager.afterBattle(
-      STAGE_1.id,
+      this.stage.id,
       "won",
       this.battle.difficulty,
       new Rng(Date.now()),

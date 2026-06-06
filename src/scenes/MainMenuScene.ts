@@ -40,7 +40,7 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     const buttons: { label: string; scene: string }[] = [
-      { label: "▶  Play Battle", scene: "BattleScene" },
+      { label: "▶  Play Battle", scene: "StageSelectScene" },
       { label: "✦  Summon Hall", scene: "GachaScene" },
       { label: "◈  Collection", scene: "CollectionScene" },
     ];
