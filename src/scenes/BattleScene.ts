@@ -13,6 +13,17 @@ import { defaultHeroStats, STAGE_1 } from "../data/stage.ts";
 import type { CharacterDef, Vec2 } from "../data/schema.ts";
 import { dist } from "../core/path.ts";
 
+/** The 7-character squad shown on the build bar (one per role for Phase 2). */
+const SQUAD_IDS = [
+  "verdant-archer",
+  "bulwark-bombard",
+  "spark-weaver",
+  "venom-priestess",
+  "frostward-maiden",
+  "banner-bearer",
+  "coin-sprite",
+];
+
 const SLOT_RADIUS = 26;
 const ROLE_COLOR: Record<string, number> = {
   damage: 0x4fc3f7,
@@ -42,7 +53,9 @@ export class BattleScene extends Phaser.Scene {
 
   create(): void {
     this.catalog = loadCatalog();
-    this.buildOrder = [...this.catalog.characters.values()];
+    this.buildOrder = SQUAD_IDS.map((id) => this.catalog.characters.get(id)).filter(
+      (c): c is CharacterDef => Boolean(c),
+    );
     this.selectedTowerId = this.buildOrder[0]?.id ?? null;
 
     this.battle = new BattleState(STAGE_1, this.catalog, {
@@ -158,7 +171,8 @@ export class BattleScene extends Phaser.Scene {
     this.refreshBuildBar();
     const b = this.battle;
     this.hud.setText(
-      `Gold ${b.gold}   Castle ${Math.max(0, Math.ceil(b.castleHp))}   ` +
+      `${STAGE_1.name} [${b.difficulty}]   Gold ${b.gold}   ` +
+        `Castle ${Math.max(0, Math.ceil(b.castleHp))}   ` +
         `Hero ${Math.max(0, Math.ceil(b.hero.hp))}/${b.hero.stats.maxHp}   ` +
         `Wave ${Math.max(0, b.waveIndex + 1)}/${STAGE_1.waves.length}`,
     );
@@ -168,7 +182,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawTower(g: Phaser.GameObjects.Graphics, t: TowerRuntime): void {
-    const color = ROLE_COLOR[t.def.role] ?? 0xffffff;
+    const disabled = t.disabledTimer > 0;
+    const color = disabled ? 0x555555 : ROLE_COLOR[t.def.role] ?? 0xffffff;
     g.fillStyle(color, 1).fillRect(t.pos.x - 14, t.pos.y - 14, 28, 28);
     // Range ring + mana fill.
     g.lineStyle(1, color, 0.25).strokeCircle(t.pos.x, t.pos.y, t.stats.range);
@@ -176,21 +191,30 @@ export class BattleScene extends Phaser.Scene {
       g.fillStyle(0x42a5f5, 0.9);
       g.fillRect(t.pos.x - 14, t.pos.y + 16, 28 * (t.mana / t.stats.maxMana), 3);
     }
+    // Tower HP (only when damaged).
+    if (t.hp < t.stats.maxHp) {
+      g.fillStyle(0x000000, 0.6).fillRect(t.pos.x - 14, t.pos.y - 20, 28, 3);
+      g.fillStyle(0xef5350, 1).fillRect(t.pos.x - 14, t.pos.y - 20, 28 * Phaser.Math.Clamp(t.hp / t.stats.maxHp, 0, 1), 3);
+    }
   }
 
   private drawEnemy(g: Phaser.GameObjects.Graphics, e: EnemyRuntime): void {
     const boss = e.def.archetype === "Boss";
     const r = boss ? 16 : e.flying ? 8 : 10;
-    g.fillStyle(e.flying ? 0xce93d8 : boss ? 0xb71c1c : 0xe57373, 1).fillCircle(e.pos.x, e.pos.y, r);
-    // HP bar.
+    const alpha = e.stealth ? 0.4 : 1;
+    const base = e.enraged ? 0xff5252 : e.flying ? 0xce93d8 : boss ? 0xb71c1c : 0xe57373;
+    g.fillStyle(base, alpha).fillCircle(e.pos.x, e.pos.y, r);
+    // Slow/stun status ring.
+    if (e.stunTimer > 0) g.lineStyle(2, 0xfff176, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
+    else if (e.slowPct > 0) g.lineStyle(2, 0x4fc3f7, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
+    // HP (and shield) bar.
     const w = boss ? 40 : 20;
-    g.fillStyle(0x000000, 0.6).fillRect(e.pos.x - w / 2, e.pos.y - r - 7, w, 4);
-    g.fillStyle(0x66bb6a, 1).fillRect(
-      e.pos.x - w / 2,
-      e.pos.y - r - 7,
-      w * Phaser.Math.Clamp(e.hp / e.stats.maxHp, 0, 1),
-      4,
-    );
+    const top = e.pos.y - r - 7;
+    g.fillStyle(0x000000, 0.6).fillRect(e.pos.x - w / 2, top, w, 4);
+    g.fillStyle(0x66bb6a, 1).fillRect(e.pos.x - w / 2, top, w * Phaser.Math.Clamp(e.hp / e.stats.maxHp, 0, 1), 4);
+    if (e.shield > 0) {
+      g.fillStyle(0x80d8ff, 1).fillRect(e.pos.x - w / 2, top - 4, w * Phaser.Math.Clamp(e.shield / e.stats.maxHp, 0, 1), 3);
+    }
   }
 
   private drawHero(g: Phaser.GameObjects.Graphics): void {
