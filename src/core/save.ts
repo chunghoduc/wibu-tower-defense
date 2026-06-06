@@ -8,6 +8,8 @@ export interface CurrencySave {
   crystals: number;
   pityCount: number;
   lastDailyLoginDate: string;
+  /** When true, the next pull draws from the 95% Legendary / 5% Unique insurance pool. */
+  pityInsuranceActive: boolean;
 }
 
 export interface StageClearRecord {
@@ -86,7 +88,7 @@ export function createFreshSave(): HeroSave {
       equipped: {},
     },
     collection: {},
-    currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "" },
+    currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     lastSavedAt: 0,
   };
@@ -98,7 +100,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   if ((save.version ?? 0) < 2) save = { ...save, collection: {}, version: 2 };
   if ((save.version ?? 0) < 3) save = {
     ...save,
-    currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "" },
+    currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     version: 3,
   };

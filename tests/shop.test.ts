@@ -33,4 +33,14 @@ describe("purchaseShopItem", () => {
     const result = purchaseShopItem(save, "does-not-exist");
     expect(result.success).toBe(false);
   });
+
+  it("pity-boost sets pityInsuranceActive flag (not pityCount)", () => {
+    const save = createFreshSave();
+    const entry = SHOP_CATALOG.find((e) => e.id === "shop-pity-boost")!;
+    save.currency.crystals = entry.cost;
+    save.currency.pityCount = 0;
+    purchaseShopItem(save, entry.id);
+    expect(save.currency.pityInsuranceActive).toBe(true);
+    expect(save.currency.pityCount).toBe(0); // pityCount untouched
+  });
 });

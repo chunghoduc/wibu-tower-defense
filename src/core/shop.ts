@@ -27,7 +27,7 @@ export const SHOP_CATALOG: ShopEntry[] = [
   })),
   {
     id: "shop-pity-boost",
-    name: "Pity Insurance (guaranteed Rare+ next pull)",
+    name: "Pity Insurance (next pull: 95% Legendary / 5% Unique)",
     cost: 400,
     rewardType: "pity-boost" as const,
     rewardRef: "pity",
@@ -42,7 +42,7 @@ export function purchaseShopItem(save: HeroSave, entryId: string): PurchaseResul
   if (entry.rewardType === "character") {
     addTowerToCollection(save, entry.rewardRef);
   } else if (entry.rewardType === "pity-boost") {
-    save.currency.pityCount = Math.max(save.currency.pityCount, 74);
+    save.currency.pityInsuranceActive = true;
   }
   return { success: true, message: `Purchased ${entry.name}` };
 }

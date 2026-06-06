@@ -92,3 +92,52 @@ describe("performMultiSummon", () => {
     expect(save.currency.crystals).toBe(0);
   });
 });
+
+describe("pity insurance pool", () => {
+  it("when active, result is Legendary or Unique (never lower)", () => {
+    for (let seed = 0; seed < 40; seed++) {
+      const save = createFreshSave();
+      save.currency.crystals = SINGLE_PULL_COST;
+      save.currency.pityInsuranceActive = true;
+      const result = performSummon(save, new Rng(seed));
+      expect(["Legendary", "Unique"]).toContain(result.rarity);
+    }
+  });
+
+  it("insurance flag is consumed after one pull", () => {
+    const save = createFreshSave();
+    save.currency.crystals = SINGLE_PULL_COST;
+    save.currency.pityInsuranceActive = true;
+    performSummon(save, new Rng(1));
+    expect(save.currency.pityInsuranceActive).toBe(false);
+  });
+
+  it("insurance does not reset pityCount (pityCount still increments normally)", () => {
+    const save = createFreshSave();
+    save.currency.crystals = SINGLE_PULL_COST;
+    save.currency.pityCount = 5;
+    save.currency.pityInsuranceActive = true;
+    const result = performSummon(save, new Rng(1));
+    if (result.rarity === "Unique") {
+      expect(save.currency.pityCount).toBe(0); // Unique always resets pity
+    } else {
+      expect(save.currency.pityCount).toBe(6); // Legendary increments normally
+    }
+  });
+
+  it("over 40 seeds, roughly 5% are Unique and 95% are Legendary", () => {
+    let uniques = 0;
+    const RUNS = 200;
+    for (let seed = 0; seed < RUNS; seed++) {
+      const save = createFreshSave();
+      save.currency.crystals = SINGLE_PULL_COST;
+      save.currency.pityInsuranceActive = true;
+      const result = performSummon(save, new Rng(seed));
+      if (result.rarity === "Unique") uniques++;
+    }
+    const uniqueRate = uniques / RUNS;
+    // Allow wide tolerance (seeded RNG, small sample) but confirm it's near 5%
+    expect(uniqueRate).toBeGreaterThanOrEqual(0.01);
+    expect(uniqueRate).toBeLessThanOrEqual(0.15);
+  });
+});

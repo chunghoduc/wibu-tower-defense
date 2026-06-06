@@ -55,9 +55,23 @@ function drawCharacter(rarity: Rarity, rng: Rng): string {
   return source[Math.floor(rng.next() * source.length)].id;
 }
 
+/** Draw rarity from the pity-insurance pool: 95% Legendary, 5% Unique. */
+function drawInsuranceRarity(rng: Rng): Rarity {
+  return rng.next() < 0.05 ? "Unique" : "Legendary";
+}
+
 export function performSummon(save: HeroSave, rng: Rng): SummonResult {
   save.currency.crystals -= SINGLE_PULL_COST;
-  const rarity = drawRarity(save.currency.pityCount, rng);
+
+  let rarity: Rarity;
+  if (save.currency.pityInsuranceActive) {
+    // Insurance pool: 95% Legendary / 5% Unique. Consumed on use.
+    save.currency.pityInsuranceActive = false;
+    rarity = drawInsuranceRarity(rng);
+  } else {
+    rarity = drawRarity(save.currency.pityCount, rng);
+  }
+
   const characterId = drawCharacter(rarity, rng);
   const isNew = !(characterId in save.collection);
   addTowerToCollection(save, characterId);
