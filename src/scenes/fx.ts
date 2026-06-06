@@ -20,9 +20,33 @@ const DMG_NUM_COLOR: Record<DamageType, string> = {
 };
 
 export class FxLayer {
-  /** Screen anchor of the gold counter in the HUD; dropped coins fly here. */
-  private readonly goldAnchor = { x: 472, y: 20 };
-  constructor(private readonly scene: Phaser.Scene, private readonly depth = 6) {}
+  /** World anchor of the gold counter; dropped coins fly here. */
+  private readonly goldAnchor: { x: number; y: number };
+  /** Factory that creates objects and (if a parent layer is given) parents them
+   *  to it, so the battle camera renders FX in world space. */
+  private readonly fac: Phaser.GameObjects.GameObjectFactory;
+
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly depth = 6,
+    layer?: Phaser.GameObjects.Layer,
+    goldAnchor?: { x: number; y: number },
+  ) {
+    this.goldAnchor = goldAnchor ?? { x: 472, y: 20 };
+    this.fac = layer
+      ? new Proxy(scene.add, {
+          get(target, prop, recv) {
+            const f = Reflect.get(target, prop, recv);
+            if (typeof f !== "function") return f;
+            return (...args: unknown[]) => {
+              const o = (f as (...a: unknown[]) => unknown).apply(target, args);
+              if (o && (o as Phaser.GameObjects.GameObject).scene) layer.add(o as Phaser.GameObjects.GameObject);
+              return o;
+            };
+          },
+        }) as Phaser.GameObjects.GameObjectFactory
+      : scene.add;
+  }
 
   play(e: FxEvent): void {
     switch (e.type) {
@@ -59,9 +83,9 @@ export class FxLayer {
   private lunge(from: Vec2, to: Vec2): void {
     const ang = Math.atan2(to.y - from.y, to.x - from.x);
     const sx = from.x + Math.cos(ang) * 8, sy = from.y + Math.sin(ang) * 8;
-    const streak = this.scene.add.rectangle(sx, sy, 12, 3, 0xff6a5a).setRotation(ang).setOrigin(0, 0.5).setDepth(this.depth);
+    const streak = this.fac.rectangle(sx, sy, 12, 3, 0xff6a5a).setRotation(ang).setOrigin(0, 0.5).setDepth(this.depth);
     this.scene.tweens.add({ targets: streak, x: to.x - Math.cos(ang) * 8, y: to.y - Math.sin(ang) * 8, alpha: 0, duration: 160, ease: "Quad.easeIn", onComplete: () => streak.destroy() });
-    const impact = this.scene.add.circle(to.x, to.y, 6, 0xff8a5a, 0.8).setDepth(this.depth + 1);
+    const impact = this.fac.circle(to.x, to.y, 6, 0xff8a5a, 0.8).setDepth(this.depth + 1);
     this.scene.tweens.add({ targets: impact, scale: 1.8, alpha: 0, duration: 200, onComplete: () => impact.destroy() });
   }
 
@@ -70,9 +94,9 @@ export class FxLayer {
   private projectile(from: Vec2, to: Vec2, color: number, role: string): void {
     const isMagic = role === "dot" || role === "debuff" || role === "support";
     const r = isMagic ? 5 : 4;
-    const dot = this.scene.add.circle(from.x, from.y, r, color).setDepth(this.depth);
+    const dot = this.fac.circle(from.x, from.y, r, color).setDepth(this.depth);
     dot.setStrokeStyle(2, 0xffffff, 0.5);
-    const glow = this.scene.add.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
+    const glow = this.fac.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
     const dur = Math.min(260, 60 + Phaser.Math.Distance.BetweenPoints(from as Phaser.Types.Math.Vector2Like, to as Phaser.Types.Math.Vector2Like) * 0.9);
     this.scene.tweens.add({
       targets: [dot, glow], x: to.x, y: to.y, duration: dur, ease: "Sine.easeIn",
@@ -81,7 +105,7 @@ export class FxLayer {
   }
 
   private slash(at: Vec2, color: number): void {
-    const g = this.scene.add.graphics({ x: at.x, y: at.y }).setDepth(this.depth);
+    const g = this.fac.graphics({ x: at.x, y: at.y }).setDepth(this.depth);
     g.lineStyle(3, color, 0.95);
     g.beginPath(); g.arc(0, 0, 16, Phaser.Math.DegToRad(-50), Phaser.Math.DegToRad(60)); g.strokePath();
     g.setScale(0.5).setAngle(Phaser.Math.Between(-30, 30));
@@ -92,7 +116,7 @@ export class FxLayer {
     const n = 5;
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n + Math.random() * 0.6;
-      const p = this.scene.add.circle(at.x, at.y, 2, color).setDepth(this.depth);
+      const p = this.fac.circle(at.x, at.y, 2, color).setDepth(this.depth);
       this.scene.tweens.add({
         targets: p, x: at.x + Math.cos(a) * 14, y: at.y + Math.sin(a) * 14, alpha: 0, scale: 0.3,
         duration: 220, ease: "Quad.easeOut", onComplete: () => p.destroy(),
@@ -102,14 +126,14 @@ export class FxLayer {
 
   private damageNumber(at: Vec2, amount: number, color: string, big: boolean): void {
     if (amount <= 0) return;
-    const t = this.scene.add.text(at.x + Phaser.Math.Between(-6, 6), at.y - 10, String(amount), {
+    const t = this.fac.text(at.x + Phaser.Math.Between(-6, 6), at.y - 10, String(amount), {
       fontSize: big ? "13px" : "12px", color, fontStyle: "bold", stroke: "#10131c", strokeThickness: 3,
     }).setOrigin(0.5).setDepth(this.depth + 2);
     this.scene.tweens.add({ targets: t, y: at.y - 34, alpha: 0, duration: 620, ease: "Quad.easeOut", onComplete: () => t.destroy() });
   }
 
   private ring(at: Vec2, radius: number, color: number, duration: number): void {
-    const c = this.scene.add.circle(at.x, at.y, 6).setStrokeStyle(3, color, 0.9).setDepth(this.depth);
+    const c = this.fac.circle(at.x, at.y, 6).setStrokeStyle(3, color, 0.9).setDepth(this.depth);
     c.setFillStyle(color, 0.12);
     this.scene.tweens.add({ targets: c, scale: radius / 6, alpha: 0, duration, ease: "Cubic.easeOut", onComplete: () => c.destroy() });
   }
@@ -120,24 +144,24 @@ export class FxLayer {
     this.ring(at, radius, color, 520);
     this.scene.time.delayedCall(90, () => this.ring(at, radius * 0.62, 0xffffff, 360));
 
-    const core = this.scene.add.circle(at.x, at.y, 10, 0xffffff, 0.95).setDepth(this.depth + 2);
+    const core = this.fac.circle(at.x, at.y, 10, 0xffffff, 0.95).setDepth(this.depth + 2);
     this.scene.tweens.add({ targets: core, scale: 0.15, alpha: 0, duration: 280, onComplete: () => core.destroy() });
 
     for (let i = 0; i < 12; i++) {
       const a = (Math.PI * 2 * i) / 12;
-      const line = this.scene.add.rectangle(at.x, at.y, 3, 16, color).setOrigin(0.5, 1).setRotation(a).setDepth(this.depth + 1);
+      const line = this.fac.rectangle(at.x, at.y, 3, 16, color).setOrigin(0.5, 1).setRotation(a).setDepth(this.depth + 1);
       this.scene.tweens.add({ targets: line, scaleY: 2.8, alpha: 0, duration: 420, ease: "Quad.easeOut", onComplete: () => line.destroy() });
     }
 
     const key = skillId ? `vfx__${skillId}` : "";
     if (key && this.scene.textures.exists(key)) {
-      const spr = this.scene.add.image(at.x, at.y, key).setDepth(this.depth + 3).setScale(0.3).setAlpha(0.95);
+      const spr = this.fac.image(at.x, at.y, key).setDepth(this.depth + 3).setScale(0.3).setAlpha(0.95);
       this.scene.tweens.add({ targets: spr, scale: 1.7, angle: 60, alpha: 0, duration: 460, ease: "Cubic.easeOut", onComplete: () => spr.destroy() });
     }
 
     for (let i = 0; i < 9; i++) {
       const a = (Math.PI * 2 * i) / 9 + Math.random() * 0.4;
-      const p = this.scene.add.circle(at.x, at.y, 3, color).setDepth(this.depth + 2);
+      const p = this.fac.circle(at.x, at.y, 3, color).setDepth(this.depth + 2);
       this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * (radius * 0.7), y: at.y + Math.sin(a) * (radius * 0.7), alpha: 0, scale: 0.2, duration: 460, ease: "Quad.easeOut", onComplete: () => p.destroy() });
     }
 
@@ -145,7 +169,7 @@ export class FxLayer {
   }
 
   private bolt(from: Vec2, to: Vec2, color: number): void {
-    const g = this.scene.add.graphics().setDepth(this.depth + 1);
+    const g = this.fac.graphics().setDepth(this.depth + 1);
     g.lineStyle(2, color, 0.95);
     g.beginPath(); g.moveTo(from.x, from.y);
     const steps = 4;
@@ -165,10 +189,10 @@ export class FxLayer {
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n;
       const d = boss ? 30 : 18;
-      const p = this.scene.add.circle(at.x, at.y, boss ? 4 : 3, color).setDepth(this.depth + 1);
+      const p = this.fac.circle(at.x, at.y, boss ? 4 : 3, color).setDepth(this.depth + 1);
       this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * d, y: at.y + Math.sin(a) * d, alpha: 0, scale: 0.2, duration: boss ? 480 : 320, ease: "Quad.easeOut", onComplete: () => p.destroy() });
     }
-    const flash = this.scene.add.circle(at.x, at.y, boss ? 22 : 12, 0xffffff, 0.85).setDepth(this.depth + 1);
+    const flash = this.fac.circle(at.x, at.y, boss ? 22 : 12, 0xffffff, 0.85).setDepth(this.depth + 1);
     this.scene.tweens.add({ targets: flash, scale: 1.8, alpha: 0, duration: 260, onComplete: () => flash.destroy() });
   }
 
@@ -177,7 +201,7 @@ export class FxLayer {
     const anchor = this.goldAnchor;
     const n = Math.min(4, 1 + Math.floor(gold / 12));
     for (let i = 0; i < n; i++) {
-      const coin = this.scene.add.circle(at.x, at.y, 4, 0xffd34d).setStrokeStyle(1, 0xa9722a).setDepth(this.depth + 2);
+      const coin = this.fac.circle(at.x, at.y, 4, 0xffd34d).setStrokeStyle(1, 0xa9722a).setDepth(this.depth + 2);
       const bx = at.x + Phaser.Math.Between(-16, 16), by = at.y - Phaser.Math.Between(8, 22);
       this.scene.tweens.add({
         targets: coin, x: bx, y: by, duration: 170, ease: "Quad.easeOut",
@@ -187,7 +211,7 @@ export class FxLayer {
         }),
       });
     }
-    const txt = this.scene.add.text(at.x, at.y - 6, `+${gold}`, {
+    const txt = this.fac.text(at.x, at.y - 6, `+${gold}`, {
       fontSize: "11px", color: "#ffd86a", fontStyle: "bold", stroke: "#10131c", strokeThickness: 3,
     }).setOrigin(0.5).setDepth(this.depth + 2);
     this.scene.tweens.add({ targets: txt, y: at.y - 26, alpha: 0, duration: 560, ease: "Quad.easeOut", onComplete: () => txt.destroy() });

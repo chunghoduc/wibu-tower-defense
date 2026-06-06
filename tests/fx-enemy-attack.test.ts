@@ -14,7 +14,7 @@ describe("enemyAttack FX", () => {
   it("emits an enemyAttack event (and damages the hero) when an enemy reaches the body-blocking hero", () => {
     const b = freshBattle();
     // park the hero right on the lane near the start so marching enemies block on it
-    b.commandHero({ x: 140, y: 120 });
+    const p0 = STAGE_1.path[0], p1 = STAGE_1.path[1]; b.commandHero({ x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 });
     let sawAttack = false;
     const startHp = b.hero.hp;
     for (let i = 0; i < 2000 && !sawAttack; i++) {
@@ -27,7 +27,7 @@ describe("enemyAttack FX", () => {
 
   it("enemyAttack carries the attacker uid and target position", () => {
     const b = freshBattle();
-    b.commandHero({ x: 140, y: 120 });
+    const p0 = STAGE_1.path[0], p1 = STAGE_1.path[1]; b.commandHero({ x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 });
     let ev: { uid: number; at: { x: number; y: number }; targetAt: { x: number; y: number } } | undefined;
     for (let i = 0; i < 2000 && !ev; i++) {
       b.tick(0.05);

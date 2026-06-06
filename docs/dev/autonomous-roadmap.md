@@ -24,7 +24,7 @@ progresses (survives context compaction).
 - [ ] **T12** Battle tower bar = character avatars; drag & drop onto field.
 - [ ] **T13** Map terrain elements (stone, sand, water, jungle, mountain, ...). Brainstorm more.
 - [ ] **T14** Free placement anywhere except obstacle tiles.
-- [ ] **T6** Larger map via zoom-out / bigger play area + camera.
+- [x] **T6** Larger map via zoom-out / bigger play area + camera.
 - [x] **T3** Fancy hero/active-skill animations & effects.
 - [x] **T8** Squad management + hero active-skill selection screen.
 - [x] **T4** Inventory UI like a real game; drag & drop items to equip.

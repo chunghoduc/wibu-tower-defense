@@ -140,14 +140,25 @@ function buildWaves(n: number): WaveDef[] {
   return w;
 }
 
+/**
+ * The battlefield world is larger than the 960×540 screen so the battle camera
+ * can show it zoomed out (T6). Layouts authored at 960×540 are scaled up to fill
+ * the world; gameplay quantities stay in world units.
+ */
+export const WORLD_WIDTH = 1280;
+export const WORLD_HEIGHT = 720;
+const WSX = WORLD_WIDTH / GAME_WIDTH;
+const WSY = WORLD_HEIGHT / GAME_HEIGHT;
+const scaleV = (p: Vec2): Vec2 => ({ x: Math.round(p.x * WSX), y: Math.round(p.y * WSY) });
+
 export const STAGES: StageDef[] = LAYOUTS.map((l, i) => ({
   id: `ch1-s${i + 1}`,
   name: l.name,
-  path: l.path,
-  airSpawns: l.air,
+  path: l.path.map(scaleV),
+  airSpawns: l.air.map(scaleV),
   castleHp: 28 + i * 2,
   startingGold: 170 + i * 10,
-  towerSlots: l.slots,
+  towerSlots: l.slots.map(scaleV),
   waves: buildWaves(i + 1),
 }));
 

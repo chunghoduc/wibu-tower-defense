@@ -12,7 +12,7 @@
 import Phaser from "phaser";
 import { BattleState, type EnemyRuntime, type TowerRuntime } from "../core/battle.ts";
 import { loadCatalog, type Catalog } from "../data/catalog.ts";
-import { defaultHeroStats, STAGE_1 } from "../data/stage.ts";
+import { defaultHeroStats, STAGE_1, WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
 import type { CharacterDef, Difficulty, ItemSlot, StageDef, Vec2 } from "../data/schema.ts";
 import { dist } from "../core/path.ts";
 import { totalXpForLevel } from "../core/hero.ts";
@@ -100,6 +100,9 @@ export class BattleScene extends Phaser.Scene {
 
   private staticGfx!: Phaser.GameObjects.Graphics;
   private dynGfx!: Phaser.GameObjects.Graphics;
+  private uiGfx!: Phaser.GameObjects.Graphics;     // screen-space HUD shapes
+  private world!: Phaser.GameObjects.Layer;        // battlefield (zoomed camera)
+  private ui!: Phaser.GameObjects.Layer;           // HUD (fixed camera)
   private hud!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private info!: Phaser.GameObjects.Text;
@@ -154,41 +157,40 @@ export class BattleScene extends Phaser.Scene {
       difficulty: this.difficulty,
       hero: {
         stats: defaultHeroStats(),
-        startPos: { x: 480, y: 270 },
+        startPos: { x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2 },
         damageType: "Physical",
       },
       heroSave: save,
     });
 
+    // Two display layers: the battlefield (rendered by a zoomed-out camera) and
+    // the HUD (rendered by a fixed 1:1 camera).
+    this.world = this.add.layer();
+    this.ui = this.add.layer();
+
     this.staticGfx = this.add.graphics();
-    this.dynGfx = this.add.graphics().setDepth(5); // bars/rings render above sprites (depth 2)
-    this.fx = new FxLayer(this, 6);
+    this.dynGfx = this.add.graphics().setDepth(5); // bars/rings above sprites (depth 2)
+    this.world.add([this.staticGfx, this.dynGfx]);
+    this.fx = new FxLayer(this, 6, this.world);
     this.drawStatic();
 
+    this.uiGfx = this.add.graphics().setDepth(8);
     this.hud = this.add.text(10, 8, "", { fontSize: "16px", color: "#ffffff" }).setDepth(10);
-    this.banner = this.add
-      .text(480, 270, "", { fontSize: "48px", color: "#ffffff", fontStyle: "bold" })
-      .setOrigin(0.5)
-      .setDepth(20);
-
-    this.info = this.add
-      .text(10, 484, "", { fontSize: "11px", color: "#cfd8dc", wordWrap: { width: 940 } })
-      .setDepth(10);
-
-    this.hudLevelText = this.add
-      .text(36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" })
-      .setOrigin(0.5, 0.5)
-      .setDepth(20)
-      .setVisible(false);
-
-    this.hudSkillText = this.add
-      .text(58, 117, "", { fontSize: "9px", color: "#ddaaff", align: "center" })
-      .setOrigin(0.5, 0.5)
-      .setDepth(20)
-      .setVisible(false);
+    this.banner = this.add.text(480, 250, "", { fontSize: "48px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5).setDepth(20);
+    this.info = this.add.text(10, 484, "", { fontSize: "11px", color: "#cfd8dc", wordWrap: { width: 940 } }).setDepth(10);
+    this.hudLevelText = this.add.text(36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
+    this.hudSkillText = this.add.text(58, 117, "", { fontSize: "9px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
+    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText]);
 
     this.buildBuildBar();
     this.bindInput();
+
+    // Camera setup: main shows the whole world zoomed out; uiCam draws the HUD 1:1.
+    const zoom = Math.min(this.scale.width / WORLD_WIDTH, this.scale.height / WORLD_HEIGHT);
+    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT).setZoom(zoom).centerOn(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
+    this.cameras.main.ignore(this.ui);
+    const uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+    uiCam.ignore(this.world);
     const KC = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard?.addKeys({
       up: KC.UP, down: KC.DOWN, left: KC.LEFT, right: KC.RIGHT,
@@ -223,6 +225,7 @@ export class BattleScene extends Phaser.Scene {
         .setPadding(6, 4, 6, 4)
         .setInteractive({ useHandCursor: true })
         .setDepth(10);
+      this.ui.add(btn);
       btn.on(
         "pointerdown",
         (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
@@ -256,8 +259,9 @@ export class BattleScene extends Phaser.Scene {
   private bindInput(): void {
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (this.battle.outcome !== "ongoing") return;
-      if (pointer.worldY >= 500) return;
-      const world: Vec2 = { x: pointer.worldX, y: pointer.worldY };
+      if (pointer.y >= 500) return; // bottom HUD strip (screen space)
+      const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      const world: Vec2 = { x: wp.x, y: wp.y };
 
       // An open tower panel: a tap inside it is for its buttons; outside closes it.
       if (this.towerPanel) {
@@ -303,9 +307,10 @@ export class BattleScene extends Phaser.Scene {
 
     const W = 224, H = 96;
     let px = t.pos.x + 24, py = t.pos.y - H / 2;
-    px = Phaser.Math.Clamp(px, 6, this.scale.width - W - 6);
-    py = Phaser.Math.Clamp(py, 30, 480 - H);
+    px = Phaser.Math.Clamp(px, 6, WORLD_WIDTH - W - 6);
+    py = Phaser.Math.Clamp(py, 30, WORLD_HEIGHT - H - 6);
     const c = this.add.container(px, py).setDepth(40);
+    this.world.add(c);
 
     const g = this.add.graphics();
     g.fillStyle(0x121622, 0.96).fillRoundedRect(0, 0, W, H, 8);
@@ -388,14 +393,15 @@ export class BattleScene extends Phaser.Scene {
     const len = Math.hypot(dx, dy);
     const h = this.battle.hero.pos;
     this.battle.commandHero({
-      x: Phaser.Math.Clamp(h.x + (dx / len) * 60, 4, this.scale.width - 4),
-      y: Phaser.Math.Clamp(h.y + (dy / len) * 60, 4, 496),
+      x: Phaser.Math.Clamp(h.x + (dx / len) * 80, 4, WORLD_WIDTH - 4),
+      y: Phaser.Math.Clamp(h.y + (dy / len) * 80, 4, WORLD_HEIGHT - 4),
     });
   }
 
   private draw(): void {
     const g = this.dynGfx;
     g.clear();
+    this.uiGfx.clear();
 
     // Keep the tower panel live: close it if its tower is gone, else refresh
     // affordability/stats against current gold.
@@ -419,7 +425,7 @@ export class BattleScene extends Phaser.Scene {
         `Wave ${Math.max(0, b.waveIndex + 1)}/${this.stage.waves.length}`,
     );
 
-    this.drawHeroSaveHUD(g);
+    this.drawHeroSaveHUD(this.uiGfx);
 
     const sel = this.buildOrder.find((d) => d.id === this.selectedTowerId);
     if (sel) {
@@ -446,6 +452,7 @@ export class BattleScene extends Phaser.Scene {
         .setPadding(16, 10, 16, 10)
         .setInteractive({ useHandCursor: true })
         .setDepth(30);
+      this.ui.add(this._menuBtn);
       this._menuBtn.on("pointerdown", () => this.scene.start("MainMenuScene"));
     }
   }
@@ -468,8 +475,8 @@ export class BattleScene extends Phaser.Scene {
       if (result.skillDropped) lines.push(`⚡ Skill: ${result.skillDropped}`);
       if (result.characterDropped) lines.push(`✨ New character: ${result.characterDropped}`);
 
-      this.add
-        .text(this.scale.width / 2, 310, lines.join("\n"), {
+      const overlay = this.add
+        .text(this.scale.width / 2, 300, lines.join("\n"), {
           fontSize: "16px",
           color: "#ffffff",
           backgroundColor: "#1a2a3a",
@@ -478,6 +485,7 @@ export class BattleScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setPadding(16, 10, 16, 10)
         .setDepth(25);
+      this.ui.add(overlay);
     }
   }
 
@@ -542,6 +550,7 @@ export class BattleScene extends Phaser.Scene {
     if (!s) {
       s = this.add.sprite(x, y, key).setOrigin(0.5, 0.78).setDepth(2);
       s.setScale(displayH / s.height);
+      this.world.add(s);
       map.set(uid, s);
       if (this.anims.exists(`${key}_idle`)) s.play(`${key}_idle`);
     }
@@ -573,6 +582,7 @@ export class BattleScene extends Phaser.Scene {
       if (!this.heroSprite) {
         this.heroSprite = this.add.sprite(h.pos.x, h.pos.y, "hero__hero").setOrigin(0.5, 0.78).setDepth(3);
         this.heroSprite.setScale(54 / this.heroSprite.height);
+        this.world.add(this.heroSprite);
         if (this.anims.exists("hero__hero_idle")) this.heroSprite.play("hero__hero_idle");
       }
       this.heroSprite.setPosition(h.pos.x, h.pos.y).setVisible(true);
