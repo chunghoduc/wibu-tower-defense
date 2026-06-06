@@ -9,9 +9,20 @@ import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
 import { createFreshSave, type HeroSave, type SaveProvider } from "./save.ts";
 import { SINGLE_PULL_COST } from "./gacha.ts";
+import { addTowerToCollection } from "./collection.ts";
 
 const DAILY_LOGIN_CRYSTALS = 10;
 const STARTER_CRYSTALS = SINGLE_PULL_COST; // one free pull for new players
+
+/** A common-rarity character per role, granted to new players so they can play immediately. */
+const STARTER_SQUAD = [
+  "yamo-desert-bandit",   // damage
+  "pip-powderkeg",        // splash
+  "tobi-skipstone",       // chain
+  "bram-thornling",       // dot
+  "doro-mire-spirit",     // debuff
+  "mochi-morale-sprite",  // support
+];
 
 const XP_BY_DIFFICULTY: Record<Difficulty, number> = {
   Normal: 50,
@@ -25,9 +36,11 @@ export class SaveManager {
   constructor(private readonly provider: SaveProvider) {
     const loaded = provider.load();
     this.save = loaded ?? createFreshSave();
-    // Grant starter crystals to brand-new saves (lastSavedAt === 0 signals never-persisted)
+    // New players get starter crystals AND a starter squad so they can place
+    // towers and play immediately (placement is ownership-gated).
     if (!loaded) {
       this.save.currency.crystals = STARTER_CRYSTALS;
+      for (const id of STARTER_SQUAD) addTowerToCollection(this.save, id);
     }
     this.persist();
   }
