@@ -1,57 +1,70 @@
 /**
  * BattleState — the headless battle simulation.
  *
- * This is pure game logic: no Phaser, no rendering, no DOM. A scene drives it by
- * calling `tick(dt)` each frame and reads its public fields to draw. Input
- * (placing towers, moving the hero) goes through methods. Because all randomness
- * comes from a seeded Rng, an entire battle is deterministic and unit-testable.
+ * Pure game logic: no Phaser, no rendering, no DOM. A scene drives it via
+ * `tick(dt)` and reads public fields to draw; input goes through methods. All
+ * randomness comes from a seeded Rng, so a battle is deterministic and testable.
  *
- * Phase 1 scope (intentional simplifications, all noted inline):
- * - Tower roles: `damage` (single-target) and `splash` (AoE) are fully modelled;
- *   other roles fall back to single-target damage for now.
- * - Enemies damage the castle (on arrival) and the hero (on contact / body-block).
- *   Tower HP exists in the model but enemies do not yet attack towers.
- * - Active skills (hero + towers) are a generic AoE burst around the caster's
- *   target, scaled by Skill Power.
+ * Phase 2 adds the mechanics the full content roster needs:
+ * - Tower roles: damage, splash, chain, dot, debuff (slow/stun), support
+ *   (buff aura), economy (passive gold).
+ * - Enemy specials: shield, heal aura, split-on-death, summon, stealth, and
+ *   attacking towers (towers are now destructible).
+ * - Boss mechanics: enrage, summon, tower-disable.
+ * - Difficulty scaling (Normal/Hard/Nightmare) applied to enemy stats & bounty.
+ * - Status effects (slow, stun, DoT) with tenacity, and omnivamp sustain.
  */
-import type {
-  CharacterDef,
-  DamageType,
-  EnemyDef,
-  StageDef,
-  Stats,
-  TargetType,
-  Vec2,
+import {
+  DIFFICULTY_SCALING,
+  type CharacterDef,
+  type DamageType,
+  type Difficulty,
+  type EnemyDef,
+  type StageDef,
+  type Stats,
+  type TargetType,
+  type Vec2,
 } from "../data/schema.ts";
-import { mitigatedDamage, rollAttackDamage, type DamagePacket } from "./damage.ts";
+import { mitigatedDamage, type DamagePacket } from "./damage.ts";
+import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
-import { selectTarget, type TargetFilter, type Targetable } from "./targeting.ts";
+import { selectTarget, type TargetFilter } from "./targeting.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
 /** How close an enemy must be to the hero to be body-blocked into melee. */
 export const HERO_BLOCK_RANGE = 28;
-/** Radius of generic active-skill / splash AoE bursts. */
+/** Default radius of splash / active-skill AoE bursts. */
 export const SPLASH_RADIUS = 60;
 /** Pause between waves once the current wave is fully cleared. */
 export const INTER_WAVE_DELAY = 3;
 
-export interface EnemyRuntime extends Targetable {
+export interface EnemyRuntime {
   uid: number;
   def: EnemyDef;
   stats: Stats;
   hp: number;
+  shield: number;
   flying: boolean;
-  /** Ground: distance travelled along the lane. Flying: unused. */
+  stealth: boolean;
   distanceAlong: number;
-  /** Flying: 0..1 progress along the straight beeline to the castle. */
   airProgress: number;
   airStart: Vec2;
   pos: Vec2;
   threat: number;
   alive: boolean;
   attackCd: number;
+  // Status effects.
+  slowPct: number;
+  slowTimer: number;
+  stunTimer: number;
+  dots: Dot[];
+  // Special / boss timers.
+  summonTimer: number;
+  bossSummonTimer: number;
+  bossDisableTimer: number;
+  enraged: boolean;
 }
 
 export interface TowerRuntime {
@@ -64,13 +77,16 @@ export interface TowerRuntime {
   mana: number;
   attackCd: number;
   alive: boolean;
+  buffAtkPct: number;
+  buffAsPct: number;
+  disabledTimer: number;
+  goldCarry: number;
 }
 
 export interface HeroRuntime {
   stats: Stats;
   damageType: DamageType;
   pos: Vec2;
-  /** Where the player has ordered the hero to walk to. */
   moveTarget: Vec2;
   hp: number;
   mana: number;
@@ -87,6 +103,7 @@ export interface HeroConfig {
 export interface BattleOptions {
   seed?: number;
   hero: HeroConfig;
+  difficulty?: Difficulty;
 }
 
 interface Catalogs {
@@ -99,12 +116,22 @@ interface ScheduledSpawn {
   enemyId: string;
 }
 
+interface SpawnRequest {
+  enemyId: string;
+  distanceAlong?: number;
+  airProgress?: number;
+  airStart?: Vec2;
+}
+
 function targetFilter(target: TargetType): TargetFilter {
   return {
     canHitGround: target === "Ground" || target === "Both",
     canHitAir: target === "Air" || target === "Both",
+    seeStealth: false,
   };
 }
+
+const HERO_FILTER: TargetFilter = { canHitGround: true, canHitAir: true, seeStealth: true };
 
 export class BattleState {
   readonly stage: StageDef;
@@ -112,31 +139,32 @@ export class BattleState {
   readonly towers: TowerRuntime[] = [];
   readonly hero: HeroRuntime;
   readonly castlePos: Vec2;
+  readonly difficulty: Difficulty;
 
   castleHp: number;
   gold: number;
   time = 0;
   outcome: Outcome = "ongoing";
-
-  /** 0-based index of the wave currently active, or -1 before the first wave. */
   waveIndex = -1;
 
   private readonly cat: Catalogs;
   private readonly rng: Rng;
   private readonly totalPathLen: number;
 
-  // Wave-runner internal state.
   private schedule: ScheduledSpawn[] = [];
   private schedulePtr = 0;
   private waveActive = false;
   private interWaveTimer = INTER_WAVE_DELAY;
   private allWavesStarted = false;
   private nextUid = 1;
+  /** Mid-tick spawn queue (summons/splits) flushed after all updates. */
+  private pending: SpawnRequest[] = [];
 
   constructor(stage: StageDef, catalogs: Catalogs, opts: BattleOptions) {
     this.stage = stage;
     this.cat = catalogs;
     this.rng = new Rng(opts.seed ?? 1);
+    this.difficulty = opts.difficulty ?? "Normal";
     this.totalPathLen = pathLength(stage.path);
     this.castlePos = stage.path[stage.path.length - 1];
     this.castleHp = stage.castleHp;
@@ -155,12 +183,10 @@ export class BattleState {
 
   // ---- Input -------------------------------------------------------------
 
-  /** Order the hero to walk toward a world point. */
   commandHero(target: Vec2): void {
     this.hero.moveTarget = { ...target };
   }
 
-  /** Try to place a character as a tower on an empty slot. Returns success. */
   placeTower(characterId: string, slotIndex: number): boolean {
     if (this.outcome !== "ongoing") return false;
     const def = this.cat.characters.get(characterId);
@@ -180,6 +206,10 @@ export class BattleState {
       mana: 0,
       attackCd: 0,
       alive: true,
+      buffAtkPct: 0,
+      buffAsPct: 0,
+      disabledTimer: 0,
+      goldCarry: 0,
     });
     return true;
   }
@@ -191,16 +221,19 @@ export class BattleState {
     this.time += dt;
 
     this.updateWaves(dt);
+    this.recomputeTowerBuffs();
     this.updateEnemies(dt);
     this.updateTowers(dt);
     this.updateHero(dt);
+    this.flushPending();
     this.cleanupDead();
     this.checkOutcome();
   }
 
+  // ---- Waves -------------------------------------------------------------
+
   private updateWaves(dt: number): void {
     if (!this.waveActive) {
-      // Waiting to launch the next wave.
       if (this.waveIndex + 1 >= this.stage.waves.length) {
         this.allWavesStarted = true;
         return;
@@ -210,13 +243,14 @@ export class BattleState {
       return;
     }
 
-    // Spawn everything due by now.
-    while (this.schedulePtr < this.schedule.length && this.schedule[this.schedulePtr].at <= this.time) {
-      this.spawnEnemy(this.schedule[this.schedulePtr].enemyId);
+    while (
+      this.schedulePtr < this.schedule.length &&
+      this.schedule[this.schedulePtr].at <= this.time
+    ) {
+      this.spawnEnemy({ enemyId: this.schedule[this.schedulePtr].enemyId });
       this.schedulePtr++;
     }
 
-    // Wave is cleared once everything has spawned and no enemies remain.
     const fullySpawned = this.schedulePtr >= this.schedule.length;
     if (fullySpawned && this.enemies.length === 0) {
       this.waveActive = false;
@@ -231,7 +265,10 @@ export class BattleState {
     const schedule: ScheduledSpawn[] = [];
     for (const group of wave.spawns) {
       for (let i = 0; i < group.count; i++) {
-        schedule.push({ at: this.time + group.delay + i * group.interval, enemyId: group.enemyId });
+        schedule.push({
+          at: this.time + group.delay + i * group.interval,
+          enemyId: group.enemyId,
+        });
       }
     }
     schedule.sort((a, b) => a.at - b.at);
@@ -240,48 +277,82 @@ export class BattleState {
     this.waveActive = true;
   }
 
-  private spawnEnemy(enemyId: string): void {
-    const def = this.cat.enemies.get(enemyId);
+  private spawnEnemy(req: SpawnRequest): void {
+    const def = this.cat.enemies.get(req.enemyId);
     if (!def) return;
+    const scale = DIFFICULTY_SCALING[this.difficulty];
+    const stats: Stats = {
+      ...def.baseStats,
+      maxHp: def.baseStats.maxHp * scale.hpMult,
+      atk: def.baseStats.atk * scale.atkMult,
+    };
     const flying = def.flying;
     const airStart =
-      this.stage.airSpawns.length > 0
+      req.airStart ??
+      (this.stage.airSpawns.length > 0
         ? this.stage.airSpawns[this.nextUid % this.stage.airSpawns.length]
-        : this.stage.path[0];
-    const pos = flying ? { ...airStart } : { ...this.stage.path[0] };
+        : this.stage.path[0]);
+    const distanceAlong = req.distanceAlong ?? 0;
+    const airProgress = req.airProgress ?? 0;
+    const pos = flying ? lerp(airStart, this.castlePos, airProgress) : pointAtDistance(this.stage.path, distanceAlong);
+
     this.enemies.push({
       uid: this.nextUid++,
       def,
-      stats: { ...def.baseStats },
-      hp: def.baseStats.maxHp,
+      stats,
+      hp: stats.maxHp,
+      shield: (def.special?.shieldHp ?? 0) * scale.hpMult,
       flying,
-      distanceAlong: 0,
-      airProgress: 0,
+      stealth: def.special?.stealth ?? false,
+      distanceAlong,
+      airProgress,
       airStart,
       pos,
       threat: 0,
       alive: true,
       attackCd: 0,
+      slowPct: 0,
+      slowTimer: 0,
+      stunTimer: 0,
+      dots: [],
+      summonTimer: def.special?.summon?.interval ?? 0,
+      bossSummonTimer: def.boss?.summon?.interval ?? 0,
+      bossDisableTimer: def.boss?.towerDisable?.interval ?? 0,
+      enraged: false,
     });
   }
+
+  // ---- Enemies -----------------------------------------------------------
 
   private updateEnemies(dt: number): void {
     for (const e of this.enemies) {
       if (!e.alive) continue;
 
-      // Regen.
+      this.tickEnemyStatus(e, dt);
+      if (!e.alive) continue;
+
       if (e.stats.hpRegen > 0) e.hp = Math.min(e.stats.maxHp, e.hp + e.stats.hpRegen * dt);
-
-      // Body-block: a ground enemy in contact with the hero stops and fights.
-      const blockedByHero =
-        this.hero.alive && !e.flying && dist(e.pos, this.hero.pos) <= HERO_BLOCK_RANGE;
-
-      if (blockedByHero) {
-        e.attackCd -= dt;
-        if (e.attackCd <= 0 && e.stats.attackSpeed > 0) {
-          this.dealDamageToHero(e);
-          e.attackCd = 1 / e.stats.attackSpeed;
+      if (e.def.special?.healAura) this.applyHealAura(e, dt);
+      if (e.def.boss) this.updateBoss(e, dt);
+      if (e.def.special?.summon) {
+        e.summonTimer -= dt;
+        if (e.summonTimer <= 0) {
+          this.queueSummon(e, e.def.special.summon.enemyId, e.def.special.summon.count);
+          e.summonTimer = e.def.special.summon.interval;
         }
+      }
+
+      if (e.stunTimer > 0) {
+        this.updateEnemyThreat(e);
+        continue;
+      }
+
+      const action = this.chooseEnemyAction(e);
+      if (action.kind === "hero") {
+        this.enemyAttack(e, dt, () => this.dealDamageToHero(e));
+      } else if (action.kind === "tower") {
+        const tower = action.tower;
+        this.enemyAttack(e, dt, () => this.dealDamageToTower(e, tower));
       } else {
         this.advanceEnemy(e, dt);
       }
@@ -289,22 +360,102 @@ export class BattleState {
     }
   }
 
+  private tickEnemyStatus(e: EnemyRuntime, dt: number): void {
+    if (e.slowTimer > 0) {
+      e.slowTimer -= dt;
+      if (e.slowTimer <= 0) e.slowPct = 0;
+    }
+    if (e.stunTimer > 0) e.stunTimer -= dt;
+
+    if (e.dots.length > 0) {
+      const survivors: Dot[] = [];
+      for (const d of e.dots) {
+        const active = Math.min(dt, d.remaining);
+        if (active > 0) this.applyDamage(e, d.type, d.dps * active, d.armorPen, d.magicPen, false);
+        const left = d.remaining - dt;
+        if (left > 0 && e.alive) survivors.push({ ...d, remaining: left });
+      }
+      e.dots = survivors;
+    }
+  }
+
+  private chooseEnemyAction(
+    e: EnemyRuntime,
+  ): { kind: "hero" } | { kind: "tower"; tower: TowerRuntime } | { kind: "move" } {
+    if (this.hero.alive && !e.flying && dist(e.pos, this.hero.pos) <= HERO_BLOCK_RANGE) {
+      return { kind: "hero" };
+    }
+    const atk = e.def.special?.attacksTowers;
+    if (atk) {
+      let best: TowerRuntime | null = null;
+      for (const t of this.towers) {
+        if (t.alive && dist(e.pos, t.pos) <= atk.range) {
+          if (!best || dist(e.pos, t.pos) < dist(e.pos, best.pos)) best = t;
+        }
+      }
+      if (best) return { kind: "tower", tower: best };
+    }
+    return { kind: "move" };
+  }
+
+  private enemyAttack(e: EnemyRuntime, dt: number, hit: () => void): void {
+    e.attackCd -= dt;
+    if (e.attackCd <= 0 && e.stats.attackSpeed > 0) {
+      hit();
+      e.attackCd = 1 / e.stats.attackSpeed;
+    }
+  }
+
+  private applyHealAura(healer: EnemyRuntime, dt: number): void {
+    const aura = healer.def.special!.healAura!;
+    for (const o of this.enemies) {
+      if (!o.alive || o === healer) continue;
+      if (dist(healer.pos, o.pos) <= aura.radius) o.hp = Math.min(o.stats.maxHp, o.hp + aura.hps * dt);
+    }
+  }
+
+  private updateBoss(e: EnemyRuntime, dt: number): void {
+    const b = e.def.boss!;
+    if (b.enrage && !e.enraged && e.hp / e.stats.maxHp <= b.enrage.belowHpPct) e.enraged = true;
+    if (b.summon) {
+      e.bossSummonTimer -= dt;
+      if (e.bossSummonTimer <= 0) {
+        this.queueSummon(e, b.summon.enemyId, b.summon.count);
+        e.bossSummonTimer = b.summon.interval;
+      }
+    }
+    if (b.towerDisable) {
+      e.bossDisableTimer -= dt;
+      if (e.bossDisableTimer <= 0) {
+        for (const t of this.towers) {
+          if (t.alive && dist(e.pos, t.pos) <= b.towerDisable.radius) {
+            t.disabledTimer = Math.max(t.disabledTimer, b.towerDisable.duration);
+          }
+        }
+        e.bossDisableTimer = b.towerDisable.interval;
+      }
+    }
+  }
+
+  private enemySpeed(e: EnemyRuntime): number {
+    const base = slowedSpeed(e.stats.moveSpeed, e.slowPct);
+    return e.enraged && e.def.boss?.enrage ? base * e.def.boss.enrage.speedMult : base;
+  }
+
+  private enemyAtk(e: EnemyRuntime): number {
+    return e.enraged && e.def.boss?.enrage ? e.stats.atk * e.def.boss.enrage.atkMult : e.stats.atk;
+  }
+
   private advanceEnemy(e: EnemyRuntime, dt: number): void {
-    const step = e.stats.moveSpeed * dt;
+    const step = this.enemySpeed(e) * dt;
     if (e.flying) {
       const lineLen = Math.max(1e-6, dist(e.airStart, this.castlePos));
       e.airProgress += step / lineLen;
-      if (e.airProgress >= 1) {
-        this.reachCastle(e);
-        return;
-      }
+      if (e.airProgress >= 1) return this.reachCastle(e);
       e.pos = lerp(e.airStart, this.castlePos, e.airProgress);
     } else {
       e.distanceAlong += step;
-      if (e.distanceAlong >= this.totalPathLen) {
-        this.reachCastle(e);
-        return;
-      }
+      if (e.distanceAlong >= this.totalPathLen) return this.reachCastle(e);
       e.pos = pointAtDistance(this.stage.path, e.distanceAlong);
     }
   }
@@ -322,7 +473,7 @@ export class BattleState {
 
   private dealDamageToHero(attacker: EnemyRuntime): void {
     const packet: DamagePacket = {
-      amount: attacker.stats.atk,
+      amount: this.enemyAtk(attacker),
       type: attacker.def.damageType,
       armorPen: attacker.stats.armorPen,
       magicPen: attacker.stats.magicPen,
@@ -331,30 +482,111 @@ export class BattleState {
     if (this.hero.hp <= 0) this.hero.alive = false;
   }
 
+  private dealDamageToTower(attacker: EnemyRuntime, tower: TowerRuntime): void {
+    const packet: DamagePacket = {
+      amount: this.enemyAtk(attacker),
+      type: attacker.def.damageType,
+      armorPen: attacker.stats.armorPen,
+      magicPen: attacker.stats.magicPen,
+    };
+    tower.hp -= mitigatedDamage(packet, tower.stats);
+    if (tower.hp <= 0) tower.alive = false;
+  }
+
+  private queueSummon(parent: EnemyRuntime, enemyId: string, count: number): void {
+    for (let i = 0; i < count; i++) {
+      this.pending.push(
+        parent.flying
+          ? { enemyId, airProgress: parent.airProgress, airStart: parent.airStart }
+          : { enemyId, distanceAlong: parent.distanceAlong },
+      );
+    }
+  }
+
+  private flushPending(): void {
+    if (this.pending.length === 0) return;
+    const reqs = this.pending;
+    this.pending = [];
+    for (const r of reqs) this.spawnEnemy(r);
+  }
+
+  // ---- Towers ------------------------------------------------------------
+
+  private recomputeTowerBuffs(): void {
+    for (const t of this.towers) {
+      t.buffAtkPct = 0;
+      t.buffAsPct = 0;
+    }
+    for (const s of this.towers) {
+      const aura = s.def.behavior?.buffAura;
+      if (!s.alive || s.disabledTimer > 0 || s.def.role !== "support" || !aura) continue;
+      for (const t of this.towers) {
+        if (!t.alive || t === s) continue;
+        if (dist(s.pos, t.pos) <= aura.radius) {
+          t.buffAtkPct += aura.atkPct ?? 0;
+          t.buffAsPct += aura.attackSpeedPct ?? 0;
+        }
+      }
+    }
+  }
+
   private updateTowers(dt: number): void {
     for (const t of this.towers) {
       if (!t.alive) continue;
-      if (t.stats.maxMana > 0) {
-        t.mana = Math.min(t.stats.maxMana, t.mana + t.stats.manaRegen * dt);
+      if (t.disabledTimer > 0) {
+        t.disabledTimer -= dt;
+        continue;
       }
+
+      const bhv = t.def.behavior;
+      if (bhv?.goldPerSec) {
+        t.goldCarry += bhv.goldPerSec * dt * (1 + this.hero.stats.goldFind);
+        while (t.goldCarry >= 1) {
+          this.gold += 1;
+          t.goldCarry -= 1;
+        }
+      }
+
+      if (t.stats.maxMana > 0) t.mana = Math.min(t.stats.maxMana, t.mana + t.stats.manaRegen * dt);
+
+      const effAs = t.stats.attackSpeed * (1 + t.buffAsPct);
       t.attackCd -= dt;
-      if (t.attackCd > 0 || t.stats.attackSpeed <= 0) continue;
+      if (t.attackCd > 0 || effAs <= 0) continue;
 
       const target = selectTarget(t.pos, t.stats.range, this.enemies, targetFilter(t.def.target));
       if (!target) continue;
 
-      this.performAttack(t.stats, t.def.damageType, target, () => {
-        t.mana = Math.min(t.stats.maxMana, t.mana + t.stats.manaOnHit);
-      });
-      // Splash role hits everything around the primary target.
-      if (t.def.role === "splash") this.applySplash(t.stats, t.def.damageType, target.pos, target);
+      const effAtk = t.stats.atk * (1 + t.buffAtkPct);
+      this.performAttack(t, effAtk, t.def.damageType, target);
+      this.applyRoleEffect(t, effAtk, target);
 
-      // Active: auto-cast when the mana bar fills.
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
-        this.castActive(t.stats, t.def.damageType, target.pos);
+        this.castActive(t.stats, effAtk, t.def.damageType, target.pos);
         t.mana = 0;
       }
-      t.attackCd = 1 / t.stats.attackSpeed;
+      t.attackCd = 1 / effAs;
+    }
+  }
+
+  /** Apply a tower's role-specific on-hit effect (splash/chain/dot/debuff). */
+  private applyRoleEffect(t: TowerRuntime, effAtk: number, target: EnemyRuntime): void {
+    const bhv = t.def.behavior;
+    switch (t.def.role) {
+      case "splash":
+        this.applySplash(t.stats, t.def.damageType, effAtk, target.pos, target, bhv?.splashRadius ?? SPLASH_RADIUS);
+        break;
+      case "chain":
+        this.applyChain(t, effAtk, target, bhv?.chainTargets ?? 2, bhv?.chainFalloff ?? 0.6);
+        break;
+      case "dot":
+        if (bhv?.dot) this.addDot(target, t.def.damageType, bhv.dot.dps, bhv.dot.duration, t.stats);
+        break;
+      case "debuff":
+        if (bhv?.slow) this.applySlow(target, bhv.slow.pct, bhv.slow.duration);
+        if (bhv?.stun) this.applyStun(target, bhv.stun.duration, bhv.stun.chance);
+        break;
+      default:
+        break;
     }
   }
 
@@ -365,7 +597,6 @@ export class BattleState {
     if (h.stats.hpRegen > 0) h.hp = Math.min(h.stats.maxHp, h.hp + h.stats.hpRegen * dt);
     if (h.stats.maxMana > 0) h.mana = Math.min(h.stats.maxMana, h.mana + h.stats.manaRegen * dt);
 
-    // Move toward the player's commanded point.
     const toTarget = dist(h.pos, h.moveTarget);
     if (toTarget > 1) {
       const step = Math.min(toTarget, h.stats.moveSpeed * dt);
@@ -375,62 +606,68 @@ export class BattleState {
     h.attackCd -= dt;
     if (h.attackCd > 0 || h.stats.attackSpeed <= 0) return;
 
-    // Hero hits both ground and air.
-    const target = selectTarget(h.pos, h.stats.range, this.enemies, {
-      canHitGround: true,
-      canHitAir: true,
-    });
+    const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
     if (!target) return;
 
-    this.performAttack(h.stats, h.damageType, target, () => {
-      h.mana = Math.min(h.stats.maxMana, h.mana + h.stats.manaOnHit);
-    });
+    this.performAttack(h, h.stats.atk, h.damageType, target);
     if (h.stats.maxMana > 0 && h.mana >= h.stats.maxMana) {
-      this.castActive(h.stats, h.damageType, target.pos);
+      this.castActive(h.stats, h.stats.atk, h.damageType, target.pos);
       h.mana = 0;
     }
     h.attackCd = 1 / h.stats.attackSpeed;
   }
 
-  /** A single-target attack: roll crit, mitigate, apply, handle kill. */
+  // ---- Damage application ------------------------------------------------
+
+  /** One single-target attack with crit + mana credit + omnivamp. */
   private performAttack(
-    attacker: Stats,
+    unit: { stats: Stats; mana: number; hp: number },
+    rawAtk: number,
     damageType: DamageType,
     target: EnemyRuntime,
-    onHit: () => void,
   ): void {
-    const didCrit = this.rng.chance(attacker.critRate);
-    const raw = rollAttackDamage(attacker, didCrit);
-    this.damageEnemy(attacker, damageType, target, raw, false);
-    onHit();
+    const wasAlive = target.alive;
+    const didCrit = this.rng.chance(unit.stats.critRate);
+    const raw = didCrit ? rawAtk * Math.max(1, unit.stats.critDamage) : rawAtk;
+    const dealt = this.applyDamage(target, damageType, raw, unit.stats.armorPen, unit.stats.magicPen, false);
+
+    if (unit.stats.maxMana > 0) {
+      unit.mana = Math.min(unit.stats.maxMana, unit.mana + unit.stats.manaOnHit);
+      if (wasAlive && !target.alive) {
+        unit.mana = Math.min(unit.stats.maxMana, unit.mana + unit.stats.manaOnKill);
+      }
+    }
+    if (unit.stats.omnivamp > 0 && dealt > 0) {
+      unit.hp = Math.min(unit.stats.maxHp, unit.hp + dealt * unit.stats.omnivamp);
+    }
   }
 
   /**
-   * Apply a raw damage amount to an enemy using the given damage type and the
-   * attacker's penetration, honouring the single-immunity rule, then resolve
-   * death. `isAoE` lets AoE-immune enemies shrug off splash/active bursts.
+   * Apply raw damage of a type to an enemy: honour the single-immunity rule,
+   * mitigate by armor/resist, absorb with shield, reduce HP, resolve death.
+   * Returns the total damage applied (for omnivamp).
    */
-  private damageEnemy(
-    attacker: Stats,
-    damageType: DamageType,
+  private applyDamage(
     target: EnemyRuntime,
+    damageType: DamageType,
     rawAmount: number,
+    armorPen: number,
+    magicPen: number,
     isAoE: boolean,
-  ): void {
-    if (!target.alive) return;
-    if (this.isImmune(target, damageType, isAoE)) return;
-    const packet: DamagePacket = {
-      amount: rawAmount,
-      type: damageType,
-      armorPen: attacker.armorPen,
-      magicPen: attacker.magicPen,
-    };
-    const dealt = mitigatedDamage(packet, target.stats);
-    target.hp -= dealt;
+  ): number {
+    if (!target.alive) return 0;
+    if (this.isImmune(target, damageType, isAoE)) return 0;
+    const packet: DamagePacket = { amount: rawAmount, type: damageType, armorPen, magicPen };
+    const incoming = mitigatedDamage(packet, target.stats);
+    if (incoming <= 0) return 0;
+
+    const { shield, overflow } = absorbWithShield(target.shield, incoming);
+    target.shield = shield;
+    target.hp -= overflow;
     if (target.hp <= 0) this.killEnemy(target);
+    return incoming;
   }
 
-  /** An enemy may be immune to ONE of {Physical, Magic, CC, AoE}. */
   private isImmune(target: EnemyRuntime, damageType: DamageType, isAoE: boolean): boolean {
     const imm = target.def.immunity;
     if (imm === null) return false;
@@ -443,24 +680,79 @@ export class BattleState {
   private applySplash(
     attacker: Stats,
     damageType: DamageType,
+    effAtk: number,
     center: Vec2,
     primary: EnemyRuntime,
+    radius: number,
   ): void {
     for (const e of this.enemies) {
       if (!e.alive || e === primary) continue;
-      if (dist(e.pos, center) <= SPLASH_RADIUS) {
-        this.damageEnemy(attacker, damageType, e, attacker.atk, true);
+      if (dist(e.pos, center) <= radius) {
+        this.applyDamage(e, damageType, effAtk, attacker.armorPen, attacker.magicPen, true);
       }
     }
   }
 
-  /** Generic active-skill burst: AoE around a point, scaled by Skill Power. */
-  private castActive(attacker: Stats, damageType: DamageType, center: Vec2): void {
-    const burst = attacker.atk * 2 * Math.max(1, attacker.skillPower);
+  private applyChain(
+    t: TowerRuntime,
+    effAtk: number,
+    primary: EnemyRuntime,
+    bounces: number,
+    falloff: number,
+  ): void {
+    let from = primary;
+    let dmg = effAtk * falloff;
+    const hit = new Set<number>([primary.uid]);
+    for (let i = 0; i < bounces; i++) {
+      let next: EnemyRuntime | null = null;
+      for (const e of this.enemies) {
+        if (!e.alive || hit.has(e.uid)) continue;
+        if (dist(from.pos, e.pos) <= SPLASH_RADIUS * 1.5) {
+          if (!next || dist(from.pos, e.pos) < dist(from.pos, next.pos)) next = e;
+        }
+      }
+      if (!next) break;
+      this.applyDamage(next, t.def.damageType, dmg, t.stats.armorPen, t.stats.magicPen, false);
+      hit.add(next.uid);
+      from = next;
+      dmg *= falloff;
+    }
+  }
+
+  private addDot(
+    target: EnemyRuntime,
+    type: DamageType,
+    dps: number,
+    duration: number,
+    attacker: Stats,
+  ): void {
+    target.dots.push({
+      dps,
+      remaining: duration,
+      type,
+      armorPen: attacker.armorPen,
+      magicPen: attacker.magicPen,
+    });
+  }
+
+  private applySlow(target: EnemyRuntime, pct: number, duration: number): void {
+    if (target.def.immunity === "CC") return;
+    target.slowPct = Math.max(target.slowPct, pct);
+    target.slowTimer = Math.max(target.slowTimer, ccDuration(duration, target.stats.tenacity));
+  }
+
+  private applyStun(target: EnemyRuntime, duration: number, chance: number): void {
+    if (target.def.immunity === "CC") return;
+    if (!this.rng.chance(chance)) return;
+    target.stunTimer = Math.max(target.stunTimer, ccDuration(duration, target.stats.tenacity));
+  }
+
+  private castActive(attacker: Stats, effAtk: number, damageType: DamageType, center: Vec2): void {
+    const burst = effAtk * 2 * Math.max(1, attacker.skillPower);
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist(e.pos, center) <= SPLASH_RADIUS) {
-        this.damageEnemy(attacker, damageType, e, burst, true);
+        this.applyDamage(e, damageType, burst, attacker.armorPen, attacker.magicPen, true);
       }
     }
   }
@@ -468,12 +760,26 @@ export class BattleState {
   private killEnemy(e: EnemyRuntime): void {
     if (!e.alive) return;
     e.alive = false;
-    this.gold += Math.round(e.def.bounty * (1 + this.hero.stats.goldFind));
+    const scale = DIFFICULTY_SCALING[this.difficulty];
+    this.gold += Math.round(e.def.bounty * scale.bountyMult * (1 + this.hero.stats.goldFind));
+    const split = e.def.special?.splitInto;
+    if (split) {
+      for (let i = 0; i < split.count; i++) {
+        this.pending.push(
+          e.flying
+            ? { enemyId: split.enemyId, airProgress: e.airProgress, airStart: e.airStart }
+            : { enemyId: split.enemyId, distanceAlong: e.distanceAlong },
+        );
+      }
+    }
   }
 
   private cleanupDead(): void {
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       if (!this.enemies[i].alive) this.enemies.splice(i, 1);
+    }
+    for (let i = this.towers.length - 1; i >= 0; i--) {
+      if (!this.towers[i].alive) this.towers.splice(i, 1);
     }
   }
 

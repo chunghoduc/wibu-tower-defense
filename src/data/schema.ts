@@ -148,6 +148,30 @@ export function makeStats(overrides: Partial<Stats>): Stats {
 // Content definitions
 // ---------------------------------------------------------------------------
 
+/**
+ * Role-driven combat behaviour parameters. Each is optional; a tower only fills
+ * in what its role uses. This keeps the BattleState data-driven instead of
+ * hard-coding per-character logic.
+ */
+export interface TowerBehavior {
+  /** splash role: AoE radius around the primary target. */
+  splashRadius?: number;
+  /** chain role: how many extra enemies the attack bounces to. */
+  chainTargets?: number;
+  /** chain role: fraction of damage retained per bounce (0..1). */
+  chainFalloff?: number;
+  /** dot role: a damage-over-time applied on hit. */
+  dot?: { dps: number; duration: number };
+  /** debuff role: slow applied on hit. */
+  slow?: { pct: number; duration: number };
+  /** debuff role: stun applied on hit. */
+  stun?: { duration: number; chance: number };
+  /** support role: aura buffing nearby towers. */
+  buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number };
+  /** economy role: passive gold generated per second. */
+  goldPerSec?: number;
+}
+
 /** A collectible character — deployed in battle as a static tower. */
 export interface CharacterDef {
   id: string;
@@ -163,7 +187,9 @@ export interface CharacterDef {
   /** Single active skill id, auto-casts when the tower's mana bar is full. */
   active: string | null;
   baseStats: Stats;
-  /** Sprite/asset reference (placeholder in Phase 1). */
+  /** Role-specific tuning (splash radius, dot, slow, aura, gold/sec, ...). */
+  behavior?: TowerBehavior;
+  /** Sprite/asset reference (placeholder until Phase 4 art). */
   artRef: string;
 }
 
@@ -179,6 +205,32 @@ export interface ItemDef {
   affixPool: string[];
   baseStats: Stats;
   artRef: string;
+}
+
+/** Special enemy behaviours layered on top of the base march-to-castle loop. */
+export interface EnemySpecial {
+  /** Bulwark: a shield that absorbs damage before HP. */
+  shieldHp?: number;
+  /** Mender: heals nearby allies. */
+  healAura?: { radius: number; hps: number };
+  /** Splitter: spawns smaller enemies when it dies. */
+  splitInto?: { enemyId: string; count: number };
+  /** Summoner: periodically spawns adds at its position. */
+  summon?: { enemyId: string; count: number; interval: number };
+  /** Phantom: untargetable by towers (only the hero can hit it). */
+  stealth?: boolean;
+  /** Sapper/Raider: stops to attack towers within this range. */
+  attacksTowers?: { range: number };
+}
+
+/** Boss-only mechanics. Composable: a boss may use several. */
+export interface BossMechanics {
+  /** Timed or HP-triggered enrage: multiplies attack & move speed for a while. */
+  enrage?: { belowHpPct: number; atkMult: number; speedMult: number };
+  /** Periodically summon adds. */
+  summon?: { enemyId: string; count: number; interval: number };
+  /** Periodically disable towers within a radius for a duration. */
+  towerDisable?: { radius: number; duration: number; interval: number };
 }
 
 /** An enemy archetype definition. */
@@ -197,8 +249,29 @@ export interface EnemyDef {
   /** Damage dealt to the castle if this enemy reaches it. */
   castleDamage: number;
   baseStats: Stats;
+  special?: EnemySpecial;
+  boss?: BossMechanics;
   artRef: string;
 }
+
+// ---------------------------------------------------------------------------
+// Difficulty tiers
+// ---------------------------------------------------------------------------
+
+export const DIFFICULTIES = ["Normal", "Hard", "Nightmare"] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
+
+export interface DifficultyScaling {
+  hpMult: number;
+  atkMult: number;
+  bountyMult: number;
+}
+
+export const DIFFICULTY_SCALING: Record<Difficulty, DifficultyScaling> = {
+  Normal: { hpMult: 1, atkMult: 1, bountyMult: 1 },
+  Hard: { hpMult: 1.6, atkMult: 1.3, bountyMult: 1.25 },
+  Nightmare: { hpMult: 2.6, atkMult: 1.7, bountyMult: 1.5 },
+};
 
 /** A point on the map in world coordinates. */
 export interface Vec2 {

@@ -13,11 +13,15 @@ export interface Targetable {
   threat: number;
   flying: boolean;
   alive: boolean;
+  /** Stealthed enemies are invisible to towers (but not to the hero). */
+  stealth: boolean;
 }
 
 export interface TargetFilter {
   canHitGround: boolean;
   canHitAir: boolean;
+  /** The hero sees stealthed enemies; towers do not. */
+  seeStealth: boolean;
 }
 
 /** Pick the highest-threat valid target within range, or null. */
@@ -30,6 +34,7 @@ export function selectTarget<T extends Targetable>(
   let best: T | null = null;
   for (const c of candidates) {
     if (!c.alive) continue;
+    if (c.stealth && !filter.seeStealth) continue;
     if (c.flying && !filter.canHitAir) continue;
     if (!c.flying && !filter.canHitGround) continue;
     if (dist(from, c.pos) > range) continue;
