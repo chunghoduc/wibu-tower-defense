@@ -45,8 +45,8 @@ export type Outcome = "ongoing" | "won" | "lost";
  * holds the current tick's events; it is cleared at the start of every tick.
  */
 export type FxEvent =
-  | { type: "attack"; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero" }
-  | { type: "hit"; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
+  | { type: "attack"; uid: number; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero" }
+  | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
   | { type: "death"; at: Vec2; boss: boolean; bounty: number }
   | { type: "cast"; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
@@ -629,7 +629,7 @@ export class BattleState {
       if (!target) continue;
 
       const effAtk = t.stats.atk * (1 + t.buffAtkPct);
-      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role);
+      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role, t.uid);
       this.applyRoleEffect(t, effAtk, target);
 
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
@@ -693,7 +693,7 @@ export class BattleState {
     const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
     if (!target) return;
 
-    this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero");
+    this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1);
     if (h.stats.maxMana > 0 && h.mana >= h.stats.maxMana) {
       this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero");
       h.mana = 0;
@@ -717,12 +717,14 @@ export class BattleState {
     target: EnemyRuntime,
     source: "tower" | "hero",
     role: string,
+    srcUid: number,
   ): void {
     const wasAlive = target.alive;
     const didCrit = this.rng.chance(unit.stats.critRate);
     const raw = didCrit ? rawAtk * Math.max(1, unit.stats.critDamage) : rawAtk;
     this.emit({
       type: "attack",
+      uid: srcUid,
       from: { x: fromPos.x, y: fromPos.y },
       to: { x: target.pos.x, y: target.pos.y },
       ranged: dist(fromPos, target.pos) > 44,
@@ -765,7 +767,7 @@ export class BattleState {
     if (incoming <= 0) return 0;
 
     if (emitHit) {
-      this.emit({ type: "hit", at: { x: target.pos.x, y: target.pos.y }, damageType, amount: incoming, aoe: isAoE });
+      this.emit({ type: "hit", uid: target.uid, at: { x: target.pos.x, y: target.pos.y }, damageType, amount: incoming, aoe: isAoE });
     }
     const { shield, overflow } = absorbWithShield(target.shield, incoming);
     target.shield = shield;
