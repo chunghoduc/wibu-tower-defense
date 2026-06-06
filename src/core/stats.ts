@@ -72,7 +72,10 @@ const HERO_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
  *
  * @param base          Hero's base stats
  * @param level         Hero's current level
- * @param passiveNodes  Unlocked PassiveNodeDef entries
+ * @param passiveNodes  Unlocked PassiveNodeDef entries. Only flat and increased% are applied
+ *                      here; if a node has a more% bonus (keystones only), the caller must
+ *                      extract it into the keystoneMore parameter — it is intentionally not
+ *                      read from passiveNodes to keep keystone handling explicit.
  * @param itemStats     rolledStats from each equipped ItemInstance (as Partial<Stats>[])
  * @param affixStats    Primary + random affix contributions (Partial<Stats>[])
  * @param keystoneMore  More-% contributions from keystone nodes only (or null)
@@ -98,10 +101,11 @@ export function heroStatPipeline(
   for (const s of itemStats) acc = addFlat(acc, s);
   for (const s of affixStats) acc = addFlat(acc, s);
 
-  // Layer 4 — passive grid nodes
+  // Layer 4 — passive grid nodes (flat + increased only; more% via keystoneMore param)
   for (const node of passiveNodes) {
     if (node.flat) acc = addFlat(acc, node.flat);
     if (node.increased) acc = addIncreased(acc, node.increased);
+    // node.more is intentionally skipped — caller extracts keystone more% into keystoneMore
   }
 
   // Layer 5 — keystone more% multipliers

@@ -58,43 +58,46 @@ describe("StatAccumulator — resolve", () => {
 });
 
 describe("heroStatPipeline", () => {
-  it("applies level scaling — higher level gives more stats", () => {
+  it("applies level scaling — level 10 gives atk=118, level 50 gives atk=198", () => {
     const base = makeStats({ atk: 100, maxHp: 500 });
+    // level 10: flat atk added = 2 * (10-1) = 18 → atk = 118
     const lvl10 = heroStatPipeline(base, 10, [], [], [], null);
+    // level 50: flat atk added = 2 * (50-1) = 98 → atk = 198
     const lvl50 = heroStatPipeline(base, 50, [], [], [], null);
-    expect(lvl50.atk).toBeGreaterThan(lvl10.atk);
-    expect(lvl50.maxHp).toBeGreaterThan(lvl10.maxHp);
+    expect(lvl10.atk).toBeCloseTo(118, 5);
+    expect(lvl50.atk).toBeCloseTo(198, 5);
+    expect(lvl50.maxHp).toBeCloseTo(500 + 15 * 49, 5); // 1235
   });
 
-  it("passive node increased% bonus adds to final stats", () => {
+  it("passive node increased% bonus: +20% on atk=100 → atk=120", () => {
     const base = makeStats({ atk: 100 });
-    const node = { increased: { atk: 0.2 } };
+    const node = { flat: undefined, increased: { atk: 0.2 }, more: undefined };
     const withNode = heroStatPipeline(base, 1, [node as any], [], [], null);
-    const withoutNode = heroStatPipeline(base, 1, [], [], [], null);
-    expect(withNode.atk).toBeGreaterThan(withoutNode.atk);
+    // level 1: no level scaling; +20% increased → 100 * 1.2 = 120
+    expect(withNode.atk).toBeCloseTo(120, 5);
   });
 
-  it("item flat stat adds to final stats", () => {
+  it("item flat stat: +30 on atk=100 → atk=130", () => {
     const base = makeStats({ atk: 100 });
     const item = { atk: 30 };
     const withItem = heroStatPipeline(base, 1, [], [item as any], [], null);
-    const withoutItem = heroStatPipeline(base, 1, [], [], [], null);
-    expect(withItem.atk).toBeGreaterThan(withoutItem.atk);
+    // level 1: no level scaling; flat +30 → 130 * 1.0 = 130
+    expect(withItem.atk).toBeCloseTo(130, 5);
   });
 });
 
 describe("towerStatPipeline", () => {
-  it("star bonus increases stats", () => {
+  it("star bonus: 3 stars on atk=100 → atk=124 (8% per star)", () => {
     const base = makeStats({ atk: 100 });
-    const star0 = towerStatPipeline(base, 1, 0);
     const star3 = towerStatPipeline(base, 1, 3);
-    expect(star3.atk).toBeGreaterThan(star0.atk);
+    // level 1: no level scaling; 3 stars = 24% increased → 100 * 1.24 = 124
+    expect(star3.atk).toBeCloseTo(124, 5);
   });
 
-  it("tower level scaling increases stats", () => {
+  it("tower level 20 scaling: atk=100 → atk=128.5 (1.5 flat/level × 19 levels)", () => {
     const base = makeStats({ atk: 100 });
-    const lvl1 = towerStatPipeline(base, 1, 0);
     const lvl20 = towerStatPipeline(base, 20, 0);
-    expect(lvl20.atk).toBeGreaterThan(lvl1.atk);
+    // flat += 1.5 * 19 = 28.5 → (100+28.5) * 1.0 = 128.5
+    expect(lvl20.atk).toBeCloseTo(128.5, 5);
   });
 });
