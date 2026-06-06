@@ -56,30 +56,46 @@ describe("performSummon", () => {
     expect(result.isNew).toBe(true);
   });
 
-  it("hard pity guarantees Unique at pull 90", () => {
+  it("hard pity guarantees Legendary+ at pull 90", () => {
     const save = createFreshSave();
     save.currency.crystals = SINGLE_PULL_COST * 5;
     save.currency.pityCount = HARD_PITY - 1;
     const result = performSummon(save, new Rng(1));
-    expect(result.rarity).toBe("Unique");
-    expect(save.currency.pityCount).toBe(0);
+    expect(["Legendary", "Unique"]).toContain(result.rarity);
+    expect(save.currency.pityCount).toBe(0); // resets on Legendary or Unique
   });
 
-  it("pityCount increments on non-Unique pull", () => {
+  it("pityCount resets on Legendary as well as Unique", () => {
+    // Run until we get a Legendary and verify pityCount resets
+    let legendaryResetSeen = false;
+    for (let seed = 0; seed < 200 && !legendaryResetSeen; seed++) {
+      const save = createFreshSave();
+      save.currency.crystals = SINGLE_PULL_COST * 10;
+      save.currency.pityCount = 5;
+      const result = performSummon(save, new Rng(seed));
+      if (result.rarity === "Legendary") {
+        expect(save.currency.pityCount).toBe(0);
+        legendaryResetSeen = true;
+      }
+    }
+    expect(legendaryResetSeen).toBe(true);
+  });
+
+  it("pityCount increments on non-Legendary+ pull", () => {
     const save = createFreshSave();
     save.currency.crystals = SINGLE_PULL_COST * 10;
     save.currency.pityCount = 0;
-    let nonUniqueSeen = false;
-    for (let i = 0; i < 10; i++) {
+    let nonLegPlusSeen = false;
+    for (let i = 0; i < 20; i++) {
       const before = save.currency.pityCount;
       const result = performSummon(save, new Rng(i * 13 + 5));
-      if (result.rarity !== "Unique") {
+      if (result.rarity !== "Legendary" && result.rarity !== "Unique") {
         expect(save.currency.pityCount).toBe(before + 1);
-        nonUniqueSeen = true;
+        nonLegPlusSeen = true;
         break;
       }
     }
-    expect(nonUniqueSeen).toBe(true);
+    expect(nonLegPlusSeen).toBe(true);
   });
 });
 
@@ -112,17 +128,15 @@ describe("pity insurance pool", () => {
     expect(save.currency.pityInsuranceActive).toBe(false);
   });
 
-  it("insurance does not reset pityCount (pityCount still increments normally)", () => {
+  it("insurance result (Legendary or Unique) resets pityCount", () => {
     const save = createFreshSave();
     save.currency.crystals = SINGLE_PULL_COST;
     save.currency.pityCount = 5;
     save.currency.pityInsuranceActive = true;
     const result = performSummon(save, new Rng(1));
-    if (result.rarity === "Unique") {
-      expect(save.currency.pityCount).toBe(0); // Unique always resets pity
-    } else {
-      expect(save.currency.pityCount).toBe(6); // Legendary increments normally
-    }
+    // Insurance always yields Legendary or Unique — both reset pity
+    expect(["Legendary", "Unique"]).toContain(result.rarity);
+    expect(save.currency.pityCount).toBe(0);
   });
 
   it("over 40 seeds, roughly 5% are Unique and 95% are Legendary", () => {

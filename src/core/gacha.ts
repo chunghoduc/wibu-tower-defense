@@ -31,21 +31,37 @@ export function canAffordSummon(save: HeroSave, count = 1): boolean {
   return save.currency.crystals >= cost;
 }
 
+/**
+ * Draw rarity given current pity count.
+ *
+ * Legendary is the pity target — pityCount tracks pulls since the last
+ * Legendary-or-Unique. Both soft and hard pity increase the Legendary+
+ * combined rate. When a Legendary+ fires, the exact tier is resolved via
+ * drawLegendaryPlus (95% Legendary / 5% Unique).
+ */
 function drawRarity(pityCount: number, rng: Rng): Rarity {
-  if (pityCount >= HARD_PITY - 1) return "Unique";
-  let uniqueRate = BASE_RATES.Unique;
+  // Hard pity: guaranteed Legendary+
+  if (pityCount >= HARD_PITY - 1) return drawLegendaryPlus(rng);
+
+  // Combined Legendary+ base rate
+  const legPlusBase = BASE_RATES.Unique + BASE_RATES.Legendary; // ~5.7%
+  let legPlusRate = legPlusBase;
   if (pityCount >= SOFT_PITY_START) {
-    uniqueRate = BASE_RATES.Unique + SOFT_PITY_INCREASE * (pityCount - SOFT_PITY_START + 1);
+    legPlusRate = legPlusBase + SOFT_PITY_INCREASE * (pityCount - SOFT_PITY_START + 1);
+    if (legPlusRate > 1) legPlusRate = 1;
   }
+
   const roll = rng.next();
-  if (roll < uniqueRate) return "Unique";
-  const remaining = 1 - uniqueRate;
-  const legRate = BASE_RATES.Legendary * remaining;
-  const rareRate = BASE_RATES.Rare * remaining;
-  const magicRate = BASE_RATES.Magic * remaining;
-  if (roll < uniqueRate + legRate) return "Legendary";
-  if (roll < uniqueRate + legRate + rareRate) return "Rare";
-  if (roll < uniqueRate + legRate + rareRate + magicRate) return "Magic";
+  if (roll < legPlusRate) return drawLegendaryPlus(rng);
+
+  // Scale remaining rarities proportionally to fill 1 - legPlusRate
+  const base = 1 - legPlusBase;
+  const remaining = 1 - legPlusRate;
+  const rareRate  = (BASE_RATES.Rare  / base) * remaining;
+  const magicRate = (BASE_RATES.Magic / base) * remaining;
+
+  if (roll < legPlusRate + rareRate) return "Rare";
+  if (roll < legPlusRate + rareRate + magicRate) return "Magic";
   return "Common";
 }
 
@@ -55,8 +71,11 @@ function drawCharacter(rarity: Rarity, rng: Rng): string {
   return source[Math.floor(rng.next() * source.length)].id;
 }
 
-/** Draw rarity from the pity-insurance pool: 95% Legendary, 5% Unique. */
-function drawInsuranceRarity(rng: Rng): Rarity {
+/**
+ * Draw from the Legendary+ pool: 95% Legendary / 5% Unique.
+ * Used for: hard pity, soft-pity Leg+ fires, and shop insurance pulls.
+ */
+function drawLegendaryPlus(rng: Rng): Rarity {
   return rng.next() < 0.05 ? "Unique" : "Legendary";
 }
 
@@ -65,9 +84,9 @@ export function performSummon(save: HeroSave, rng: Rng): SummonResult {
 
   let rarity: Rarity;
   if (save.currency.pityInsuranceActive) {
-    // Insurance pool: 95% Legendary / 5% Unique. Consumed on use.
+    // Shop insurance: same Legendary+ pool, consumed on use.
     save.currency.pityInsuranceActive = false;
-    rarity = drawInsuranceRarity(rng);
+    rarity = drawLegendaryPlus(rng);
   } else {
     rarity = drawRarity(save.currency.pityCount, rng);
   }
@@ -76,7 +95,7 @@ export function performSummon(save: HeroSave, rng: Rng): SummonResult {
   const isNew = !(characterId in save.collection);
   addTowerToCollection(save, characterId);
   const newStars = save.collection[characterId].stars;
-  if (rarity === "Unique") {
+  if (rarity === "Legendary" || rarity === "Unique") {
     save.currency.pityCount = 0;
   } else {
     save.currency.pityCount += 1;
