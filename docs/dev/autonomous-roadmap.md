@@ -17,7 +17,7 @@ progresses (survives context compaction).
 - [x] **T1** Combat feedback: projectiles for ranged towers; melee attack animation + impact effects; tower-skill effects.
 - [x] **T11** Enemy feedback: hit flash, attack tell, death effect.
 - [ ] **T2** Tower interaction: click tower → upgrade / sell panel.
-- [ ] **T5** Loot drops: gold + item drop animations from killed enemies.
+- [x] **T5** Loot drops: gold + item drop animations from killed enemies.
 - [ ] **T15** Boss animations (rig the bosses / animated boss sheets).
 - [ ] **T7** More bosses as famous anime homages; expand boss roster.
 - [ ] **T16** Stage select: enemy info "?" popup (full enemy list + specialties).

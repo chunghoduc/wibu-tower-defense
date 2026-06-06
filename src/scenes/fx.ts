@@ -20,6 +20,8 @@ const DMG_NUM_COLOR: Record<DamageType, string> = {
 };
 
 export class FxLayer {
+  /** Screen anchor of the gold counter in the HUD; dropped coins fly here. */
+  private readonly goldAnchor = { x: 472, y: 20 };
   constructor(private readonly scene: Phaser.Scene, private readonly depth = 6) {}
 
   play(e: FxEvent): void {
@@ -153,9 +155,22 @@ export class FxLayer {
 
   private coinPop(at: Vec2, gold: number): void {
     if (gold <= 0) return;
-    const coin = this.scene.add.circle(at.x, at.y, 4, 0xffd34d).setStrokeStyle(1, 0xa9722a).setDepth(this.depth + 1);
-    const tx = at.x + Phaser.Math.Between(-10, 10);
-    this.scene.tweens.add({ targets: coin, y: at.y - 16, x: tx, duration: 320, ease: "Quad.easeOut", yoyo: false,
-      onComplete: () => { this.scene.tweens.add({ targets: coin, y: at.y + 4, alpha: 0, duration: 260, onComplete: () => coin.destroy() }); } });
+    const anchor = this.goldAnchor;
+    const n = Math.min(4, 1 + Math.floor(gold / 12));
+    for (let i = 0; i < n; i++) {
+      const coin = this.scene.add.circle(at.x, at.y, 4, 0xffd34d).setStrokeStyle(1, 0xa9722a).setDepth(this.depth + 2);
+      const bx = at.x + Phaser.Math.Between(-16, 16), by = at.y - Phaser.Math.Between(8, 22);
+      this.scene.tweens.add({
+        targets: coin, x: bx, y: by, duration: 170, ease: "Quad.easeOut",
+        onComplete: () => this.scene.tweens.add({
+          targets: coin, x: anchor.x, y: anchor.y, scale: 0.35, alpha: 0.15,
+          duration: 400, delay: i * 35, ease: "Cubic.easeIn", onComplete: () => coin.destroy(),
+        }),
+      });
+    }
+    const txt = this.scene.add.text(at.x, at.y - 6, `+${gold}`, {
+      fontSize: "11px", color: "#ffd86a", fontStyle: "bold", stroke: "#10131c", strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(this.depth + 2);
+    this.scene.tweens.add({ targets: txt, y: at.y - 26, alpha: 0, duration: 560, ease: "Quad.easeOut", onComplete: () => txt.destroy() });
   }
 }
