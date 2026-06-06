@@ -110,6 +110,7 @@ export class BattleScene extends Phaser.Scene {
   private fx!: FxLayer;
   private towerPanel: Phaser.GameObjects.Container | null = null;
   private towerPanelUid = -1;
+  private towerPanelRefresh: (() => void) | null = null;
 
   constructor() {
     super("BattleScene");
@@ -175,6 +176,7 @@ export class BattleScene extends Phaser.Scene {
 
     this.buildBuildBar();
     this.bindInput();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.closeTowerPanel());
   }
 
   private drawStatic(): void {
@@ -271,6 +273,7 @@ export class BattleScene extends Phaser.Scene {
     this.towerPanel?.destroy(true);
     this.towerPanel = null;
     this.towerPanelUid = -1;
+    this.towerPanelRefresh = null;
   }
 
   /** Build the upgrade/sell panel for a placed tower. */
@@ -308,11 +311,15 @@ export class BattleScene extends Phaser.Scene {
     sellBtn.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
       e.stopPropagation();
       this.battle.sellTower(uid);
-      this.closeTowerPanel();
+      // Defer the close so the panel ref (and its bounds guard) survive the rest
+      // of this pointer-event dispatch — prevents the scene handler from falling
+      // through to a hero-move / placement at the button location.
+      this.time.delayedCall(0, () => this.closeTowerPanel());
     });
 
     this.towerPanel = c;
-    this.refreshTowerPanel(title, stats, upBtn, sellBtn);
+    this.towerPanelRefresh = () => this.refreshTowerPanel(title, stats, upBtn, sellBtn);
+    this.towerPanelRefresh();
   }
 
   private refreshTowerPanel(
@@ -353,9 +360,11 @@ export class BattleScene extends Phaser.Scene {
     const g = this.dynGfx;
     g.clear();
 
-    // Close the tower panel if its tower is gone (sold / destroyed).
-    if (this.towerPanel && !this.battle.towers.some((t) => t.uid === this.towerPanelUid && t.alive)) {
-      this.closeTowerPanel();
+    // Keep the tower panel live: close it if its tower is gone, else refresh
+    // affordability/stats against current gold.
+    if (this.towerPanel) {
+      if (!this.battle.towers.some((t) => t.uid === this.towerPanelUid && t.alive)) this.closeTowerPanel();
+      else this.towerPanelRefresh?.();
     }
 
     this.manageSprites();
