@@ -22,6 +22,7 @@ import { Rng } from "../core/rng.ts";
 import type { HeroSave } from "../core/save.ts";
 import { hasSprite } from "./PreloadScene.ts";
 import { FxLayer } from "./fx.ts";
+import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
 
 /** Preferred squad order — one per role plus a Unique marquee. */
@@ -113,10 +114,12 @@ export class BattleScene extends Phaser.Scene {
   private placeGhost: Phaser.GameObjects.Container | null = null;
   private gameSpeed = 1;
   private speedBtn!: Phaser.GameObjects.Text;
+  private sfx = new Sfx();
   private hudLevelText!: Phaser.GameObjects.Text;
   private hudSkillText!: Phaser.GameObjects.Text;
 
   private _victoryProcessed = false;
+  private _defeatPlayed = false;
   private _menuBtn: Phaser.GameObjects.Text | null = null;
 
   // Pixel-art sprite pools (keyed by entity uid); fall back to shapes if missing.
@@ -143,6 +146,7 @@ export class BattleScene extends Phaser.Scene {
     const save = this.saveManager.getSave();
 
     this._victoryProcessed = false;
+    this._defeatPlayed = false;
     this._menuBtn = null;
     this.towerSprites.clear();
     this.enemySprites.clear();
@@ -192,7 +196,10 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(1, 0).setPadding(10, 5, 10, 5).setDepth(12).setInteractive({ useHandCursor: true });
     this.speedBtn.on("pointerdown", () => { this.gameSpeed = this.gameSpeed === 0 ? 1 : this.gameSpeed >= 3 ? 0 : this.gameSpeed + 1; this.updateSpeedBtn(); });
     this.updateSpeedBtn();
-    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn]);
+    const muteBtn = this.add.text(this.scale.width - 14, 66, "🔊", { fontSize: "14px", backgroundColor: "#243a5a" })
+      .setOrigin(1, 0).setPadding(8, 5, 8, 5).setDepth(12).setInteractive({ useHandCursor: true });
+    muteBtn.on("pointerdown", () => muteBtn.setText(this.sfx.toggleMute() ? "🔇" : "🔊"));
+    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn]);
 
     this.buildBuildBar();
     this.setupPlacementDrag(); // register drag handlers once (tiles rebuild without re-registering)
@@ -293,7 +300,7 @@ export class BattleScene extends Phaser.Scene {
       this.clearGhost();
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
       if (p.y < 500 && this.battle.outcome === "ongoing" && !this.towerPanel) {
-        this.battle.placeTowerAt(id, { x: wp.x, y: wp.y });
+        if (this.battle.placeTowerAt(id, { x: wp.x, y: wp.y })) this.sfx.place();
       }
       this.rebuildAvatarTiles(); // snap the dragged tile home (drag handlers stay registered)
     });
@@ -498,9 +505,11 @@ export class BattleScene extends Phaser.Scene {
 
     if (b.outcome === "won") {
       this.banner.setText("VICTORY").setColor("#a5d6a7");
+      if (!this._victoryProcessed) this.sfx.win();
       this.processVictory();
     } else if (b.outcome === "lost") {
       this.banner.setText("DEFEAT").setColor("#ef9a9a");
+      if (!this._defeatPlayed) { this._defeatPlayed = true; this.sfx.lose(); }
     }
 
     if (b.outcome !== "ongoing" && !this._menuBtn) {
@@ -555,14 +564,23 @@ export class BattleScene extends Phaser.Scene {
   private playFx(ev: FxEvent): void {
     this.fx.play(ev);
     if (ev.type === "attack") {
+      this.sfx.attack(ev.ranged);
       const s = ev.source === "hero" ? this.heroSprite : (this.towerSprites.get(ev.uid) ?? null);
       this.playAttack(s);
     } else if (ev.type === "hit") {
+      this.sfx.hit();
       const e = this.enemySprites.get(ev.uid);
       if (e) this.flash(e, 0xffffff);
     } else if (ev.type === "enemyAttack") {
+      this.sfx.enemyHit();
       const victim = ev.target === "hero" ? this.heroSprite : this.towerNear(ev.targetAt);
       if (victim) this.flash(victim, 0xff4444);
+    } else if (ev.type === "death") {
+      this.sfx.death();
+    } else if (ev.type === "cast") {
+      this.sfx.cast();
+    } else if (ev.type === "loot") {
+      this.sfx.coin();
     }
   }
 
