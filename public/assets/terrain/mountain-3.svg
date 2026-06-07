@@ -1,1 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><ellipse cx="64.0" cy="91.5" rx="50.0" ry="20.0" fill="#000000" opacity="0.22"/><path d="M 113.8 69.0 C 113.0 81.1, 106.5 94.2, 98.2 103.2 C 89.9 112.2, 75.6 122.8, 64.0 123.0 C 52.4 123.2, 36.2 113.6, 28.4 104.6 C 20.6 95.6, 17.2 81.1, 17.0 69.0 C 16.8 56.9, 19.3 40.4, 27.2 32.2 C 35.0 24.0, 51.4 20.0, 64.0 19.7 C 76.6 19.5, 94.2 22.3, 102.5 30.5 C 110.8 38.7, 114.5 56.9, 113.8 69.0 Z" fill="#473f39" stroke="#16131f" stroke-width="3" stroke-linejoin="round"/><path d="M 64 41.5 L 36.5 84.0 L 64 79.0 Z" fill="#8d8276" stroke="#16131f" stroke-width="2" stroke-linejoin="round"/><path d="M 64 41.5 L 91.5 84.0 L 64 79.0 Z" fill="#6b5f55" stroke="#16131f" stroke-width="2" stroke-linejoin="round"/><path d="M 64 41.5 L 56.0 52.5 L 61.5 47.5 L 67.0 53.5 L 72.0 48.5 L 64 56.5 Z" fill="#eef2f7" opacity="0.95"/><path d="M 86.5 61.5 L 72.5 81.5 L 100.5 81.5 Z" fill="#9a8f82" stroke="#16131f" stroke-width="2" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#c0d0e0"/><stop offset="100%" stop-color="#405868"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
+  <!-- glacier/ice texture -->
+  <g fill="#a8c8e0" opacity="0.5">
+    <path d="M0 0 Q32 20 64 10 Q96 0 128 18 L128 40 Q96 25 64 35 Q32 45 0 28Z"/>
+    <path d="M0 30 Q40 50 80 38 Q108 30 128 48 L128 68 Q108 55 80 63 Q40 75 0 55Z"/>
+    <path d="M0 58 Q35 75 70 65 Q100 56 128 74 L128 95 Q100 80 70 90 Q35 100 0 82Z"/>
+  </g>
+  <!-- ice crevasse lines -->
+  <g stroke="#2a4a60" stroke-width="1.5" fill="none" opacity="0.4">
+    <path d="M15 10 L18 35 L12 60 L20 85 L14 110"/>
+    <path d="M55 5 L58 30 L50 58 L58 82 L52 108"/>
+    <path d="M95 8 L98 33 L90 60 L96 85 L88 112"/>
+  </g>
+  <!-- icy blue highlights -->
+  <g fill="#d8eef8" opacity="0.6">
+    <ellipse cx="30" cy="15" rx="18" ry="6"/>
+    <ellipse cx="80" cy="45" rx="22" ry="7"/>
+    <ellipse cx="45" cy="78" rx="16" ry="5"/>
+    <ellipse cx="100" cy="100" rx="14" ry="5"/>
+  </g>
+  <!-- snow crystals -->
+  <g stroke="#fff" stroke-width="1" opacity="0.7">
+    <path d="M20 50 L20 58 M17 52 L23 56 M17 56 L23 52"/>
+    <path d="M90 25 L90 33 M87 27 L93 31 M87 31 L93 27"/>
+    <path d="M55 100 L55 108 M52 102 L58 106 M52 106 L58 102"/>
+  </g>
+</svg>

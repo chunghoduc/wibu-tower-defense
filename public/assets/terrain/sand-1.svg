@@ -1,1 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><path d="M 117.3 64.0 C 117.0 73.0, 106.9 83.0, 100.5 90.5 C 94.1 98.1, 87.6 105.1, 78.7 109.3 C 69.8 113.5, 56.2 118.5, 47.2 115.7 C 38.2 112.9, 30.0 101.1, 24.8 92.5 C 19.6 83.9, 16.1 73.6, 15.9 64.0 C 15.7 54.4, 18.0 42.3, 23.6 34.6 C 29.1 27.0, 40.0 20.5, 49.1 18.2 C 58.2 15.9, 69.1 18.0, 78.0 21.0 C 86.8 24.0, 95.6 29.1, 102.2 36.3 C 108.7 43.4, 117.6 55.0, 117.3 64.0 Z" fill="#c9b06a" stroke="#a98f4e" stroke-width="2" opacity="0.9" stroke-linejoin="round"/><path d="M 85.3 56.0 C 85.5 62.9, 87.4 73.1, 83.6 77.5 C 79.8 81.8, 69.2 81.8, 62.6 82.3 C 56.1 82.7, 49.8 82.5, 44.2 79.9 C 38.5 77.3, 31.9 72.7, 28.7 66.7 C 25.5 60.7, 22.6 50.0, 25.1 44.0 C 27.6 38.1, 37.3 33.6, 43.6 31.0 C 49.9 28.5, 56.3 28.2, 62.8 29.0 C 69.2 29.8, 78.4 31.3, 82.1 35.8 C 85.9 40.3, 85.0 49.1, 85.3 56.0 Z" fill="#e3d199" opacity="0.45"/><path d="M 45.0 48.5 q 19.0 7.0 38.0 0" fill="none" stroke="#e3d199" stroke-width="2" opacity="0.55"/><path d="M 51.5 57.5 q 12.5 7.0 25.1 0" fill="none" stroke="#b59a55" stroke-width="2" opacity="0.55"/><path d="M 49.9 66.5 q 14.1 7.0 28.1 0" fill="none" stroke="#e3d199" stroke-width="2" opacity="0.55"/><path d="M 47.2 75.5 q 16.8 7.0 33.5 0" fill="none" stroke="#b59a55" stroke-width="2" opacity="0.55"/><path d="M 44.4 84.5 q 19.6 7.0 39.1 0" fill="none" stroke="#e3d199" stroke-width="2" opacity="0.55"/><circle cx="72.3" cy="65.5" r="1.2" fill="#a98f4e" opacity="0.5"/><circle cx="88.3" cy="47.4" r="1.2" fill="#a98f4e" opacity="0.5"/><circle cx="56.8" cy="84.5" r="1.2" fill="#a98f4e" opacity="0.5"/><circle cx="38.4" cy="60.4" r="1.2" fill="#a98f4e" opacity="0.5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="bg" cx="40%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#e8c46a"/><stop offset="100%" stop-color="#b8862a"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
+  <!-- dune curves -->
+  <path d="M0 80 Q20 65 45 75 Q70 85 95 70 Q115 60 128 68 L128 128 L0 128Z" fill="#c8902e" opacity="0.45"/>
+  <path d="M0 95 Q30 85 60 92 Q90 99 128 88 L128 128 L0 128Z" fill="#a06820" opacity="0.35"/>
+  <!-- wind ripple lines -->
+  <g stroke="#d4a030" stroke-width="1.5" fill="none" opacity="0.6">
+    <path d="M5 55 Q25 50 50 55 Q75 60 100 54 Q115 50 125 54"/>
+    <path d="M10 65 Q35 60 60 65 Q85 70 108 64 Q118 61 126 64"/>
+    <path d="M0 72 Q20 68 45 73 Q70 78 100 71 Q114 68 128 72"/>
+  </g>
+  <!-- small pebbles -->
+  <g fill="#a06820" opacity="0.5">
+    <ellipse cx="22" cy="48" rx="3" ry="2"/><ellipse cx="55" cy="42" rx="2.5" ry="1.8"/>
+    <ellipse cx="85" cy="50" rx="3" ry="2"/><ellipse cx="110" cy="44" rx="2" ry="1.5"/>
+    <ellipse cx="38" cy="100" rx="4" ry="2.5"/><ellipse cx="78" cy="108" rx="3" ry="2"/>
+    <ellipse cx="102" cy="96" rx="3.5" ry="2"/>
+  </g>
+  <!-- highlight glint -->
+  <g fill="#f5e080" opacity="0.35">
+    <ellipse cx="30" cy="35" rx="12" ry="5"/><ellipse cx="90" cy="30" rx="10" ry="4"/>
+  </g>
+</svg>

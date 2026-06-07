@@ -1,1 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><ellipse cx="64.0" cy="91.5" rx="50.0" ry="20.0" fill="#000000" opacity="0.22"/><path d="M 117.7 69.0 C 117.9 80.2, 107.3 95.2, 98.3 103.3 C 89.4 111.4, 76.1 116.8, 64.0 117.5 C 51.9 118.2, 34.4 115.6, 25.5 107.5 C 16.6 99.4, 9.7 80.8, 10.7 69.0 C 11.7 57.2, 22.7 44.7, 31.5 36.5 C 40.4 28.4, 53.1 20.2, 64.0 20.1 C 74.9 20.1, 88.0 27.9, 97.0 36.0 C 106.0 44.1, 117.5 57.8, 117.7 69.0 Z" fill="#473f39" stroke="#16131f" stroke-width="3" stroke-linejoin="round"/><path d="M 64 41.5 L 36.5 84.0 L 64 79.0 Z" fill="#8d8276" stroke="#16131f" stroke-width="2" stroke-linejoin="round"/><path d="M 64 41.5 L 91.5 84.0 L 64 79.0 Z" fill="#6b5f55" stroke="#16131f" stroke-width="2" stroke-linejoin="round"/><path d="M 64 41.5 L 56.0 52.5 L 61.5 47.5 L 67.0 53.5 L 72.0 48.5 L 64 56.5 Z" fill="#eef2f7" opacity="0.95"/><path d="M 86.5 61.5 L 72.5 81.5 L 100.5 81.5 Z" fill="#9a8f82" stroke="#16131f" stroke-width="2" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9090a0"/><stop offset="100%" stop-color="#505060"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
+  <!-- mountain silhouette layers -->
+  <path d="M0 128 L20 65 L40 85 L64 30 L88 70 L108 55 L128 80 L128 128Z" fill="#404050"/>
+  <path d="M0 128 L25 75 L48 95 L64 40 L80 90 L108 62 L128 88 L128 128Z" fill="#585868"/>
+  <path d="M0 128 L30 82 L55 100 L64 50 L73 95 L105 70 L128 95 L128 128Z" fill="#686878"/>
+  <!-- snow caps -->
+  <path d="M64 30 L55 55 L73 55Z" fill="#e8e8f0" opacity="0.9"/>
+  <path d="M108 55 L100 70 L116 70Z" fill="#d8d8e8" opacity="0.8"/>
+  <path d="M20 65 L14 78 L26 78Z" fill="#d0d0e0" opacity="0.7"/>
+  <!-- rock details/striations -->
+  <g stroke="#303040" stroke-width="1" fill="none" opacity="0.5">
+    <path d="M40 85 L55 70 L64 50"/><path d="M88 70 L80 85 L95 95"/>
+    <path d="M20 90 L35 78 L30 95"/>
+  </g>
+  <!-- snow sparkle -->
+  <g fill="#fff" opacity="0.7">
+    <circle cx="62" cy="32" r="1.5"/><circle cx="68" cy="36" r="1"/>
+    <circle cx="58" cy="38" r="1"/><circle cx="108" cy="57" r="1.2"/>
+    <circle cx="104" cy="60" r="0.8"/>
+  </g>
+  <!-- ambient sky tint at peaks -->
+  <path d="M0 0 L128 0 L128 40 Q64 20 0 40Z" fill="#b0b0d0" opacity="0.15"/>
+</svg>
