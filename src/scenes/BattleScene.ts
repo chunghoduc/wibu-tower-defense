@@ -35,6 +35,7 @@ import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
 import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
+import { BattleCameraController } from "./battleCamera.ts";
 
 import {
   SLOT_RADIUS, TERRAIN_COLOR, RARITY_INT,
@@ -78,6 +79,9 @@ export class BattleScene extends Phaser.Scene {
   private enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
   private heroSprite: HeroLayeredSprite | null = null;
   private fx!: FxLayer;
+  private camCtl?: BattleCameraController;
+  private tapX = 0;
+  private tapY = 0;
   private panel!: BattleInfoPanel;
   private battleW = 0;
   private selectedTowerUid = -1;
@@ -175,6 +179,17 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.ignore(this.ui);
     const uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     uiCam.ignore(this.world);
+
+    // Pinch / wheel / drag-to-pan camera — zoom in to see sprites & combat VFX
+    // at full resolution; drag the field to move the window once zoomed.
+    this.camCtl = new BattleCameraController(this, this.cameras.main, {
+      worldW: WORLD_WIDTH, worldH: WORLD_HEIGHT,
+      minZoom: zoom, maxZoom: zoom * 2.4,
+      blockAt: (p) => this.panel.hitsPanel(p.x) || this.panel.hitsTab(p.x, p.y) || p.y >= 500,
+      isBusy: () => this.placeGhost != null,
+    });
+    this.addZoomButtons();
+
     this.panel.showHero(this.heroVM());  // build hero content (panel starts collapsed)
     const KC = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard?.addKeys({
@@ -185,6 +200,8 @@ export class BattleScene extends Phaser.Scene {
       if (this.killSaveDirty) { this.saveManager.flush(); this.killSaveDirty = false; }
       this.deselectTower();
       this.clearGhost();
+      this.camCtl?.destroy();
+      this.camCtl = undefined;
       this.terrainSprites.forEach((s) => s.destroy());
       this.terrainSprites = [];
     });
@@ -357,13 +374,17 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private bindInput(): void {
-    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => { this.tapX = pointer.x; this.tapY = pointer.y; });
+    // Command on RELEASE, and only for a genuine tap — so a drag-to-pan, a pinch,
+    // a wheel-zoom or a tower-placement drag never also walks the hero.
+    this.input.on("pointerup", (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
       if (this.battle.outcome !== "ongoing") return;
-      // A click that lands on any interactive HUD/UI widget (speed & mute
-      // buttons, build-bar avatars, tower panel) must NOT also command the hero
-      // to walk there — otherwise tapping a top-corner button sends the hero to
-      // that corner. Towers aren't interactive objects (tapped via towerAt), so
-      // tapping a tower still falls through to the panel logic below.
+      if (this.camCtl?.consumedGesture) return;                                   // pan / pinch / zoom gesture
+      if (Math.hypot(pointer.x - this.tapX, pointer.y - this.tapY) > 8) return;    // a drag, not a tap
+      // A tap on any interactive HUD/UI widget (speed & mute buttons, zoom
+      // buttons, build-bar avatars, tower panel) must NOT command the hero.
+      // Towers aren't interactive objects (tapped via towerAt), so tapping a
+      // tower still falls through to the panel logic below.
       if (currentlyOver && currentlyOver.length > 0) return;
       if (this.panel.hitsPanel(pointer.x) || this.panel.hitsTab(pointer.x, pointer.y)) return; // over the panel / its tab
       if (pointer.y >= 500) return;          // bottom build-bar strip
@@ -377,6 +398,18 @@ export class BattleScene extends Phaser.Scene {
       this.deselectTower();
       this.battle.commandHero(world);
     });
+  }
+
+  /** ＋ / − zoom buttons on the left edge (HUD camera; fixed while the view pans). */
+  private addZoomButtons(): void {
+    const mk = (y: number, label: string, onTap: () => void) => {
+      const b = crispText(this, 14, y, label, { fontSize: "22px", color: "#fff", backgroundColor: "#243a5a", fontStyle: "bold" })
+        .setOrigin(0, 0.5).setPadding(9, 3, 9, 5).setDepth(50).setInteractive({ useHandCursor: true });
+      b.on("pointerdown", onTap);
+      this.ui.add(b);
+    };
+    mk(this.scale.height - 150, "+", () => this.camCtl?.zoomStep(true));
+    mk(this.scale.height - 110, "−", () => this.camCtl?.zoomStep(false));
   }
 
   /** The alive tower under a tap, if any. */
