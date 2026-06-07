@@ -678,7 +678,7 @@ export class BattleScene extends Phaser.Scene {
     } else if (ev.type === "hit") {
       this.sfx.hit();
       const e = this.enemySprites.get(ev.uid);
-      if (e) this.flash(e, 0xffffff);
+      if (e) { this.flash(e, 0xffffff); e.setData("hurtUntil", this.time.now + 160); } // hurt squash
     } else if (ev.type === "enemyAttack") {
       this.sfx.enemyHit();
       const victim = ev.target === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : this.towerNear(ev.targetAt);
@@ -739,7 +739,8 @@ export class BattleScene extends Phaser.Scene {
     let s = map.get(uid);
     if (!s) {
       s = this.add.sprite(x, y, key).setOrigin(0.5, 0.78).setDepth(2);
-      s.setScale(displayH / s.height);
+      const baseScale = displayH / s.height;
+      s.setScale(baseScale).setData("baseScale", baseScale);
       this.world.add(s);
       map.set(uid, s);
       if (this.anims.exists(`${key}_idle`)) s.play(`${key}_idle`);
@@ -749,20 +750,49 @@ export class BattleScene extends Phaser.Scene {
   }
 
   /**
-   * Walk animation (T5): play a real walk sheet if the art has one (bosses use
-   * rig animations) — otherwise a lightweight procedural waddle + bob so the
-   * static enemy art reads as marching. Frozen enemies stand still.
+   * Procedural enemy animation driving the single SDXL creature sprite so it
+   * feels alive: GROUND enemies walk with a waddle + stride bob + breathing,
+   * FLYING enemies hover above the lane with a smooth float + wing-sway tilt,
+   * and any enemy squashes/recoils when HURT (set by the hit FX). Bosses with a
+   * real rig walk sheet play that instead. Frozen enemies stand still + shiver.
    */
-  private animateWalk(s: Phaser.GameObjects.Sprite, e: EnemyRuntime, key: string): void {
+  private animateEnemy(s: Phaser.GameObjects.Sprite, e: EnemyRuntime, key: string): void {
     const frozen = e.slowPct >= 0.6;
     if (this.anims.exists(`${key}_walk`)) {
       if (!frozen && s.anims.currentAnim?.key !== `${key}_walk`) s.play(`${key}_walk`);
       return;
     }
-    if (frozen) { s.setAngle(0); return; }
-    const t = this.time.now * 0.011 + e.uid * 1.7;
-    s.setAngle(Math.sin(t) * 5);                        // side-to-side waddle
-    s.y = e.pos.y - Math.abs(Math.sin(t * 2)) * 2.2;    // little stride bob
+
+    const base = (s.getData("baseScale") as number) ?? s.scaleX;
+    const now = this.time.now;
+    const t = now * 0.011 + e.uid * 1.7;
+    let scaleX = base, scaleY = base, angle = 0, yOff = 0;
+
+    if (e.def.flying) {
+      yOff = -14 - Math.sin(t * 1.4) * 5;               // lift + hover bob
+      angle = Math.sin(t * 1.4) * 4;                    // wing-sway tilt
+      const breathe = 1 + Math.sin(t * 2) * 0.03;
+      scaleX = base * breathe; scaleY = base * breathe;
+    } else if (frozen) {
+      angle = Math.sin(now * 0.05) * 1.2;               // faint shiver
+    } else {
+      angle = Math.sin(t) * 5;                          // walk waddle
+      yOff = -Math.abs(Math.sin(t * 2)) * 2.2;          // stride bob
+      scaleY = base * (1 + Math.sin(t * 2) * 0.02);     // breathing
+    }
+
+    // Hurt squash overlays the base motion (set on the hit FX, decays ~160ms).
+    const hurtUntil = (s.getData("hurtUntil") as number) ?? 0;
+    if (now < hurtUntil) {
+      const k = (hurtUntil - now) / 160;                // 1 → 0
+      scaleX = base * (1 + 0.18 * k);
+      scaleY = base * (1 - 0.22 * k);
+      angle *= 0.3;
+    }
+
+    s.setAngle(angle);
+    s.setScale(scaleX, scaleY);
+    s.y = e.pos.y + yOff;
   }
 
   /** Create/update/cull pixel-art sprites for towers, enemies and the hero. */
@@ -789,7 +819,7 @@ export class BattleScene extends Phaser.Scene {
         s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1);
         const tint = enemyStatusTint(e);   // burn/poison/freeze body tint (T8)
         if (tint === null) s.clearTint(); else s.setTint(tint);
-        this.animateWalk(s, e, key);       // T5: walk animation
+        this.animateEnemy(s, e, key);      // walk / fly / hurt animation
       }
     }
     for (const [uid, s] of this.enemySprites) if (!seenE.has(uid)) { s.destroy(); this.enemySprites.delete(uid); }
