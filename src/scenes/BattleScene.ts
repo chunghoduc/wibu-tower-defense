@@ -62,6 +62,16 @@ export function towerKind(def: CharacterDef): "melee" | "ranged" {
 }
 const KIND_COLOR: Record<"melee" | "ranged", number> = { melee: 0xff7a33, ranged: 0x46c2f0 };
 
+/** Body tint for an enemy's dominant status: frozen > burning/poison (T8). */
+function enemyStatusTint(e: EnemyRuntime): number | null {
+  if (e.slowPct >= 0.6) return 0x9fd8ff;            // frozen — icy blue
+  if (e.dots.length > 0) {
+    const t = e.dots[0].type;
+    return t === "Magic" ? 0xb6e07a : t === "True" ? 0xfff0b0 : 0xffb38a; // poison / sear / burn
+  }
+  return null;
+}
+
 /** Points of a 5-point star centered at (cx,cy). */
 function starPoints(cx: number, cy: number, outer: number, inner: number): Phaser.Geom.Point[] {
   const pts: Phaser.Geom.Point[] = [];
@@ -710,7 +720,12 @@ export class BattleScene extends Phaser.Scene {
       const boss = e.def.archetype === "Boss";
       const key = `${boss ? "boss" : "enemy"}__${e.def.id}`;
       const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, boss ? 62 : 30);
-      if (s) { seenE.add(e.uid); s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1); }
+      if (s) {
+        seenE.add(e.uid);
+        s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1);
+        const tint = enemyStatusTint(e);   // burn/poison/freeze body tint (T8)
+        if (tint === null) s.clearTint(); else s.setTint(tint);
+      }
     }
     for (const [uid, s] of this.enemySprites) if (!seenE.has(uid)) { s.destroy(); this.enemySprites.delete(uid); }
 
@@ -842,6 +857,39 @@ export class BattleScene extends Phaser.Scene {
         w * Phaser.Math.Clamp(e.shield / e.stats.maxHp, 0, 1),
         3,
       );
+    }
+    // Status glyphs (T8): burning / poison / freeze above the bar.
+    this.drawStatusGlyphs(g, e, top - (e.shield > 0 ? 12 : 8));
+  }
+
+  /** Burning / poison / freeze status glyphs over an enemy (T8). */
+  private drawStatusGlyphs(g: Phaser.GameObjects.Graphics, e: EnemyRuntime, gy: number): void {
+    const kinds: ("burn" | "poison" | "freeze")[] = [];
+    if (e.dots.length > 0) kinds.push(e.dots[0].type === "Magic" ? "poison" : "burn");
+    if (e.slowPct >= 0.6) kinds.push("freeze");
+    if (kinds.length === 0) return;
+    const gap = 11;
+    const startX = e.pos.x - ((kinds.length - 1) * gap) / 2;
+    kinds.forEach((k, i) => this.drawStatusGlyph(g, k, startX + i * gap, gy));
+  }
+
+  private drawStatusGlyph(g: Phaser.GameObjects.Graphics, kind: "burn" | "poison" | "freeze", x: number, y: number): void {
+    g.fillStyle(0x10131c, 0.55).fillCircle(x, y, 5.5); // dark backing for contrast
+    if (kind === "burn") {
+      g.fillStyle(0xff6a2a, 1).fillTriangle(x - 3.2, y + 3, x, y - 5, x + 3.2, y + 3);
+      g.fillStyle(0xffd24d, 1).fillTriangle(x - 1.5, y + 3, x, y - 1, x + 1.5, y + 3);
+    } else if (kind === "poison") {
+      g.fillStyle(0x8bc34a, 1);
+      g.fillCircle(x - 2, y + 1.5, 2.1); g.fillCircle(x + 1.8, y - 1, 1.7); g.fillCircle(x + 1.6, y + 2.2, 1.3);
+    } else {
+      g.lineStyle(1.7, 0xaee6ff, 0.95);
+      for (let i = 0; i < 3; i++) {
+        const a = (Math.PI / 3) * i;
+        g.beginPath();
+        g.moveTo(x - Math.cos(a) * 4, y - Math.sin(a) * 4);
+        g.lineTo(x + Math.cos(a) * 4, y + Math.sin(a) * 4);
+        g.strokePath();
+      }
     }
   }
 
