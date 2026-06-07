@@ -40,6 +40,10 @@ export class PreloadScene extends Phaser.Scene {
     // backdrops, logo) — catalogued in public/assets/ui/uiManifest.json.
     for (const e of UI_SVGS) this.load.svg(e.key, e.path, { width: e.w, height: e.h });
     for (const e of UI_IMAGES) this.load.image(e.key, e.path);
+    // Painted main-menu button icons (SDXL).
+    for (const id of ["battle", "summon", "collection", "inventory", "squad", "passive", "shop", "settings"]) {
+      this.load.image(`menu__${id}`, `assets/ui/menu/${id}.png`);
+    }
   }
 
   create(): void {

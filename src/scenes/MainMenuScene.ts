@@ -17,7 +17,7 @@ const MENU_ITEMS: MenuItem[] = [
   { key: "battle", label: "Battle", scene: "StageSelectScene", side: "left" },
   { key: "summon", label: "Summon", scene: "GachaScene", side: "left" },
   { key: "collection", label: "Codex", scene: "CollectionScene", side: "left" },
-  { key: "hero", label: "Hero", scene: "HeroScene", side: "right" },
+  { key: "inventory", label: "Inventory", scene: "HeroScene", side: "right" },
   { key: "squad", label: "Squad", scene: "SquadScene", side: "right" },
   { key: "passive", label: "Passives", scene: "PassiveGridScene", side: "right" },
   { key: "shop", label: "Shop", scene: "ShopScene", side: "bottom" },
@@ -126,12 +126,20 @@ export class MainMenuScene extends Phaser.Scene {
 
   private iconButton(item: MenuItem, x: number, y: number): void {
     const c = this.add.container(x, y).setDepth(8);
-    const g = this.add.graphics();
-    g.fillStyle(0x101826, 0.92).fillRoundedRect(-BTN / 2, -BTN / 2, BTN, BTN, 12);
-    g.lineStyle(2, 0x3a567f, 1).strokeRoundedRect(-BTN / 2, -BTN / 2, BTN, BTN, 12);
-    drawMenuGlyph(g, item.key, 0, -4, 15);
-    c.add(g);
-    c.add(crispText(this, 0, BTN / 2 - 12, item.label, { fontSize: "10px", color: "#dfe7f2", fontStyle: "bold" }).setOrigin(0.5));
+    const iconKey = `menu__${item.key}`;
+    if (this.textures.exists(iconKey)) {
+      // Painted SDXL icon (carries its own ornate frame).
+      const img = this.add.image(0, -3, iconKey).setOrigin(0.5);
+      img.setScale(Math.min(56 / img.width, 56 / img.height));
+      c.add(img);
+    } else {
+      const g = this.add.graphics();
+      g.fillStyle(0x101826, 0.92).fillRoundedRect(-BTN / 2, -BTN / 2, BTN, BTN, 12);
+      g.lineStyle(2, 0x3a567f, 1).strokeRoundedRect(-BTN / 2, -BTN / 2, BTN, BTN, 12);
+      drawMenuGlyph(g, item.key, 0, -4, 15);
+      c.add(g);
+    }
+    c.add(crispText(this, 0, BTN / 2 - 6, item.label, { fontSize: "10px", color: "#ffe9c0", fontStyle: "bold", stroke: "#1a1206", strokeThickness: 3 }).setOrigin(0.5));
 
     const z = this.add.zone(0, 0, BTN, BTN).setInteractive({ useHandCursor: true });
     c.add(z);
