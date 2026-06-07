@@ -83,6 +83,7 @@ export class BattleScene extends Phaser.Scene {
   private selectedTowerUid = -1;
   private quickActions: Phaser.GameObjects.Container | null = null;
   private confirmDialog: Phaser.GameObjects.Container | null = null;
+  private rangePreviewUid = -1;   // tower whose range ring to show (on upgrade hover)
   private keys?: {
     up: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key;
     left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key;
@@ -107,6 +108,7 @@ export class BattleScene extends Phaser.Scene {
     this.selectedTowerUid = -1;
     this.quickActions = null;
     this.confirmDialog = null;
+    this.rangePreviewUid = -1;
     this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
     this.terrainSprites = [];
     this.placeGhost = null;
@@ -434,7 +436,11 @@ export class BattleScene extends Phaser.Scene {
 
   private showTowerPanel(t: TowerRuntime): void {
     const uid = t.uid;
-    this.panel.showTower(this.towerVM(t), { onUpgrade: () => this.doUpgrade(uid), onSell: () => this.confirmSell(uid) });
+    this.panel.showTower(this.towerVM(t), {
+      onUpgrade: () => this.doUpgrade(uid),
+      onSell: () => this.confirmSell(uid),
+      onUpgradeHover: (over) => { this.rangePreviewUid = over ? uid : -1; },
+    });
   }
 
   /** Toggle button on the panel edge: collapse, or expand (showing the hero by default). */
@@ -457,6 +463,7 @@ export class BattleScene extends Phaser.Scene {
   private deselectTower(): void {
     if (this.selectedTowerUid < 0) return;
     this.selectedTowerUid = -1;
+    this.rangePreviewUid = -1;
     this.quickActions?.destroy(true);
     this.quickActions = null;
     this.panel.showHero(this.heroVM());
@@ -519,7 +526,7 @@ export class BattleScene extends Phaser.Scene {
     this.quickActions?.destroy(true);
     const s = this.worldToScreen(t.pos.x, t.pos.y - 22);
     const c = this.add.container(s.x, s.y).setDepth(48);
-    const mk = (dx: number, glyph: string, cost: string, bg: number, onClick: () => void): void => {
+    const mk = (dx: number, glyph: string, cost: string, bg: number, onClick: () => void, onHover?: (over: boolean) => void): void => {
       const g = this.add.graphics();
       g.fillStyle(bg, 0.96).fillRoundedRect(dx - 19, -13, 38, 26, 5);
       g.lineStyle(1.5, 0xffffff, 0.55).strokeRoundedRect(dx - 19, -13, 38, 26, 5);
@@ -530,10 +537,13 @@ export class BattleScene extends Phaser.Scene {
       // icon (and the scene's pointerdown bails on currentlyOver → hero won't move).
       const z = this.add.zone(dx, 0, 38, 26).setInteractive({ useHandCursor: true });
       z.on("pointerup", onClick);
+      if (onHover) { z.on("pointerover", () => onHover(true)); z.on("pointerout", () => onHover(false)); }
       c.add(z);
     };
     const cost = this.battle.upgradeCost(t.uid);
-    mk(-21, "⬆", cost === 0 ? "MAX" : `${cost}g`, cost === 0 ? 0x555555 : 0x1565c0, () => this.doUpgrade(t.uid));
+    // Hovering the upgrade icon reveals this tower's attack range ring.
+    mk(-21, "⬆", cost === 0 ? "MAX" : `${cost}g`, cost === 0 ? 0x555555 : 0x1565c0,
+      () => this.doUpgrade(t.uid), (over) => { this.rangePreviewUid = over ? t.uid : -1; });
     mk(22, "✕", `+${this.battle.sellValue(t.uid)}g`, 0x7a2e2e, () => this.confirmSell(t.uid));
     this.ui.add(c);
     this.quickActions = c;
@@ -851,7 +861,10 @@ export class BattleScene extends Phaser.Scene {
     if (!this.towerSprites.has(t.uid)) {
       g.fillStyle(color, 1).fillRect(t.pos.x - 14, t.pos.y - 14, 28, 28);
     }
-    g.lineStyle(1, color, 0.25).strokeCircle(t.pos.x, t.pos.y, t.stats.range);
+    // Range ring only while previewing this tower's upgrade (hover), not always.
+    if (t.uid === this.rangePreviewUid) {
+      g.lineStyle(1.5, color, 0.5).strokeCircle(t.pos.x, t.pos.y, t.stats.range);
+    }
     if (t.stats.maxMana > 0) {
       g.fillStyle(0x42a5f5, 0.9);
       g.fillRect(t.pos.x - 14, t.pos.y + 16, 28 * (t.mana / t.stats.maxMana), 3);

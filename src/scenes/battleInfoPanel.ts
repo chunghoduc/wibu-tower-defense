@@ -29,7 +29,7 @@ export interface TowerPanelVM {
   upgradeCost: number; sellValue: number; maxed: boolean;
 }
 export type PanelVM = HeroPanelVM | TowerPanelVM;
-export interface TowerCallbacks { onUpgrade: () => void; onSell: () => void; }
+export interface TowerCallbacks { onUpgrade: () => void; onSell: () => void; onUpgradeHover?: (over: boolean) => void; }
 export interface LiveVals { hp: number; maxHp: number; mana: number; maxMana: number; gold: number; upgradeCost: number; }
 
 export const PANEL_W = 232;
@@ -155,6 +155,8 @@ export class BattleInfoPanel {
     this.upBtn = crispText(this.scene, 0, by, "", { fontSize: "13px", color: "#fff", backgroundColor: "#1565c0", fixedWidth: this.innerW * 0.6, align: "center" })
       .setPadding(0, 7, 0, 7).setInteractive({ useHandCursor: true });
     this.upBtn.on("pointerup", () => cb.onUpgrade());
+    this.upBtn.on("pointerover", () => cb.onUpgradeHover?.(true));
+    this.upBtn.on("pointerout", () => cb.onUpgradeHover?.(false));
     const sell = crispText(this.scene, this.innerW, by, `✕ Sell\n+${vm.sellValue}g`, { fontSize: "12px", color: "#fff", backgroundColor: "#7a2e2e", fixedWidth: this.innerW * 0.36, align: "center" })
       .setOrigin(1, 0).setPadding(0, 5, 0, 5).setInteractive({ useHandCursor: true });
     sell.on("pointerup", () => cb.onSell());
