@@ -38,6 +38,23 @@ describe("itemStatRows colouring", () => {
     expect(low.quality).toBe("worse");
   });
 
+  it("shows enhance-scaled total + bonus on base stats (e.g. Armor 24 (+4))", () => {
+    const plus0 = itemStatRows(inst({ rolledStats: { armor: 20 } }), def).find((r) => r.source === "base")!;
+    expect(plus0.value).toBe("20");
+    expect(plus0.bonus).toBeUndefined();
+
+    const enh = itemStatRows({ ...inst({ rolledStats: { armor: 20 } }), enhanceLevel: 5 } as any, def).find((r) => r.source === "base")!;
+    // enhanceBonus(5) = 1.4 → total 28, bonus +8
+    expect(enh.value).toBe("28");
+    expect(enh.bonus).toBe("(+8)");
+  });
+
+  it("affixes are not enhance-scaled (matches battle)", () => {
+    const enh = itemStatRows({ ...inst({ rolledAffixes: [{ type: "critRate", value: 0.1 }] }), enhanceLevel: 5 } as any, def).find((r) => r.source === "affix")!;
+    expect(enh.value).toBe("10%");
+    expect(enh.bonus).toBeUndefined();
+  });
+
   it("formats fractional stats as percentages", () => {
     const row = itemStatRows(inst({ rolledStats: { critRate: 0.22 } }), def).find((r) => r.source === "base" && r.before === "Crit")!;
     expect(row.value).toBe("22%");

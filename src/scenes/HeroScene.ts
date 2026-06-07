@@ -362,7 +362,14 @@ export class HeroScene extends Phaser.Scene {
       const vstyle = { fontSize: "9px", color: QUALITY_COLOR[r.quality], fontStyle: "bold" };
       if (r.source === "base") {
         this.tooltip.add(this.add.text(tx + 10, ry, r.before, { fontSize: "9px", color: SOURCE_COLOR.base }));
-        this.tooltip.add(this.add.text(tx + w - 8, ry, r.value, vstyle).setOrigin(1, 0));
+        if (r.bonus) {
+          // enhanced: "<total> (+bonus)" — bonus in a distinct enhance colour
+          const bt = this.add.text(tx + w - 8, ry, r.bonus, { fontSize: "9px", color: "#7fdfff", fontStyle: "bold" }).setOrigin(1, 0);
+          this.tooltip.add(bt);
+          this.tooltip.add(this.add.text(tx + w - 10 - bt.width, ry, r.value, vstyle).setOrigin(1, 0));
+        } else {
+          this.tooltip.add(this.add.text(tx + w - 8, ry, r.value, vstyle).setOrigin(1, 0));
+        }
       } else {
         const sc = { fontSize: "9px", color: SOURCE_COLOR[r.source] };
         let cx = tx + 10;

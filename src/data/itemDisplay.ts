@@ -11,6 +11,7 @@
  */
 import type { ItemDef, Stats } from "./schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
+import { enhanceBonus } from "../core/enhance.ts";
 
 export type StatSource = "base" | "primary" | "affix";
 export type Quality = "base" | "better" | "worse";
@@ -20,10 +21,12 @@ export interface ItemStatRow {
   quality: Quality;
   /** Text before the value (base stat: the stat label; affix: sentence prefix). */
   before: string;
-  /** The formatted rolled value (coloured by quality). */
+  /** The formatted value — base stats show the enhance-scaled TOTAL. */
   value: string;
   /** Text after the value (base stat: empty; affix: sentence suffix). */
   after: string;
+  /** Enhance bonus portion for a base stat, e.g. "(+6)" — only when enhanced. */
+  bonus?: string;
 }
 
 export const SOURCE_COLOR: Record<StatSource, string> = {
@@ -128,11 +131,19 @@ export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[
   const rows: ItemStatRow[] = [];
   const lvlScale = 1 + 0.08 * def.requiredLevel; // matches rollItem's base-stat scaling
 
-  // Base / primary stats (white): label + value.
+  // Base / primary stats (white): label + value. When enhanced, the item's base
+  // stats are multiplied by the enhance bonus (this is what battle applies), so
+  // show the enhanced TOTAL plus the bonus portion, e.g. "Armor  24 (+4)". Roll
+  // quality still compares the raw rolled value to its base.
+  const level = inst.enhanceLevel ?? 0;
+  const mult = enhanceBonus(level);
   for (const [k, v] of Object.entries(inst.rolledStats)) {
     if (typeof v !== "number") continue;
     const base = (def.baseStats[k as keyof Stats] ?? 0) * lvlScale;
-    rows.push({ source: "base", quality: quality(v, base), before: label(k), value: fmtBaseValue(k, v), after: "" });
+    const total = v * mult;
+    const row: ItemStatRow = { source: "base", quality: quality(v, base), before: label(k), value: fmtBaseValue(k, total), after: "" };
+    if (level > 0) row.bonus = `(+${fmtBaseValue(k, total - v)})`;
+    rows.push(row);
   }
 
   // Primary affix (blue): full sentence.
