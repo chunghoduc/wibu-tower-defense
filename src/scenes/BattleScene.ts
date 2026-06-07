@@ -363,8 +363,14 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private bindInput(): void {
-    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
       if (this.battle.outcome !== "ongoing") return;
+      // A click that lands on any interactive HUD/UI widget (speed & mute
+      // buttons, build-bar avatars, tower panel) must NOT also command the hero
+      // to walk there — otherwise tapping a top-corner button sends the hero to
+      // that corner. Towers aren't interactive objects (tapped via towerAt), so
+      // tapping a tower still falls through to the panel logic below.
+      if (currentlyOver && currentlyOver.length > 0) return;
       if (pointer.y >= 500) return; // bottom HUD strip (screen space)
       const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       const world: Vec2 = { x: wp.x, y: wp.y };
