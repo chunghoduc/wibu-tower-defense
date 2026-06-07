@@ -7,6 +7,7 @@ import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { itemStatRows, SOURCE_COLOR, QUALITY_COLOR } from "../data/itemDisplay.ts";
 import { ITEM_SLOTS, type ItemSlot, type Rarity } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS, MATERIALS_MAP } from "../data/materials.ts";
@@ -335,21 +336,36 @@ export class HeroScene extends Phaser.Scene {
     const def = ITEM_CATALOG_MAP.get(inst.defId);
     if (!def) return;
     this.tooltip.removeAll(true);
-    const lines = [
-      `${def.name}`,
-      `${def.rarity} ${def.slot}${def.weaponType ? " (" + def.weaponType + ")" : ""}`,
-      `Primary: ${def.primaryAffix.type}`,
-      ...Object.entries(inst.rolledStats).map(([k, v]) => `${k}: ${typeof v === "number" ? (v >= 1 ? Math.round(v) : v.toFixed(2)) : v}`),
-      `Req. level ${def.requiredLevel}`,
-    ];
-    const w = 180, h = 16 + lines.length * 14;
-    const tx = Phaser.Math.Clamp(x + 30, 0, this.scale.width - w), ty = Phaser.Math.Clamp(y - 10, 0, 540 - h);
+    const rows = itemStatRows(inst, def);
+
+    const w = 190, headerH = 36, rowH = 13, footerH = 26;
+    const h = headerH + rows.length * rowH + footerH;
+    const tx = Phaser.Math.Clamp(x + 30, 0, this.scale.width - w);
+    const ty = Phaser.Math.Clamp(y - 10, 0, 540 - h);
     const g = this.add.graphics();
     g.fillStyle(0x10141c, 0.97).fillRoundedRect(tx, ty, w, h, 6);
     g.lineStyle(1.5, RARITY_INT[def.rarity], 1).strokeRoundedRect(tx, ty, w, h, 6);
     this.tooltip.add(g);
-    lines.forEach((ln, i) => this.tooltip.add(this.add.text(tx + 8, ty + 6 + i * 14,
-      ln, { fontSize: i === 0 ? "11px" : "9px", color: i === 0 ? RARITY_HEX[def.rarity] : "#cdd9ea", fontStyle: i === 0 ? "bold" : "normal" })));
+
+    // Header: name (rarity colour) + rarity/slot/enhance line.
+    const enh = inst.enhanceLevel ? `  +${inst.enhanceLevel}` : "";
+    this.tooltip.add(this.add.text(tx + 8, ty + 6, def.name, { fontSize: "11px", color: RARITY_HEX[def.rarity], fontStyle: "bold" }));
+    this.tooltip.add(this.add.text(tx + 8, ty + 21, `${def.rarity} ${def.slot}${def.weaponType ? ` (${def.weaponType})` : ""}${enh}`, { fontSize: "9px", color: "#9fb0c4" }));
+
+    // Stat rows: label colour = source (white base / blue primary affix / purple
+    // additional affix), value colour = roll quality (green better / red worse).
+    let ry = ty + headerH;
+    for (const r of rows) {
+      this.tooltip.add(this.add.text(tx + 10, ry, r.label, { fontSize: "9px", color: SOURCE_COLOR[r.source] }));
+      this.tooltip.add(this.add.text(tx + w - 8, ry, r.value, { fontSize: "9px", color: QUALITY_COLOR[r.quality], fontStyle: "bold" }).setOrigin(1, 0));
+      ry += rowH;
+    }
+
+    // Footer: a small colour legend (teaches the code) + required level.
+    this.tooltip.add(this.add.text(tx + 8, ry + 4, "Stat", { fontSize: "8px", color: SOURCE_COLOR.base }));
+    this.tooltip.add(this.add.text(tx + 34, ry + 4, "Primary", { fontSize: "8px", color: SOURCE_COLOR.primary }));
+    this.tooltip.add(this.add.text(tx + 78, ry + 4, "Extra", { fontSize: "8px", color: SOURCE_COLOR.affix }));
+    this.tooltip.add(this.add.text(tx + w - 8, ry + 4, `Req.Lv ${def.requiredLevel}`, { fontSize: "8px", color: "#7c8aa0" }).setOrigin(1, 0));
     this.tooltip.setVisible(true);
   }
 
