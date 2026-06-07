@@ -21,6 +21,7 @@ import { TOWERS } from "../data/towers.ts";
 import { Rng } from "../core/rng.ts";
 import type { HeroSave } from "../core/save.ts";
 import { hasSprite } from "./PreloadScene.ts";
+import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
@@ -111,6 +112,7 @@ export class BattleScene extends Phaser.Scene {
   private banner!: Phaser.GameObjects.Text;
   private info!: Phaser.GameObjects.Text;
   private avatarTiles: Phaser.GameObjects.Container[] = [];
+  private terrainSprites: Phaser.GameObjects.Image[] = [];
   private placeGhost: Phaser.GameObjects.Container | null = null;
   private gameSpeed = 1;
   private speedBtn!: Phaser.GameObjects.Text;
@@ -154,6 +156,7 @@ export class BattleScene extends Phaser.Scene {
     this.towerPanel = null;
     this.towerPanelUid = -1;
     this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
+    this.terrainSprites = [];
     this.placeGhost = null;
 
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
@@ -216,16 +219,36 @@ export class BattleScene extends Phaser.Scene {
       up: KC.UP, down: KC.DOWN, left: KC.LEFT, right: KC.RIGHT,
       w: KC.W, a: KC.A, s: KC.S, d: KC.D,
     }) as typeof this.keys;
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.closeTowerPanel(); this.clearGhost(); });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.closeTowerPanel();
+      this.clearGhost();
+      this.terrainSprites.forEach((s) => s.destroy());
+      this.terrainSprites = [];
+    });
   }
 
   private drawStatic(): void {
     const g = this.staticGfx;
     g.clear();
+    this.terrainSprites.forEach((s) => s.destroy());
+    this.terrainSprites = [];
     // ground tint
     g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    // terrain features (T13)
+    // terrain features (T13): SVG art authored by the svg-asset-gen skill, drawn
+    // as images above the ground but below units (depth 1). Falls back to a
+    // tinted blob if a texture failed to load so the map is never blank.
     for (const f of this.stage.terrain ?? []) {
+      const key = terrainKeyFor(f.type, f.x, f.y);
+      if (this.textures.exists(key)) {
+        // The art's silhouette fills ~0.45 of the 128px box; scale so the blob's
+        // radius ≈ the feature radius (a touch of overhang reads as organic).
+        const img = this.add.image(f.x, f.y, key)
+          .setDisplaySize(f.r * 2.6, f.r * 2.6).setDepth(1);
+        if (!f.blocks) img.setAlpha(0.92); // decor sits a hair lighter than obstacles
+        this.world.add(img);
+        this.terrainSprites.push(img);
+        continue;
+      }
       const col = TERRAIN_COLOR[f.type];
       g.fillStyle(col, f.blocks ? 0.95 : 0.5).fillCircle(f.x, f.y, f.r);
       g.lineStyle(2, Phaser.Display.Color.IntegerToColor(col).darken(30).color, f.blocks ? 0.9 : 0.4).strokeCircle(f.x, f.y, f.r);

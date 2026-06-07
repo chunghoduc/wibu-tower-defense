@@ -6,6 +6,7 @@
  */
 import Phaser from "phaser";
 import { SPRITE_MANIFEST, SPRITE_BY_KEY } from "../data/spriteManifest.ts";
+import { TERRAIN_ASSETS, TERRAIN_TEX_SIZE } from "../data/terrainManifest.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -16,6 +17,10 @@ export class PreloadScene extends Phaser.Scene {
     this.load.on("loaderror", (file: Phaser.Loader.File) => void file);
     for (const e of SPRITE_MANIFEST) {
       this.load.spritesheet(e.key, e.path, { frameWidth: e.frameWidth, frameHeight: e.frameHeight });
+    }
+    // Terrain map art (T13): Phaser rasterizes the .svg to a texture in-browser.
+    for (const t of TERRAIN_ASSETS) {
+      this.load.svg(t.key, t.path, { width: TERRAIN_TEX_SIZE, height: TERRAIN_TEX_SIZE });
     }
   }
 
