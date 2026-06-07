@@ -22,9 +22,22 @@ describe("totalXpForLevel", () => {
       expect(totalXpForLevel(n)).toBeGreaterThan(totalXpForLevel(n - 1));
     }
   });
-  it("level 90 uses polynomial curve (~328k)", () => {
-    expect(totalXpForLevel(90)).toBeGreaterThan(300_000);
-    expect(totalXpForLevel(90)).toBeLessThan(400_000);
+  it("rebalance: early levels (1-20) are cheaper than the base curve", () => {
+    // Old curve threshold for L20 was floor(100 * 20^1.8) = 21962; the eased
+    // curve must require meaningfully less to reach level 20.
+    expect(totalXpForLevel(20)).toBeLessThan(21962);
+  });
+  it("rebalance: levels 21-39 cost the same per level as the base curve", () => {
+    const baseInc = (L: number) => Math.floor(100 * Math.pow(L, 1.8)) - Math.floor(100 * Math.pow(L - 1, 1.8));
+    for (const L of [21, 30, 39]) {
+      expect(totalXpForLevel(L) - totalXpForLevel(L - 1)).toBe(baseInc(L));
+    }
+  });
+  it("rebalance: levels 40+ cost more per level than the base curve", () => {
+    const baseInc = (L: number) => Math.floor(100 * Math.pow(L, 1.8)) - Math.floor(100 * Math.pow(L - 1, 1.8));
+    for (const L of [45, 60, 80]) {
+      expect(totalXpForLevel(L) - totalXpForLevel(L - 1)).toBeGreaterThan(baseInc(L));
+    }
   });
   it("level 91 increment is dramatically larger than level 90 increment", () => {
     const inc90 = totalXpForLevel(90) - totalXpForLevel(89);

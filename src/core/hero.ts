@@ -1,14 +1,36 @@
 import type { HeroSave } from "./save.ts";
 
+/** Per-level XP cost of the original smooth curve (100 · L^1.8). */
+function baseLevelCost(level: number): number {
+  return Math.floor(100 * Math.pow(level, 1.8)) - Math.floor(100 * Math.pow(level - 1, 1.8));
+}
+
+/**
+ * Rebalanced per-level XP cost:
+ *  - Levels 2–20: discounted (ramping ~40% → 100% of base) so early play is fast.
+ *  - Levels 21–39: unchanged — identical cost to the original curve.
+ *  - Levels 40+: scaled up ~5%/level (capped ×2.5) so the late game bites harder.
+ */
+function levelCost(level: number): number {
+  const base = baseLevelCost(level);
+  if (level <= 20) {
+    const t = (level - 2) / 18; // 0 at L2 → 1 at L20
+    return Math.floor(base * (0.4 + 0.6 * t));
+  }
+  if (level <= 39) return base;
+  return Math.floor(base * Math.min(2.0, 1 + 0.04 * (level - 39)));
+}
+
+// Memoize cumulative thresholds (levels are bounded 1–100, so this is O(1) after warmup).
+const _totalXpCache: number[] = [0, 0];
+
 export function totalXpForLevel(level: number): number {
   if (level <= 1) return 0;
-  if (level <= 90) return Math.floor(100 * Math.pow(level, 1.8));
-  const base90 = Math.floor(100 * Math.pow(90, 1.8));
-  const inc90 = base90 - Math.floor(100 * Math.pow(89, 1.8));
-  let total = base90;
-  for (let n = 91; n <= level; n++) {
-    total += Math.floor(inc90 * Math.pow(10, n - 90));
-  }
+  if (_totalXpCache[level] !== undefined) return _totalXpCache[level];
+  // 90+ keeps the original exponential soft-cap wall, anchored to the new L89 cost.
+  const inc = level <= 89 ? levelCost(level) : Math.floor(levelCost(89) * Math.pow(10, level - 89));
+  const total = totalXpForLevel(level - 1) + inc;
+  _totalXpCache[level] = total;
   return total;
 }
 
