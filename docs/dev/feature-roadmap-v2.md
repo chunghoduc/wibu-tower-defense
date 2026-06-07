@@ -70,3 +70,8 @@ materials MATERIALS_MAP/BOX_TIERS; crispText/makeCrisp; fx.starUp.
 - 2026-06-07: T5/T10/T11 (tower badge/stars/upgrade FX), T9 (stealth), T8 (status visuals),
   T13 core (enhance), T16 (boss skills), T15 core (boss boxes). 284 tests. Head 5947718.
   Done: T2,T3,T5,T8,T9,T10,T11,T12,T13(core),T15(core),T16. Left: T1,T4,T6,T7,T14,T17,T18 + T13/T15 UI.
+
+## Post-session additions (2026-06-07 continued)
+- **T18** Skill-icon system: procedural 24×24 glyphs in skillIcons.ts (T1 + tower panel badge). (c7aea1f)
+- **T1** Passive tree icons: region-themed glyphs on every node. (c7aea1f)
+- **Item art gap** (new task): 130 → 125 → all items being generated via SDXL (gen-items-full.mjs); manifest rebuilt after generation.
