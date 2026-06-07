@@ -24,6 +24,8 @@ import { hasSprite } from "./PreloadScene.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { crispText } from "./ui.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
+import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
+import { upgradeSummary } from "../core/towerUpgrade.ts";
 import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
@@ -445,7 +447,17 @@ export class BattleScene extends Phaser.Scene {
     if (!t) return;
     this.towerPanelUid = uid;
 
-    const W = 224, H = 96;
+    // Skill rows: active skill + passives (T17). Each is hover-tooltipped.
+    const active = t.def.active ? towerActiveInfo(t.def.active) : undefined;
+    const skillRows: { label: string; color: string; desc: string }[] = [];
+    if (active) skillRows.push({ label: `⚡ ${active.name}`, color: "#a8d8ff", desc: active.description });
+    for (const pid of t.def.passives) {
+      const info = passiveInfo(pid);
+      skillRows.push({ label: `• ${info.name}`, color: "#cdd6e6", desc: info.description });
+    }
+
+    const W = 300;
+    const H = 84 + skillRows.length * 16 + 30; // title+stats + rows + upgrade summary + buttons
     let px = t.pos.x + 24, py = t.pos.y - H / 2;
     px = Phaser.Math.Clamp(px, 6, WORLD_WIDTH - W - 6);
     py = Phaser.Math.Clamp(py, 30, WORLD_HEIGHT - H - 6);
@@ -453,13 +465,33 @@ export class BattleScene extends Phaser.Scene {
     this.world.add(c);
 
     const g = this.add.graphics();
-    g.fillStyle(0x121622, 0.96).fillRoundedRect(0, 0, W, H, 8);
+    g.fillStyle(0x121622, 0.97).fillRoundedRect(0, 0, W, H, 8);
     g.lineStyle(2, 0x3a4a6a, 1).strokeRoundedRect(0, 0, W, H, 8);
     c.add(g);
 
     const title = crispText(this, 8, 6, "", { fontSize: "13px", color: "#ffd86a", fontStyle: "bold" });
     const stats = crispText(this, 8, 24, "", { fontSize: "11px", color: "#d3dcec" });
     c.add(title); c.add(stats);
+
+    // A shared tooltip (parented to the panel) shown on skill hover.
+    const tip = crispText(this, 0, 0, "", { fontSize: "10px", color: "#f0f4fb", backgroundColor: "#05070c", wordWrap: { width: W - 24 } })
+      .setPadding(6, 4, 6, 4).setDepth(60).setVisible(false);
+    c.add(tip);
+
+    let ry = 42;
+    for (const row of skillRows) {
+      const rt = crispText(this, 8, ry, row.label, { fontSize: "11px", color: row.color })
+        .setInteractive({ useHandCursor: true });
+      rt.on("pointerover", () => {
+        tip.setText(row.desc).setPosition(8, ry + 16).setVisible(true);
+        c.bringToTop(tip);
+      });
+      rt.on("pointerout", () => tip.setVisible(false));
+      c.add(rt);
+      ry += 16;
+    }
+    // How this tower upgrades (T12 summary).
+    c.add(crispText(this, 8, ry + 2, upgradeSummary(t.def.role), { fontSize: "9px", color: "#8fa6c4", wordWrap: { width: W - 16 } }));
 
     const upBtn = crispText(this, 8, H - 26, "", { fontSize: "12px", color: "#fff", backgroundColor: "#1565c0" })
       .setPadding(6, 4, 6, 4).setInteractive({ useHandCursor: true });
