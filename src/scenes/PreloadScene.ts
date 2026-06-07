@@ -44,6 +44,8 @@ export class PreloadScene extends Phaser.Scene {
     for (const id of ["battle", "summon", "collection", "inventory", "squad", "passive", "shop", "skills", "settings"]) {
       this.load.image(`menu__${id}`, `assets/ui/menu/${id}.png`);
     }
+    // Inventory paper-doll mannequin (equipment slots map onto its body).
+    this.load.image("herodoll__base", "assets/ui/hero-doll/hero-base.png");
   }
 
   create(): void {

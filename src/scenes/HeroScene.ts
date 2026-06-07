@@ -9,6 +9,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
 import { ITEM_SLOTS, type ItemSlot, type Rarity } from "../data/schema.ts";
+import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { enhanceChance, jewelForLevel, enhanceBonus, MAX_ENHANCE } from "../core/enhance.ts";
@@ -72,18 +73,28 @@ export class HeroScene extends Phaser.Scene {
       this.filterTabs.push(t);
     });
 
-    // Equipment slot drop-zones (left column)
-    ITEM_SLOTS.forEach((slot, i) => {
-      const x = 40 + (i % 2) * 150, y = 96 + Math.floor(i / 2) * 70;
-      this.slotPos.set(slot, { x: x + TILE / 2, y: y + TILE / 2 });
-      const g = this.add.graphics();
-      g.fillStyle(0x141c28, 1).fillRoundedRect(x, y, TILE, TILE, 6);
-      g.lineStyle(1.5, 0x3a4a64, 1).strokeRoundedRect(x, y, TILE, TILE, 6);
-      this.add.text(x + TILE + 6, y + 16, SLOT_LABEL[slot], { fontSize: "11px", color: "#aab8cc" });
-      const zone = this.add.zone(x, y, TILE, TILE).setOrigin(0).setRectangleDropZone(TILE, TILE);
-      zone.setData("slot", slot);
-      this.slotZones.set(slot, zone);
-    });
+    // Equipment paper-doll: every slot mapped to its place on the hero's body.
+    const dp = DOLL_PANEL;
+    const pg = this.add.graphics();
+    pg.fillStyle(0x0e1622, 0.92).fillRoundedRect(dp.x, dp.y, dp.w, dp.h, 10);
+    pg.lineStyle(2, 0x2a3a56, 1).strokeRoundedRect(dp.x, dp.y, dp.w, dp.h, 10);
+    pg.fillStyle(0x1a2740, 0.45).fillEllipse(dp.x + dp.w / 2, dp.y + dp.h * 0.46, dp.w * 0.74, dp.h * 0.66); // soft spotlight
+    if (this.textures.exists(DOLL_BASE_KEY)) {
+      const img = this.add.image(dp.x + dp.w / 2, dp.y + dp.h / 2, DOLL_BASE_KEY).setOrigin(0.5).setDepth(1);
+      img.setScale(Math.min(dp.w / img.width, dp.h / img.height) * 0.98);
+    }
+    const DSIZE = 40;
+    for (const ds of DOLL_SLOTS) {
+      const sx = dp.x + ds.nx * dp.w, sy = dp.y + ds.ny * dp.h;
+      this.slotPos.set(ds.slot, { x: sx, y: sy });
+      const g = this.add.graphics().setDepth(ds.behind ? 0 : 4);
+      g.fillStyle(0x0c121c, ds.behind ? 0.45 : 0.72).fillRoundedRect(sx - DSIZE / 2, sy - DSIZE / 2, DSIZE, DSIZE, 6);
+      g.lineStyle(1.5, 0x3a4a64, 1).strokeRoundedRect(sx - DSIZE / 2, sy - DSIZE / 2, DSIZE, DSIZE, 6);
+      this.add.text(sx, sy + DSIZE / 2 + 1, ds.label, { fontSize: "8px", color: "#8aa0bb" }).setOrigin(0.5, 0).setDepth(5);
+      const zone = this.add.zone(sx - 24, sy - 24, 48, 48).setOrigin(0).setRectangleDropZone(48, 48);
+      zone.setData("slot", ds.slot);
+      this.slotZones.set(ds.slot, zone);
+    }
 
     // Inventory background drop-zone (unequip target)
     const invG = this.add.graphics();
@@ -93,7 +104,7 @@ export class HeroScene extends Phaser.Scene {
       .setOrigin(0).setRectangleDropZone(this.invRect.w, this.invRect.h);
     invZone.setData("inv", true);
 
-    this.tiles = this.add.container(0, 0);
+    this.tiles = this.add.container(0, 0).setDepth(10); // item tiles sit above the doll/base
     this.tooltip = this.add.container(0, 0).setDepth(200).setVisible(false);
     this.dialog = this.add.container(0, 0).setDepth(240).setVisible(false);
     this.toast = this.add.text(W / 2, 500, "", { fontSize: "13px", color: "#ffd6a0", backgroundColor: "#2a1a1a" })
@@ -157,7 +168,7 @@ export class HeroScene extends Phaser.Scene {
       const inst = save.inventory.items.find((it) => it.id === instId);
       if (!inst) continue;
       const p = this.slotPos.get(slot)!;
-      this.tiles.add(this.makeTile(inst, p.x, p.y, slot));
+      this.tiles.add(this.makeTile(inst, p.x, p.y, slot, 40));
     }
 
     if (this.filter === "items") this.refreshItems(save);
@@ -198,32 +209,34 @@ export class HeroScene extends Phaser.Scene {
     }
   }
 
-  /** A draggable item tile centered at (x,y). */
-  private makeTile(inst: ItemInstanceSave, x: number, y: number, fromSlot: ItemSlot | null): Phaser.GameObjects.Container {
+  /** A draggable item tile centered at (x,y). `size` lets doll slots be smaller. */
+  private makeTile(inst: ItemInstanceSave, x: number, y: number, fromSlot: ItemSlot | null, size = TILE): Phaser.GameObjects.Container {
     const def = ITEM_CATALOG_MAP.get(inst.defId);
     const rarity = def?.rarity ?? "Common";
-    const c = this.add.container(x, y).setSize(TILE, TILE);
+    const c = this.add.container(x, y).setSize(size, size).setDepth(8);
     const g = this.add.graphics();
-    g.fillStyle(0x1c2636, 1).fillRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
-    g.lineStyle(2, RARITY_INT[rarity], 1).strokeRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
+    g.fillStyle(0x1c2636, 1).fillRoundedRect(-size / 2, -size / 2, size, size, 5);
+    g.lineStyle(2, RARITY_INT[rarity], 1).strokeRoundedRect(-size / 2, -size / 2, size, size, 5);
     c.add(g);
     const key = `item__${inst.defId}`;
     if (this.textures.exists(key)) {
-      const img = this.add.image(0, -4, key).setOrigin(0.5);
-      img.setScale((TILE - 14) / img.height);
+      const img = this.add.image(0, -2, key).setOrigin(0.5);
+      img.setScale((size - 12) / img.height);
       c.add(img);
     } else {
-      c.add(this.add.text(0, -4, (def?.name ?? "?").slice(0, 6), { fontSize: "8px", color: RARITY_HEX[rarity], align: "center", wordWrap: { width: TILE - 6 } }).setOrigin(0.5));
+      c.add(this.add.text(0, -4, (def?.name ?? "?").slice(0, 6), { fontSize: "8px", color: RARITY_HEX[rarity], align: "center", wordWrap: { width: size - 6 } }).setOrigin(0.5));
     }
-    c.add(this.add.text(0, TILE / 2 - 8, def?.slot === "Weapon" ? (def.weaponType ?? "") : (def?.slot.replace(/Ring[12]/, "Ring") ?? ""), { fontSize: "7px", color: "#8aa0bb" }).setOrigin(0.5));
+    if (size >= TILE) {
+      c.add(this.add.text(0, size / 2 - 8, def?.slot === "Weapon" ? (def.weaponType ?? "") : (def?.slot.replace(/Ring[12]/, "Ring") ?? ""), { fontSize: "7px", color: "#8aa0bb" }).setOrigin(0.5));
+    }
 
     // Enhancement level badge (+N) — top-right (T13).
     if ((inst.enhanceLevel ?? 0) > 0) {
       const bg = this.add.graphics();
-      bg.fillStyle(0x1a1206, 0.9).fillCircle(TILE / 2 - 8, -TILE / 2 + 8, 9);
-      bg.lineStyle(1.5, 0xffd34d, 1).strokeCircle(TILE / 2 - 8, -TILE / 2 + 8, 9);
+      bg.fillStyle(0x1a1206, 0.9).fillCircle(size / 2 - 8, -size / 2 + 8, 9);
+      bg.lineStyle(1.5, 0xffd34d, 1).strokeCircle(size / 2 - 8, -size / 2 + 8, 9);
       c.add(bg);
-      c.add(crispText(this, TILE / 2 - 8, -TILE / 2 + 8, `+${inst.enhanceLevel}`, { fontSize: "10px", color: "#ffe07a", fontStyle: "bold" }).setOrigin(0.5));
+      c.add(crispText(this, size / 2 - 8, -size / 2 + 8, `+${inst.enhanceLevel}`, { fontSize: "10px", color: "#ffe07a", fontStyle: "bold" }).setOrigin(0.5));
     }
 
     c.setData("instanceId", inst.id).setData("fromSlot", fromSlot);
