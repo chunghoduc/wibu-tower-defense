@@ -46,10 +46,21 @@ export function mitigatedDamage(packet: DamagePacket, defender: Stats): number {
   return Math.max(0, dmg);
 }
 
-/** Roll an attack's raw damage, applying crit. Returns the pre-mitigation amount. */
-export function rollAttackDamage(attacker: Stats, didCrit: boolean): number {
+/**
+ * Effective crit multiplier after the defender's crit defense. `critDefense` is
+ * the fraction (0..1) of the BONUS crit damage that is negated — the base hit
+ * always lands; only the extra crit portion shrinks. So critDamage 2.0 vs
+ * critDefense 0.5 yields 1 + (1.0 × 0.5) = 1.5× instead of 2.0×.
+ */
+export function critMultiplier(attackerCritDamage: number, defenderCritDefense: number): number {
+  const bonus = Math.max(1, attackerCritDamage) - 1;
+  return 1 + bonus * (1 - clamp01(defenderCritDefense));
+}
+
+/** Roll an attack's raw damage, applying crit (reduced by the defender's crit defense). */
+export function rollAttackDamage(attacker: Stats, didCrit: boolean, defenderCritDefense = 0): number {
   const base = Math.max(0, attacker.atk);
-  return didCrit ? base * Math.max(1, attacker.critDamage) : base;
+  return didCrit ? base * critMultiplier(attacker.critDamage, defenderCritDefense) : base;
 }
 
 export function clamp01(v: number): number {

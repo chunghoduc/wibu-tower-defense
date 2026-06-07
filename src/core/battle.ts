@@ -28,7 +28,7 @@ import {
   type BossSkill,
   type Vec2,
 } from "../data/schema.ts";
-import { mitigatedDamage, type DamagePacket } from "./damage.ts";
+import { mitigatedDamage, critMultiplier, type DamagePacket } from "./damage.ts";
 import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
@@ -44,6 +44,7 @@ import type { HeroSave } from "./save.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
 import { processEnemyKill } from "./killRewards.ts";
 import { itemLevelForStage } from "./itemDrop.ts";
+import { buildAffixStats } from "./affixStats.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -276,12 +277,17 @@ export class BattleState {
         if (node.type === "keystone" && node.more) keystoneMore.push(node.more);
       }
 
+      // Item affixes (primary + rolled): flat contributions go straight in;
+      // increased% contributions ride in as synthetic increased-only nodes.
+      const affix = buildAffixStats(save);
+      const affixNodes = affix.increased.map((increased) => ({ flat: {}, increased, more: undefined }));
+
       const resolvedStats = heroStatPipeline(
         opts.hero.stats,
         save.hero.level,
-        unlockedNodes,
+        [...unlockedNodes, ...affixNodes],
         itemStats,
-        [],
+        affix.flat,
         keystoneMore,
       );
 
@@ -902,7 +908,7 @@ export class BattleState {
   ): void {
     const wasAlive = target.alive;
     const didCrit = this.rng.chance(unit.stats.critRate);
-    const raw = didCrit ? rawAtk * Math.max(1, unit.stats.critDamage) : rawAtk;
+    const raw = didCrit ? rawAtk * critMultiplier(unit.stats.critDamage, target.stats.critDefense) : rawAtk;
     this.emit({
       type: "attack",
       uid: srcUid,

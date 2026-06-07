@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mitigatedDamage, rollAttackDamage, MITIGATION_CONSTANT } from "../src/core/damage.ts";
+import { mitigatedDamage, rollAttackDamage, critMultiplier, MITIGATION_CONSTANT } from "../src/core/damage.ts";
 import { makeStats } from "../src/data/schema.ts";
 
 describe("mitigatedDamage", () => {
@@ -46,5 +46,26 @@ describe("rollAttackDamage", () => {
     const atk = makeStats({ atk: 50, critDamage: 2 });
     expect(rollAttackDamage(atk, false)).toBe(50);
     expect(rollAttackDamage(atk, true)).toBe(100);
+  });
+  it("crit defense reduces only the bonus crit portion", () => {
+    const atk = makeStats({ atk: 50, critDamage: 2 }); // +100% bonus on crit
+    // 50% crit defense halves the +100% bonus → 1.5x → 75; non-crit unaffected.
+    expect(rollAttackDamage(atk, true, 0.5)).toBe(75);
+    expect(rollAttackDamage(atk, false, 0.5)).toBe(50);
+  });
+});
+
+describe("critMultiplier (crit defense)", () => {
+  it("returns full crit damage with no crit defense", () => {
+    expect(critMultiplier(2.0, 0)).toBeCloseTo(2.0, 5);
+  });
+  it("scales the bonus down by crit defense, never below the base hit", () => {
+    expect(critMultiplier(2.0, 0.5)).toBeCloseTo(1.5, 5); // half the +100% bonus
+    expect(critMultiplier(2.0, 1)).toBeCloseTo(1.0, 5);   // full defense → no bonus
+    expect(critMultiplier(1.5, 1)).toBeCloseTo(1.0, 5);
+  });
+  it("clamps crit defense to [0,1]", () => {
+    expect(critMultiplier(2.0, 5)).toBeCloseTo(1.0, 5);
+    expect(critMultiplier(2.0, -3)).toBeCloseTo(2.0, 5);
   });
 });

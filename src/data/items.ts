@@ -157,10 +157,10 @@ const ITEM_LINES: ItemLine[] = [
   { id: "grimoire", base: "Grimoire", slot: "Weapon", weaponType: "Tome", primary: "skillPower", primaryBase: 0.16, stats: { skillPower: 0.18, maxMana: 16 }, affixPool: ["skillPower", "magicPen", "maxMana"] },
   { id: "war-fists", base: "War Fists", slot: "Weapon", weaponType: "Fist", primary: "critRate", primaryBase: 0.05, stats: { atk: 12, critRate: 0.04 }, affixPool: ["critDamage", "atk", "attackSpeed"] },
   // Helmets
-  { id: "warhelm", base: "Warhelm", slot: "Helmet", primary: "maxHp", primaryBase: 0.07, stats: { maxHp: 70, armor: 5 }, affixPool: ["armor", "magicResist", "hpRegen"] },
+  { id: "warhelm", base: "Warhelm", slot: "Helmet", primary: "maxHp", primaryBase: 0.07, stats: { maxHp: 70, armor: 5 }, affixPool: ["armor", "magicResist", "hpRegen", "critDefense"] },
   { id: "mage-cowl", base: "Mage Cowl", slot: "Helmet", primary: "skillPower", primaryBase: 0.08, stats: { maxMana: 24, skillPower: 0.06 }, affixPool: ["maxMana", "manaRegen", "magicResist"] },
   // Body armor
-  { id: "platemail", base: "Platemail", slot: "BodyArmor", primary: "armor", primaryBase: 0.09, stats: { armor: 14, maxHp: 90 }, affixPool: ["maxHp", "magicResist", "damageReduction"] },
+  { id: "platemail", base: "Platemail", slot: "BodyArmor", primary: "armor", primaryBase: 0.09, stats: { armor: 14, maxHp: 90 }, affixPool: ["maxHp", "magicResist", "damageReduction", "critDefense"] },
   { id: "battle-robe", base: "Battle Robe", slot: "BodyArmor", primary: "magicResist", primaryBase: 0.08, stats: { magicResist: 12, skillPower: 0.06, maxHp: 60 }, affixPool: ["skillPower", "maxMana", "magicResist"] },
   { id: "brigandine", base: "Brigandine", slot: "BodyArmor", primary: "maxHp", primaryBase: 0.08, stats: { maxHp: 110, armor: 8 }, affixPool: ["maxHp", "armor", "tenacity"] },
   // Gloves
@@ -178,7 +178,8 @@ const ITEM_LINES: ItemLine[] = [
   { id: "blood-ring", base: "Blood Ring", slot: "Ring1", primary: "omnivamp", primaryBase: 0.04, stats: { omnivamp: 0.03, atk: 5 }, affixPool: ["omnivamp", "atk", "critRate"] },
   { id: "fortune-ring", base: "Fortune Ring", slot: "Ring1", primary: "goldFind", primaryBase: 0.08, stats: { goldFind: 0.06 }, affixPool: ["goldFind", "manaOnKill"] },
   { id: "precision-ring", base: "Precision Ring", slot: "Ring2", primary: "critRate", primaryBase: 0.05, stats: { critRate: 0.04, critDamage: 0.06 }, affixPool: ["critRate", "critDamage", "armorPen"] },
-  { id: "vital-ring", base: "Vital Ring", slot: "Ring2", primary: "hpRegen", primaryBase: 0.1, stats: { hpRegen: 6, maxHp: 40 }, affixPool: ["hpRegen", "maxHp", "tenacity"] },
+  { id: "vital-ring", base: "Vital Ring", slot: "Ring2", primary: "hpRegen", primaryBase: 0.1, stats: { hpRegen: 6, maxHp: 40 }, affixPool: ["hpRegen", "maxHp", "tenacity", "critDefense"] },
+  { id: "aegis-charm", base: "Aegis Charm", slot: "Amulet", primary: "armor", primaryBase: 0.08, stats: { critDefense: 0.12, armor: 8, maxHp: 50 }, affixPool: ["critDefense", "damageReduction", "tenacity"] },
   // Pets
   { id: "coin-pet", base: "Coin Sprite", slot: "Pet", primary: "goldFind", primaryBase: 0.1, stats: { goldFind: 0.08 }, affixPool: ["goldFind"], pet: true },
   { id: "fortune-pet", base: "Fortune Beast", slot: "Pet", primary: "goldFind", primaryBase: 0.12, stats: { goldFind: 0.12, maxHp: 30 }, affixPool: ["goldFind", "hpRegen"], pet: true },

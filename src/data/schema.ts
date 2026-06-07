@@ -115,6 +115,7 @@ export interface Stats {
   armor: number; // reduces Physical damage
   magicResist: number; // reduces Magic damage
   damageReduction: number; // 0..1 flat reduction applied to ALL damage incl. True
+  critDefense: number; // 0..1 fraction of an incoming crit's BONUS damage negated
   tenacity: number; // 0..1 reduction of crowd-control duration
 
   // Resource (hero + towers)
@@ -148,6 +149,7 @@ export function defaultStats(): Stats {
     armor: 0,
     magicResist: 0,
     damageReduction: 0,
+    critDefense: 0,
     tenacity: 0,
     maxMana: 0,
     manaRegen: 0,
