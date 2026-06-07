@@ -26,6 +26,7 @@ export const SLOT_RADIUS = 26;
 
 export const TERRAIN_COLOR: Record<string, number> = {
   grass: 0x35562f, sand: 0xb8a05a, water: 0x2a5f93, stone: 0x6b6c74, jungle: 0x1f4a2a, mountain: 0x5a4d40,
+  lava: 0xc24a1e, ice: 0x7fb4dd, snow: 0xd8e4f0, crystal: 0x6a32b0,
 };
 
 

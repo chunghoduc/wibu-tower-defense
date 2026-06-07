@@ -470,7 +470,9 @@ export interface WaveDef {
 }
 
 /** A terrain feature on the battlefield (decorative, or a blocking obstacle). */
-export type TerrainType = "grass" | "sand" | "water" | "stone" | "jungle" | "mountain";
+export type TerrainType =
+  | "grass" | "sand" | "water" | "stone" | "jungle" | "mountain"
+  | "lava" | "ice" | "snow" | "crystal";
 export interface TerrainFeature {
   type: TerrainType;
   x: number;

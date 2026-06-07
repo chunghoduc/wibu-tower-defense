@@ -11,7 +11,7 @@
  */
 import type { TerrainType } from "./schema.ts";
 
-export const TERRAIN_ART_TYPES: TerrainType[] = ["grass", "sand", "water", "stone", "jungle", "mountain"];
+export const TERRAIN_ART_TYPES: TerrainType[] = ["grass", "sand", "water", "stone", "jungle", "mountain", "lava", "ice", "snow", "crystal"];
 export const TERRAIN_VARIANTS = 3;
 /** Pixel size the SVGs are rasterized to at load time (square). */
 export const TERRAIN_TEX_SIZE = 128;

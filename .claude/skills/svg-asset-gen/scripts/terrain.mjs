@@ -23,6 +23,11 @@ const PAL = {
   stone:    { base: "#7a7c86", deep: "#55565e", lite: "#a3a6b0", crack: "#3d3e44" },
   jungle:   { base: "#2f6e38", deep: "#1d4a26", lite: "#4f9a4a", trunk: "#5a3d28", leaf: "#69b85a" },
   mountain: { base: "#6b5f55", deep: "#473f39", lite: "#8d8276", snow: "#eef2f7", rock: "#9a8f82" },
+  // biome-specific obstacle types so a stage's terrain matches its backdrop.
+  lava:     { base: "#3a2a26", deep: "#241915", glow: "#ff7a1e", hot: "#ffd24a" },
+  ice:      { base: "#9fcdec", deep: "#5e9bca", lite: "#d6ecfa", crack: "#eaf6ff", foam: "#ffffff" },
+  snow:     { base: "#e7eef7", deep: "#b7c9dd", lite: "#ffffff", spark: "#ffffff" },
+  crystal:  { base: "#3a2154", deep: "#6a32b0", lite: "#c79bff", glow: "#e9c6ff" },
 };
 
 function water(rng) {
@@ -146,7 +151,102 @@ function mountain(rng) {
   return s;
 }
 
-export const TERRAIN = { water, grass, sand, stone, jungle, mountain };
+function lava(rng) {
+  const p = PAL.lava;
+  let s = contactShadow(CX, CY + R * 0.5, R * 0.95);
+  // cooled basalt crust
+  s += path(blobPath(CX, CY, R, 9, 0.24, rng), p.base, { stroke: OUTLINE, sw: 3, join: true });
+  s += path(blobPath(CX - R * 0.18, CY - R * 0.1, R * 0.55, 8, 0.3, new Rng(rng.int(1, 1e6))), p.deep, { opacity: 0.85 });
+  // glowing cracks — jagged bright veins radiating from the centre
+  const veins = rng.int(4, 6);
+  for (let i = 0; i < veins; i++) {
+    let a = (i / veins) * Math.PI * 2 + rng.range(-0.3, 0.3);
+    let x = CX + Math.cos(a) * R * 0.1, y = CY + Math.sin(a) * R * 0.1;
+    for (let k = 0; k < 3; k++) {
+      const na = a + rng.range(-0.5, 0.5), len = R * rng.range(0.18, 0.3);
+      const nx = x + Math.cos(na) * len, ny = y + Math.sin(na) * len;
+      s += line(x, y, nx, ny, p.glow, 3.2);
+      s += line(x, y, nx, ny, p.hot, 1.3);
+      x = nx; y = ny; a = na;
+    }
+  }
+  // molten pools (hot core inside a glowing rim)
+  const pools = rng.int(2, 3);
+  for (let i = 0; i < pools; i++) {
+    const px = CX + rng.range(-R * 0.4, R * 0.4), py = CY + rng.range(-R * 0.35, R * 0.35);
+    const pr = R * rng.range(0.12, 0.2);
+    s += circle(px, py, pr, p.glow);
+    s += circle(px, py, pr * 0.55, p.hot);
+  }
+  for (let i = 0; i < 4; i++) s += circle(CX + rng.range(-R * 0.5, R * 0.5), CY - R * 0.1 + rng.range(-R * 0.3, R * 0.3), 1.3, p.hot, { opacity: 0.9 });
+  return s;
+}
+
+function ice(rng) {
+  const p = PAL.ice;
+  let s = contactShadow(CX, CY + R * 0.55, R * 0.9, R * 0.28);
+  // frozen sheet — soft like water but pale blue, no hard rim
+  s += path(blobPath(CX, CY, R, 9, 0.22, rng), p.deep);
+  s += path(blobPath(CX, CY, R * 0.9, 9, 0.2, new Rng(rng.int(1, 1e6))), p.base);
+  s += path(blobPath(CX - R * 0.14, CY - R * 0.16, R * 0.55, 8, 0.26, new Rng(rng.int(1, 1e6))), p.lite, { opacity: 0.7 });
+  // pale fracture lines
+  const cracks = rng.int(3, 4);
+  for (let i = 0; i < cracks; i++) {
+    let a = rng.range(0, Math.PI * 2);
+    let x = CX + Math.cos(a) * R * 0.15, y = CY + Math.sin(a) * R * 0.15;
+    for (let k = 0; k < 3; k++) {
+      const na = a + rng.range(-0.6, 0.6), len = R * rng.range(0.18, 0.28);
+      const nx = x + Math.cos(na) * len, ny = y + Math.sin(na) * len;
+      s += line(x, y, nx, ny, p.crack, 1.4);
+      x = nx; y = ny; a = na;
+    }
+  }
+  // sparkle glints (small plus shapes)
+  for (let i = 0; i < 3; i++) {
+    const gx = CX + rng.range(-R * 0.5, R * 0.5), gy = CY + rng.range(-R * 0.4, R * 0.4);
+    s += line(gx - 3, gy, gx + 3, gy, p.foam, 1.5);
+    s += line(gx, gy - 3, gx, gy + 3, p.foam, 1.5);
+  }
+  return s;
+}
+
+function snow(rng) {
+  const p = PAL.snow;
+  // low soft drift — decor, semi-transparent
+  let s = path(blobPath(CX, CY, R, 11, 0.3, rng), p.base, { opacity: 0.92, stroke: p.deep, sw: 2, join: true });
+  s += path(blobPath(CX - R * 0.15, CY - R * 0.18, R * 0.6, 10, 0.32, new Rng(rng.int(1, 1e6))), p.lite, { opacity: 0.7 });
+  // cool shadow pockets
+  for (let i = 0; i < 3; i++) {
+    const x = CX + rng.range(-R * 0.5, R * 0.5), y = CY + rng.range(-R * 0.1, R * 0.5);
+    s += ellipse(x, y, R * 0.18, R * 0.08, p.deep, { opacity: 0.3 });
+  }
+  for (let i = 0; i < 6; i++) s += circle(CX + rng.range(-R * 0.6, R * 0.6), CY + rng.range(-R * 0.5, R * 0.4), 1.1, p.spark, { opacity: 0.9 });
+  return s;
+}
+
+function crystal(rng) {
+  const p = PAL.crystal;
+  let s = contactShadow(CX, CY + R * 0.5, R * 0.9);
+  // dark corrupted mound the shards erupt from
+  s += path(blobPath(CX, CY + R * 0.15, R, 8, 0.22, rng), p.base, { stroke: OUTLINE, sw: 3, join: true });
+  const shards = rng.int(3, 5);
+  const placed = [];
+  for (let i = 0; i < shards; i++) {
+    placed.push({ x: CX + rng.range(-R * 0.5, R * 0.5), y: CY + rng.range(-R * 0.1, R * 0.25), h: R * rng.range(0.6, 1.0), w: R * rng.range(0.16, 0.26) });
+  }
+  placed.sort((a, b) => a.y - b.y);
+  for (const c of placed) {
+    const tx = c.x + rng.range(-3, 3), ty = c.y - c.h;
+    // full shard outline, then a lit right facet + shaded left facet for volume
+    s += path(`M ${(c.x - c.w).toFixed(1)} ${c.y.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)} L ${(c.x + c.w).toFixed(1)} ${c.y.toFixed(1)} Z`, p.deep, { stroke: OUTLINE, sw: 2, join: true });
+    s += path(`M ${c.x.toFixed(1)} ${c.y.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)} L ${(c.x + c.w).toFixed(1)} ${c.y.toFixed(1)} Z`, p.lite, { opacity: 0.85 });
+    s += path(`M ${(c.x - c.w).toFixed(1)} ${c.y.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)} L ${c.x.toFixed(1)} ${c.y.toFixed(1)} Z`, p.base, { opacity: 0.9 });
+  }
+  for (let i = 0; i < 4; i++) s += circle(CX + rng.range(-R * 0.4, R * 0.4), CY - R * 0.3 + rng.range(-R * 0.3, R * 0.3), 1.3, p.glow, { opacity: 0.9 });
+  return s;
+}
+
+export const TERRAIN = { water, grass, sand, stone, jungle, mountain, lava, ice, snow, crystal };
 export const TERRAIN_TYPES = Object.keys(TERRAIN);
 
 /** Generate one terrain SVG document string for `type`, varied by `seed`. */

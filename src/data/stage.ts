@@ -7,6 +7,7 @@
  */
 import { makeStats, type SpawnEntry, type StageDef, type TerrainFeature, type TerrainType, type Vec2, type WaveDef } from "./schema.ts";
 import { Rng } from "../core/rng.ts";
+import { stageThemeForStage } from "./chapters.ts";
 
 export const GAME_WIDTH = 960;
 export const GAME_HEIGHT = 540;
@@ -176,11 +177,12 @@ function nearPath(p: Vec2, path: Vec2[], clearance: number): boolean {
   return false;
 }
 
-const BLOCK_TYPES: TerrainType[] = ["water", "stone", "jungle", "mountain"];
-const DECOR_TYPES: TerrainType[] = ["grass", "sand"];
-
-/** Deterministically scatter terrain features that keep the lane corridor clear. */
-function generateTerrain(path: Vec2[], seed: number): TerrainFeature[] {
+/**
+ * Deterministically scatter terrain features that keep the lane corridor clear.
+ * The obstacle/decor type pools come from the stage's biome theme so the map
+ * matches its backdrop (lava on the lava field, ice on the frozen reach, …).
+ */
+function generateTerrain(path: Vec2[], seed: number, block: TerrainType[], decor: TerrainType[]): TerrainFeature[] {
   const rng = new Rng(seed * 7919 + 13);
   const feats: TerrainFeature[] = [];
   let attempts = 0;
@@ -192,25 +194,26 @@ function generateTerrain(path: Vec2[], seed: number): TerrainFeature[] {
     if (nearPath({ x, y }, path, r + 30)) continue;             // keep the lane walkable + buildable beside it
     if (feats.some((f) => Math.hypot(f.x - x, f.y - y) < f.r + r + 12)) continue;
     const blocks = rng.next() < 0.6;
-    const type = blocks
-      ? BLOCK_TYPES[Math.floor(rng.next() * BLOCK_TYPES.length)]
-      : DECOR_TYPES[Math.floor(rng.next() * DECOR_TYPES.length)];
+    const pool = blocks ? block : decor;
+    const type = pool[Math.floor(rng.next() * pool.length)];
     feats.push({ type, x: Math.round(x), y: Math.round(y), r: Math.round(r), blocks });
   }
   return feats;
 }
 
 export const STAGES: StageDef[] = LAYOUTS.map((l, i) => {
+  const id = `ch1-s${i + 1}`;
   const path = l.path.map(scaleV);
+  const theme = stageThemeForStage(id);
   return {
-    id: `ch1-s${i + 1}`,
+    id,
     name: l.name,
     path,
     airSpawns: l.air.map(scaleV),
     castleHp: 28 + i * 2,
     startingGold: 170 + i * 10,
     towerSlots: l.slots.map(scaleV),
-    terrain: generateTerrain(path, i + 1),
+    terrain: generateTerrain(path, i + 1, theme.block, theme.decor),
     waves: buildWaves(i + 1),
   };
 });

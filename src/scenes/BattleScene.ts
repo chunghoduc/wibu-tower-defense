@@ -20,7 +20,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { Rng } from "../core/rng.ts";
 import { hasSprite } from "./PreloadScene.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
-import { chapterThemeForStage } from "../data/chapters.ts";
+import { stageThemeForStage } from "../data/chapters.ts";
 import { stageBgKey } from "../data/uiManifest.ts";
 import { crispText } from "./ui.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
@@ -225,7 +225,7 @@ export class BattleScene extends Phaser.Scene {
     // Chapter backdrop (T2): a painted battlefield background per chapter theme,
     // with a subtle dark veil over it for unit contrast. Falls back to a flat
     // ground tint if the image failed to load.
-    const theme = chapterThemeForStage(this.stage.id);
+    const theme = stageThemeForStage(this.stage.id);
     // Prefer the design team's hand-painted per-stage backdrop; fall back to the
     // per-chapter SDXL backdrop, then a flat ground tint.
     const stageBg = stageBgKey(this.stage.id);

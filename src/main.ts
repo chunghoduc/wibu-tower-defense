@@ -11,7 +11,7 @@ import { SquadScene } from "./scenes/SquadScene.ts";
 import { SettingsScene } from "./scenes/SettingsScene.ts";
 import { SkillsScene } from "./scenes/SkillsScene.ts";
 import { PreloadScene } from "./scenes/PreloadScene.ts";
-import { GAME_HEIGHT, GAME_WIDTH } from "./data/stage.ts";
+import { GAME_HEIGHT, GAME_WIDTH, STAGES } from "./data/stage.ts";
 import { SaveManager } from "./core/saveManager.ts";
 import { LocalSaveProvider } from "./core/save.ts";
 import { installLogger, log } from "./debug/logger.ts";
@@ -61,6 +61,14 @@ game.events.once(Phaser.Core.Events.READY, () => {
 // Expose the game for the headless playtest harness (dev, or ?debug on a build).
 if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug")) {
   (globalThis as unknown as { __game: typeof game }).__game = game;
+  // Jump straight into any stage's battlefield: __battle(7) loads stage 7.
+  (globalThis as unknown as { __battle: (n: number) => string }).__battle = (n = 1) => {
+    const st = STAGES[Math.max(1, Math.min(STAGES.length, n)) - 1];
+    game.registry.set("selectedStage", st);
+    game.scene.stop("BattleScene");
+    game.scene.start("BattleScene");
+    return `battle -> ${st.id} (${st.name})`;
+  };
   // Damage-calculation debugging: call __damageLog() in the console to stream the
   // full per-hit formula to the console + runtime log, __damageLog(false) to stop.
   (globalThis as unknown as { __damageLog: (on?: boolean) => string }).__damageLog = (on = true) => {
