@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ITEM_CATALOG, rollItem } from "../src/data/items.ts";
+import { ITEM_CATALOG, ITEM_CATALOG_MAP, rollItem } from "../src/data/items.ts";
 import { ITEM_SLOTS, WEAPON_TYPES } from "../src/data/schema.ts";
 
 describe("crit stats stay reasonable", () => {
@@ -64,6 +64,37 @@ describe("expanded item catalog (T10)", () => {
       if (d.slot === "Weapon") expect(WEAPON_TYPES.includes(d.weaponType!), d.id).toBe(true);
       expect(d.primaryAffix.baseValue, d.id).toBeGreaterThan(0);
       expect(d.requiredLevel).toBeGreaterThanOrEqual(1);
+    }
+  });
+});
+
+describe("loot expansion batch", () => {
+  // Hand-crafted signature pieces + one variant from each new generated line.
+  const NEW_IDS = [
+    "dawnbreaker", "void-render", "aegis-of-dawn", "seers-eye", "midas-paw",
+    "worn-frost-glaive", "mythic-frost-glaive",
+    "worn-venom-fang", "mythic-bulwark-plate",
+    "worn-oracle-crown", "worn-shadowstep-treads", "worn-duelist-band",
+  ];
+
+  it("adds the new signature and generated loot to the catalog", () => {
+    for (const id of NEW_IDS) {
+      expect(ITEM_CATALOG_MAP.has(id), id).toBe(true);
+    }
+  });
+
+  it("introduces hand-crafted Unique-rarity loot (not just generated Mythics)", () => {
+    const handcraftedUniques = ITEM_CATALOG.filter(
+      (d) => d.rarity === "Unique" && !d.id.startsWith("mythic-"),
+    );
+    expect(handcraftedUniques.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("every new generated line spans all 5 rarities", () => {
+    for (const line of ["frost-glaive", "venom-fang", "bulwark-plate", "oracle-crown", "shadowstep-treads", "duelist-band"]) {
+      for (const prefix of ["worn", "fine", "masterwork", "heroic", "mythic"]) {
+        expect(ITEM_CATALOG_MAP.has(`${prefix}-${line}`), `${prefix}-${line}`).toBe(true);
+      }
     }
   });
 });

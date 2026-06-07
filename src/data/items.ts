@@ -132,6 +132,34 @@ export const ITEM_CATALOG: ItemDef[] = [
       affixPool: ["moveSpeed", "tenacity", "attackSpeed"],
       wingPassive: "tempest-gale",
       artRef: "placeholder" }),
+  // ── Signature loot batch — memorable hand-tuned top-end pieces ──────────────
+  i({ id: "dawnbreaker", name: "Dawnbreaker", slot: "Weapon", weaponType: "Sword",
+      rarity: "Unique", requiredLevel: 60,
+      baseStats: { atk: 42, critDamage: 0.25 },
+      primaryAffix: { type: "physicalDamage", baseValue: 0.30 },
+      affixPool: ["critRate", "critDamage", "armorPen", "atk"], artRef: "placeholder" }),
+  i({ id: "void-render", name: "Void Render", slot: "Weapon", weaponType: "Gun",
+      rarity: "Legendary", requiredLevel: 45,
+      baseStats: { atk: 36, armorPen: 0.18 },
+      primaryAffix: { type: "armorPen", baseValue: 0.20 },
+      affixPool: ["critRate", "armorPen", "attackSpeed"], artRef: "placeholder" }),
+  i({ id: "aegis-of-dawn", name: "Aegis of Dawn", slot: "BodyArmor",
+      rarity: "Unique", requiredLevel: 60,
+      baseStats: { maxHp: 220, armor: 18, magicResist: 14, damageReduction: 0.06 },
+      primaryAffix: { type: "damageReduction", baseValue: 0.10 },
+      affixPool: ["maxHp", "armor", "magicResist", "tenacity"], artRef: "placeholder" }),
+  i({ id: "seers-eye", name: "Seer's Eye", slot: "Amulet",
+      rarity: "Rare", requiredLevel: 24,
+      baseStats: { maxMana: 30, skillPower: 0.14, magicPen: 0.06 },
+      primaryAffix: { type: "skillPower", baseValue: 0.16 },
+      affixPool: ["skillPower", "magicPen", "manaRegen"], artRef: "placeholder" }),
+  i({ id: "midas-paw", name: "Midas Paw", slot: "Pet",
+      rarity: "Unique", requiredLevel: 55,
+      baseStats: { goldFind: 0.25 },
+      primaryAffix: { type: "goldFind", baseValue: 0.25 },
+      affixPool: ["goldFind", "maxHp"],
+      petUtility: { goldPerSec: 10, goldFind: 0.25 },
+      artRef: "placeholder" }),
 ];
 
 // ---------------------------------------------------------------------------
@@ -195,6 +223,13 @@ const ITEM_LINES: ItemLine[] = [
   { id: "fortune-pet", base: "Fortune Beast", slot: "Pet", primary: "goldFind", primaryBase: 0.12, stats: { goldFind: 0.12, maxHp: 30 }, affixPool: ["goldFind", "hpRegen"], pet: true },
   // Wings
   { id: "skywings", base: "Skywings", slot: "Wing", primary: "moveSpeed", primaryBase: 0.14, stats: { moveSpeed: 26, tenacity: 0.08 }, affixPool: ["moveSpeed", "tenacity", "attackSpeed"] },
+  // ── Loot expansion lines — fresh primaries to widen the drop pool ──────────
+  { id: "frost-glaive", base: "Frost Glaive", slot: "Weapon", weaponType: "Sword", primary: "critDamage", primaryBase: 0.12, stats: { atk: 15, critDamage: 0.08 }, affixPool: ["critRate", "armorPen", "atk"] },
+  { id: "venom-fang", base: "Venom Fang", slot: "Weapon", weaponType: "Fist", primary: "omnivamp", primaryBase: 0.04, stats: { atk: 13, omnivamp: 0.03 }, affixPool: ["omnivamp", "critRate", "armorPen"] },
+  { id: "bulwark-plate", base: "Bulwark Plate", slot: "BodyArmor", primary: "damageReduction", primaryBase: 0.05, stats: { maxHp: 95, armor: 12, damageReduction: 0.03 }, affixPool: ["maxHp", "armor", "damageReduction", "tenacity"] },
+  { id: "oracle-crown", base: "Oracle Crown", slot: "Helmet", primary: "skillPower", primaryBase: 0.09, stats: { maxMana: 22, skillPower: 0.07, magicResist: 6 }, affixPool: ["skillPower", "manaRegen", "magicResist"] },
+  { id: "shadowstep-treads", base: "Shadowstep Treads", slot: "Boots", primary: "moveSpeed", primaryBase: 0.11, stats: { moveSpeed: 22, critRate: 0.03 }, affixPool: ["moveSpeed", "critRate", "tenacity"] },
+  { id: "duelist-band", base: "Duelist Band", slot: "Ring", primary: "attackSpeed", primaryBase: 0.07, stats: { attackSpeed: 0.06, atk: 4 }, affixPool: ["attackSpeed", "critRate", "atk"] },
 ];
 
 const r2 = (n: number) => Math.round(n * 1000) / 1000;
