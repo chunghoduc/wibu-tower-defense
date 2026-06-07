@@ -22,6 +22,7 @@ import { Rng } from "../core/rng.ts";
 import type { HeroSave } from "../core/save.ts";
 import { hasSprite } from "./PreloadScene.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
+import { crispText } from "./ui.ts";
 import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
@@ -189,17 +190,17 @@ export class BattleScene extends Phaser.Scene {
     this.drawStatic();
 
     this.uiGfx = this.add.graphics().setDepth(8);
-    this.hud = this.add.text(10, 8, "", { fontSize: "16px", color: "#ffffff" }).setDepth(10);
-    this.banner = this.add.text(480, 250, "", { fontSize: "48px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5).setDepth(20);
-    this.info = this.add.text(10, 484, "", { fontSize: "11px", color: "#cfd8dc", wordWrap: { width: 940 } }).setDepth(10);
-    this.hudLevelText = this.add.text(36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
-    this.hudSkillText = this.add.text(58, 117, "", { fontSize: "9px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
+    this.hud = crispText(this, 10, 8, "", { fontSize: "17px", color: "#ffffff" }).setDepth(10);
+    this.banner = crispText(this, 480, 250, "", { fontSize: "48px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
+    this.info = crispText(this, 10, 482, "", { fontSize: "13px", color: "#dbe6ee", wordWrap: { width: 940 } }).setDepth(10);
+    this.hudLevelText = crispText(this, 36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
+    this.hudSkillText = crispText(this, 58, 117, "", { fontSize: "10px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
     this.gameSpeed = 1;
-    this.speedBtn = this.add.text(this.scale.width - 14, 38, "", { fontSize: "14px", color: "#fff", backgroundColor: "#243a5a" })
+    this.speedBtn = crispText(this, this.scale.width - 14, 38, "", { fontSize: "15px", color: "#fff", backgroundColor: "#243a5a" })
       .setOrigin(1, 0).setPadding(10, 5, 10, 5).setDepth(12).setInteractive({ useHandCursor: true });
     this.speedBtn.on("pointerdown", () => { this.gameSpeed = this.gameSpeed === 0 ? 1 : this.gameSpeed >= 3 ? 0 : this.gameSpeed + 1; this.updateSpeedBtn(); });
     this.updateSpeedBtn();
-    const muteBtn = this.add.text(this.scale.width - 14, 66, "🔊", { fontSize: "14px", backgroundColor: "#243a5a" })
+    const muteBtn = crispText(this, this.scale.width - 14, 66, "🔊", { fontSize: "15px", backgroundColor: "#243a5a" })
       .setOrigin(1, 0).setPadding(8, 5, 8, 5).setDepth(12).setInteractive({ useHandCursor: true });
     muteBtn.on("pointerdown", () => muteBtn.setText(this.sfx.toggleMute() ? "🔇" : "🔊"));
     this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn]);
@@ -283,7 +284,7 @@ export class BattleScene extends Phaser.Scene {
         img.setScale(34 / img.height);
         c.add(img);
       }
-      c.add(this.add.text(0, 14, `${def.cost}g`, { fontSize: "9px", color: "#ffd86a" }).setOrigin(0.5));
+      c.add(crispText(this, 0, 14, `${def.cost}g`, { fontSize: "10px", color: "#ffd86a" }).setOrigin(0.5));
       c.setData("towerId", def.id);
       c.setInteractive({ useHandCursor: true, draggable: true });
       this.ui.add(c);
@@ -424,13 +425,13 @@ export class BattleScene extends Phaser.Scene {
     g.lineStyle(2, 0x3a4a6a, 1).strokeRoundedRect(0, 0, W, H, 8);
     c.add(g);
 
-    const title = this.add.text(8, 6, "", { fontSize: "12px", color: "#ffd86a", fontStyle: "bold" });
-    const stats = this.add.text(8, 24, "", { fontSize: "10px", color: "#ccd6e6" });
+    const title = crispText(this, 8, 6, "", { fontSize: "13px", color: "#ffd86a", fontStyle: "bold" });
+    const stats = crispText(this, 8, 24, "", { fontSize: "11px", color: "#d3dcec" });
     c.add(title); c.add(stats);
 
-    const upBtn = this.add.text(8, H - 26, "", { fontSize: "11px", color: "#fff", backgroundColor: "#1565c0" })
+    const upBtn = crispText(this, 8, H - 26, "", { fontSize: "12px", color: "#fff", backgroundColor: "#1565c0" })
       .setPadding(6, 4, 6, 4).setInteractive({ useHandCursor: true });
-    const sellBtn = this.add.text(W - 8, H - 26, "", { fontSize: "11px", color: "#fff", backgroundColor: "#7a2e2e" })
+    const sellBtn = crispText(this, W - 8, H - 26, "", { fontSize: "12px", color: "#fff", backgroundColor: "#7a2e2e" })
       .setOrigin(1, 0).setPadding(6, 4, 6, 4).setInteractive({ useHandCursor: true });
     c.add(upBtn); c.add(sellBtn);
 
@@ -542,8 +543,7 @@ export class BattleScene extends Phaser.Scene {
     }
 
     if (b.outcome !== "ongoing" && !this._menuBtn) {
-      this._menuBtn = this.add
-        .text(this.scale.width / 2, 370, "← Return to Menu", {
+      this._menuBtn = crispText(this, this.scale.width / 2, 370, "← Return to Menu", {
           fontSize: "20px",
           color: "#ffffff",
           backgroundColor: "#223355",
@@ -575,8 +575,7 @@ export class BattleScene extends Phaser.Scene {
       if (result.skillDropped) lines.push(`⚡ Skill: ${result.skillDropped}`);
       if (result.characterDropped) lines.push(`✨ New character: ${result.characterDropped}`);
 
-      const overlay = this.add
-        .text(this.scale.width / 2, 300, lines.join("\n"), {
+      const overlay = crispText(this, this.scale.width / 2, 300, lines.join("\n"), {
           fontSize: "16px",
           color: "#ffffff",
           backgroundColor: "#1a2a3a",

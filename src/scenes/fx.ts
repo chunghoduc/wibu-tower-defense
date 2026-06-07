@@ -7,6 +7,7 @@
 import Phaser from "phaser";
 import type { FxEvent } from "../core/battle.ts";
 import type { DamageType, Vec2 } from "../data/schema.ts";
+import { makeCrisp } from "./ui.ts";
 
 const DMG_COLOR: Record<DamageType, number> = {
   Physical: 0xe9eef7,
@@ -127,8 +128,10 @@ export class FxLayer {
   private damageNumber(at: Vec2, amount: number, color: string, big: boolean): void {
     if (amount <= 0) return;
     const t = this.fac.text(at.x + Phaser.Math.Between(-6, 6), at.y - 10, String(amount), {
-      fontSize: big ? "13px" : "12px", color, fontStyle: "bold", stroke: "#10131c", strokeThickness: 3,
+      fontFamily: '"Trebuchet MS", system-ui, sans-serif',
+      fontSize: big ? "14px" : "12px", color, fontStyle: "bold", stroke: "#10131c", strokeThickness: 3,
     }).setOrigin(0.5).setDepth(this.depth + 2);
+    makeCrisp(t);
     this.scene.tweens.add({ targets: t, y: at.y - 34, alpha: 0, duration: 620, ease: "Quad.easeOut", onComplete: () => t.destroy() });
   }
 
