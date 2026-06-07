@@ -24,9 +24,13 @@ describe("ITEM_CATALOG", () => {
     const ids = ITEM_CATALOG.map((i) => i.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
-  it("covers all 10 item slots", () => {
+  it("covers every item category slot (rings use the shared 'Ring' slot)", () => {
     const slots = new Set(ITEM_CATALOG.map((i) => i.slot));
-    for (const slot of ITEM_SLOTS) expect(slots.has(slot)).toBe(true);
+    for (const slot of ITEM_SLOTS) {
+      if (slot === "Ring1" || slot === "Ring2") continue; // items use "Ring", which fits both
+      expect(slots.has(slot), slot).toBe(true);
+    }
+    expect(slots.has("Ring")).toBe(true);
   });
   it("all Weapon items have weaponType", () => {
     for (const item of ITEM_CATALOG.filter((i) => i.slot === "Weapon")) {

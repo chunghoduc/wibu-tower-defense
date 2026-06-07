@@ -1,8 +1,8 @@
 import { Rng } from "../core/rng.ts";
 import {
   type ItemDef,
+  type ItemDefSlot,
   type ItemInstance,
-  type ItemSlot,
   type Rarity,
   type RolledAffix,
   type Stats,
@@ -94,12 +94,12 @@ export const ITEM_CATALOG: ItemDef[] = [
       baseStats: { maxMana: 25, skillPower: 0.08 },
       primaryAffix: { type: "skillPower", baseValue: 0.10 },
       affixPool: ["manaRegen", "magicPen", "maxMana"], artRef: "placeholder" }),
-  i({ id: "copper-ring", name: "Copper Ring", slot: "Ring1",
+  i({ id: "copper-ring", name: "Copper Ring", slot: "Ring",
       rarity: "Common", requiredLevel: 1,
       baseStats: { maxMana: 15, manaRegen: 1 },
       primaryAffix: { type: "manaRegen", baseValue: 0.08 },
       affixPool: ["manaOnHit", "maxMana"], artRef: "placeholder" }),
-  i({ id: "resonance-ring", name: "Resonance Ring", slot: "Ring2",
+  i({ id: "resonance-ring", name: "Resonance Ring", slot: "Ring",
       rarity: "Rare", requiredLevel: 22,
       baseStats: { maxMana: 35, manaRegen: 3, manaOnHit: 5 },
       primaryAffix: { type: "manaOnHit", baseValue: 6 },
@@ -141,7 +141,7 @@ export const ITEM_CATALOG: ItemDef[] = [
 interface ItemLine {
   id: string;
   base: string;
-  slot: ItemSlot;
+  slot: ItemDefSlot;
   weaponType?: WeaponType;
   primary: string;       // primary affix type (a stat label)
   primaryBase: number;   // primary affix base value at Common tier
@@ -184,11 +184,11 @@ const ITEM_LINES: ItemLine[] = [
   { id: "mana-talisman", base: "Mana Talisman", slot: "Amulet", primary: "maxMana", primaryBase: 0.1, stats: { maxMana: 30, manaRegen: 2 }, affixPool: ["manaRegen", "skillPower", "manaOnHit"] },
   { id: "focus-gem", base: "Focus Gem", slot: "Amulet", primary: "skillPower", primaryBase: 0.1, stats: { skillPower: 0.1, maxMana: 12 }, affixPool: ["skillPower", "magicPen", "maxMana"] },
   { id: "pierce-pendant", base: "Pierce Pendant", slot: "Amulet", primary: "magicPen", primaryBase: 0.08, stats: { magicPen: 0.08, skillPower: 0.06 }, affixPool: ["magicPen", "skillPower", "critRate"] },
-  // Rings (Ring1 slot — varied unusual primaries)
-  { id: "blood-ring", base: "Blood Ring", slot: "Ring1", primary: "omnivamp", primaryBase: 0.04, stats: { omnivamp: 0.03, atk: 5 }, affixPool: ["omnivamp", "atk", "critRate"] },
-  { id: "fortune-ring", base: "Fortune Ring", slot: "Ring1", primary: "goldFind", primaryBase: 0.08, stats: { goldFind: 0.06 }, affixPool: ["goldFind", "manaOnKill"] },
-  { id: "precision-ring", base: "Precision Ring", slot: "Ring2", primary: "critRate", primaryBase: 0.05, stats: { critRate: 0.04, critDamage: 0.06 }, affixPool: ["critRate", "critDamage", "armorPen"] },
-  { id: "vital-ring", base: "Vital Ring", slot: "Ring2", primary: "hpRegen", primaryBase: 0.1, stats: { hpRegen: 6, maxHp: 40 }, affixPool: ["hpRegen", "maxHp", "tenacity", "critDefense"] },
+  // Rings (a ring fits either ring slot — varied unusual primaries)
+  { id: "blood-ring", base: "Blood Ring", slot: "Ring", primary: "omnivamp", primaryBase: 0.04, stats: { omnivamp: 0.03, atk: 5 }, affixPool: ["omnivamp", "atk", "critRate"] },
+  { id: "fortune-ring", base: "Fortune Ring", slot: "Ring", primary: "goldFind", primaryBase: 0.08, stats: { goldFind: 0.06 }, affixPool: ["goldFind", "manaOnKill"] },
+  { id: "precision-ring", base: "Precision Ring", slot: "Ring", primary: "critRate", primaryBase: 0.05, stats: { critRate: 0.04, critDamage: 0.06 }, affixPool: ["critRate", "critDamage", "armorPen"] },
+  { id: "vital-ring", base: "Vital Ring", slot: "Ring", primary: "hpRegen", primaryBase: 0.1, stats: { hpRegen: 6, maxHp: 40 }, affixPool: ["hpRegen", "maxHp", "tenacity", "critDefense"] },
   { id: "aegis-charm", base: "Aegis Charm", slot: "Amulet", primary: "armor", primaryBase: 0.08, stats: { critDefense: 0.12, armor: 8, maxHp: 50 }, affixPool: ["critDefense", "damageReduction", "tenacity"] },
   // Pets
   { id: "coin-pet", base: "Coin Sprite", slot: "Pet", primary: "goldFind", primaryBase: 0.1, stats: { goldFind: 0.08 }, affixPool: ["goldFind"], pet: true },

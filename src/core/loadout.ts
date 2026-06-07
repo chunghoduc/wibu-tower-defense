@@ -7,7 +7,7 @@
  */
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { ACTIVE_SKILLS_MAP, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
-import type { ItemSlot, WeaponType } from "../data/schema.ts";
+import { equipSlotsFor, type ItemSlot, type WeaponType } from "../data/schema.ts";
 import type { HeroSave } from "./save.ts";
 
 /**
@@ -15,13 +15,19 @@ import type { HeroSave } from "./save.ts";
  * Returns false if the instance is unknown, its def is missing, or the hero's
  * level is below the item's required level. Replaces any item already in slot.
  */
-export function equipItem(save: HeroSave, instanceId: string): boolean {
+export function equipItem(save: HeroSave, instanceId: string, targetSlot?: ItemSlot): boolean {
   const inst = save.inventory.items.find((it) => it.id === instanceId);
   if (!inst) return false;
   const def = ITEM_CATALOG_MAP.get(inst.defId);
   if (!def) return false;
   if (save.hero.level < def.requiredLevel) return false;
-  save.inventory.equipped[def.slot] = instanceId;
+  // A ring fits either ring slot: honour an explicit target (drop onto Ring1/Ring2),
+  // otherwise fill the first empty fitting slot (else replace the first).
+  const candidates = equipSlotsFor(def.slot);
+  const slot = (targetSlot && candidates.includes(targetSlot))
+    ? targetSlot
+    : (candidates.find((s) => !save.inventory.equipped[s]) ?? candidates[0]);
+  save.inventory.equipped[slot] = instanceId;
   return true;
 }
 

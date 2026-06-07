@@ -3,6 +3,7 @@ import { generateShopStock, ensureShopStock, refreshShop, shopRefreshCost, buySh
 import { SINGLE_PULL_COST } from "../src/core/gacha.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { rollItem, ITEM_CATALOG } from "../src/data/items.ts";
+import { equipSlotsFor } from "../src/data/schema.ts";
 import { toItemInstanceSave } from "../src/core/itemDrop.ts";
 import { SUMMON_SCROLL } from "../src/data/materials.ts";
 import { Rng } from "../src/core/rng.ts";
@@ -104,7 +105,7 @@ describe("buy + sell", () => {
     // equipped item can't be sold
     const inst2 = toItemInstanceSave(rollItem(ITEM_CATALOG[0], 5, 3));
     save.inventory.items.push(inst2);
-    save.inventory.equipped[ITEM_CATALOG[0].slot] = inst2.id;
+    save.inventory.equipped[equipSlotsFor(ITEM_CATALOG[0].slot)[0]] = inst2.id;
     expect(sellItem(save, inst2.id).success).toBe(false);
   });
 });

@@ -7,6 +7,7 @@ import {
 } from "../src/core/loadout.ts";
 import { createFreshSave, type ItemInstanceSave } from "../src/core/save.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
+import { equipSlotsFor } from "../src/data/schema.ts";
 import { ACTIVE_SKILLS } from "../src/data/skills.ts";
 
 function makeInstance(defId: string, acquiredLevel = 1): ItemInstanceSave {
@@ -29,7 +30,7 @@ describe("equipItem", () => {
 
     const ok = equipItem(save, inst.id);
     expect(ok).toBe(true);
-    expect(save.inventory.equipped[def.slot]).toBe(inst.id);
+    expect(save.inventory.equipped[equipSlotsFor(def.slot)[0]]).toBe(inst.id);
   });
 
   it("returns false for an unknown instance id", () => {
@@ -43,7 +44,7 @@ describe("equipItem", () => {
     const inst = makeInstance(def.id);
     save.inventory.items.push(inst);
     expect(equipItem(save, inst.id)).toBe(false);
-    expect(save.inventory.equipped[def.slot]).toBeUndefined();
+    expect(save.inventory.equipped[equipSlotsFor(def.slot)[0]]).toBeUndefined();
   });
 
   it("replaces an already-equipped item in the same slot", () => {
@@ -54,6 +55,28 @@ describe("equipItem", () => {
     equipItem(save, a.id);
     equipItem(save, b.id);
     expect(save.inventory.equipped.Weapon).toBe(b.id);
+  });
+
+  it("a ring fits either ring slot: two rings fill Ring1 then Ring2", () => {
+    const save = createFreshSave();
+    const ring = ITEM_CATALOG.find((d) => d.slot === "Ring")!;
+    expect(equipSlotsFor(ring.slot)).toEqual(["Ring1", "Ring2"]);
+    const r1 = makeInstance(ring.id), r2 = makeInstance(ring.id);
+    save.inventory.items.push(r1, r2);
+    equipItem(save, r1.id);                       // first → Ring1
+    equipItem(save, r2.id);                       // second → Ring2 (Ring1 taken)
+    expect(save.inventory.equipped.Ring1).toBe(r1.id);
+    expect(save.inventory.equipped.Ring2).toBe(r2.id);
+  });
+
+  it("a ring can target a specific ring slot", () => {
+    const save = createFreshSave();
+    const ring = ITEM_CATALOG.find((d) => d.slot === "Ring")!;
+    const r = makeInstance(ring.id);
+    save.inventory.items.push(r);
+    equipItem(save, r.id, "Ring2");
+    expect(save.inventory.equipped.Ring2).toBe(r.id);
+    expect(save.inventory.equipped.Ring1).toBeUndefined();
   });
 });
 

@@ -128,9 +128,9 @@ export class SaveManager {
     this.persist();
   }
 
-  /** Equip an owned item instance. Returns false if not equippable. Persists on success. */
-  equipItem(instanceId: string): boolean {
-    const ok = equipItem(this.save, instanceId);
+  /** Equip an owned item instance (optionally into a specific slot). Persists on success. */
+  equipItem(instanceId: string, targetSlot?: ItemSlot): boolean {
+    const ok = equipItem(this.save, instanceId, targetSlot);
     if (ok) this.persist();
     return ok;
   }

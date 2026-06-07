@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildAffixStats } from "../src/core/affixStats.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
+import { equipSlotsFor } from "../src/data/schema.ts";
 
 function equipOne(defId: string, rolledAffixes: { type: string; value: number }[], primary: number) {
   const save = createFreshSave();
@@ -11,7 +12,7 @@ function equipOne(defId: string, rolledAffixes: { type: string; value: number }[
     rolledPrimaryAffix: primary, rolledAffixes, enhanceLevel: 0,
   };
   save.inventory.items.push(inst as any);
-  save.inventory.equipped[def.slot] = "x1";
+  save.inventory.equipped[equipSlotsFor(def.slot)[0]] = "x1";
   return save;
 }
 

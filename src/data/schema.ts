@@ -77,6 +77,18 @@ export const ITEM_SLOTS = [
 ] as const;
 export type ItemSlot = (typeof ITEM_SLOTS)[number];
 
+/**
+ * Item CATEGORY slots. Identical to the equip slots except the two ring slots
+ * collapse to a single "Ring": a ring item isn't a "Ring1" or "Ring2" item, it's
+ * just a ring that fits EITHER ring slot.
+ */
+export type ItemDefSlot = Exclude<ItemSlot, "Ring1" | "Ring2"> | "Ring";
+
+/** The equip slot(s) an item of category `slot` can occupy (a Ring fits both). */
+export function equipSlotsFor(slot: ItemDefSlot): ItemSlot[] {
+  return slot === "Ring" ? ["Ring1", "Ring2"] : [slot];
+}
+
 export const WEAPON_TYPES = ["Sword", "Bow", "Staff", "Gun", "Tome", "Fist", "Any"] as const;
 export type WeaponType = (typeof WEAPON_TYPES)[number];
 
@@ -331,7 +343,7 @@ export interface ItemInstance {
 export interface ItemDef {
   id: string;
   name: string;
-  slot: ItemSlot;
+  slot: ItemDefSlot;
   /** Required for Weapon slot; determines which active skills can be equipped. */
   weaponType?: WeaponType;
   rarity: Rarity;

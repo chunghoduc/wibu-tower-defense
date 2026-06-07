@@ -82,7 +82,12 @@ export function validatePassiveNode(n: PassiveNodeDef): PassiveNodeDef {
 export function validateItemDef(item: ItemDef): ItemDef {
   assert(item.id.trim().length > 0, "item: missing id");
   assert(item.name.trim().length > 0, `item ${item.id}: missing name`);
-  assert((ITEM_SLOTS as readonly string[]).includes(item.slot), `item ${item.id}: bad slot`);
+  // Items use category slots: any equip slot EXCEPT the two ring slots, or "Ring".
+  const s = item.slot as string;
+  assert(
+    s === "Ring" || ((ITEM_SLOTS as readonly string[]).includes(s) && s !== "Ring1" && s !== "Ring2"),
+    `item ${item.id}: bad slot (rings must use "Ring", not Ring1/Ring2)`,
+  );
   assert((RARITIES as readonly string[]).includes(item.rarity), `item ${item.id}: bad rarity`);
   assert(item.requiredLevel >= 1, `item ${item.id}: requiredLevel must be >= 1`);
   if (item.slot === "Weapon") {

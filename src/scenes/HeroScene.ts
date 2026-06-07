@@ -8,7 +8,7 @@ import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
-import { ITEM_SLOTS, type ItemSlot, type Rarity } from "../data/schema.ts";
+import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type Rarity } from "../data/schema.ts";
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
@@ -148,8 +148,8 @@ export class HeroScene extends Phaser.Scene {
       if (fromSlot) this.mgr.unequipSlot(fromSlot);
     } else {
       const slot = zone.getData("slot") as ItemSlot;
-      if (def && def.slot === slot) {
-        if (!this.mgr.equipItem(instId)) this.showToast(`Requires level ${def.requiredLevel}`);
+      if (def && equipSlotsFor(def.slot).includes(slot)) {
+        if (!this.mgr.equipItem(instId, slot)) this.showToast(`Requires level ${def.requiredLevel}`);
       } else if (def) {
         this.showToast(`${def.name} doesn't fit ${SLOT_LABEL[slot]}`);
       }
