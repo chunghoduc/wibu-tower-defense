@@ -26,6 +26,10 @@ import { crispText } from "./ui.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
 import { upgradeSummary } from "../core/towerUpgrade.ts";
+import { BattleInfoPanel, type HeroPanelVM, type TowerPanelVM, type StatRow, type PanelItem } from "./battleInfoPanel.ts";
+import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
+import { ITEM_SLOTS, type Rarity } from "../data/schema.ts";
 import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
@@ -48,6 +52,37 @@ const SLOT_RADIUS = 26;
 const TERRAIN_COLOR: Record<string, number> = {
   grass: 0x35562f, sand: 0xb8a05a, water: 0x2a5f93, stone: 0x6b6c74, jungle: 0x1f4a2a, mountain: 0x5a4d40,
 };
+
+/** Width of the right-side info panel; the battlefield camera fills what is left. */
+const PANEL_W = 286;
+
+const RARITY_INT: Record<Rarity, number> = {
+  Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
+};
+const n0 = (v: number) => `${Math.round(v)}`;
+const n1 = (v: number) => v.toFixed(1);
+const pct = (v: number) => `${Math.round(v * 100)}%`;
+const mult = (v: number) => `${v.toFixed(1)}\u00d7`;
+function statRows(s: Record<string, number>, keys: [string, string, (v: number) => string][]): StatRow[] {
+  const out: StatRow[] = [];
+  for (const [key, label, fmt] of keys) {
+    const v = s[key];
+    if (v === undefined || v === 0) continue;
+    out.push({ label, value: fmt(v) });
+  }
+  return out;
+}
+const HERO_STAT_KEYS: [string, string, (v: number) => string][] = [
+  ["atk", "ATK", n0], ["range", "Range", n0], ["attackSpeed", "Atk Spd", n1],
+  ["critRate", "Crit", pct], ["critDamage", "Crit Dmg", mult],
+  ["armor", "Armor", n0], ["magicResist", "M.Resist", n0], ["moveSpeed", "Move", n0],
+  ["hpRegen", "HP Regen", n0], ["skillPower", "Skill Pwr", mult],
+  ["omnivamp", "Omnivamp", pct], ["goldFind", "Gold Find", pct],
+];
+const TOWER_STAT_KEYS: [string, string, (v: number) => string][] = [
+  ["atk", "ATK", n0], ["range", "Range", n0], ["attackSpeed", "Atk Spd", n1],
+  ["critRate", "Crit", pct], ["critDamage", "Crit Dmg", mult], ["armorPen", "Armor Pen", pct],
+];
 
 const ROLE_COLOR: Record<string, number> = {
   damage: 0x4fc3f7,
@@ -162,9 +197,10 @@ export class BattleScene extends Phaser.Scene {
   private enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
   private heroSprite: HeroLayeredSprite | null = null;
   private fx!: FxLayer;
-  private towerPanel: Phaser.GameObjects.Container | null = null;
-  private towerPanelUid = -1;
-  private towerPanelRefresh: (() => void) | null = null;
+  private panel!: BattleInfoPanel;
+  private battleW = 0;
+  private selectedTowerUid = -1;
+  private quickActions: Phaser.GameObjects.Container | null = null;
   private keys?: {
     up: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key;
     left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key;
@@ -186,8 +222,8 @@ export class BattleScene extends Phaser.Scene {
     this.towerSprites.clear();
     this.enemySprites.clear();
     this.heroSprite = null;
-    this.towerPanel = null;
-    this.towerPanelUid = -1;
+    this.selectedTowerUid = -1;
+    this.quickActions = null;
     this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
     this.terrainSprites = [];
     this.placeGhost = null;
@@ -221,39 +257,45 @@ export class BattleScene extends Phaser.Scene {
     this.fx = new FxLayer(this, 6, this.world);
     this.drawStatic();
 
+    this.battleW = this.scale.width - PANEL_W;
+    const bcx = this.battleW / 2;
     this.uiGfx = this.add.graphics().setDepth(8);
-    this.hud = crispText(this, 10, 8, "", { fontSize: "17px", color: "#ffffff" }).setDepth(10);
-    this.banner = crispText(this, 480, 250, "", { fontSize: "48px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
-    this.info = crispText(this, 10, 482, "", { fontSize: "13px", color: "#dbe6ee", wordWrap: { width: 940 } }).setDepth(10);
+    this.hud = crispText(this, 10, 8, "", { fontSize: "15px", color: "#ffffff", wordWrap: { width: this.battleW - 20 } }).setDepth(10);
+    this.banner = crispText(this, bcx, 230, "", { fontSize: "44px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
+    this.info = crispText(this, 10, this.scale.height - 16, "", { fontSize: "12px", color: "#dbe6ee", wordWrap: { width: this.battleW - 20 } }).setDepth(10);
     this.hudLevelText = crispText(this, 36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
     this.hudSkillText = crispText(this, 58, 117, "", { fontSize: "10px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
     this.gameSpeed = 1;
-    this.speedBtn = crispText(this, this.scale.width - 14, 38, "", { fontSize: "15px", color: "#fff", backgroundColor: "#243a5a" })
-      .setOrigin(1, 0).setPadding(10, 5, 10, 5).setDepth(12).setInteractive({ useHandCursor: true });
+    this.speedBtn = crispText(this, this.scale.width - 14, 8, "", { fontSize: "14px", color: "#fff", backgroundColor: "#243a5a" })
+      .setOrigin(1, 0).setPadding(9, 5, 9, 5).setDepth(18).setInteractive({ useHandCursor: true });
     this.speedBtn.on("pointerdown", () => { this.gameSpeed = this.gameSpeed === 0 ? 1 : this.gameSpeed >= 3 ? 0 : this.gameSpeed + 1; this.updateSpeedBtn(); });
     this.updateSpeedBtn();
-    const muteBtn = crispText(this, this.scale.width - 14, 66, "🔊", { fontSize: "15px", backgroundColor: "#243a5a" })
-      .setOrigin(1, 0).setPadding(8, 5, 8, 5).setDepth(12).setInteractive({ useHandCursor: true });
+    const muteBtn = crispText(this, this.battleW + 14, 8, "🔊", { fontSize: "14px", backgroundColor: "#243a5a" })
+      .setOrigin(0, 0).setPadding(7, 5, 7, 5).setDepth(18).setInteractive({ useHandCursor: true });
     muteBtn.on("pointerdown", () => muteBtn.setText(this.sfx.toggleMute() ? "🔇" : "🔊"));
     this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn]);
+
+    this.panel = new BattleInfoPanel(this, this.ui, this.battleW, PANEL_W, this.scale.height);
 
     this.buildBuildBar();
     this.setupPlacementDrag(); // register drag handlers once (tiles rebuild without re-registering)
     this.bindInput();
 
-    // Camera setup: main shows the whole world zoomed out; uiCam draws the HUD 1:1.
-    const zoom = Math.min(this.scale.width / WORLD_WIDTH, this.scale.height / WORLD_HEIGHT);
+    // Camera: world zoom-to-fit into the battlefield region; uiCam stays 1:1.
+    const zoom = Math.min(this.battleW / WORLD_WIDTH, this.scale.height / WORLD_HEIGHT);
+    this.cameras.main.setViewport(0, 0, this.battleW, this.scale.height);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT).setZoom(zoom).centerOn(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
     this.cameras.main.ignore(this.ui);
     const uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     uiCam.ignore(this.world);
+    this.showHeroPanel();
     const KC = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard?.addKeys({
       up: KC.UP, down: KC.DOWN, left: KC.LEFT, right: KC.RIGHT,
       w: KC.W, a: KC.A, s: KC.S, d: KC.D,
     }) as typeof this.keys;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.closeTowerPanel();
+      this.deselectTower();
       this.clearGhost();
       this.terrainSprites.forEach((s) => s.destroy());
       this.terrainSprites = [];
@@ -358,7 +400,7 @@ export class BattleScene extends Phaser.Scene {
       if (!id) return;
       this.clearGhost();
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
-      if (p.y < 500 && this.battle.outcome === "ongoing" && !this.towerPanel) {
+      if (p.x < this.battleW && p.y < 500 && this.battle.outcome === "ongoing") {
         if (this.battle.placeTowerAt(id, { x: wp.x, y: wp.y })) this.sfx.place();
       }
       this.rebuildAvatarTiles(); // snap the dragged tile home (drag handlers stay registered)
@@ -407,21 +449,16 @@ export class BattleScene extends Phaser.Scene {
       // that corner. Towers aren't interactive objects (tapped via towerAt), so
       // tapping a tower still falls through to the panel logic below.
       if (currentlyOver && currentlyOver.length > 0) return;
-      if (pointer.y >= 500) return; // bottom HUD strip (screen space)
+      if (pointer.x >= this.battleW) return; // over the info panel
+      if (pointer.y >= 500) return;          // bottom build-bar strip
       const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       const world: Vec2 = { x: wp.x, y: wp.y };
 
-      // An open tower panel: a tap inside it is for its buttons; outside closes it.
-      if (this.towerPanel) {
-        const b = this.towerPanel.getBounds();
-        if (Phaser.Geom.Rectangle.Contains(b, world.x, world.y)) return;
-        this.closeTowerPanel();
-        return;
-      }
-
-      // Tap an existing tower → upgrade/sell panel; else walk the hero there.
+      // Tap a tower → show it in the panel + on-map quick actions. Tap empty
+      // ground → revert the panel to the hero view and walk the hero there.
       const tower = this.towerAt(world);
-      if (tower) { this.openTowerPanel(tower.uid); return; }
+      if (tower) { this.selectTower(tower.uid); return; }
+      this.deselectTower();
       this.battle.commandHero(world);
     });
   }
@@ -434,117 +471,108 @@ export class BattleScene extends Phaser.Scene {
     return null;
   }
 
-  private closeTowerPanel(): void {
-    this.towerPanel?.destroy(true);
-    this.towerPanel = null;
-    this.towerPanelUid = -1;
-    this.towerPanelRefresh = null;
+  // ── Right info panel (hero / tower views) ─────────────────────────────────
+
+  /** Convert a world point to its on-screen pixel position under the battle camera. */
+  private worldToScreen(wx: number, wy: number): { x: number; y: number } {
+    const cam = this.cameras.main;
+    return { x: (wx - cam.worldView.x) * cam.zoom + cam.x, y: (wy - cam.worldView.y) * cam.zoom + cam.y };
   }
 
-  /** Build the upgrade/sell panel for a placed tower. */
-  private openTowerPanel(uid: number): void {
-    this.closeTowerPanel();
+  /** Show the hero in the panel (the default view). */
+  private showHeroPanel(): void {
+    const save = this.saveManager.getSave();
+    const h = this.battle.hero;
+    const items: PanelItem[] = [];
+    for (const slot of ITEM_SLOTS) {
+      const instId = save.inventory.equipped[slot];
+      const inst = instId ? save.inventory.items.find((it) => it.id === instId) : undefined;
+      const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
+      if (!inst || !def) continue;
+      items.push({ iconKey: `item__${inst.defId}`, name: def.name, plus: inst.enhanceLevel ?? 0, rarityColor: RARITY_INT[def.rarity as Rarity] });
+    }
+    const eqSkill = save.hero.equippedSkillId ? ACTIVE_SKILLS_MAP.get(save.hero.equippedSkillId) : undefined;
+    const vm: HeroPanelVM = {
+      kind: "hero", name: "Hero", level: save.hero.level,
+      hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: h.stats.maxMana,
+      stats: statRows(h.stats as unknown as Record<string, number>, HERO_STAT_KEYS),
+      items,
+      skill: eqSkill ? { name: eqSkill.name, desc: eqSkill.description } : null,
+    };
+    this.panel.showHero(vm);
+  }
+
+  /** Build a tower view model from its runtime. */
+  private towerVM(t: TowerRuntime): TowerPanelVM {
+    const skills: { label: string; desc: string; color: string }[] = [];
+    if (t.def.active) { const a = towerActiveInfo(t.def.active); skills.push({ label: `⚡ ${a.name}`, desc: a.description, color: "#a8d8ff" }); }
+    for (const pid of t.def.passives) { const p = passiveInfo(pid); skills.push({ label: `• ${p.name}`, desc: p.description, color: "#cdd6e6" }); }
+    skills.push({ label: "▲ Upgrades", desc: upgradeSummary(t.def.role), color: "#ffd86a" });
+    return {
+      kind: "tower", uid: t.uid, name: t.def.name, iconKey: `tower__${t.def.id}`,
+      stars: t.battleLevel,
+      hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.stats.maxMana,
+      stats: statRows(t.stats as unknown as Record<string, number>, TOWER_STAT_KEYS),
+      skills,
+      upgradeCost: this.battle.upgradeCost(t.uid), sellValue: this.battle.sellValue(t.uid),
+      maxed: this.battle.upgradeCost(t.uid) === 0,
+    };
+  }
+
+  /** Select a tower: show it in the panel and spawn on-map quick-action icons. */
+  private selectTower(uid: number): void {
     const t = this.battle.towers.find((x) => x.uid === uid && x.alive);
     if (!t) return;
-    this.towerPanelUid = uid;
-
-    // Skill rows: active skill + passives (T17). Each is hover-tooltipped.
-    const active = t.def.active ? towerActiveInfo(t.def.active) : undefined;
-    const skillRows: { label: string; color: string; desc: string }[] = [];
-    if (active) skillRows.push({ label: `⚡ ${active.name}`, color: "#a8d8ff", desc: active.description });
-    for (const pid of t.def.passives) {
-      const info = passiveInfo(pid);
-      skillRows.push({ label: `• ${info.name}`, color: "#cdd6e6", desc: info.description });
-    }
-
-    const W = 300;
-    const H = 84 + skillRows.length * 16 + 30; // title+stats + rows + upgrade summary + buttons
-    let px = t.pos.x + 24, py = t.pos.y - H / 2;
-    px = Phaser.Math.Clamp(px, 6, WORLD_WIDTH - W - 6);
-    py = Phaser.Math.Clamp(py, 30, WORLD_HEIGHT - H - 6);
-    const c = this.add.container(px, py).setDepth(40);
-    this.world.add(c);
-
-    const g = this.add.graphics();
-    g.fillStyle(0x121622, 0.97).fillRoundedRect(0, 0, W, H, 8);
-    g.lineStyle(2, 0x3a4a6a, 1).strokeRoundedRect(0, 0, W, H, 8);
-    c.add(g);
-
-    const title = crispText(this, 8, 6, "", { fontSize: "13px", color: "#ffd86a", fontStyle: "bold" });
-    const stats = crispText(this, 8, 24, "", { fontSize: "11px", color: "#d3dcec" });
-    c.add(title); c.add(stats);
-
-    // A shared tooltip (parented to the panel) shown on skill hover.
-    const tip = crispText(this, 0, 0, "", { fontSize: "10px", color: "#f0f4fb", backgroundColor: "#05070c", wordWrap: { width: W - 24 } })
-      .setPadding(6, 4, 6, 4).setDepth(60).setVisible(false);
-    c.add(tip);
-
-    let ry = 42;
-    for (const row of skillRows) {
-      // Tiny colored dot badge for visual variety (T18 skill icon placeholder).
-      const dot = this.add.graphics();
-      dot.fillStyle(Phaser.Display.Color.HexStringToColor(row.color.replace("#", "")).color, 0.9);
-      dot.fillCircle(14, ry + 6, 4.5);
-      dot.lineStyle(1, 0xffffff, 0.4).strokeCircle(14, ry + 6, 4.5);
-      c.add(dot);
-      const rt = crispText(this, 22, ry, row.label, { fontSize: "11px", color: row.color })
-        .setInteractive({ useHandCursor: true });
-      rt.on("pointerover", () => {
-        tip.setText(row.desc).setPosition(8, ry + 16).setVisible(true);
-        c.bringToTop(tip);
-      });
-      rt.on("pointerout", () => tip.setVisible(false));
-      c.add(rt);
-      ry += 16;
-    }
-    // How this tower upgrades (T12 summary).
-    c.add(crispText(this, 8, ry + 2, upgradeSummary(t.def.role), { fontSize: "9px", color: "#8fa6c4", wordWrap: { width: W - 16 } }));
-
-    const upBtn = crispText(this, 8, H - 26, "", { fontSize: "12px", color: "#fff", backgroundColor: "#1565c0" })
-      .setPadding(6, 4, 6, 4).setInteractive({ useHandCursor: true });
-    const sellBtn = crispText(this, W - 8, H - 26, "", { fontSize: "12px", color: "#fff", backgroundColor: "#7a2e2e" })
-      .setOrigin(1, 0).setPadding(6, 4, 6, 4).setInteractive({ useHandCursor: true });
-    c.add(upBtn); c.add(sellBtn);
-
-    upBtn.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
-      e.stopPropagation();
-      if (this.battle.upgradeTower(uid)) {
-        const t = this.battle.towers.find((x) => x.uid === uid);
-        if (t) { this.fx.starUp(t.pos, t.battleLevel); this.sfx.place(); }
-        this.refreshTowerPanel(title, stats, upBtn, sellBtn);
-      }
-    });
-    sellBtn.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
-      e.stopPropagation();
-      this.battle.sellTower(uid);
-      // Defer the close so the panel ref (and its bounds guard) survive the rest
-      // of this pointer-event dispatch — prevents the scene handler from falling
-      // through to a hero-move / placement at the button location.
-      this.time.delayedCall(0, () => this.closeTowerPanel());
-    });
-
-    this.towerPanel = c;
-    this.towerPanelRefresh = () => this.refreshTowerPanel(title, stats, upBtn, sellBtn);
-    this.towerPanelRefresh();
+    this.selectedTowerUid = uid;
+    this.panel.showTower(this.towerVM(t), { onUpgrade: () => this.doUpgrade(uid), onSell: () => this.doSell(uid) });
+    this.buildQuickActions(t);
   }
 
-  private refreshTowerPanel(
-    title: Phaser.GameObjects.Text, stats: Phaser.GameObjects.Text,
-    upBtn: Phaser.GameObjects.Text, sellBtn: Phaser.GameObjects.Text,
-  ): void {
-    const t = this.battle.towers.find((x) => x.uid === this.towerPanelUid && x.alive);
-    if (!t) { this.closeTowerPanel(); return; }
-    title.setText(`${t.def.name}  Lv${t.baseLevel}+${t.battleLevel}`);
-    stats.setText(`ATK ${Math.round(t.stats.atk)}   HP ${Math.round(t.stats.maxHp)}   RNG ${Math.round(t.stats.range)}`);
+  /** Revert to the hero panel and remove on-map quick actions. */
+  private deselectTower(): void {
+    if (this.selectedTowerUid < 0) return;
+    this.selectedTowerUid = -1;
+    this.quickActions?.destroy(true);
+    this.quickActions = null;
+    this.showHeroPanel();
+  }
+
+  private doUpgrade(uid: number): void {
+    if (this.battle.upgradeTower(uid)) {
+      const t = this.battle.towers.find((x) => x.uid === uid);
+      if (t) { this.fx.starUp(t.pos, t.battleLevel); this.sfx.place(); this.panel.showTower(this.towerVM(t), { onUpgrade: () => this.doUpgrade(uid), onSell: () => this.doSell(uid) }); this.buildQuickActions(t); }
+    }
+  }
+  private doSell(uid: number): void {
+    this.battle.sellTower(uid);
+    this.time.delayedCall(0, () => this.deselectTower());
+  }
+
+  /** Two compact upgrade/sell icons floating above the selected tower (UI layer, crisp). */
+  private buildQuickActions(t: TowerRuntime): void {
+    this.quickActions?.destroy(true);
+    const s = this.worldToScreen(t.pos.x, t.pos.y - 22);
+    const c = this.add.container(s.x, s.y).setDepth(19);
+    const mk = (dx: number, glyph: string, cost: string, bg: number): void => {
+      const g = this.add.graphics();
+      g.fillStyle(bg, 0.95).fillRoundedRect(dx - 18, -12, 36, 24, 5);
+      g.lineStyle(1.5, 0xffffff, 0.5).strokeRoundedRect(dx - 18, -12, 36, 24, 5);
+      c.add(g);
+      c.add(crispText(this, dx, -10, glyph, { fontSize: "12px", color: "#fff", fontStyle: "bold" }).setOrigin(0.5, 0));
+      c.add(crispText(this, dx, 2, cost, { fontSize: "8px", color: "#ffe7a0" }).setOrigin(0.5, 0));
+    };
     const cost = this.battle.upgradeCost(t.uid);
-    if (cost === 0) {
-      upBtn.setText("MAX").setBackgroundColor("#444").setAlpha(0.7);
-    } else {
-      upBtn.setText(`⬆ Upgrade (${cost}g)`).setAlpha(this.battle.gold >= cost ? 1 : 0.5)
-        .setBackgroundColor(this.battle.gold >= cost ? "#1565c0" : "#444");
-    }
-    sellBtn.setText(`✕ Sell +${this.battle.sellValue(t.uid)}g`);
+    mk(-21, "⬆", cost === 0 ? "MAX" : `${cost}g`, cost === 0 ? 0x555555 : 0x1565c0);
+    mk(21, "✕", `+${this.battle.sellValue(t.uid)}g`, 0x7a2e2e);
+    const up = this.add.zone(s.x - 21, s.y, 36, 24).setInteractive({ useHandCursor: true });
+    up.on("pointerup", () => this.doUpgrade(t.uid));
+    const sell = this.add.zone(s.x + 21, s.y, 36, 24).setInteractive({ useHandCursor: true });
+    sell.on("pointerup", () => this.doSell(t.uid));
+    c.add(up); c.add(sell);
+    this.ui.add(c);
+    this.quickActions = c;
   }
+
 
 
   update(_time: number, deltaMs: number): void {
@@ -584,9 +612,13 @@ export class BattleScene extends Phaser.Scene {
 
     // Keep the tower panel live: close it if its tower is gone, else refresh
     // affordability/stats against current gold.
-    if (this.towerPanel) {
-      if (!this.battle.towers.some((t) => t.uid === this.towerPanelUid && t.alive)) this.closeTowerPanel();
-      else this.towerPanelRefresh?.();
+    if (this.selectedTowerUid >= 0) {
+      const t = this.battle.towers.find((x) => x.uid === this.selectedTowerUid && x.alive);
+      if (!t) this.deselectTower();
+      else this.panel.tick({ hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.stats.maxMana, gold: this.battle.gold, upgradeCost: this.battle.upgradeCost(t.uid) });
+    } else {
+      const h = this.battle.hero;
+      this.panel.tick({ hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: h.stats.maxMana, gold: this.battle.gold, upgradeCost: 0 });
     }
 
     this.manageSprites();
@@ -618,7 +650,7 @@ export class BattleScene extends Phaser.Scene {
     }
 
     if (b.outcome !== "ongoing" && !this._menuBtn) {
-      this._menuBtn = crispText(this, this.scale.width / 2, 370, "← Return to Menu", {
+      this._menuBtn = crispText(this, this.battleW / 2, 370, "← Return to Menu", {
           fontSize: "20px",
           color: "#ffffff",
           backgroundColor: "#223355",
@@ -653,7 +685,7 @@ export class BattleScene extends Phaser.Scene {
         lines.push(`💠 ${MATERIALS_MAP.get(id)?.name ?? id} ×${n}`);
       }
 
-      const overlay = crispText(this, this.scale.width / 2, 300, lines.join("\n"), {
+      const overlay = crispText(this, this.battleW / 2, 300, lines.join("\n"), {
           fontSize: "16px",
           color: "#ffffff",
           backgroundColor: "#1a2a3a",
@@ -775,13 +807,12 @@ export class BattleScene extends Phaser.Scene {
     const h = this.battle.hero;
     if (h.alive && hasSprite(this, "hero__hero")) {
       if (!this.heroSprite) {
-        this.heroSprite = new HeroLayeredSprite(this, h.pos.x, h.pos.y);
-        this.heroSprite.scaleToHeight(54).setDepth(3);
-        this.heroSprite.addToWorld(this.world);
-        if (this.anims.exists("hero__hero_idle")) this.heroSprite.play("hero__hero_idle");
-        if (this.saveManager) {
-          this.heroSprite.syncEquipment(this.saveManager.getSave().inventory);
-        }
+        const hs = new HeroLayeredSprite(this, h.pos.x, h.pos.y);
+        hs.scaleToHeight(54).setDepth(3);
+        hs.addToWorld(this.world);
+        if (this.anims.exists("hero__hero_idle")) hs.play("hero__hero_idle");
+        if (this.saveManager) hs.syncEquipment(this.saveManager.getSave().inventory);
+        this.heroSprite = hs;
       }
       this.heroSprite.setPosition(h.pos.x, h.pos.y);
       this.heroSprite.setVisible(true);
