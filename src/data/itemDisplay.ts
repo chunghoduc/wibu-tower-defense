@@ -86,10 +86,26 @@ function label(key: string): string {
   return STAT_LABEL[key] ?? key;
 }
 
-function fmtValue(key: string, v: number): string {
-  if (key === "physicalDamage" || key === "magicDamage") return `${Math.round(v * 100)}%`;
-  if (FRACTION.has(key)) return `${Math.round(v * 100)}%`;
-  return `${Math.round(v)}`;
+/** A positive bonus must never read as 0 — show one decimal for tiny rolls. */
+function pctStr(v: number): string {
+  const p = v * 100;
+  return p > 0 && Math.round(p) === 0 ? `${p.toFixed(1)}%` : `${Math.round(p)}%`;
+}
+
+/** Base/intrinsic stats: fractional stats as %, scalar stats as a flat number. */
+function fmtBaseValue(key: string, v: number): string {
+  if (FRACTION.has(key) || key === "physicalDamage" || key === "magicDamage") return pctStr(v);
+  return v > 0 && Math.round(v) === 0 ? v.toFixed(1) : `${Math.round(v)}`;
+}
+
+/**
+ * Every affix (primary + additional) is a PERCENTAGE bonus: fractional stats add
+ * their fraction directly, scalar stats apply as an increase % (see affixStats),
+ * physical/magic damage are % too. So all affix values render as a percentage —
+ * which also means a beneficial roll never shows as a flat "+0".
+ */
+function fmtAffixValue(_key: string, v: number): string {
+  return pctStr(v);
 }
 
 /** Compare a rolled value to its expected base (±2% dead-zone = on par). */
@@ -105,7 +121,7 @@ const AFFIX_ROLL_MID = 0.125;
 
 function affixRow(type: string, v: number, source: StatSource, q: Quality): ItemStatRow {
   const phrase = AFFIX_PHRASE[type] ?? ["+", ` ${label(type)}`];
-  return { source, quality: q, before: phrase[0], value: fmtValue(type, v), after: phrase[1] };
+  return { source, quality: q, before: phrase[0], value: fmtAffixValue(type, v), after: phrase[1] };
 }
 
 export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[] {
@@ -116,7 +132,7 @@ export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[
   for (const [k, v] of Object.entries(inst.rolledStats)) {
     if (typeof v !== "number") continue;
     const base = (def.baseStats[k as keyof Stats] ?? 0) * lvlScale;
-    rows.push({ source: "base", quality: quality(v, base), before: label(k), value: fmtValue(k, v), after: "" });
+    rows.push({ source: "base", quality: quality(v, base), before: label(k), value: fmtBaseValue(k, v), after: "" });
   }
 
   // Primary affix (blue): full sentence.

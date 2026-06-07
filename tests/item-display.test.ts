@@ -43,6 +43,18 @@ describe("itemStatRows colouring", () => {
     expect(row.value).toBe("22%");
   });
 
+  it("never shows a beneficial affix as 0 — scalar affixes render as a percentage", () => {
+    // A scalar-stat affix (atk) is a % increase; it must not round to a flat "+0".
+    const rows = itemStatRows(inst({ rolledAffixes: [{ type: "atk", value: 0.12 }] }), def);
+    const a = rows.find((r) => r.source === "affix")!;
+    expect(a.value).toBe("12%");
+    expect(a.value).not.toBe("0");
+    // primary affix value is always a non-zero percentage too
+    const p = rows.find((r) => r.source === "primary")!;
+    expect(p.value).toMatch(/%$/);
+    expect(p.value).not.toMatch(/^0%$/);
+  });
+
   it("renders affixes as full sentences with the value embedded", () => {
     const rows = itemStatRows(inst({ rolledAffixes: [{ type: "armorPen", value: 0.07 }] }), def);
     const a = rows.find((r) => r.source === "affix")!;
