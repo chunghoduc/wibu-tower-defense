@@ -1,28 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="bg" cx="40%" cy="40%" r="70%">
-      <stop offset="0%" stop-color="#e8c46a"/><stop offset="100%" stop-color="#b8862a"/>
+    <radialGradient id="g" cx="48%" cy="55%" r="58%">
+      <stop offset="0%" stop-color="#e8c86a"/>
+      <stop offset="100%" stop-color="#a07028"/>
     </radialGradient>
+    <clipPath id="c">
+      <path d="M8 68 C6 50 16 32 34 24 C52 16 72 18 90 28 C106 38 118 56 116 74 C114 90 100 102 82 106 C64 110 44 106 28 96 C12 86 10 86 8 68Z"/>
+    </clipPath>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- dune curves -->
-  <path d="M0 80 Q20 65 45 75 Q70 85 95 70 Q115 60 128 68 L128 128 L0 128Z" fill="#c8902e" opacity="0.45"/>
-  <path d="M0 95 Q30 85 60 92 Q90 99 128 88 L128 128 L0 128Z" fill="#a06820" opacity="0.35"/>
+  <path d="M8 68 C6 50 16 32 34 24 C52 16 72 18 90 28 C106 38 118 56 116 74 C114 90 100 102 82 106 C64 110 44 106 28 96 C12 86 10 86 8 68Z" fill="url(#g)" opacity="0.93"/>
+  <!-- dune shadow -->
+  <path d="M8 68 C6 50 16 32 34 24 C52 16 72 18 90 28 L90 50 C72 42 52 40 34 48 C16 56 8 68 8 68Z" fill="#c09030" opacity="0.3"/>
   <!-- wind ripple lines -->
-  <g stroke="#d4a030" stroke-width="1.5" fill="none" opacity="0.6">
-    <path d="M5 55 Q25 50 50 55 Q75 60 100 54 Q115 50 125 54"/>
-    <path d="M10 65 Q35 60 60 65 Q85 70 108 64 Q118 61 126 64"/>
-    <path d="M0 72 Q20 68 45 73 Q70 78 100 71 Q114 68 128 72"/>
+  <g clip-path="url(#c)" stroke="#c8942c" stroke-width="1.5" fill="none" opacity="0.55">
+    <path d="M20 55 Q40 50 65 54 Q90 58 112 52"/>
+    <path d="M15 65 Q38 60 65 64 Q92 68 115 62"/>
+    <path d="M18 75 Q42 70 65 74 Q88 78 112 72"/>
+    <path d="M25 85 Q48 80 68 84 Q90 88 108 82"/>
   </g>
-  <!-- small pebbles -->
-  <g fill="#a06820" opacity="0.5">
-    <ellipse cx="22" cy="48" rx="3" ry="2"/><ellipse cx="55" cy="42" rx="2.5" ry="1.8"/>
-    <ellipse cx="85" cy="50" rx="3" ry="2"/><ellipse cx="110" cy="44" rx="2" ry="1.5"/>
-    <ellipse cx="38" cy="100" rx="4" ry="2.5"/><ellipse cx="78" cy="108" rx="3" ry="2"/>
-    <ellipse cx="102" cy="96" rx="3.5" ry="2"/>
+  <!-- pebbles -->
+  <g clip-path="url(#c)" fill="#906020" opacity="0.55">
+    <ellipse cx="40" cy="48" rx="3.5" ry="2"/>
+    <ellipse cx="75" cy="44" rx="2.5" ry="1.5"/>
+    <ellipse cx="98" cy="58" rx="3" ry="1.8"/>
+    <ellipse cx="55" cy="90" rx="4" ry="2"/>
+    <ellipse cx="88" cy="88" rx="3" ry="1.8"/>
   </g>
-  <!-- highlight glint -->
-  <g fill="#f5e080" opacity="0.35">
-    <ellipse cx="30" cy="35" rx="12" ry="5"/><ellipse cx="90" cy="30" rx="10" ry="4"/>
-  </g>
+  <path d="M8 68 C6 50 16 32 34 24 C52 16 72 18 90 28 C106 38 118 56 116 74 C114 90 100 102 82 106 C64 110 44 106 28 96 C12 86 10 86 8 68Z" fill="none" stroke="#785018" stroke-width="1.5" opacity="0.4"/>
 </svg>

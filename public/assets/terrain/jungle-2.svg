@@ -1,32 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="bg" cx="45%" cy="55%" r="65%">
-      <stop offset="0%" stop-color="#1a5a14"/><stop offset="100%" stop-color="#081808"/>
+    <radialGradient id="shadow" cx="50%" cy="74%" r="52%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.2"/><stop offset="100%" stop-color="#000" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- fern fronds -->
-  <g fill="#1e6e18" stroke="#0a2808" stroke-width="0.8">
-    <path d="M15 128 Q10 90 20 60 Q18 80 25 70 Q22 90 30 80 Q25 100 20 128Z"/>
-    <path d="M50 128 Q45 85 55 55 Q53 75 60 65 Q57 85 65 75 Q60 95 55 128Z"/>
-    <path d="M85 128 Q80 88 90 58 Q88 78 95 68 Q92 88 100 78 Q95 98 90 128Z"/>
-    <path d="M112 128 Q108 92 118 62 Q116 82 122 72 Q120 92 126 82 Q122 102 118 128Z"/>
+  <ellipse cx="64" cy="100" rx="50" ry="12" fill="url(#shadow)"/>
+  <!-- fern bush base -->
+  <path d="M28 82 C22 68 28 54 42 48 C56 42 72 44 84 50 C98 56 106 68 100 82 C94 94 80 100 62 100 C44 100 34 94 28 82Z" fill="#185512" opacity="0.85"/>
+  <!-- fern fronds radiating -->
+  <g fill="#207018" stroke="#0e3808" stroke-width="0.7">
+    <path d="M40 96 C34 78 36 58 44 46 C46 64 48 82 50 96Z"/>
+    <path d="M56 98 C52 78 52 56 58 42 C62 62 62 82 64 98Z"/>
+    <path d="M72 98 C70 78 72 56 78 44 C78 64 78 82 80 98Z"/>
+    <path d="M88 96 C86 80 90 62 96 50 C92 66 92 84 92 96Z"/>
   </g>
-  <!-- vine tendrils -->
-  <g stroke="#2a8a1e" stroke-width="1.5" fill="none" opacity="0.6">
-    <path d="M0 20 Q15 35 10 55 Q5 75 20 90 Q30 105 25 128"/>
-    <path d="M128 15 Q112 30 118 52 Q124 74 108 88 Q98 100 103 128"/>
-    <path d="M35 0 Q40 20 30 40 Q22 60 35 80 Q45 95 38 128"/>
+  <!-- frond leaflets (highlights) -->
+  <g stroke="#3aa028" stroke-width="1.5" opacity="0.6" stroke-linecap="round">
+    <path d="M44 60 l-5 -3 M44 60 l5 -3"/>
+    <path d="M58 56 l-5 -3 M58 56 l5 -3"/>
+    <path d="M78 58 l-5 -3 M78 58 l5 -3"/>
   </g>
-  <!-- undergrowth leaves -->
-  <g fill="#268c1a" opacity="0.7">
-    <ellipse cx="30" cy="95" rx="15" ry="6" transform="rotate(-25 30 95)"/>
-    <ellipse cx="75" cy="88" rx="18" ry="6" transform="rotate(20 75 88)"/>
-    <ellipse cx="110" cy="100" rx="14" ry="5" transform="rotate(-15 110 100)"/>
-  </g>
-  <!-- tiny exotic flowers -->
-  <g fill="#ff6aa0" opacity="0.7">
-    <circle cx="42" cy="70" r="2.5"/><circle cx="88" cy="60" r="2"/>
-    <circle cx="65" cy="82" r="2.5"/>
-  </g>
+  <!-- undergrowth leaf -->
+  <ellipse cx="48" cy="88" rx="14" ry="5" transform="rotate(-20 48 88)" fill="#2a8a1a" opacity="0.7"/>
+  <ellipse cx="82" cy="86" rx="16" ry="5" transform="rotate(18 82 86)" fill="#2a8a1a" opacity="0.7"/>
+  <!-- small flowers -->
+  <circle cx="62" cy="78" r="2.5" fill="#ff70b0"/><circle cx="62" cy="78" r="1" fill="#fff0a0"/>
 </svg>

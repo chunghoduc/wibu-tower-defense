@@ -1,30 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="50%" r="60%">
-      <stop offset="0%" stop-color="#3aacde"/><stop offset="100%" stop-color="#0d5888"/>
+    <radialGradient id="g" cx="50%" cy="48%" r="55%">
+      <stop offset="0%" stop-color="#40b8e0"/>
+      <stop offset="100%" stop-color="#0c4878"/>
     </radialGradient>
+    <clipPath id="c">
+      <path d="M4 60 C6 40 22 26 44 22 C68 18 92 24 108 44 C120 60 118 80 104 94 C90 108 66 112 44 106 C22 100 2 80 4 60Z"/>
+    </clipPath>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- shallow floor visible through water -->
-  <g opacity="0.3" fill="#2870a8">
-    <ellipse cx="30" cy="85" rx="18" ry="10"/><ellipse cx="90" cy="70" rx="15" ry="8"/>
-    <ellipse cx="55" cy="110" rx="20" ry="9"/><ellipse cx="108" cy="100" rx="12" ry="7"/>
+  <path d="M4 60 C6 40 22 26 44 22 C68 18 92 24 108 44 C120 60 118 80 104 94 C90 108 66 112 44 106 C22 100 2 80 4 60Z" fill="url(#g)" opacity="0.93"/>
+  <!-- visible shallow floor -->
+  <g clip-path="url(#c)" fill="#1a5888" opacity="0.35">
+    <ellipse cx="38" cy="80" rx="18" ry="10"/>
+    <ellipse cx="85" cy="65" rx="16" ry="9"/>
+    <ellipse cx="58" cy="95" rx="14" ry="8"/>
   </g>
-  <!-- gentle ripples -->
-  <g stroke="#7ad8f8" stroke-width="1.2" fill="none" opacity="0.45">
-    <path d="M5 35 Q25 30 45 35 Q65 40 85 35 Q105 30 125 35"/>
-    <path d="M5 50 Q25 45 45 50 Q65 55 85 50 Q105 45 125 50"/>
-    <path d="M5 65 Q25 60 45 65 Q65 70 85 65 Q105 60 125 65"/>
-    <path d="M5 80 Q25 75 45 80 Q65 85 85 80 Q105 75 125 80"/>
-    <path d="M5 95 Q25 90 45 95 Q65 100 85 95 Q105 90 125 95"/>
+  <!-- gentle horizontal ripples -->
+  <g clip-path="url(#c)" stroke="#80d4f4" stroke-width="1.2" fill="none" opacity="0.45">
+    <path d="M8 44 Q30 38 56 43 Q82 48 110 42"/>
+    <path d="M6 54 Q28 48 56 53 Q84 58 112 52"/>
+    <path d="M6 64 Q30 58 56 63 Q82 68 112 62"/>
+    <path d="M8 74 Q32 68 56 73 Q80 78 108 72"/>
+    <path d="M10 84 Q34 78 58 83 Q80 88 106 82"/>
+    <path d="M14 94 Q38 88 60 93 Q82 98 104 92"/>
   </g>
-  <!-- caustic light patterns -->
-  <g fill="#a0e8ff" opacity="0.35">
-    <ellipse cx="25" cy="45" rx="6" ry="3" transform="rotate(-15 25 45)"/>
-    <ellipse cx="75" cy="55" rx="8" ry="3" transform="rotate(10 75 55)"/>
-    <ellipse cx="110" cy="40" rx="5" ry="2.5" transform="rotate(-5 110 40)"/>
-    <ellipse cx="50" cy="75" rx="7" ry="3" transform="rotate(20 50 75)"/>
+  <!-- caustic light -->
+  <g clip-path="url(#c)" fill="#a0e4ff" opacity="0.3">
+    <ellipse cx="32" cy="50" rx="8" ry="3" transform="rotate(-20 32 50)"/>
+    <ellipse cx="76" cy="48" rx="10" ry="4" transform="rotate(15 76 48)"/>
+    <ellipse cx="55" cy="72" rx="7" ry="3" transform="rotate(-5 55 72)"/>
   </g>
-  <!-- bright reflection at top -->
-  <path d="M20 15 Q64 8 108 15 Q64 22 20 15Z" fill="#d0f4ff" opacity="0.5"/>
+  <!-- bright highlight at top -->
+  <path d="M28 26 C48 20 72 22 92 30 C72 26 48 24 28 26Z" fill="#d8f4ff" opacity="0.55"/>
+  <path d="M4 60 C6 40 22 26 44 22 C68 18 92 24 108 44 C120 60 118 80 104 94 C90 108 66 112 44 106 C22 100 2 80 4 60Z" fill="none" stroke="#041838" stroke-width="2" opacity="0.4"/>
 </svg>

@@ -1,53 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="g1bg" cx="50%" cy="60%" r="60%">
+    <radialGradient id="g" cx="50%" cy="55%" r="55%">
       <stop offset="0%" stop-color="#6abf4b"/>
       <stop offset="100%" stop-color="#2d6b1e"/>
     </radialGradient>
-    <radialGradient id="g1shine" cx="35%" cy="30%" r="50%">
-      <stop offset="0%" stop-color="#fff" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
-    </radialGradient>
+    <clipPath id="shape">
+      <path d="M18 72 C12 55 16 38 28 28 C40 18 58 14 74 18 C88 22 102 30 110 46 C118 62 116 80 106 92 C96 104 78 110 60 108 C42 106 24 90 18 72Z"/>
+    </clipPath>
   </defs>
-  <!-- ground base -->
-  <rect width="128" height="128" fill="url(#g1bg)" rx="8"/>
-  <!-- soil patches -->
-  <ellipse cx="20" cy="110" rx="18" ry="8" fill="#3d8a28" opacity="0.5"/>
-  <ellipse cx="100" cy="105" rx="14" ry="6" fill="#3d8a28" opacity="0.4"/>
-  <ellipse cx="64" cy="115" rx="22" ry="7" fill="#2d6b1e" opacity="0.5"/>
-  <!-- grass tufts - back row -->
-  <g fill="#4cb83a" stroke="#2d6b1e" stroke-width="1.2">
-    <path d="M18 88 Q16 72 14 65 Q18 70 20 65 Q22 72 24 65 Q26 72 22 88Z"/>
-    <path d="M35 82 Q33 68 31 62 Q35 67 37 62 Q39 68 41 62 Q43 68 39 82Z"/>
-    <path d="M85 85 Q83 70 81 64 Q85 69 87 64 Q89 70 91 64 Q93 70 89 85Z"/>
-    <path d="M105 80 Q103 66 101 60 Q105 65 107 60 Q109 66 111 60 Q113 66 109 80Z"/>
+  <!-- organic patch base -->
+  <path d="M18 72 C12 55 16 38 28 28 C40 18 58 14 74 18 C88 22 102 30 110 46 C118 62 116 80 106 92 C96 104 78 110 60 108 C42 106 24 90 18 72Z" fill="url(#g)" opacity="0.92"/>
+  <!-- inner lighter highlight -->
+  <ellipse cx="62" cy="60" rx="28" ry="20" fill="#8ad960" opacity="0.35"/>
+  <!-- grass blade tufts -->
+  <g clip-path="url(#shape)" fill="#4ab034" stroke="#2d6018" stroke-width="0.8">
+    <path d="M38 78 Q36 66 34 60 Q38 65 40 60 Q42 66 44 60 Q46 67 42 78Z"/>
+    <path d="M58 68 Q56 57 54 51 Q58 56 60 51 Q62 57 64 51 Q66 58 62 68Z"/>
+    <path d="M80 74 Q78 62 76 56 Q80 61 82 56 Q84 62 86 56 Q88 63 84 74Z"/>
+    <path d="M96 62 Q94 52 92 47 Q96 51 98 47 Q100 52 102 47 Q103 53 100 62Z"/>
+    <path d="M48 88 Q46 78 44 73 Q48 77 50 73 Q52 78 54 73 Q55 79 52 88Z"/>
+    <path d="M70 92 Q68 82 66 77 Q70 81 72 77 Q74 82 76 77 Q77 83 74 92Z"/>
   </g>
-  <!-- grass tufts - mid row -->
-  <g fill="#5ecf46" stroke="#3d8a28" stroke-width="1">
-    <path d="M8 98 Q7 86 5 80 Q8 84 10 80 Q12 86 14 80 Q15 86 12 98Z"/>
-    <path d="M50 90 Q48 76 46 70 Q50 75 52 70 Q54 76 56 70 Q58 76 54 90Z"/>
-    <path d="M68 92 Q66 78 64 72 Q68 77 70 72 Q72 78 74 72 Q76 78 72 92Z"/>
-    <path d="M115 92 Q113 80 111 74 Q115 79 117 74 Q119 80 121 74 Q122 80 119 92Z"/>
+  <!-- wildflowers -->
+  <g clip-path="url(#shape)">
+    <circle cx="50" cy="72" r="3" fill="#f5e033"/>
+    <circle cx="72" cy="58" r="2.5" fill="#ff8ae2"/>
+    <circle cx="90" cy="70" r="2.5" fill="#f5e033"/>
+    <circle cx="62" cy="88" r="2" fill="#ffffff" opacity="0.9"/>
+    <circle cx="50" cy="72" r="1.2" fill="#ff9900"/>
+    <circle cx="72" cy="58" r="1" fill="#cc44aa"/>
+    <circle cx="90" cy="70" r="1.2" fill="#ff9900"/>
   </g>
-  <!-- small flowers -->
-  <g fill="#f5e033">
-    <circle cx="30" cy="75" r="2.5"/>
-    <circle cx="78" cy="68" r="2"/>
-    <circle cx="95" cy="80" r="2.5"/>
-    <circle cx="55" cy="72" r="2"/>
-  </g>
-  <g fill="#fff" opacity="0.8">
-    <circle cx="30" cy="75" r="1.2"/>
-    <circle cx="78" cy="68" r="1"/>
-    <circle cx="95" cy="80" r="1.2"/>
-    <circle cx="55" cy="72" r="1"/>
-  </g>
-  <!-- ground texture dots -->
-  <g fill="#3d8a28" opacity="0.4">
-    <circle cx="44" cy="108" r="2"/> <circle cx="72" cy="104" r="1.5"/>
-    <circle cx="90" cy="112" r="2"/> <circle cx="16" cy="118" r="1.5"/>
-    <circle cx="110" cy="116" r="2"/>
-  </g>
-  <!-- shine overlay -->
-  <rect width="128" height="128" fill="url(#g1shine)" rx="8"/>
+  <!-- soft edge shadow -->
+  <path d="M18 72 C12 55 16 38 28 28 C40 18 58 14 74 18 C88 22 102 30 110 46 C118 62 116 80 106 92 C96 104 78 110 60 108 C42 106 24 90 18 72Z" fill="none" stroke="#1a4010" stroke-width="2" opacity="0.4"/>
 </svg>

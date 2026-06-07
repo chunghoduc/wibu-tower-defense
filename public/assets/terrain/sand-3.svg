@@ -1,24 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="bg" cx="60%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#f0d070"/><stop offset="100%" stop-color="#c89030"/>
+    <radialGradient id="g" cx="55%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#f0d06a"/>
+      <stop offset="100%" stop-color="#b87820"/>
     </radialGradient>
+    <clipPath id="c">
+      <path d="M22 75 C16 58 22 40 38 32 C54 24 74 26 88 38 C102 50 108 68 100 84 C92 100 72 108 52 104 C32 100 28 92 22 75Z"/>
+    </clipPath>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- large smooth dunes -->
-  <path d="M0 60 Q40 35 80 55 Q108 68 128 50 L128 128 L0 128Z" fill="#d4a030" opacity="0.4"/>
-  <path d="M0 90 Q50 75 100 88 Q116 93 128 85 L128 128 L0 128Z" fill="#b07820" opacity="0.35"/>
-  <!-- scattered shells/pebbles for beach sand look -->
-  <g fill="#e8d080" opacity="0.6">
-    <ellipse cx="18" cy="108" rx="6" ry="3" transform="rotate(-20 18 108)"/>
-    <ellipse cx="50" cy="114" rx="5" ry="2.5" transform="rotate(15 50 114)"/>
-    <ellipse cx="82" cy="110" rx="4" ry="2" transform="rotate(-10 82 110)"/>
-    <ellipse cx="112" cy="105" rx="5" ry="2.5" transform="rotate(25 112 105)"/>
+  <!-- small dune mound -->
+  <path d="M22 75 C16 58 22 40 38 32 C54 24 74 26 88 38 C102 50 108 68 100 84 C92 100 72 108 52 104 C32 100 28 92 22 75Z" fill="url(#g)" opacity="0.94"/>
+  <!-- dune crest highlight -->
+  <path d="M30 55 C44 42 66 40 84 52 C70 46 48 46 30 55Z" fill="#f8e890" opacity="0.45"/>
+  <!-- shadow on lee side -->
+  <path d="M22 75 C16 58 22 40 38 32 L50 50 C36 58 26 68 22 75Z" fill="#906015" opacity="0.25"/>
+  <!-- wind streaks -->
+  <g clip-path="url(#c)" stroke="#d0a028" stroke-width="1.2" fill="none" opacity="0.5">
+    <path d="M28 60 C45 56 68 58 90 54"/>
+    <path d="M24 70 C42 66 68 68 94 64"/>
+    <path d="M26 80 C46 76 70 78 95 74"/>
+    <path d="M32 90 C50 86 72 88 92 84"/>
   </g>
-  <!-- subtle ripple marks -->
-  <g stroke="#b87020" stroke-width="1" fill="none" opacity="0.4">
-    <path d="M10 45 Q30 40 55 46 Q80 52 105 45"/>
-    <path d="M5 52 Q28 47 55 53 Q82 59 110 52"/>
-  </g>
-  <rect width="128" height="128" fill="#fff8d0" opacity="0.1" rx="8"/>
+  <path d="M22 75 C16 58 22 40 38 32 C54 24 74 26 88 38 C102 50 108 68 100 84 C92 100 72 108 52 104 C32 100 28 92 22 75Z" fill="none" stroke="#785010" stroke-width="1.5" opacity="0.35"/>
 </svg>

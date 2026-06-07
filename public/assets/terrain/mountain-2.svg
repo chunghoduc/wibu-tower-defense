@@ -1,30 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <linearGradient id="bg" x1="30%" y1="0%" x2="70%" y2="100%">
-      <stop offset="0%" stop-color="#806860"/><stop offset="100%" stop-color="#3c2c28"/>
+    <linearGradient id="rock" x1="20%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#8a7868"/><stop offset="100%" stop-color="#403028"/>
     </linearGradient>
+    <radialGradient id="shadow" cx="50%" cy="86%" r="50%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.2"/><stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- rocky slope pattern -->
-  <path d="M0 128 L0 60 L30 80 L64 45 L98 75 L128 55 L128 128Z" fill="#5a4840"/>
-  <path d="M0 128 L0 75 L35 90 L64 60 L93 85 L128 68 L128 128Z" fill="#6a5848"/>
-  <!-- boulder shapes -->
-  <g fill="#4a3830" stroke="#2a1810" stroke-width="1">
-    <ellipse cx="25" cy="95" rx="16" ry="10" transform="rotate(-10 25 95)"/>
-    <ellipse cx="75" cy="88" rx="14" ry="9" transform="rotate(5 75 88)"/>
-    <ellipse cx="110" cy="100" rx="12" ry="8" transform="rotate(-5 110 100)"/>
-    <ellipse cx="50" cy="112" rx="10" ry="7"/>
-    <ellipse cx="95" cy="118" rx="8" ry="6" transform="rotate(10 95 118)"/>
+  <ellipse cx="64" cy="104" rx="50" ry="12" fill="url(#shadow)"/>
+  <!-- rocky craggy hill (irregular) -->
+  <path d="M20 100 L30 64 L46 78 L62 40 L78 70 L92 56 L108 100 Z" fill="url(#rock)"/>
+  <!-- highlighted ridges -->
+  <path d="M62 40 L78 70 L70 72 L62 52 Z" fill="#a08870" opacity="0.5"/>
+  <path d="M30 64 L46 78 L40 80 L30 70 Z" fill="#9a8268" opacity="0.5"/>
+  <!-- boulders at base -->
+  <g fill="#4a3830" stroke="#2a1c14" stroke-width="0.8">
+    <ellipse cx="34" cy="96" rx="12" ry="8"/>
+    <ellipse cx="88" cy="98" rx="10" ry="7"/>
+    <ellipse cx="62" cy="100" rx="9" ry="6"/>
   </g>
-  <!-- rock highlight -->
-  <g fill="#8a7060" opacity="0.5">
-    <ellipse cx="23" cy="91" rx="8" ry="4" transform="rotate(-10 23 91)"/>
-    <ellipse cx="73" cy="84" rx="7" ry="3.5" transform="rotate(5 73 84)"/>
-    <ellipse cx="108" cy="96" rx="6" ry="3" transform="rotate(-5 108 96)"/>
+  <g fill="#6a5648" opacity="0.5">
+    <ellipse cx="32" cy="92" rx="6" ry="3"/>
+    <ellipse cx="86" cy="95" rx="5" ry="2.5"/>
   </g>
-  <!-- sparse dry vegetation -->
-  <g fill="#5a5a38" stroke="#3a3a20" stroke-width="0.8">
-    <path d="M42 72 Q40 62 38 58 Q42 62 44 58 Q46 63 42 72Z"/>
-    <path d="M85 68 Q83 58 81 54 Q85 58 87 54 Q89 59 85 68Z"/>
+  <!-- crack lines -->
+  <g stroke="#2a1c14" stroke-width="1" fill="none" opacity="0.5">
+    <path d="M62 40 L58 64 L64 88"/><path d="M46 78 L50 92"/>
   </g>
+  <!-- sparse dry shrub -->
+  <path d="M76 72 Q74 64 72 60 Q76 64 78 60 Q80 65 76 72Z" fill="#5a5a38" opacity="0.7"/>
 </svg>

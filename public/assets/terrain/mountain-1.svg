@@ -1,29 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#9090a0"/><stop offset="100%" stop-color="#505060"/>
+    <linearGradient id="rock" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9098a8"/><stop offset="100%" stop-color="#4a5060"/>
     </linearGradient>
+    <radialGradient id="shadow" cx="50%" cy="85%" r="50%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.22"/><stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- mountain silhouette layers -->
-  <path d="M0 128 L20 65 L40 85 L64 30 L88 70 L108 55 L128 80 L128 128Z" fill="#404050"/>
-  <path d="M0 128 L25 75 L48 95 L64 40 L80 90 L108 62 L128 88 L128 128Z" fill="#585868"/>
-  <path d="M0 128 L30 82 L55 100 L64 50 L73 95 L105 70 L128 95 L128 128Z" fill="#686878"/>
+  <ellipse cx="64" cy="104" rx="52" ry="12" fill="url(#shadow)"/>
+  <!-- main peak -->
+  <path d="M64 26 L96 100 L32 100 Z" fill="url(#rock)"/>
+  <!-- left secondary peak -->
+  <path d="M34 56 L58 102 L12 102 Z" fill="#5a6272"/>
+  <!-- right secondary peak -->
+  <path d="M96 50 L118 102 L74 102 Z" fill="#646c7c"/>
   <!-- snow caps -->
-  <path d="M64 30 L55 55 L73 55Z" fill="#e8e8f0" opacity="0.9"/>
-  <path d="M108 55 L100 70 L116 70Z" fill="#d8d8e8" opacity="0.8"/>
-  <path d="M20 65 L14 78 L26 78Z" fill="#d0d0e0" opacity="0.7"/>
-  <!-- rock details/striations -->
-  <g stroke="#303040" stroke-width="1" fill="none" opacity="0.5">
-    <path d="M40 85 L55 70 L64 50"/><path d="M88 70 L80 85 L95 95"/>
-    <path d="M20 90 L35 78 L30 95"/>
+  <path d="M64 26 L54 50 L74 50 Z" fill="#eef0f8"/>
+  <path d="M64 26 L58 40 L70 40 Z" fill="#ffffff"/>
+  <path d="M34 56 L27 72 L41 72 Z" fill="#e0e4f0"/>
+  <path d="M96 50 L90 64 L102 64 Z" fill="#e0e4f0"/>
+  <!-- rock face shadow (right side of main) -->
+  <path d="M64 26 L96 100 L64 100 Z" fill="#000" opacity="0.12"/>
+  <!-- striation cracks -->
+  <g stroke="#383e4c" stroke-width="1" fill="none" opacity="0.5">
+    <path d="M58 54 L52 76 L58 96"/><path d="M70 54 L76 76 L70 96"/>
   </g>
   <!-- snow sparkle -->
-  <g fill="#fff" opacity="0.7">
-    <circle cx="62" cy="32" r="1.5"/><circle cx="68" cy="36" r="1"/>
-    <circle cx="58" cy="38" r="1"/><circle cx="108" cy="57" r="1.2"/>
-    <circle cx="104" cy="60" r="0.8"/>
+  <g fill="#fff" opacity="0.8">
+    <circle cx="62" cy="32" r="1.2"/><circle cx="67" cy="36" r="0.8"/><circle cx="60" cy="40" r="0.8"/>
   </g>
-  <!-- ambient sky tint at peaks -->
-  <path d="M0 0 L128 0 L128 40 Q64 20 0 40Z" fill="#b0b0d0" opacity="0.15"/>
 </svg>

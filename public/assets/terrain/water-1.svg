@@ -1,30 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="50%" r="60%">
-      <stop offset="0%" stop-color="#2e8fcc"/><stop offset="100%" stop-color="#0a3f6e"/>
+    <radialGradient id="g" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#3aaad8"/>
+      <stop offset="100%" stop-color="#0a3868"/>
     </radialGradient>
+    <clipPath id="c">
+      <path d="M14 64 C12 46 26 30 46 24 C66 18 88 24 102 40 C116 56 114 78 100 92 C86 106 62 110 42 102 C22 94 16 82 14 64Z"/>
+    </clipPath>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- deep water shimmer bands -->
-  <g opacity="0.2" fill="#4ab8f0">
-    <path d="M0 40 Q32 35 64 40 Q96 45 128 40 L128 50 Q96 55 64 50 Q32 45 0 50Z"/>
-    <path d="M0 65 Q32 60 64 65 Q96 70 128 65 L128 75 Q96 80 64 75 Q32 70 0 75Z"/>
-    <path d="M0 90 Q32 85 64 90 Q96 95 128 90 L128 100 Q96 105 64 100 Q32 95 0 100Z"/>
-  </g>
-  <!-- concentric ripples from center -->
-  <g stroke="#6ad4ff" stroke-width="1.5" fill="none" opacity="0.5">
-    <ellipse cx="64" cy="64" rx="15" ry="8"/>
-    <ellipse cx="64" cy="64" rx="28" ry="14"/>
-    <ellipse cx="64" cy="64" rx="42" ry="20"/>
-    <ellipse cx="64" cy="64" rx="56" ry="26"/>
-  </g>
-  <!-- foam/highlight dots -->
-  <g fill="#b8eeff" opacity="0.6">
-    <circle cx="25" cy="38" r="2"/><circle cx="55" cy="30" r="1.5"/>
-    <circle cx="85" cy="35" r="2"/><circle cx="110" cy="28" r="1.5"/>
-    <circle cx="15" cy="72" r="1.5"/><circle cx="45" cy="80" r="2"/>
-    <circle cx="95" cy="75" r="2"/><circle cx="118" cy="68" r="1.5"/>
+  <!-- water pool -->
+  <path d="M14 64 C12 46 26 30 46 24 C66 18 88 24 102 40 C116 56 114 78 100 92 C86 106 62 110 42 102 C22 94 16 82 14 64Z" fill="url(#g)" opacity="0.95"/>
+  <!-- depth shading in center -->
+  <ellipse cx="62" cy="64" rx="24" ry="18" fill="#062848" opacity="0.35"/>
+  <!-- concentric ripples -->
+  <g clip-path="url(#c)" stroke="#7ad4f8" stroke-width="1.5" fill="none" opacity="0.5">
+    <ellipse cx="62" cy="64" rx="12" ry="8"/>
+    <ellipse cx="62" cy="64" rx="24" ry="15"/>
+    <ellipse cx="62" cy="64" rx="36" ry="22"/>
+    <ellipse cx="62" cy="64" rx="46" ry="28"/>
   </g>
   <!-- light reflection streak -->
-  <path d="M35 20 Q64 15 92 20 Q64 25 35 20Z" fill="#e8f8ff" opacity="0.4"/>
+  <path d="M38 32 C52 26 70 28 84 36 C70 32 52 30 38 32Z" fill="#b8ecff" opacity="0.55"/>
+  <!-- foam dots at edge -->
+  <g clip-path="url(#c)" fill="#c8f0ff" opacity="0.7">
+    <circle cx="28" cy="58" r="2"/><circle cx="40" cy="36" r="1.5"/>
+    <circle cx="70" cy="24" r="2"/><circle cx="96" cy="46" r="1.5"/>
+    <circle cx="100" cy="76" r="2"/><circle cx="75" cy="100" r="1.5"/>
+    <circle cx="42" cy="98" r="2"/>
+  </g>
+  <path d="M14 64 C12 46 26 30 46 24 C66 18 88 24 102 40 C116 56 114 78 100 92 C86 106 62 110 42 102 C22 94 16 82 14 64Z" fill="none" stroke="#062848" stroke-width="2" opacity="0.45"/>
 </svg>

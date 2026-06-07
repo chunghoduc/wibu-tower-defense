@@ -1,40 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="50%" r="60%">
-      <stop offset="0%" stop-color="#1e6418"/><stop offset="100%" stop-color="#0a2808"/>
+    <radialGradient id="shadow" cx="50%" cy="72%" r="55%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.22"/><stop offset="100%" stop-color="#000" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- large tropical leaves - back layer -->
-  <g fill="#145210" stroke="#0a2808" stroke-width="1" opacity="0.9">
-    <path d="M64 100 Q20 70 10 30 Q35 55 64 100Z"/>
-    <path d="M64 100 Q108 70 118 30 Q93 55 64 100Z"/>
-    <path d="M20 110 Q-5 75 5 40 Q25 65 20 110Z"/>
-    <path d="M108 110 Q133 75 123 40 Q103 65 108 110Z"/>
+  <ellipse cx="64" cy="98" rx="54" ry="14" fill="url(#shadow)"/>
+  <!-- foliage cluster base -->
+  <path d="M22 78 C16 64 22 48 36 42 C50 36 66 38 80 42 C96 46 108 60 104 76 C100 90 84 98 64 98 C44 98 28 92 22 78Z" fill="#1a5a14" opacity="0.9"/>
+  <!-- back broad leaves -->
+  <g fill="#176010" stroke="#0c3008" stroke-width="0.8" opacity="0.9">
+    <path d="M40 86 C24 70 20 50 28 36 C36 54 46 70 52 88Z"/>
+    <path d="M88 86 C104 70 108 50 100 36 C92 54 82 70 76 88Z"/>
+    <path d="M64 90 C52 70 50 48 58 32 C66 52 70 72 72 90Z"/>
   </g>
-  <!-- mid layer leaves -->
-  <g fill="#1e7818" stroke="#0e3a0a" stroke-width="1" opacity="0.85">
-    <path d="M45 90 Q15 55 25 20 Q40 50 45 90Z"/>
-    <path d="M83 90 Q113 55 103 20 Q88 50 83 90Z"/>
-    <path d="M64 85 Q30 55 40 15 Q58 50 64 85Z"/>
-    <path d="M64 85 Q98 55 88 15 Q70 50 64 85Z"/>
+  <!-- mid bright leaves -->
+  <g fill="#2a9020" stroke="#145010" stroke-width="0.8" opacity="0.9">
+    <path d="M50 88 C36 74 32 56 40 44 C48 60 56 74 60 88Z"/>
+    <path d="M78 88 C92 74 96 56 88 44 C80 60 72 74 68 88Z"/>
   </g>
-  <!-- front leaf highlights -->
-  <g fill="#2a9e22" stroke="#145210" stroke-width="0.8" opacity="0.8">
-    <path d="M30 105 Q10 72 18 38 Q30 65 30 105Z"/>
-    <path d="M98 105 Q118 72 110 38 Q98 65 98 105Z"/>
-    <path d="M64 95 Q42 62 50 25 Q62 55 64 95Z"/>
-    <path d="M64 95 Q86 62 78 25 Q66 55 64 95Z"/>
-  </g>
+  <!-- front highlight leaf -->
+  <path d="M64 92 C54 76 52 58 60 46 C68 60 72 76 72 92Z" fill="#3aB42a" stroke="#176010" stroke-width="0.8"/>
   <!-- leaf veins -->
-  <g stroke="#3ab82e" stroke-width="0.8" fill="none" opacity="0.5">
-    <path d="M64 100 Q42 75 25 35"/><path d="M64 100 Q86 75 103 35"/>
-    <path d="M30 105 Q22 78 20 45"/><path d="M98 105 Q106 78 108 45"/>
+  <g stroke="#5adc40" stroke-width="0.7" fill="none" opacity="0.5">
+    <path d="M64 90 C58 74 56 56 60 46"/><path d="M50 88 C44 72 42 56 48 46"/>
+    <path d="M78 88 C84 72 86 56 80 46"/>
   </g>
-  <!-- dappled light spots -->
-  <g fill="#5adc40" opacity="0.25">
-    <ellipse cx="40" cy="45" rx="8" ry="5" transform="rotate(-20 40 45)"/>
-    <ellipse cx="85" cy="38" rx="6" ry="4" transform="rotate(15 85 38)"/>
-    <ellipse cx="60" cy="60" rx="5" ry="3"/>
-  </g>
+  <!-- tropical flowers -->
+  <circle cx="48" cy="72" r="3" fill="#ff5a8a"/><circle cx="48" cy="72" r="1.2" fill="#ffd040"/>
+  <circle cx="82" cy="68" r="2.5" fill="#ffaa30"/><circle cx="82" cy="68" r="1" fill="#ff5a20"/>
 </svg>

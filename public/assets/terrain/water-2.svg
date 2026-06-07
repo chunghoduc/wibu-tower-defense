@@ -1,26 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="bg" cx="40%" cy="40%" r="70%">
-      <stop offset="0%" stop-color="#1e78b4"/><stop offset="100%" stop-color="#06254a"/>
+    <radialGradient id="g" cx="45%" cy="52%" r="60%">
+      <stop offset="0%" stop-color="#2890c8"/>
+      <stop offset="100%" stop-color="#082048"/>
     </radialGradient>
+    <clipPath id="c">
+      <path d="M6 70 C4 52 18 34 38 28 C58 22 82 26 98 42 C114 58 118 80 106 96 C94 112 68 116 46 108 C24 100 8 88 6 70Z"/>
+    </clipPath>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- choppy wave shapes -->
-  <g fill="#2890d0" opacity="0.55">
-    <path d="M0 45 Q8 38 16 45 Q24 52 32 45 Q40 38 48 45 Q56 52 64 45 Q72 38 80 45 Q88 52 96 45 Q104 38 112 45 Q120 52 128 45 L128 58 Q120 65 112 58 Q104 51 96 58 Q88 65 80 58 Q72 51 64 58 Q56 65 48 58 Q40 51 32 58 Q24 65 16 58 Q8 51 0 58Z"/>
-    <path d="M0 70 Q10 63 20 70 Q30 77 40 70 Q50 63 60 70 Q70 77 80 70 Q90 63 100 70 Q110 77 120 70 L128 74 L128 84 Q118 90 108 84 Q98 78 88 84 Q78 90 68 84 Q58 78 48 84 Q38 90 28 84 Q18 78 8 84 L0 84Z"/>
+  <path d="M6 70 C4 52 18 34 38 28 C58 22 82 26 98 42 C114 58 118 80 106 96 C94 112 68 116 46 108 C24 100 8 88 6 70Z" fill="url(#g)" opacity="0.93"/>
+  <!-- choppy waves -->
+  <g clip-path="url(#c)" fill="#3498d4" opacity="0.45">
+    <path d="M10 52 Q18 46 26 52 Q34 58 42 52 Q50 46 58 52 Q66 58 74 52 Q82 46 90 52 Q98 58 106 52 L110 62 Q102 68 94 62 Q86 56 78 62 Q70 68 62 62 Q54 56 46 62 Q38 68 30 62 Q22 56 14 62Z"/>
+    <path d="M8 68 Q16 62 24 68 Q32 74 40 68 Q48 62 56 68 Q64 74 72 68 Q80 62 88 68 Q96 74 104 68 L108 78 Q100 84 92 78 Q84 72 76 78 Q68 84 60 78 Q52 72 44 78 Q36 84 28 78 Q20 72 12 78Z"/>
   </g>
   <!-- white foam caps -->
-  <g fill="#d8f0ff" opacity="0.65">
-    <path d="M8 42 Q12 39 16 42"/><path d="M40 42 Q44 39 48 42"/>
-    <path d="M72 42 Q76 39 80 42"/><path d="M104 42 Q108 39 112 42"/>
-    <path d="M20 68 Q25 65 30 68"/><path d="M60 68 Q65 65 70 68"/>
-    <path d="M95 68 Q100 65 105 68"/>
+  <g clip-path="url(#c)" fill="#d8f2ff" opacity="0.7">
+    <path d="M18 50 Q22 47 26 50"/><path d="M50 48 Q54 45 58 48"/>
+    <path d="M82 50 Q86 47 90 50"/><path d="M24 66 Q28 63 32 66"/>
+    <path d="M62 64 Q66 61 70 64"/><path d="M92 66 Q96 63 100 66"/>
   </g>
-  <!-- sea spray -->
-  <g fill="#b0e8ff" opacity="0.45">
-    <circle cx="15" cy="35" r="1.5"/><circle cx="35" cy="32" r="1"/>
-    <circle cx="65" cy="30" r="1.5"/><circle cx="95" cy="33" r="1"/>
-    <circle cx="115" cy="36" r="1.5"/>
-  </g>
+  <!-- lily pad -->
+  <path d="M64 88 C58 84 54 78 58 74 C62 70 70 70 74 74 C78 78 74 88 64 88Z" fill="#2a7a1a" opacity="0.85"/>
+  <path d="M64 88 L64 74" stroke="#1a5a0a" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <circle cx="64" cy="78" r="2.5" fill="#ffcc44" opacity="0.8"/>
+  <path d="M6 70 C4 52 18 34 38 28 C58 22 82 26 98 42 C114 58 118 80 106 96 C94 112 68 116 46 108 C24 100 8 88 6 70Z" fill="none" stroke="#041428" stroke-width="2" opacity="0.4"/>
 </svg>

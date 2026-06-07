@@ -1,41 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
-    <radialGradient id="bg" cx="45%" cy="45%" r="60%">
-      <stop offset="0%" stop-color="#7e8890"/><stop offset="100%" stop-color="#383c40"/>
+    <radialGradient id="shadow" cx="50%" cy="75%" r="55%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="128" height="128" fill="url(#bg)" rx="8"/>
-  <!-- granite texture - irregular polygon stones -->
-  <g fill="#6a7278" stroke="#2e3238" stroke-width="1.2">
-    <polygon points="0,0 45,0 50,30 20,38 0,25"/>
-    <polygon points="45,0 90,0 95,22 70,35 50,30"/>
-    <polygon points="90,0 128,0 128,28 105,40 95,22"/>
-    <polygon points="0,25 20,38 15,65 0,60"/>
-    <polygon points="20,38 50,30 55,58 30,70 15,65"/>
-    <polygon points="50,30 70,35 78,60 55,58"/>
-    <polygon points="70,35 95,22 105,40 95,65 78,60"/>
-    <polygon points="105,40 128,28 128,62 95,65"/>
-    <polygon points="0,60 15,65 12,90 0,95"/>
-    <polygon points="15,65 30,70 28,95 12,90"/>
-    <polygon points="30,70 55,58 52,88 35,98 28,95"/>
-    <polygon points="55,58 78,60 80,88 52,88"/>
-    <polygon points="78,60 95,65 100,90 80,88"/>
-    <polygon points="95,65 128,62 128,95 100,90"/>
-    <polygon points="0,95 12,90 10,128 0,128"/>
-    <polygon points="12,90 35,98 32,128 10,128"/>
-    <polygon points="35,98 52,88 55,128 32,128"/>
-    <polygon points="52,88 80,88 78,128 55,128"/>
-    <polygon points="80,88 100,90 98,128 78,128"/>
-    <polygon points="100,90 128,95 128,128 98,128"/>
+  <ellipse cx="64" cy="98" rx="58" ry="14" fill="url(#shadow)"/>
+  <!-- wide flat boulder -->
+  <path d="M16 78 C12 64 20 48 36 40 C52 32 76 34 96 46 C112 56 116 72 108 84 C100 96 80 102 58 100 C36 98 20 92 16 78Z" fill="#74808a"/>
+  <path d="M16 78 C12 64 20 48 36 40 C52 32 76 34 96 46 C112 56 116 72 108 84 C100 96 80 102 58 100 C36 98 20 92 16 78Z" fill="#98a4ae" opacity="0.45" transform="translate(-4,-8)"/>
+  <!-- granite surface cracks -->
+  <g stroke="#404850" stroke-width="1.5" fill="none" opacity="0.55">
+    <path d="M28 50 L42 70 L28 86"/><path d="M42 70 L68 62 L90 76 L106 66"/>
+    <path d="M68 62 L62 38"/><path d="M90 76 L96 92"/>
   </g>
-  <!-- crack lines -->
-  <g stroke="#252830" stroke-width="2" opacity="0.5">
-    <path d="M45 0 L50 30 L20 38 L15 65 L28 95 L32 128"/>
-    <path d="M90 0 L95 22 L105 40 L95 65 L100 90 L98 128"/>
+  <!-- flat top highlight -->
+  <path d="M24 46 C40 38 68 36 90 46 C68 40 40 42 24 46Z" fill="#b8c4cc" opacity="0.55"/>
+  <!-- moss patches in cracks -->
+  <g fill="#3a5a2a" opacity="0.55">
+    <ellipse cx="38" cy="72" rx="7" ry="3"/>
+    <ellipse cx="72" cy="84" rx="9" ry="3.5"/>
+    <ellipse cx="96" cy="74" rx="6" ry="2.5"/>
   </g>
-  <!-- highlight -->
-  <g fill="#a0a8b0" opacity="0.3">
-    <polygon points="0,0 20,0 18,8 0,10"/>
-    <polygon points="90,0 128,0 128,10 92,8"/>
+  <!-- small pebble cluster -->
+  <g fill="#5a6570">
+    <ellipse cx="22" cy="92" rx="5" ry="3"/>
+    <ellipse cx="104" cy="88" rx="4" ry="2.5"/>
+    <ellipse cx="62" cy="96" rx="6" ry="3"/>
   </g>
 </svg>
