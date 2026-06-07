@@ -10,3 +10,6 @@ npm-debug.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# runtime logs (vite-plugin-filelog)
+logs/
