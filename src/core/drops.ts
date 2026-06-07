@@ -4,7 +4,7 @@ import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection } from "./collection.ts";
 import { Rng } from "./rng.ts";
-import { BLESS_JEWEL, SOUL_JEWEL, boxIdForTier } from "../data/materials.ts";
+import { BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, boxIdForTier } from "../data/materials.ts";
 import { boxTierForStage } from "../data/stage.ts";
 import type { HeroSave, ItemInstanceSave } from "./save.ts";
 
@@ -31,6 +31,7 @@ export interface DropResult {
 // Every stage clear kills that stage's boss, so jewels drop from a win.
 const BLESS_DROP_CHANCE = 0.5;   // a clear usually yields a Bless jewel
 const SOUL_DROP_CHANCE = 0.15;   // Soul jewels are rarer (for high enhances)
+const SCROLL_DROP_CHANCE = 0.05; // Summoning Scrolls are a rare boss drop
 // Boss chest: guaranteed the FIRST time you beat a stage+difficulty, then a rare
 // bonus on repeat farming so the box stays a meaningful first-clear reward (T15).
 const BOX_REPEAT_CHANCE = 0.08;
@@ -94,6 +95,8 @@ export function processStageClear(
   if (isFirstClear || rng.next() < BOX_REPEAT_CHANCE + diffBonus) {
     giveMat(boxIdForTier(boxTierForStage(stageId)), 1);
   }
+  // Rare Summoning Scroll — only the stage boss drops it.
+  if (rng.next() < SCROLL_DROP_CHANCE + diffBonus * 0.5) giveMat(SUMMON_SCROLL, 1);
 
   return { crystalsAwarded, itemDropped, skillDropped, characterDropped, isFirstClear, materialsDropped };
 }

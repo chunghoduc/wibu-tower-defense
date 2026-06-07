@@ -5,8 +5,9 @@
  */
 export const BLESS_JEWEL = "bless-jewel";
 export const SOUL_JEWEL = "soul-jewel";
+export const SUMMON_SCROLL = "summon-scroll";
 
-export type MaterialKind = "jewel" | "box";
+export type MaterialKind = "jewel" | "box" | "scroll";
 
 export interface MaterialDef {
   id: string;
@@ -27,6 +28,10 @@ export const MATERIALS: MaterialDef[] = [
   {
     id: SOUL_JEWEL, name: "Jewel of Soul", kind: "jewel", icon: "soul",
     description: "Enhances an item beyond +6. Success falls 10% per level; on failure the item loses 1–5 levels.",
+  },
+  {
+    id: SUMMON_SCROLL, name: "Summoning Scroll", kind: "scroll", icon: "scroll",
+    description: "A rare scroll dropped by bosses. Use it in the Summon Hall for one free summon.",
   },
 ];
 

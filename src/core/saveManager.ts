@@ -3,7 +3,9 @@ import { processStageClear, type DropResult } from "./drops.ts";
 import { performMultiSummon, performSummon, type SummonResult } from "./gacha.ts";
 import { awardHeroXp } from "./hero.ts";
 import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
-import { purchaseShopItem, type PurchaseResult } from "./shop.ts";
+import { ensureShopStock, refreshShop, buyShopSlot, sellItem, type PurchaseResult } from "./shop.ts";
+import { SUMMON_SCROLL } from "../data/materials.ts";
+import type { ShopStockEntry } from "./save.ts";
 import { attemptEnhance, type EnhanceResult } from "./enhance.ts";
 import { openBox, type BoxReward } from "./boxes.ts";
 import type { ItemSlot } from "../data/schema.ts";
@@ -173,9 +175,41 @@ export class SaveManager {
     this.persist();
   }
 
-  afterShopPurchase(entryId: string): PurchaseResult {
-    const result = purchaseShopItem(this.save, entryId);
-    if (result.success) this.persist();
+  /** Current shop stock (rolled + persisted on first access). */
+  getShopStock(): ShopStockEntry[] {
+    ensureShopStock(this.save, new Rng((Math.random() * 1e9) | 0));
+    return this.save.shop.stock;
+  }
+
+  /** Reroll the shop for crystals. */
+  refreshShop(): PurchaseResult {
+    const r = refreshShop(this.save, new Rng((Math.random() * 1e9) | 0));
+    if (r.success) this.persist();
+    return r;
+  }
+
+  /** Buy a shop stock slot (item → inventory, scroll → materials). */
+  buyShopSlot(slotId: string): PurchaseResult {
+    const r = buyShopSlot(this.save, slotId);
+    if (r.success) this.persist();
+    return r;
+  }
+
+  /** Sell an inventory item for 75% of its value. */
+  sellItem(instanceId: string): PurchaseResult & { refund: number } {
+    const r = sellItem(this.save, instanceId);
+    if (r.success) this.persist();
+    return r;
+  }
+
+  /** Spend one Summoning Scroll on a free single summon. Null if none held. */
+  useSummonScroll(rng: Rng = new Rng((Math.random() * 1e9) | 0)): SummonResult | null {
+    if ((this.save.materials[SUMMON_SCROLL] ?? 0) <= 0) return null;
+    this.save.materials[SUMMON_SCROLL] -= 1;
+    this.save.currency.crystals += SINGLE_PULL_COST; // pre-credit so the pull nets free
+    const result = performSummon(this.save, rng);
+    checkAndGrantAchievements(this.save);
+    this.persist();
     return result;
   }
 

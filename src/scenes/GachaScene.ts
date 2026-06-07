@@ -20,6 +20,7 @@ export class GachaScene extends Phaser.Scene {
   private pityText!: Phaser.GameObjects.Text;
   private pull1Btn!: Phaser.GameObjects.Text;
   private pull10Btn!: Phaser.GameObjects.Text;
+  private scrollBtn!: Phaser.GameObjects.Text;
   private resultContainer!: Phaser.GameObjects.Container;
 
   constructor() {
@@ -80,6 +81,12 @@ export class GachaScene extends Phaser.Scene {
     this.pull1Btn.on("pointerdown", () => this.doPull(1));
     this.pull10Btn.on("pointerdown", () => this.doPull(10));
 
+    // Use a Summoning Scroll for one FREE pull (scrolls drop from bosses).
+    this.scrollBtn = this.add
+      .text(W / 2, 178, "", { fontSize: "14px", color: "#fff", backgroundColor: "#5a3a1a" })
+      .setOrigin(0.5).setPadding(12, 6, 12, 6).setInteractive({ useHandCursor: true });
+    this.scrollBtn.on("pointerdown", () => this.useScroll());
+
     this.resultContainer = this.add.container(0, 0);
 
     this.refreshUI();
@@ -94,6 +101,15 @@ export class GachaScene extends Phaser.Scene {
     );
     this.pull1Btn.setAlpha(s.currency.crystals >= SINGLE_PULL_COST ? 1 : 0.4);
     this.pull10Btn.setAlpha(s.currency.crystals >= MULTI_PULL_COST ? 1 : 0.4);
+    const scrolls = s.materials["summon-scroll"] ?? 0;
+    this.scrollBtn.setText(`📜 Use Scroll — free pull  (×${scrolls})`).setAlpha(scrolls > 0 ? 1 : 0.4);
+  }
+
+  private useScroll(): void {
+    const result = this.mgr.useSummonScroll(new Rng(Date.now()));
+    if (!result) return;
+    this.showResults([result]);
+    this.refreshUI();
   }
 
   private doPull(count: 1 | 10): void {

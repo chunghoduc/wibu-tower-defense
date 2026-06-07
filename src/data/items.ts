@@ -246,3 +246,15 @@ export function rollItem(def: ItemDef, heroLevel: number, seed: number): ItemIns
     enhanceLevel: 0,
   };
 }
+
+/** Crystal value of an item by rarity, scaled gently with its required level. */
+const RARITY_BASE_PRICE: Record<Rarity, number> = {
+  Common: 120, Magic: 300, Rare: 700, Legendary: 1600, Unique: 3600,
+};
+export function itemValue(def: ItemDef): number {
+  return Math.round((RARITY_BASE_PRICE[def.rarity] ?? 120) * (1 + 0.02 * def.requiredLevel));
+}
+/** Crystals refunded when selling an item back to the shop (75% of value). */
+export function itemSellValue(def: ItemDef): number {
+  return Math.round(itemValue(def) * 0.75);
+}

@@ -74,6 +74,18 @@ export function defaultSettings(): GameSettings {
   return { volume: 0.7, muted: false, musicEnabled: true };
 }
 
+/** One slot of the rotating shop stock — a rolled item or a summoning scroll. */
+export interface ShopStockEntry {
+  slotId: string;
+  kind: "item" | "scroll";
+  cost: number;
+  /** Present when kind === "item": the exact rolled instance you'll receive. */
+  item?: ItemInstanceSave;
+}
+export interface ShopSave {
+  stock: ShopStockEntry[];
+}
+
 export interface HeroSave {
   version: number;
   heroId: string;
@@ -88,6 +100,8 @@ export interface HeroSave {
   materials: Record<string, number>;
   /** Audio/game settings (T9). */
   settings: GameSettings;
+  /** Rotating shop stock (persisted so purchases stay sold). */
+  shop: ShopSave;
   lastSavedAt: number;
 }
 
@@ -115,6 +129,7 @@ export function createFreshSave(): HeroSave {
     squad: [],
     materials: {},
     settings: defaultSettings(),
+    shop: { stock: [] },
     lastSavedAt: 0,
   };
 }
@@ -145,6 +160,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   save.currency ??= { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false };
   save.progress ??= { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 };
   save.settings = { ...defaultSettings(), ...(save.settings ?? {}) };
+  save.shop ??= { stock: [] };
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }
