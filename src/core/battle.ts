@@ -35,6 +35,7 @@ import { Rng } from "./rng.ts";
 import { heroStatPipeline, towerStatPipeline } from "./stats.ts";
 import { effectiveBehavior } from "./towerUpgrade.ts";
 import { scaleStatsByEnhance } from "./enhance.ts";
+import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
@@ -59,7 +60,7 @@ function segDist(p: Vec2, a: Vec2, b: Vec2): number {
  * holds the current tick's events; it is cleared at the start of every tick.
  */
 export type FxEvent =
-  | { type: "attack"; uid: number; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero" }
+  | { type: "attack"; uid: number; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero"; style: string }
   | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
   | { type: "death"; at: Vec2; boss: boolean; bounty: number }
   | { type: "enemyAttack"; uid: number; at: Vec2; targetAt: Vec2; target: "hero" | "tower" }
@@ -805,7 +806,7 @@ export class BattleState {
       if (!target) continue;
 
       const effAtk = t.stats.atk * (1 + t.buffAtkPct);
-      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role, t.uid);
+      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role, t.uid, attackStyleFor(t.def));
       this.applyRoleEffect(t, effAtk, target);
 
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
@@ -869,7 +870,7 @@ export class BattleState {
     const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
     if (!target) return;
 
-    this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1);
+    this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1, heroAttackStyle(h.damageType, h.stats.range));
     if (h.stats.maxMana > 0 && h.mana >= h.stats.maxMana) {
       this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero");
       h.mana = 0;
@@ -894,6 +895,7 @@ export class BattleState {
     source: "tower" | "hero",
     role: string,
     srcUid: number,
+    style: string,
   ): void {
     const wasAlive = target.alive;
     const didCrit = this.rng.chance(unit.stats.critRate);
@@ -908,6 +910,7 @@ export class BattleState {
       crit: didCrit,
       role,
       source,
+      style,
     });
     const dealt = this.applyDamage(target, damageType, raw, unit.stats.armorPen, unit.stats.magicPen, false);
 

@@ -52,8 +52,7 @@ export class FxLayer {
   play(e: FxEvent): void {
     switch (e.type) {
       case "attack":
-        if (e.ranged) this.projectile(e.from, e.to, DMG_COLOR[e.damageType], e.role);
-        else this.slash(e.to, e.crit ? 0xffe07a : DMG_COLOR[e.damageType]);
+        this.attackFx(e.style, e.from, e.to, e.ranged, e.crit, DMG_COLOR[e.damageType], e.role);
         break;
       case "hit":
         this.spark(e.at, DMG_COLOR[e.damageType]);
@@ -110,6 +109,56 @@ export class FxLayer {
     this.scene.tweens.add({ targets: streak, x: to.x - Math.cos(ang) * 8, y: to.y - Math.sin(ang) * 8, alpha: 0, duration: 160, ease: "Quad.easeIn", onComplete: () => streak.destroy() });
     const impact = this.fac.circle(to.x, to.y, 6, 0xff8a5a, 0.8).setDepth(this.depth + 1);
     this.scene.tweens.add({ targets: impact, scale: 1.8, alpha: 0, duration: 200, onComplete: () => impact.destroy() });
+  }
+
+  /** Dispatch a per-character attack visual by style (T6). */
+  private attackFx(style: string, from: Vec2, to: Vec2, ranged: boolean, crit: boolean, dmgColor: number, role: string): void {
+    switch (style) {
+      case "lightning": this.bolt(from, to, 0x9fe6ff); this.spark(to, 0x9fe6ff); return;
+      case "slash": this.slash(to, crit ? 0xffe07a : dmgColor); return;
+      case "hex": this.slash(to, 0xb085f5); return;
+      case "arrow": this.arrow(from, to, 0xe8d9a0); return;
+      case "fireball": this.orb(from, to, 0xff6a2a, 5.5, 0xffd24d, "round"); return;
+      case "iceball": this.orb(from, to, 0x6fc6ff, 5, 0xe1f5ff, "diamond"); return;
+      case "arcane": this.orb(from, to, 0xc77dde, 5, 0xeec6ff, "round"); return;
+      case "poison": this.orb(from, to, 0x8bc34a, 5, 0xd3ec9e, "round"); return;
+      case "holy": this.orb(from, to, 0xffe98a, 4.5, 0xffffff, "round"); return;
+      case "cannon": this.orb(from, to, 0x4a4f5a, 7, 0x9aa0ac, "round"); return;
+      default:
+        if (ranged) this.projectile(from, to, dmgColor, role);
+        else this.slash(to, crit ? 0xffe07a : dmgColor);
+    }
+  }
+
+  /** An arrow — a thin streak that flies to the target and sticks briefly. */
+  private arrow(from: Vec2, to: Vec2, color: number): void {
+    const ang = Math.atan2(to.y - from.y, to.x - from.x);
+    const shaft = this.fac.rectangle(from.x, from.y, 14, 2.5, color).setRotation(ang).setOrigin(0.5).setDepth(this.depth);
+    shaft.setStrokeStyle(1, 0x2a2118, 0.6);
+    const dur = Math.min(240, 50 + Phaser.Math.Distance.BetweenPoints(from as Phaser.Types.Math.Vector2Like, to as Phaser.Types.Math.Vector2Like) * 0.85);
+    this.scene.tweens.add({
+      targets: shaft, x: to.x, y: to.y, duration: dur, ease: "Sine.easeIn",
+      onComplete: () => { this.spark(to, color); shaft.destroy(); },
+    });
+  }
+
+  /** A magic orb (round or diamond) that flies to the target with a glow + a
+   *  colored impact burst. Used for fireball/iceball/arcane/poison/holy/cannon. */
+  private orb(from: Vec2, to: Vec2, color: number, r: number, core: number, shape: "round" | "diamond" = "round"): void {
+    const body = shape === "diamond"
+      ? this.fac.star(from.x, from.y, 4, r * 0.5, r, color).setDepth(this.depth)
+      : this.fac.circle(from.x, from.y, r, color).setDepth(this.depth);
+    if (shape === "round") body.setStrokeStyle(1.5, core, 0.7);
+    const glow = this.fac.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
+    const dur = Math.min(260, 60 + Phaser.Math.Distance.BetweenPoints(from as Phaser.Types.Math.Vector2Like, to as Phaser.Types.Math.Vector2Like) * 0.9);
+    this.scene.tweens.add({
+      targets: [body, glow], x: to.x, y: to.y, duration: dur, ease: "Sine.easeIn",
+      onComplete: () => {
+        body.destroy(); glow.destroy();
+        const burst = this.fac.circle(to.x, to.y, r + 1, core, 0.9).setDepth(this.depth + 1);
+        this.scene.tweens.add({ targets: burst, scale: 2.6, alpha: 0, duration: 240, ease: "Quad.easeOut", onComplete: () => burst.destroy() });
+      },
+    });
   }
 
   // ---- primitives ----------------------------------------------------------
