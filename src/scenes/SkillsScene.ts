@@ -9,6 +9,7 @@ import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { skillXpToLevel, skillEffectivePower } from "../core/hero.ts";
+import { skillWeaponMet } from "../core/loadout.ts";
 import type { Rarity, ActiveSkillDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 
@@ -76,7 +77,10 @@ export class SkillsScene extends Phaser.Scene {
     // Header.
     this.layer.add(crispText(this, x + 62, y + 10, def.name, { fontSize: "13px", color: owned ? RARITY_HEX[def.rarity] : "#5c6a70", fontStyle: "bold", wordWrap: { width: CW - 70 } }));
     this.layer.add(crispText(this, x + 62, y + 30, `${def.rarity} · ${def.damageType}`, { fontSize: "10px", color: owned ? DMG_HEX[def.damageType] ?? "#9fb0c4" : "#566275" }));
-    this.layer.add(crispText(this, x + 62, y + 44, def.requiresWeapon ? `Weapon: ${def.requiresWeapon}` : "Any weapon", { fontSize: "9px", color: "#7c8aa0" }));
+    const met = skillWeaponMet(this.mgr.getSave(), def.id);
+    this.layer.add(crispText(this, x + 62, y + 44,
+      def.requiresWeapon ? `Weapon: ${def.requiresWeapon}${met ? " ✓" : ""}` : "Any weapon",
+      { fontSize: "9px", color: def.requiresWeapon ? (met ? "#8be06a" : "#ff9a9a") : "#7c8aa0" }));
 
     // Description.
     this.layer.add(crispText(this, x + 10, y + 64, def.description, { fontSize: "9px", color: owned ? "#aeb9c8" : "#5a6678", wordWrap: { width: CW - 20 } }));
@@ -115,6 +119,8 @@ export class SkillsScene extends Phaser.Scene {
     if (this.mgr.equipSkill(def.id)) {
       this.showToast(`Equipped ${def.name}`);
       this.redraw();
+    } else if (def.requiresWeapon && !skillWeaponMet(this.mgr.getSave(), def.id)) {
+      this.showToast(`Requires a ${def.requiresWeapon} equipped (Inventory)`);
     } else {
       this.showToast(`Cannot equip ${def.name}`);
     }

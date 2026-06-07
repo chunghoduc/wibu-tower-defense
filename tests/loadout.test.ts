@@ -69,9 +69,9 @@ describe("unequipSlot", () => {
 });
 
 describe("equipSkill", () => {
-  it("equips a skill the hero owns", () => {
+  it("equips a skill the hero owns (no weapon requirement)", () => {
     const save = createFreshSave();
-    const skill = ACTIVE_SKILLS[0];
+    const skill = ACTIVE_SKILLS.find((s) => !s.requiresWeapon) ?? ACTIVE_SKILLS[0];
     save.hero.obtainedSkills.push({ skillId: skill.id, level: 1, useXp: 0 });
     const ok = equipSkill(save, skill.id);
     expect(ok).toBe(true);

@@ -6,7 +6,8 @@
  * through its hero stat pipeline.
  */
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
-import type { ItemSlot } from "../data/schema.ts";
+import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
+import type { ItemSlot, WeaponType } from "../data/schema.ts";
 import type { HeroSave } from "./save.ts";
 
 /**
@@ -29,13 +30,29 @@ export function unequipSlot(save: HeroSave, slot: ItemSlot): void {
   delete save.inventory.equipped[slot];
 }
 
+/** The weapon type currently equipped in the hero's Weapon slot, if any. */
+export function equippedWeaponType(save: HeroSave): WeaponType | undefined {
+  const id = save.inventory.equipped.Weapon;
+  const inst = id ? save.inventory.items.find((it) => it.id === id) : undefined;
+  const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
+  return def?.weaponType;
+}
+
+/** Whether the skill's weapon requirement is met by the currently-equipped weapon. */
+export function skillWeaponMet(save: HeroSave, skillId: string): boolean {
+  const skill = ACTIVE_SKILLS_MAP.get(skillId);
+  if (!skill?.requiresWeapon) return true;           // no requirement → always ok
+  return equippedWeaponType(save) === skill.requiresWeapon;
+}
+
 /**
- * Equip an active skill the hero has obtained.
- * Returns false if the hero does not own the skill.
+ * Equip an active skill the hero has obtained. Returns false if the hero does
+ * not own the skill, OR the skill requires a weapon type that isn't equipped.
  */
 export function equipSkill(save: HeroSave, skillId: string): boolean {
   const owned = save.hero.obtainedSkills.some((s) => s.skillId === skillId);
   if (!owned) return false;
+  if (!skillWeaponMet(save, skillId)) return false;  // requires a matching weapon
   save.hero.equippedSkillId = skillId;
   return true;
 }
