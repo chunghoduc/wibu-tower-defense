@@ -39,7 +39,18 @@ describe("itemStatRows colouring", () => {
   });
 
   it("formats fractional stats as percentages", () => {
-    const row = itemStatRows(inst({ rolledStats: { critRate: 0.22 } }), def).find((r) => r.label === "Crit")!;
+    const row = itemStatRows(inst({ rolledStats: { critRate: 0.22 } }), def).find((r) => r.source === "base" && r.before === "Crit")!;
     expect(row.value).toBe("22%");
+  });
+
+  it("renders affixes as full sentences with the value embedded", () => {
+    const rows = itemStatRows(inst({ rolledAffixes: [{ type: "armorPen", value: 0.07 }] }), def);
+    const a = rows.find((r) => r.source === "affix")!;
+    expect(a.before).toBe("Ignores ");
+    expect(a.value).toBe("7%");
+    expect(a.after).toBe(" of enemy Armor");
+    // primary affix (critRate on this ring) reads as a sentence too
+    const p = rows.find((r) => r.source === "primary")!;
+    expect(`${p.before}${p.value}${p.after}`).toMatch(/Critical Chance/);
   });
 });

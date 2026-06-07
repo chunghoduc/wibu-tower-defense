@@ -338,7 +338,7 @@ export class HeroScene extends Phaser.Scene {
     this.tooltip.removeAll(true);
     const rows = itemStatRows(inst, def);
 
-    const w = 190, headerH = 36, rowH = 13, footerH = 26;
+    const w = 234, headerH = 36, rowH = 13, footerH = 26;
     const h = headerH + rows.length * rowH + footerH;
     const tx = Phaser.Math.Clamp(x + 30, 0, this.scale.width - w);
     const ty = Phaser.Math.Clamp(y - 10, 0, 540 - h);
@@ -352,12 +352,24 @@ export class HeroScene extends Phaser.Scene {
     this.tooltip.add(this.add.text(tx + 8, ty + 6, def.name, { fontSize: "11px", color: RARITY_HEX[def.rarity], fontStyle: "bold" }));
     this.tooltip.add(this.add.text(tx + 8, ty + 21, `${def.rarity} ${def.slot}${def.weaponType ? ` (${def.weaponType})` : ""}${enh}`, { fontSize: "9px", color: "#9fb0c4" }));
 
-    // Stat rows: label colour = source (white base / blue primary affix / purple
-    // additional affix), value colour = roll quality (green better / red worse).
+    // Stat rows. Source colour (white base / blue primary affix / purple extra
+    // affix) marks where the stat comes from; value colour (green better / red
+    // worse) marks roll quality. Base stats: label + right-aligned value. Affixes:
+    // a full sentence with the value tinted inline (e.g. blue "Ignores " + green
+    // "7%" + blue " of enemy Armor").
     let ry = ty + headerH;
     for (const r of rows) {
-      this.tooltip.add(this.add.text(tx + 10, ry, r.label, { fontSize: "9px", color: SOURCE_COLOR[r.source] }));
-      this.tooltip.add(this.add.text(tx + w - 8, ry, r.value, { fontSize: "9px", color: QUALITY_COLOR[r.quality], fontStyle: "bold" }).setOrigin(1, 0));
+      const vstyle = { fontSize: "9px", color: QUALITY_COLOR[r.quality], fontStyle: "bold" };
+      if (r.source === "base") {
+        this.tooltip.add(this.add.text(tx + 10, ry, r.before, { fontSize: "9px", color: SOURCE_COLOR.base }));
+        this.tooltip.add(this.add.text(tx + w - 8, ry, r.value, vstyle).setOrigin(1, 0));
+      } else {
+        const sc = { fontSize: "9px", color: SOURCE_COLOR[r.source] };
+        let cx = tx + 10;
+        const b = this.add.text(cx, ry, r.before, sc); this.tooltip.add(b); cx += b.width;
+        const v = this.add.text(cx, ry, r.value, vstyle); this.tooltip.add(v); cx += v.width;
+        this.tooltip.add(this.add.text(cx, ry, r.after, sc));
+      }
       ry += rowH;
     }
 
