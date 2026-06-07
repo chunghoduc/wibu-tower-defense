@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { PASSIVE_NODES, getReachableNodes } from "../data/passiveGrid.ts";
 import type { PassiveNodeDef } from "../data/schema.ts";
@@ -123,13 +124,14 @@ export class PassiveGridScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeIn(this);
     this.mgr = this.registry.get("saveManager");
 
     // Back button
     this.add
       .text(20, 8, "← Back", { fontSize: "15px", color: "#90caf9" })
       .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => this.scene.start("MainMenuScene"));
+      .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
     this.add
       .text(PANEL_X + PANEL_W / 2, 10, "Passive Tree", {

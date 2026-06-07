@@ -6,6 +6,7 @@
  * picker sits at the bottom. Persists via SaveManager (setSquad / equipSkill).
  */
 import Phaser from "phaser";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { getTowerStars } from "../core/collection.ts";
 import { TOWERS } from "../data/towers.ts";
@@ -41,6 +42,7 @@ export class SquadScene extends Phaser.Scene {
   constructor() { super("SquadScene"); }
 
   create(): void {
+    fadeIn(this);
     this.mgr = this.registry.get("saveManager");
     const save = this.mgr.getSave();
     this.slots = Array.from({ length: SQUAD_MAX }, (_, i) => save.squad?.[i] ?? null);
@@ -51,7 +53,7 @@ export class SquadScene extends Phaser.Scene {
 
     this.add.text(W / 2, 10, "Battle Squad", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "24px", color: "#ffd700", fontStyle: "bold" }).setOrigin(0.5, 0);
     this.add.text(20, 8, "← Back", { fontSize: "15px", color: "#90caf9" })
-      .setInteractive({ useHandCursor: true }).on("pointerup", () => this.scene.start("MainMenuScene"));
+      .setInteractive({ useHandCursor: true }).on("pointerup", () => fadeToScene(this, "MainMenuScene"));
 
     // 7 squad slots (drop zones) along the top.
     crispText(this, 24, 36, "Squad — drag a character into a slot, or tap a slot to clear:", { fontSize: "11px", color: "#90a4bb" });

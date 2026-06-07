@@ -4,6 +4,7 @@ import { getTowerStars } from "../core/collection.ts";
 import { TOWERS } from "../data/towers.ts";
 import type { CharacterDef } from "../data/schema.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 
 const RARITY_INT: Record<string, number> = {
   Common: 0x9e9e9e,
@@ -36,6 +37,7 @@ export class CollectionScene extends Phaser.Scene {
 
   create(): void {
     this.detail = null;
+    fadeIn(this);
     const mgr: SaveManager = this.registry.get("saveManager");
     const save = mgr.getSave();
     const W = this.scale.width;
@@ -59,7 +61,7 @@ export class CollectionScene extends Phaser.Scene {
     this.add
       .text(20, 6, "← Back", { fontSize: "15px", color: "#90caf9" })
       .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => this.scene.start("MainMenuScene"));
+      .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
     const START_X = (W - (COLS - 1) * GAP_X - CARD_W) / 2 + CARD_W / 2;
     const START_Y = 78;

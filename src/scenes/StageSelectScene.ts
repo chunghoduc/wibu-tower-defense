@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { STAGES } from "../data/stage.ts";
 import { ENEMIES } from "../data/enemies.ts";
@@ -28,6 +29,7 @@ export class StageSelectScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeIn(this);
     // Phaser reuses the scene instance across visits, so clear refs from the
     // previous visit — otherwise refreshDiffTabs() would call setBackgroundColor
     // on destroyed Texts whose WebGL texture source is gone (crash on real GPU).
@@ -48,7 +50,7 @@ export class StageSelectScene extends Phaser.Scene {
     this.add
       .text(20, 8, "← Back", { fontSize: "15px", color: "#90caf9" })
       .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => this.scene.start("MainMenuScene"));
+      .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
     this.add
       .text(W - 20, 12, "? Enemies", { fontSize: "14px", color: "#fff", backgroundColor: "#2a3a5a" })

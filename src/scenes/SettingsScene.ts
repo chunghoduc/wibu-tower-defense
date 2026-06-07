@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { SaveManager } from "../core/saveManager.ts";
 import { crispText } from "./ui.ts";
 import { setAudioVolume, setAudioMuted, music } from "./audio.ts";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 
 /**
  * SettingsScene — audio config (music on/off, master volume, mute) plus a
@@ -20,11 +21,12 @@ export class SettingsScene extends Phaser.Scene {
     this.confirmingReset = false;
     this.mgr = this.registry.get("saveManager");
     const W = this.scale.width;
+    fadeIn(this);
 
     this.add.text(W / 2, 40, "⚙  Settings", { fontSize: "28px", color: "#ffd700", fontStyle: "bold" }).setOrigin(0.5);
     this.add.text(20, 8, "← Back", { fontSize: "15px", color: "#90caf9" })
       .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => this.scene.start("MainMenuScene"));
+      .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
     this.render();
   }
@@ -68,7 +70,7 @@ export class SettingsScene extends Phaser.Scene {
       this.label(cx, y - 28, "This wipes ALL progress. Are you sure?", "#ff9a9a", 14);
       this.button(cx - 90, y, "Yes, reset", "#b23b3b", () => {
         this.mgr.resetProgress();
-        this.scene.start("MainMenuScene");
+        fadeToScene(this, "MainMenuScene");
       }, 150);
       this.button(cx + 90, y, "Cancel", "#3a4a6a", () => { this.confirmingReset = false; this.render(); }, 130);
     }

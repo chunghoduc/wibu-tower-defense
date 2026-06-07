@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { SHOP_CATALOG } from "../core/shop.ts";
 import { TOWERS } from "../data/towers.ts";
@@ -22,6 +23,7 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeIn(this);
     // Clear refs from a previous visit (Phaser reuses the scene instance) so
     // refreshUI() never touches destroyed Texts from the last time.
     this.itemRows = [];
@@ -39,7 +41,7 @@ export class ShopScene extends Phaser.Scene {
     this.add
       .text(20, 8, "← Back", { fontSize: "16px", color: "#90caf9" })
       .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => this.scene.start("MainMenuScene"));
+      .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
     this.crystalText = this.add
       .text(W / 2, 60, "", { fontSize: "18px", color: "#90caf9" })

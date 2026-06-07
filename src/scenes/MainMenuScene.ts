@@ -3,6 +3,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { music } from "./audio.ts";
 import { bgKey } from "../data/bgManifest.ts";
 import { crispText } from "./ui.ts";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 
 /** A menu destination: an icon-glyph button placed on the left/right/bottom edge. */
 interface MenuItem {
@@ -34,6 +35,7 @@ export class MainMenuScene extends Phaser.Scene {
     const mgr: SaveManager = this.registry.get("saveManager");
     const save = mgr.getSave();
     const W = this.scale.width, H = this.scale.height;
+    fadeIn(this);
 
     // Start the ambient music bed on the first gesture (Web Audio needs one).
     const set = mgr.getSettings();
@@ -129,7 +131,7 @@ export class MainMenuScene extends Phaser.Scene {
     z.on("pointerover", () => this.tweens.add({ targets: c, scale: 1.12, duration: 130, ease: "Back.easeOut" }));
     z.on("pointerout", () => this.tweens.add({ targets: c, scale: 1, duration: 130, ease: "Sine.easeOut" }));
     z.on("pointerdown", () => {
-      this.tweens.add({ targets: c, scale: 0.9, duration: 80, yoyo: true, onComplete: () => this.scene.start(item.scene) });
+      this.tweens.add({ targets: c, scale: 0.9, duration: 80, yoyo: true, onComplete: () => fadeToScene(this, item.scene) });
     });
   }
 }

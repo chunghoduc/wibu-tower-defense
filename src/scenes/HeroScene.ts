@@ -4,6 +4,7 @@
  * drag an equipped item back to the bag to unequip. Hover shows a stat tooltip.
  */
 import Phaser from "phaser";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { ITEM_SLOTS, type ItemSlot, type Rarity } from "../data/schema.ts";
@@ -43,6 +44,7 @@ export class HeroScene extends Phaser.Scene {
   constructor() { super("HeroScene"); }
 
   create(): void {
+    fadeIn(this);
     this.mgr = this.registry.get("saveManager");
     this.slotZones.clear(); this.slotPos.clear();
     this.filterTabs = [];          // reset on scene re-entry
@@ -52,7 +54,7 @@ export class HeroScene extends Phaser.Scene {
 
     this.add.text(W / 2, 12, "Hero — Loadout", { fontSize: "23px", color: "#ffd700", fontStyle: "bold" }).setOrigin(0.5, 0);
     this.add.text(20, 8, "← Back", { fontSize: "15px", color: "#90caf9" })
-      .setInteractive({ useHandCursor: true }).on("pointerdown", () => this.scene.start("MainMenuScene"));
+      .setInteractive({ useHandCursor: true }).on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
     const save = this.mgr.getSave();
     this.add.text(40, 48, `Level ${save.hero.level}`, { fontSize: "14px", color: "#cfe0f5" });

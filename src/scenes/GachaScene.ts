@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { HARD_PITY, MULTI_PULL_COST, SINGLE_PULL_COST, type SummonResult } from "../core/gacha.ts";
 import { Rng } from "../core/rng.ts";
@@ -25,6 +26,7 @@ export class GachaScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeIn(this);
     this.mgr = this.registry.get("saveManager");
     const W = this.scale.width;
 
@@ -39,7 +41,7 @@ export class GachaScene extends Phaser.Scene {
     this.add
       .text(20, 8, "← Back", { fontSize: "16px", color: "#90caf9" })
       .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => this.scene.start("MainMenuScene"));
+      .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
     this.crystalText = this.add
       .text(W / 2, 72, "", { fontSize: "18px", color: "#90caf9" })
