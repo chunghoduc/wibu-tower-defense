@@ -24,6 +24,7 @@ import { stageThemeForStage } from "../data/chapters.ts";
 import { stageBgKey } from "../data/uiManifest.ts";
 import { crispText } from "./ui.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
+import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
 import { activeSkillDetail } from "../data/skillDescribe.ts";
 import { upgradeSummary } from "../core/towerUpgrade.ts";
@@ -693,6 +694,7 @@ export class BattleScene extends Phaser.Scene {
       if (result.itemDropped) lines.push(`📦 Item: ${result.itemDropped.defId}`);
       if (result.skillDropped) lines.push(`⚡ Skill: ${result.skillDropped}`);
       if (result.characterDropped) lines.push(`✨ New character: ${result.characterDropped}`);
+      if (result.jewelDropped) lines.push(`🔷 Jewel: ${JEWEL_CATALOG_MAP.get(result.jewelDropped.defId)?.name ?? result.jewelDropped.defId}`);
       for (const [id, n] of Object.entries(result.materialsDropped ?? {})) {
         lines.push(`💠 ${MATERIALS_MAP.get(id)?.name ?? id} ×${n}`);
       }
