@@ -162,6 +162,17 @@ export function defaultStats(): Stats {
   };
 }
 
+/**
+ * Stats that are already fractions / multipliers (crit chance, penetration, %
+ * reductions, skill power…). On items these add FLAT and are NOT scaled by item
+ * level (a level-40 item shouldn't turn a 12% crit base into 50%); scalar stats
+ * like atk/hp do scale. Shared so item rolling and affix resolution agree.
+ */
+export const FRACTIONAL_STAT_KEYS = new Set<keyof Stats>([
+  "critRate", "critDamage", "critDefense", "armorPen", "magicPen",
+  "damageReduction", "tenacity", "omnivamp", "goldFind", "skillPower", "manaCostReduction",
+]);
+
 /** Build a Stats from partial overrides on top of the zeroed baseline. */
 export function makeStats(overrides: Partial<Stats>): Stats {
   return { ...defaultStats(), ...overrides };

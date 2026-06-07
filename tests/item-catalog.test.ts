@@ -1,6 +1,40 @@
 import { describe, expect, it } from "vitest";
-import { ITEM_CATALOG } from "../src/data/items.ts";
+import { ITEM_CATALOG, rollItem } from "../src/data/items.ts";
 import { ITEM_SLOTS, WEAPON_TYPES } from "../src/data/schema.ts";
+
+describe("crit stats stay reasonable", () => {
+  it("crit base stats do NOT balloon with item level (fractional, level-independent)", () => {
+    const ring = ITEM_CATALOG.find((d) => d.id === "mythic-precision-ring")!;
+    let max = 0;
+    for (let s = 1; s <= 200; s++) max = Math.max(max, rollItem(ring, 60, s).rolledStats.critRate ?? 0);
+    expect(max).toBeLessThan(0.12); // base alone never near a level-scaled 0.5+
+  });
+
+  it("no single item rolls more than ~30% total crit chance", () => {
+    let max = 0;
+    for (const d of ITEM_CATALOG) {
+      const hasCrit = (d.baseStats.critRate ?? 0) > 0 || d.primaryAffix.type === "critRate" || d.affixPool.includes("critRate");
+      if (!hasCrit) continue;
+      for (let s = 1; s <= 120; s++) {
+        const inst = rollItem(d, 60, s);
+        let cr = inst.rolledStats.critRate ?? 0;
+        if (d.primaryAffix.type === "critRate") cr += inst.rolledPrimaryAffix;
+        for (const a of inst.rolledAffixes) if (a.type === "critRate") cr += a.value;
+        max = Math.max(max, cr);
+      }
+    }
+    expect(max).toBeLessThan(0.30);
+  });
+
+  it("each critRate affix rolls within its capped range", () => {
+    const ring = ITEM_CATALOG.find((d) => d.id === "mythic-precision-ring")!;
+    for (let s = 1; s <= 200; s++) {
+      for (const a of rollItem(ring, 60, s).rolledAffixes) {
+        if (a.type === "critRate") { expect(a.value).toBeGreaterThanOrEqual(0.02); expect(a.value).toBeLessThanOrEqual(0.05); }
+      }
+    }
+  });
+});
 
 describe("expanded item catalog (T10)", () => {
   it("has at least 149 items (19 base + 130 generated)", () => {

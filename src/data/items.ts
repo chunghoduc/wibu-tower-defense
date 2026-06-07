@@ -7,8 +7,18 @@ import {
   type RolledAffix,
   type Stats,
   type WeaponType,
+  FRACTIONAL_STAT_KEYS,
   validateItemDef,
 } from "./schema.ts";
+
+// Per-affix roll range [min, max]. Crit affixes apply FLAT, so they're kept
+// modest (a few % each) — without this they'd roll the generic 5–20% and stack
+// to absurd crit chance. Everything else uses the default increased%/flat range.
+const DEFAULT_AFFIX_RANGE: [number, number] = [0.05, 0.20];
+const AFFIX_RANGE: Partial<Record<string, [number, number]>> = {
+  critRate: [0.02, 0.05],    // +2–5% crit chance per affix
+  critDamage: [0.05, 0.15],  // +5–15% crit damage per affix
+};
 
 function i(def: ItemDef): ItemDef {
   return validateItemDef(def);
@@ -188,14 +198,21 @@ const ITEM_LINES: ItemLine[] = [
 ];
 
 const r2 = (n: number) => Math.round(n * 1000) / 1000;
+// Crit is a flat-added chance/multiplier, so it shouldn't scale up with rarity
+// as steeply as scalar stats — otherwise top-tier crit gear reaches absurd crit.
+// Halve the rarity bonus above Common for crit stats only.
+const CRIT_KEYS = new Set(["critRate", "critDamage"]);
+const critDamp = (m: number) => 1 + (m - 1) * 0.5;
 const generatedItems: ItemDef[] = [];
 for (const line of ITEM_LINES) {
   for (const tier of RARITY_TIERS) {
     const stats: Partial<Stats> = {};
     for (const [k, v] of Object.entries(line.stats) as [keyof Stats, number][]) {
-      const scaled = v * tier.statMult;
+      const mult = CRIT_KEYS.has(k) ? critDamp(tier.statMult) : tier.statMult;
+      const scaled = v * mult;
       stats[k] = v >= 1 ? Math.round(scaled) : r2(scaled);
     }
+    const primMult = CRIT_KEYS.has(line.primary) ? critDamp(tier.primMult) : tier.primMult;
     generatedItems.push(i({
       id: `${tier.prefix.toLowerCase()}-${line.id}`,
       name: `${tier.prefix} ${line.base}`,
@@ -204,7 +221,7 @@ for (const line of ITEM_LINES) {
       rarity: tier.rarity,
       requiredLevel: tier.lvl,
       baseStats: stats,
-      primaryAffix: { type: line.primary, baseValue: r2(line.primaryBase * tier.primMult) },
+      primaryAffix: { type: line.primary, baseValue: r2(line.primaryBase * primMult) },
       affixPool: line.affixPool,
       ...(line.pet ? { petUtility: { goldPerSec: r2(0.4 * tier.statMult), goldFind: r2(0.04 * tier.statMult) } } : {}),
       artRef: "placeholder",
@@ -223,7 +240,9 @@ export function rollItem(def: ItemDef, heroLevel: number, seed: number): ItemIns
   const rolledStats: Partial<Stats> = {};
   for (const [k, v] of Object.entries(def.baseStats) as [keyof Stats, number][]) {
     if (v === undefined) continue;
-    const effective = v * (1 + 0.08 * def.requiredLevel);
+    // Fractional stats (crit, pen, %) DON'T scale with item level — only scalar
+    // stats (atk/hp) do — so a high-level item can't balloon a crit base.
+    const effective = FRACTIONAL_STAT_KEYS.has(k) ? v : v * (1 + 0.08 * def.requiredLevel);
     rolledStats[k] = effective * (0.9 + rng.next() * 0.2);
   }
 
@@ -231,10 +250,10 @@ export function rollItem(def: ItemDef, heroLevel: number, seed: number): ItemIns
 
   const affixCount = AFFIX_COUNT[def.rarity] ?? 0;
   const shuffled = [...def.affixPool].sort(() => rng.next() - 0.5);
-  const rolledAffixes: RolledAffix[] = shuffled.slice(0, affixCount).map((type) => ({
-    type,
-    value: 0.05 + rng.next() * 0.15,
-  }));
+  const rolledAffixes: RolledAffix[] = shuffled.slice(0, affixCount).map((type) => {
+    const [lo, hi] = AFFIX_RANGE[type] ?? DEFAULT_AFFIX_RANGE;
+    return { type, value: lo + rng.next() * (hi - lo) };
+  });
 
   return {
     id: `item-${def.id}-${seed}`,

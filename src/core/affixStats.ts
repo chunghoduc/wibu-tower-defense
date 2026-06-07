@@ -11,14 +11,12 @@
  *    attack (the attack stat backs both; damage type only changes mitigation).
  */
 import type { Stats } from "../data/schema.ts";
+import { FRACTIONAL_STAT_KEYS } from "../data/schema.ts";
 import type { HeroSave } from "./save.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 
 /** Stat keys whose affix value is added FLAT (they are already fractions/multipliers). */
-const FLAT_AFFIX_KEYS = new Set<keyof Stats>([
-  "critRate", "critDamage", "critDefense", "armorPen", "magicPen",
-  "damageReduction", "tenacity", "omnivamp", "goldFind", "skillPower", "manaCostReduction",
-]);
+const FLAT_AFFIX_KEYS = FRACTIONAL_STAT_KEYS;
 
 /** Primary-affix types that are not direct stat keys → (stat key, apply mode). */
 const PRIMARY_AFFIX_MAP: Record<string, { key: keyof Stats; mode: "flat" | "increased" }> = {
