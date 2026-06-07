@@ -94,7 +94,11 @@ describe("destructible towers", () => {
       baseStats: makeStats({ maxHp: 1e6, moveSpeed: 20, atk: 100, attackSpeed: 2 }),
     });
     const fragile = mkTower({ id: "fragile", baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 50 }) });
-    const b = world([sapper], [fragile], mkStage(oneWave("sapper", 1), { castleHp: 1e6 }));
+    // A neutral parked hero — the default fixture hero has 1e9 maxHp, and towers
+    // now inherit 60% of the hero's stats, which would make the tower unkillable.
+    const b = world([sapper], [fragile], mkStage(oneWave("sapper", 1), { castleHp: 1e6 }), {
+      hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -500, y: -500 } },
+    });
     expect(b.placeTower("fragile", 0)).toBe(true);
     runFor(b, 6);
     expect(b.towers.length).toBe(0); // destroyed and cleaned up

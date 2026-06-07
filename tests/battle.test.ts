@@ -122,6 +122,20 @@ describe("BattleState outcomes", () => {
   });
 });
 
+describe("hero → tower stat share", () => {
+  it("a placed tower inherits 60% of the hero's stats (atk 1000 base + 0.6*500 hero = 1300)", () => {
+    const { stage, catalog } = world(enemy(), turret(), oneWave(1), 50);
+    const commander = {
+      stats: makeStats({ atk: 500, maxHp: 1e9, attackSpeed: 0, range: 0, moveSpeed: 0 }),
+      startPos: { x: -500, y: -500 },
+    };
+    const b = new BattleState(stage, catalog, { hero: commander });
+    expect(b.placeTower("turret", 0)).toBe(true);
+    // turretStatPipeline(base=1000, lvl1, ★1) = 1000; + 0.6 * hero.atk(500) = 1300.
+    expect(b.towers[0].stats.atk).toBeCloseTo(1300, 5);
+  });
+});
+
 describe("single-immunity rule", () => {
   const physImmune: Immunity = "Physical";
 

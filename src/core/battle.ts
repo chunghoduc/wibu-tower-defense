@@ -33,7 +33,7 @@ import { combatLogOn, emitDamageLog } from "./combatLog.ts";
 import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
-import { collectPassiveMore, heroStatPipeline, towerStatPipeline } from "./stats.ts";
+import { addHeroShare, collectPassiveMore, heroStatPipeline, towerStatPipeline } from "./stats.ts";
 import { effectiveBehavior } from "./towerUpgrade.ts";
 import { scaleStatsByEnhance } from "./enhance.ts";
 import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
@@ -366,7 +366,12 @@ export class BattleState {
     this.gold -= def.cost;
     const towerLevel = this._heroSave?.hero.level ?? 1;
     const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
-    const resolvedStats = towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0);
+    // The hero commands their towers: 60% of the hero's resolved stats flow onto
+    // each one, so leveling/gearing the hero strengthens the whole squad.
+    const resolvedStats = addHeroShare(
+      towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0),
+      this.hero.stats,
+    );
     this.towers.push({
       uid: this.nextUid++,
       def,
@@ -415,7 +420,10 @@ export class BattleState {
     t.battleLevel += 1;
     const hpFrac = t.stats.maxHp > 0 ? t.hp / t.stats.maxHp : 1;
     const manaFrac = t.stats.maxMana > 0 ? t.mana / t.stats.maxMana : 0;
-    t.stats = towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel);
+    t.stats = addHeroShare(
+      towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel),
+      this.hero.stats,
+    );
     t.behavior = effectiveBehavior(t.def, t.battleLevel);
     t.hp = t.stats.maxHp * hpFrac;
     t.mana = t.stats.maxMana * manaFrac;

@@ -166,6 +166,31 @@ export function heroStatPipeline(
   return resolveAcc(base, acc);
 }
 
+/** Fraction of the hero's resolved stats that flows into each tower they command. */
+export const HERO_TOWER_SHARE = 0.6;
+
+/**
+ * Add a share of the hero's resolved stats onto a tower's resolved stats — the
+ * hero's level, items and passives empower every tower they command. Each stat
+ * contributes `rate × (heroStat − neutral baseline)`.
+ *
+ * Subtracting the baseline (defaultStats) is what keeps multiplier stats sane:
+ * critDamage sits on a 1.5 base and skillPower on 1.0, so a hero with no crit-
+ * damage/skill gear shares 0 of them rather than dumping +0.9 / +0.6 onto every
+ * tower. Every other stat has a 0 baseline, so they share the plain `rate ×
+ * heroStat`. moveSpeed is excluded — towers are static, so the hero's movement
+ * must never bleed into them.
+ */
+export function addHeroShare(towerStats: Stats, heroStats: Stats, rate = HERO_TOWER_SHARE): Stats {
+  const baseline = defaultStats();
+  const out = { ...towerStats };
+  for (const k of Object.keys(out) as (keyof Stats)[]) {
+    if (k === "moveSpeed") continue;
+    out[k] = out[k] + (heroStats[k] - baseline[k]) * rate;
+  }
+  return out;
+}
+
 // Per-level flat stat growth for towers
 const TOWER_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
   atk: 1.5,

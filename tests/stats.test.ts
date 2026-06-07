@@ -9,6 +9,8 @@ import {
   towerStatPipeline,
   heroBaseCritRate,
   collectPassiveMore,
+  addHeroShare,
+  HERO_TOWER_SHARE,
 } from "../src/core/stats.ts";
 import { makeStats, defaultStats } from "../src/data/schema.ts";
 
@@ -159,6 +161,54 @@ describe("collectPassiveMore", () => {
       { type: "notable", flat: { maxHp: 30 } },
     ];
     expect(collectPassiveMore(nodes as any)).toEqual([{ atk: 0.5 }]);
+  });
+});
+
+describe("addHeroShare", () => {
+  it("exposes the share rate as 60%", () => {
+    expect(HERO_TOWER_SHARE).toBeCloseTo(0.6, 6);
+  });
+
+  it("adds 60% of a scalar hero stat onto the tower's stat (atk 100 + 0.6*200 = 220)", () => {
+    const tower = makeStats({ atk: 100 });
+    const hero = makeStats({ atk: 200 });
+    expect(addHeroShare(tower, hero).atk).toBeCloseTo(220, 6);
+  });
+
+  it("shares fractional stats directly (hero 0.5 crit → +0.30 on tower)", () => {
+    const tower = makeStats({ critRate: 0 });
+    const hero = makeStats({ critRate: 0.5 });
+    expect(addHeroShare(tower, hero).critRate).toBeCloseTo(0.3, 6);
+  });
+
+  it("shares only critDamage ABOVE the 1.5 baseline (hero 2.0 → tower 1.5 + 0.6*0.5 = 1.8)", () => {
+    const tower = makeStats({ critDamage: 1.5 });
+    const hero = makeStats({ critDamage: 2.0 });
+    expect(addHeroShare(tower, hero).critDamage).toBeCloseTo(1.8, 6);
+  });
+
+  it("a hero with no crit-damage gear adds nothing (both at the 1.5 baseline)", () => {
+    const tower = makeStats({ critDamage: 1.5 });
+    const hero = makeStats({ critDamage: 1.5 });
+    expect(addHeroShare(tower, hero).critDamage).toBeCloseTo(1.5, 6);
+  });
+
+  it("shares only skillPower ABOVE the 1.0 baseline (hero 1.5 → tower 1.0 + 0.6*0.5 = 1.3)", () => {
+    const tower = makeStats({ skillPower: 1 });
+    const hero = makeStats({ skillPower: 1.5 });
+    expect(addHeroShare(tower, hero).skillPower).toBeCloseTo(1.3, 6);
+  });
+
+  it("does NOT share moveSpeed — towers are static, so a moving hero never mobilizes them", () => {
+    const tower = makeStats({ moveSpeed: 0 });
+    const hero = makeStats({ moveSpeed: 300 });
+    expect(addHeroShare(tower, hero).moveSpeed).toBeCloseTo(0, 6);
+  });
+
+  it("honours a custom rate", () => {
+    const tower = makeStats({ atk: 100 });
+    const hero = makeStats({ atk: 100 });
+    expect(addHeroShare(tower, hero, 0.25).atk).toBeCloseTo(125, 6);
   });
 });
 
