@@ -9,7 +9,7 @@ import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import type { ShopStockEntry, ItemInstanceSave } from "../core/save.ts";
 import { ITEM_CATALOG_MAP, itemSellValue } from "../data/items.ts";
-import { crispText } from "./ui.ts";
+import { crispText, hoverGlowRect, hoverPop } from "./ui.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
 import type { Rarity } from "../data/schema.ts";
 
@@ -115,17 +115,20 @@ export class ShopScene extends Phaser.Scene {
     g.lineStyle(2, col, 1).strokeRoundedRect(x, y, w, h, 8);
     this.grid.add(g);
 
+    let icon: Phaser.GameObjects.Image | undefined;
     if (isScroll) {
       this.grid.add(crispText(this, x + w / 2, y + 40, "📜", { fontSize: "44px" }).setOrigin(0.5));
     } else if (slot.item && this.textures.exists(`item__${slot.item.defId}`)) {
-      const img = this.add.image(x + w / 2, y + 56, `item__${slot.item.defId}`).setOrigin(0.5);
-      img.setScale(Math.min(72 / img.width, 72 / img.height));
-      this.grid.add(img);
+      icon = this.add.image(x + w / 2, y + 56, `item__${slot.item.defId}`).setOrigin(0.5);
+      icon.setScale(Math.min(72 / icon.width, 72 / icon.height));
+      this.grid.add(icon);
     }
     this.grid.add(crispText(this, x + w / 2, y + h - 50, isScroll ? "Rare Consumable" : `${def?.rarity} ${def?.slot}`, { fontSize: "10px", color: "#9fb0c4" }).setOrigin(0.5));
     this.grid.add(crispText(this, x + w / 2, y + h - 32, `💎 ${slot.cost}`, { fontSize: "15px", color: afford ? "#ffe07a" : "#ff7a7a", fontStyle: "bold" }).setOrigin(0.5));
 
     const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
+    hoverGlowRect(this, z, this.grid, x, y, w, h, { radius: 8, color: isScroll ? SCROLL_GOLD : col });
+    if (icon) hoverPop(this, z, icon, 1.12);
     z.on("pointerover", () => {
       this.hoverLabel.setText(name).setColor(isScroll ? "#ffe07a" : "#e8eef6");
       // Item slots get a full stat tooltip (scrolls have no stats).
@@ -163,15 +166,18 @@ export class ShopScene extends Phaser.Scene {
     g.fillStyle(0x141c28, isEquipped ? 0.5 : 1).fillRoundedRect(x, y, w, h, 6);
     g.lineStyle(1.5, col, isEquipped ? 0.5 : 1).strokeRoundedRect(x, y, w, h, 6);
     this.grid.add(g);
+    let icon: Phaser.GameObjects.Image | undefined;
     if (this.textures.exists(`item__${inst.defId}`)) {
-      const img = this.add.image(x + w / 2, y + 32, `item__${inst.defId}`).setOrigin(0.5).setAlpha(isEquipped ? 0.5 : 1);
-      img.setScale(Math.min(44 / img.width, 44 / img.height));
-      this.grid.add(img);
+      icon = this.add.image(x + w / 2, y + 32, `item__${inst.defId}`).setOrigin(0.5).setAlpha(isEquipped ? 0.5 : 1);
+      icon.setScale(Math.min(44 / icon.width, 44 / icon.height));
+      this.grid.add(icon);
     }
     if ((inst.enhanceLevel ?? 0) > 0) this.grid.add(crispText(this, x + w - 4, y + 3, `+${inst.enhanceLevel}`, { fontSize: "9px", color: "#ffe07a", fontStyle: "bold" }).setOrigin(1, 0));
     this.grid.add(crispText(this, x + w / 2, y + h - 16, isEquipped ? "equipped" : `💎 +${sell}`, { fontSize: "11px", color: isEquipped ? "#6b7689" : "#8be06a", fontStyle: "bold" }).setOrigin(0.5));
 
     const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
+    hoverGlowRect(this, z, this.grid, x, y, w, h, { color: col });
+    if (icon) hoverPop(this, z, icon, 1.12);
     z.on("pointerover", () => {
       this.hoverLabel.setText(`${def?.name ?? "Item"}${isEquipped ? " (equipped — unequip to sell)" : ""}`);
       if (def) renderItemTooltip(this, this.tooltip, inst, def, x + w, y);

@@ -241,8 +241,13 @@ export class HeroScene extends Phaser.Scene {
 
     c.setData("instanceId", inst.id).setData("fromSlot", fromSlot);
     c.setInteractive({ useHandCursor: true, draggable: true });
-    c.on("pointerover", () => this.showTooltip(inst, x, y));
-    c.on("pointerout", () => this.hideTooltip());
+    // Hover feedback: a bright glow border over the tile + a gentle scale pop.
+    const glow = this.add.graphics().setVisible(false);
+    glow.fillStyle(0xfff0bf, 0.10).fillRoundedRect(-size / 2, -size / 2, size, size, 5);
+    glow.lineStyle(2.5, 0xfff0bf, 0.95).strokeRoundedRect(-size / 2, -size / 2, size, size, 5);
+    c.add(glow);
+    c.on("pointerover", () => { this.showTooltip(inst, x, y); glow.setVisible(true); c.setDepth(30); this.tweens.add({ targets: c, scaleX: 1.12, scaleY: 1.12, duration: 90, ease: "Back.easeOut" }); });
+    c.on("pointerout", () => { this.hideTooltip(); glow.setVisible(false); c.setDepth(8); this.tweens.add({ targets: c, scaleX: 1, scaleY: 1, duration: 120, ease: "Quad.easeOut" }); });
     c.on("pointerup", () => { if (!this.didDrag) this.openEnhance(inst.id); }); // tap = enhance
     return c;
   }
