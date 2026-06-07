@@ -5,6 +5,8 @@ import { PASSIVE_NODES, getReachableNodes, canForgetNode } from "../data/passive
 import type { PassiveNodeDef } from "../data/schema.ts";
 import { drawNodeIcon } from "./passiveGridGlyphs.ts";
 import { formatStatBonuses } from "./passiveGridFormat.ts";
+import { JewelOverlay } from "./jewelOverlay.ts";
+import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 const MIN_X = 4;
@@ -56,6 +58,9 @@ export class PassiveGridScene extends Phaser.Scene {
   private unlockBtn!: Phaser.GameObjects.Text;
   private forgetBtn!: Phaser.GameObjects.Text;
   private resetBtn!: Phaser.GameObjects.Text;
+  private socketBtn!: Phaser.GameObjects.Text;
+  private removeBtn!: Phaser.GameObjects.Text;
+  private jewelOverlay!: JewelOverlay;
   private resetArmed = false;
   private panelLevelReq!: Phaser.GameObjects.Text;
 
@@ -154,8 +159,32 @@ export class PassiveGridScene extends Phaser.Scene {
     this.resetBtn.on("pointerout",  () => this.resetBtn.setBackgroundColor(this.resetArmed ? "#922b21" : "#4a235a"));
     this.resetBtn.on("pointerdown", () => this.tryResetAll());
 
+    // Jewel-socket actions (share the y310 slot; only one shows per node state).
+    this.socketBtn = this.add
+      .text(PANEL_X + PANEL_W / 2, 310, "Socket Jewel", {
+        fontSize: "16px", color: "#ffffff", backgroundColor: "#1e6f50",
+      })
+      .setOrigin(0.5).setPadding(16, 8, 16, 8).setVisible(false)
+      .setInteractive({ useHandCursor: true });
+    this.socketBtn.on("pointerover", () => this.socketBtn.setBackgroundColor("#27946a"));
+    this.socketBtn.on("pointerout",  () => this.socketBtn.setBackgroundColor("#1e6f50"));
+    this.socketBtn.on("pointerdown", () => this.openSocketPicker());
+
+    this.removeBtn = this.add
+      .text(PANEL_X + PANEL_W / 2, 310, "Remove — destroy", {
+        fontSize: "15px", color: "#ffffff", backgroundColor: "#7b241c",
+      })
+      .setOrigin(0.5).setPadding(14, 8, 14, 8).setVisible(false)
+      .setInteractive({ useHandCursor: true });
+    this.removeBtn.on("pointerover", () => this.removeBtn.setBackgroundColor("#a93226"));
+    this.removeBtn.on("pointerout",  () => this.removeBtn.setBackgroundColor("#7b241c"));
+    this.removeBtn.on("pointerdown", () => this.confirmRemoveSocket());
+
+    this.jewelOverlay = new JewelOverlay(this, this.mgr, () => this.redraw());
+
     // Click detection on the grid area
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer) => {
+      if (this.jewelOverlay.isOpen()) return; // modal open — tree is inert
       if (ptr.x > PANEL_X) return; // clicks in right panel handled by buttons
       this.handleGridClick(ptr.x, ptr.y);
     });
@@ -351,6 +380,28 @@ export class PassiveGridScene extends Phaser.Scene {
     this.resetBtn.setText("Reset all points").setBackgroundColor("#4a235a");
   }
 
+  private openSocketPicker(): void {
+    if (this.selectedNode?.type === "jewel-socket") this.jewelOverlay.openPicker(this.selectedNode.id);
+  }
+
+  private confirmRemoveSocket(): void {
+    const node = this.selectedNode;
+    if (node?.type !== "jewel-socket") return;
+    const instId = this.mgr.getSave().hero.socketedJewels[node.id];
+    if (!instId) return;
+    const inst = this.mgr.getSave().hero.jewels.find((j) => j.id === instId);
+    const def = inst ? JEWEL_CATALOG_MAP.get(inst.defId) : undefined;
+    this.jewelOverlay.confirmDestroy(instId, def?.name ?? "this jewel");
+  }
+
+  /** The jewel def socketed in a node, or null. */
+  private socketedJewelDef(nodeId: string) {
+    const instId = this.mgr.getSave().hero.socketedJewels[nodeId];
+    if (!instId) return null;
+    const inst = this.mgr.getSave().hero.jewels.find((j) => j.id === instId);
+    return inst ? JEWEL_CATALOG_MAP.get(inst.defId) ?? null : null;
+  }
+
   // ── Side panel ───────────────────────────────────────────────────────────────
 
   private refreshPanel(
@@ -373,6 +424,8 @@ export class PassiveGridScene extends Phaser.Scene {
       this.panelLevelReq.setText("");
       this.unlockBtn.setVisible(false);
       this.forgetBtn.setVisible(false);
+      this.socketBtn.setVisible(false);
+      this.removeBtn.setVisible(false);
       return;
     }
 
@@ -385,7 +438,7 @@ export class PassiveGridScene extends Phaser.Scene {
     this.panelName.setText(node.name).setColor(regionColor);
     this.panelType.setText(`${node.type.toUpperCase()}  ·  ${node.region}`);
     this.panelDesc.setText(node.description);
-    this.panelStats.setText(formatStatBonuses(node));
+    this.panelStats.setText(formatStatBonuses(node)).setColor("#a5d6a7");
 
     if (levelLocked) {
       this.panelLevelReq.setText(`Requires level ${node.unlockAtLevel}`);
@@ -393,15 +446,30 @@ export class PassiveGridScene extends Phaser.Scene {
       this.panelLevelReq.setText("");
     }
 
+    const isJewel = node.type === "jewel-socket";
+
     const canUnlock = !isUnlocked && isReachable && !levelLocked && skillPoints > 0;
     this.unlockBtn.setVisible(!isUnlocked && (isReachable || levelLocked));
     this.unlockBtn.setAlpha(canUnlock ? 1 : 0.4);
 
-    // Forget is offered for any unlocked node; it's only actionable (full alpha)
-    // when removing it won't orphan the rest of the tree.
-    const forgettable = isUnlocked && canForgetNode([...unlockedSet], node.id);
-    this.forgetBtn.setVisible(isUnlocked);
+    // Forget is offered for any unlocked NON-jewel node; it's only actionable
+    // (full alpha) when removing it won't orphan the rest of the tree. Jewel
+    // sockets show socket/remove instead to keep the panel uncluttered.
+    const forgettable = isUnlocked && !isJewel && canForgetNode([...unlockedSet], node.id);
+    this.forgetBtn.setVisible(isUnlocked && !isJewel);
     this.forgetBtn.setAlpha(forgettable ? 1 : 0.4);
+
+    // Jewel-socket actions, only once the socket node itself is allocated.
+    const jewelDef = isJewel && isUnlocked ? this.socketedJewelDef(node.id) : null;
+    this.socketBtn.setVisible(isJewel && isUnlocked && !jewelDef);
+    this.removeBtn.setVisible(isJewel && isUnlocked && !!jewelDef);
+    if (isJewel && isUnlocked) {
+      this.panelStats.setText(
+        jewelDef
+          ? `Socketed: ${jewelDef.name}\n${jewelDef.description}`
+          : "Empty socket — socket a jewel to empower your hero and towers.",
+      ).setColor(jewelDef ? "#80d8ff" : "#a5d6a7");
+    }
 
     if (isUnlocked) {
       // Show a small "Unlocked ✓" badge

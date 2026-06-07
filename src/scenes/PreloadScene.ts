@@ -8,6 +8,7 @@ import Phaser from "phaser";
 import { SPRITE_MANIFEST, SPRITE_BY_KEY } from "../data/spriteManifest.ts";
 import { TERRAIN_ASSETS, TERRAIN_TEX_SIZE } from "../data/terrainManifest.ts";
 import { SKILL_ICON_IDS } from "../data/skillIconManifest.ts";
+import { JEWEL_ICON_IDS } from "../data/jewelIconManifest.ts";
 import { BG_IMAGES, bgKey } from "../data/bgManifest.ts";
 import { UI_SVGS, UI_IMAGES } from "../data/uiManifest.ts";
 
@@ -31,6 +32,12 @@ export class PreloadScene extends Phaser.Scene {
       const key = `skill__${id}`;
       if (SPRITE_BY_KEY.has(key)) continue;
       this.load.spritesheet(key, `assets/sprites/skill/${id}.png`, { frameWidth: 96, frameHeight: 96 });
+    }
+    // Painted skill-jewel gem icons (96×96).
+    for (const id of JEWEL_ICON_IDS) {
+      const key = `jewel__${id}`;
+      if (SPRITE_BY_KEY.has(key)) continue;
+      this.load.spritesheet(key, `assets/sprites/jewel/${id}.png`, { frameWidth: 96, frameHeight: 96 });
     }
     // Scene backgrounds: main-menu hall + per-chapter battlefield backdrops.
     for (const id of BG_IMAGES) {
