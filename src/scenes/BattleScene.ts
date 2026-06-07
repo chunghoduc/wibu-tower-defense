@@ -850,6 +850,11 @@ export class BattleScene extends Phaser.Scene {
       if (this.heroSprite && this.saveManager) {
         this.heroSprite.syncEquipment(this.saveManager.getSave().inventory);
       }
+      // Drive locomotion (walk vs float), facing, wing hover and pet wander.
+      const dx = h.moveTarget.x - h.pos.x, dy = h.moveTarget.y - h.pos.y;
+      const moving = Math.hypot(dx, dy) > 1.5;
+      const facingLeft = dx < -0.5 ? true : dx > 0.5 ? false : undefined;
+      this.heroSprite.tick(this.time.now, moving, facingLeft);
     } else if (this.heroSprite && !h.alive) {
       this.heroSprite.setVisible(false);
     }

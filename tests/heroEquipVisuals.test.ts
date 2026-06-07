@@ -22,16 +22,17 @@ function makeInventory(overrides: Partial<InventorySave> = {}): InventorySave {
 describe("resolveHeroLayers", () => {
   it("returns all-null config when nothing is equipped", () => {
     const result = resolveHeroLayers(makeInventory());
-    expect(result).toEqual({ weaponKey: null, wingKey: null, petKey: null });
+    expect(result).toEqual({ weaponKey: null, weaponType: null, wingKey: null, petKey: null });
   });
 
-  it("returns weapon texture key when a weapon is equipped", () => {
+  it("returns weapon texture key and family when a weapon is equipped", () => {
     const inv = makeInventory({
       items: [makeItem("inst-1", "iron-sword")],
       equipped: { Weapon: "inst-1" },
     });
     const result = resolveHeroLayers(inv);
     expect(result.weaponKey).toBe("item__iron-sword");
+    expect(result.weaponType).toBe("Sword");
   });
 
   it("returns null weaponKey when equipped weapon instance is not found", () => {
