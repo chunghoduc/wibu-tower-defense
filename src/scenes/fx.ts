@@ -8,7 +8,8 @@ import Phaser from "phaser";
 import type { FxEvent } from "../core/battle.ts";
 import type { DamageType, Vec2 } from "../data/schema.ts";
 import { makeCrisp } from "./ui.ts";
-import { skillStyleFor, SKILL_STYLE_COLOR, type SkillStyle } from "../data/attackStyle.ts";
+import { skillStyleFor } from "../data/attackStyle.ts";
+import { SkillVfx } from "./skillVfx.ts";
 
 const DMG_COLOR: Record<DamageType, number> = {
   Physical: 0xe9eef7,
@@ -27,6 +28,8 @@ export class FxLayer {
   /** Factory that creates objects and (if a parent layer is given) parents them
    *  to it, so the battle camera renders FX in world space. */
   private readonly fac: Phaser.GameObjects.GameObjectFactory;
+  /** Cinematic active-skill cast VFX (themed per element). */
+  private readonly skillVfx: SkillVfx;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -48,6 +51,7 @@ export class FxLayer {
           },
         }) as Phaser.GameObjects.GameObjectFactory
       : scene.add;
+    this.skillVfx = new SkillVfx(scene, this.fac, this.depth);
   }
 
   play(e: FxEvent): void {
@@ -59,12 +63,9 @@ export class FxLayer {
         this.spark(e.at, DMG_COLOR[e.damageType]);
         this.damageNumber(e.at, Math.round(e.amount), DMG_NUM_COLOR[e.damageType], e.aoe);
         break;
-      case "cast": {
-        const style = skillStyleFor(e.skillId);
-        this.skillBurst(e.at, SKILL_STYLE_COLOR[style], e.radius, e.skillId, e.source);
-        this.skillAccent(e.at, style, e.radius);
+      case "cast":
+        this.skillVfx.cast(e.at, skillStyleFor(e.skillId), e.radius, e.skillId, e.source);
         break;
-      }
       case "splash":
         this.ring(e.at, e.radius, DMG_COLOR[e.damageType], 320);
         break;
@@ -182,53 +183,6 @@ export class FxLayer {
     });
   }
 
-  /** Style-specific flourish layered onto a skill cast (T7), themed to the skill. */
-  private skillAccent(at: Vec2, style: SkillStyle, radius: number): void {
-    const color = SKILL_STYLE_COLOR[style];
-    const R = radius * 0.8;
-    switch (style) {
-      case "fire": // rising embers
-        for (let i = 0; i < 10; i++) {
-          const p = this.fac.circle(at.x + Phaser.Math.Between(-R / 2, R / 2), at.y, Phaser.Math.Between(2, 4), i % 2 ? 0xffd24d : color).setDepth(this.depth + 2);
-          this.scene.tweens.add({ targets: p, y: at.y - Phaser.Math.Between(30, 60), alpha: 0, scale: 0.2, duration: 600, ease: "Quad.easeOut", onComplete: () => p.destroy() });
-        }
-        break;
-      case "ice": // outward shards
-        for (let i = 0; i < 8; i++) {
-          const a = (Math.PI * 2 * i) / 8;
-          const s = this.fac.star(at.x, at.y, 4, 1.5, 5, color).setDepth(this.depth + 2);
-          this.scene.tweens.add({ targets: s, x: at.x + Math.cos(a) * R, y: at.y + Math.sin(a) * R, angle: 180, alpha: 0, duration: 460, ease: "Quad.easeOut", onComplete: () => s.destroy() });
-        }
-        break;
-      case "lightning": // radiating bolts
-        for (let i = 0; i < 6; i++) {
-          const a = (Math.PI * 2 * i) / 6 + Math.random() * 0.4;
-          this.bolt(at, { x: at.x + Math.cos(a) * R, y: at.y + Math.sin(a) * R }, color);
-        }
-        break;
-      case "heal": // rising green plus signs
-        for (let i = 0; i < 6; i++) {
-          const x = at.x + Phaser.Math.Between(-R / 2, R / 2);
-          const plus = this.fac.text(x, at.y, "+", { fontFamily: "monospace", fontSize: "18px", color: "#bdf3a0", fontStyle: "bold" }).setOrigin(0.5).setDepth(this.depth + 2);
-          this.scene.tweens.add({ targets: plus, y: at.y - Phaser.Math.Between(26, 50), alpha: 0, duration: 700, ease: "Quad.easeOut", onComplete: () => plus.destroy() });
-        }
-        break;
-      case "slash": { // a big crossing slash
-        this.slash(at, color); this.scene.time.delayedCall(70, () => this.slash(at, 0xffffff));
-        break;
-      }
-      case "poison": // popping bubbles
-        for (let i = 0; i < 9; i++) {
-          const a = (Math.PI * 2 * i) / 9;
-          const p = this.fac.circle(at.x, at.y, Phaser.Math.Between(2, 4), color, 0.85).setDepth(this.depth + 2);
-          this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * R, y: at.y + Math.sin(a) * R, alpha: 0, duration: 520, ease: "Quad.easeOut", onComplete: () => p.destroy() });
-        }
-        break;
-      default: // arcane runes — handled by the base burst; add a faint second ring
-        this.ring(at, radius * 0.85, color, 480);
-    }
-  }
-
   // ---- primitives ----------------------------------------------------------
 
   private projectile(from: Vec2, to: Vec2, color: number, role: string): void {
@@ -278,36 +232,6 @@ export class FxLayer {
     const c = this.fac.circle(at.x, at.y, 6).setStrokeStyle(3, color, 0.9).setDepth(this.depth);
     c.setFillStyle(color, 0.12);
     this.scene.tweens.add({ targets: c, scale: radius / 6, alpha: 0, duration, ease: "Cubic.easeOut", onComplete: () => c.destroy() });
-  }
-
-  /** A fancy layered skill cast: double shockwave + core flash + radial streaks
-   *  + the skill's VFX sprite bursting + sparkles (+ a tiny shake for hero casts). */
-  private skillBurst(at: Vec2, color: number, radius: number, skillId: string | undefined, source: "tower" | "hero"): void {
-    this.ring(at, radius, color, 520);
-    this.scene.time.delayedCall(90, () => this.ring(at, radius * 0.62, 0xffffff, 360));
-
-    const core = this.fac.circle(at.x, at.y, 10, 0xffffff, 0.95).setDepth(this.depth + 2);
-    this.scene.tweens.add({ targets: core, scale: 0.15, alpha: 0, duration: 280, onComplete: () => core.destroy() });
-
-    for (let i = 0; i < 12; i++) {
-      const a = (Math.PI * 2 * i) / 12;
-      const line = this.fac.rectangle(at.x, at.y, 3, 16, color).setOrigin(0.5, 1).setRotation(a).setDepth(this.depth + 1);
-      this.scene.tweens.add({ targets: line, scaleY: 2.8, alpha: 0, duration: 420, ease: "Quad.easeOut", onComplete: () => line.destroy() });
-    }
-
-    const key = skillId ? `vfx__${skillId}` : "";
-    if (key && this.scene.textures.exists(key)) {
-      const spr = this.fac.image(at.x, at.y, key).setDepth(this.depth + 3).setScale(0.3).setAlpha(0.95);
-      this.scene.tweens.add({ targets: spr, scale: 1.7, angle: 60, alpha: 0, duration: 460, ease: "Cubic.easeOut", onComplete: () => spr.destroy() });
-    }
-
-    for (let i = 0; i < 9; i++) {
-      const a = (Math.PI * 2 * i) / 9 + Math.random() * 0.4;
-      const p = this.fac.circle(at.x, at.y, 3, color).setDepth(this.depth + 2);
-      this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * (radius * 0.7), y: at.y + Math.sin(a) * (radius * 0.7), alpha: 0, scale: 0.2, duration: 460, ease: "Quad.easeOut", onComplete: () => p.destroy() });
-    }
-
-    if (source === "hero") this.scene.cameras.main.shake(120, 0.004);
   }
 
   /** Celebratory burst when a tower gains an in-battle star (T10). */
