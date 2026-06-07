@@ -480,7 +480,13 @@ export class BattleScene extends Phaser.Scene {
 
     let ry = 42;
     for (const row of skillRows) {
-      const rt = crispText(this, 8, ry, row.label, { fontSize: "11px", color: row.color })
+      // Tiny colored dot badge for visual variety (T18 skill icon placeholder).
+      const dot = this.add.graphics();
+      dot.fillStyle(Phaser.Display.Color.HexStringToColor(row.color.replace("#", "")).color, 0.9);
+      dot.fillCircle(14, ry + 6, 4.5);
+      dot.lineStyle(1, 0xffffff, 0.4).strokeCircle(14, ry + 6, 4.5);
+      c.add(dot);
+      const rt = crispText(this, 22, ry, row.label, { fontSize: "11px", color: row.color })
         .setInteractive({ useHandCursor: true });
       rt.on("pointerover", () => {
         tip.setText(row.desc).setPosition(8, ry + 16).setVisible(true);
