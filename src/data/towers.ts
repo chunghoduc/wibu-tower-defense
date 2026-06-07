@@ -15,9 +15,11 @@
  *   the player-facing `description` lore is original.
  */
 import { makeStats, type CharacterDef } from "./schema.ts";
+import { augmentTowerStats } from "./towerStats.ts";
 
 function t(def: Omit<CharacterDef, "artRef">): CharacterDef {
-  return { ...def, artRef: "placeholder" };
+  // Fill the defensive/survival stat layer so towers are full combat units.
+  return { ...def, baseStats: augmentTowerStats(def.role, def.rarity, def.baseStats), artRef: "placeholder" };
 }
 
 export const TOWERS: CharacterDef[] = [

@@ -52,7 +52,8 @@ const STAT_LABEL: Record<string, string> = {
   atk: "Attack", range: "Range", attackSpeed: "Attack Speed", critRate: "Crit Chance",
   critDamage: "Crit Damage", armor: "Armor", magicResist: "Magic Resist", moveSpeed: "Move Speed",
   hpRegen: "HP Regen", skillPower: "Skill Power", omnivamp: "Omnivamp", goldFind: "Gold Find",
-  armorPen: "Armor Pen",
+  armorPen: "Armor Pen", magicPen: "Magic Pen", damageReduction: "Damage Reduction",
+  critDefense: "Crit Defense", tenacity: "Tenacity",
 };
 
 export class BattleInfoPanel {
@@ -359,6 +360,18 @@ function drawStatGlyph(g: Phaser.GameObjects.Graphics, key: string, x: number, y
     case "armorPen": // pierce arrow
       g.lineStyle(1.8, 0xffc04a, 1).lineBetween(x, y - s, x, y + s);
       g.fillStyle(0xffc04a, 1).fillTriangle(x - s * 0.5, y + s * 0.3, x + s * 0.5, y + s * 0.3, x, y + s); break;
+    case "magicPen": // pierce arrow (arcane)
+      g.lineStyle(1.8, 0xc792ff, 1).lineBetween(x, y - s, x, y + s);
+      g.fillStyle(0xc792ff, 1).fillTriangle(x - s * 0.5, y + s * 0.3, x + s * 0.5, y + s * 0.3, x, y + s); break;
+    case "damageReduction": // shield with bar
+      g.fillStyle(0x7fa8d8, 1).fillPoints([P(x - s * 0.7, y - s), P(x + s * 0.7, y - s), P(x + s * 0.7, y + s * 0.2), P(x, y + s), P(x - s * 0.7, y + s * 0.2)], true);
+      g.fillStyle(0x12203a, 1).fillRect(x - s * 0.45, y - s * 0.2, s * 0.9, 1.8); break;
+    case "critDefense": // shield + crosshair
+      g.fillStyle(0xff9aa0, 1).fillPoints([P(x - s * 0.7, y - s), P(x + s * 0.7, y - s), P(x + s * 0.7, y + s * 0.2), P(x, y + s), P(x - s * 0.7, y + s * 0.2)], true);
+      g.lineStyle(1.2, 0x3a1414, 1).strokeCircle(x, y - s * 0.1, s * 0.4); break;
+    case "tenacity": // unbroken ring
+      g.lineStyle(2, 0xd8c46a, 1).strokeCircle(x, y, s * 0.75);
+      g.fillStyle(0xd8c46a, 1).fillCircle(x, y - s * 0.75, 1.6); break;
     default:
       g.fillStyle(0x9fb0c4, 1).fillCircle(x, y, 2);
   }

@@ -76,7 +76,10 @@ const HERO_STAT_KEYS: [string, (v: number) => string][] = [
   ["skillPower", mult], ["omnivamp", pct], ["goldFind", pct],
 ];
 const TOWER_STAT_KEYS: [string, (v: number) => string][] = [
-  ["atk", n0], ["range", n0], ["attackSpeed", n1], ["critRate", pct], ["critDamage", mult], ["armorPen", pct],
+  ["atk", n0], ["range", n0], ["attackSpeed", n1], ["critRate", pct], ["critDamage", mult],
+  ["armorPen", pct], ["magicPen", pct], ["skillPower", mult],
+  ["armor", n0], ["magicResist", n0], ["hpRegen", n0],
+  ["damageReduction", pct], ["critDefense", pct], ["tenacity", pct], ["omnivamp", pct],
 ];
 
 const ROLE_COLOR: Record<string, number> = {
