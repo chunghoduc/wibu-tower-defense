@@ -4,8 +4,13 @@
  * can preload them in one loop. SVGs rasterize at intrinsic size; PNGs load as
  * images. Keys follow the `category__name` convention (icon__gold, frame__rare,
  * bg__stage-1, ui__logo, …).
+ *
+ * The JSON is a build-time copy of public/assets/ui/uiManifest.json (the design
+ * team's source) — kept in src/ because Vite forbids importing from public/.
+ * Re-copy it if the design team updates the public manifest. The asset PATHS
+ * inside stay as runtime URLs served from public/.
  */
-import manifest from "../../public/assets/ui/uiManifest.json";
+import manifest from "./uiManifest.json";
 
 export interface UiAsset {
   key: string;
