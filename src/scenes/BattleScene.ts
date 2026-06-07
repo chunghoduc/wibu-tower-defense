@@ -82,6 +82,7 @@ export class BattleScene extends Phaser.Scene {
   private battleW = 0;
   private selectedTowerUid = -1;
   private quickActions: Phaser.GameObjects.Container | null = null;
+  private confirmDialog: Phaser.GameObjects.Container | null = null;
   private keys?: {
     up: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key;
     left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key;
@@ -105,6 +106,7 @@ export class BattleScene extends Phaser.Scene {
     this.heroSprite = null;
     this.selectedTowerUid = -1;
     this.quickActions = null;
+    this.confirmDialog = null;
     this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
     this.terrainSprites = [];
     this.placeGhost = null;
@@ -432,7 +434,7 @@ export class BattleScene extends Phaser.Scene {
 
   private showTowerPanel(t: TowerRuntime): void {
     const uid = t.uid;
-    this.panel.showTower(this.towerVM(t), { onUpgrade: () => this.doUpgrade(uid), onSell: () => this.doSell(uid) });
+    this.panel.showTower(this.towerVM(t), { onUpgrade: () => this.doUpgrade(uid), onSell: () => this.confirmSell(uid) });
   }
 
   /** Toggle button on the panel edge: collapse, or expand (showing the hero by default). */
@@ -466,6 +468,47 @@ export class BattleScene extends Phaser.Scene {
       if (t) { this.fx.starUp(t.pos, t.battleLevel); this.sfx.place(); this.showTowerPanel(t); this.buildQuickActions(t); }
     }
   }
+  /** Ask before selling a tower — selling is irreversible and refunds < cost. */
+  private confirmSell(uid: number): void {
+    const t = this.battle.towers.find((x) => x.uid === uid && x.alive);
+    if (!t) return;
+    this.confirmDialog?.destroy(true);
+    const W = this.scale.width, H = this.scale.height;
+    const refund = this.battle.sellValue(uid);
+    const c = this.add.container(0, 0).setDepth(70);
+
+    const dim = this.add.graphics();
+    dim.fillStyle(0x000000, 0.55).fillRect(0, 0, W, H);
+    const dimZone = this.add.zone(W / 2, H / 2, W, H).setInteractive().on("pointerup", () => this.closeConfirm());
+    c.add([dim, dimZone]);
+
+    const bw = 300, bh = 132, bx = (W - bw) / 2, by = (H - bh) / 2;
+    const panel = this.add.graphics();
+    panel.fillStyle(0x141c28, 0.99).fillRoundedRect(bx, by, bw, bh, 10);
+    panel.lineStyle(2, 0x7a2e2e, 1).strokeRoundedRect(bx, by, bw, bh, 10);
+    const panelZone = this.add.zone(bx + bw / 2, by + bh / 2, bw, bh).setInteractive(); // swallow clicks
+    c.add([panel, panelZone]);
+
+    c.add(crispText(this, W / 2, by + 18, "Sell this tower?", { fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0));
+    c.add(crispText(this, W / 2, by + 44, `${t.def.name}\nRefund +${refund}g`, { fontSize: "12px", color: "#ffd6a0", align: "center" }).setOrigin(0.5, 0));
+
+    const yes = crispText(this, bx + bw / 2 - 70, by + bh - 34, "Sell", { fontSize: "14px", color: "#fff", backgroundColor: "#7a2e2e", fixedWidth: 96, align: "center" })
+      .setOrigin(0.5, 0).setPadding(0, 8, 0, 8).setInteractive({ useHandCursor: true });
+    yes.on("pointerup", () => { this.closeConfirm(); this.doSell(uid); });
+    const no = crispText(this, bx + bw / 2 + 70, by + bh - 34, "Cancel", { fontSize: "14px", color: "#fff", backgroundColor: "#33415a", fixedWidth: 96, align: "center" })
+      .setOrigin(0.5, 0).setPadding(0, 8, 0, 8).setInteractive({ useHandCursor: true });
+    no.on("pointerup", () => this.closeConfirm());
+    c.add([yes, no]);
+
+    this.ui.add(c);
+    this.confirmDialog = c;
+  }
+
+  private closeConfirm(): void {
+    this.confirmDialog?.destroy(true);
+    this.confirmDialog = null;
+  }
+
   private doSell(uid: number): void {
     this.battle.sellTower(uid);
     this.time.delayedCall(0, () => this.deselectTower());
@@ -491,7 +534,7 @@ export class BattleScene extends Phaser.Scene {
     };
     const cost = this.battle.upgradeCost(t.uid);
     mk(-21, "⬆", cost === 0 ? "MAX" : `${cost}g`, cost === 0 ? 0x555555 : 0x1565c0, () => this.doUpgrade(t.uid));
-    mk(22, "✕", `+${this.battle.sellValue(t.uid)}g`, 0x7a2e2e, () => this.doSell(t.uid));
+    mk(22, "✕", `+${this.battle.sellValue(t.uid)}g`, 0x7a2e2e, () => this.confirmSell(t.uid));
     this.ui.add(c);
     this.quickActions = c;
   }
