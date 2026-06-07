@@ -16,7 +16,7 @@ function makeInstance(defId: string, acquiredLevel = 1): ItemInstanceSave {
     acquiredLevel,
     rolledStats: {},
     rolledPrimaryAffix: 0,
-    rolledAffixes: [],
+    rolledAffixes: [], enhanceLevel: 0,
   };
 }
 

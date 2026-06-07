@@ -15,7 +15,7 @@ import {
 // These are compile-time-only checks — no runtime cost.
 const _itemInstanceCheck: ItemInstance = {
   id: "i", defId: "d", acquiredLevel: 1,
-  rolledStats: {}, rolledPrimaryAffix: 0, rolledAffixes: [],
+  rolledStats: {}, rolledPrimaryAffix: 0, rolledAffixes: [], enhanceLevel: 0,
 };
 const _rolledAffixCheck: RolledAffix = { type: "critRate", value: 0.05 };
 void _itemInstanceCheck;

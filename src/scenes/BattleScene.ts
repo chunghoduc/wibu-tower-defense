@@ -23,6 +23,7 @@ import type { HeroSave } from "../core/save.ts";
 import { hasSprite } from "./PreloadScene.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { crispText } from "./ui.ts";
+import { MATERIALS_MAP } from "../data/materials.ts";
 import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
@@ -609,6 +610,9 @@ export class BattleScene extends Phaser.Scene {
       if (result.itemDropped) lines.push(`📦 Item: ${result.itemDropped.defId}`);
       if (result.skillDropped) lines.push(`⚡ Skill: ${result.skillDropped}`);
       if (result.characterDropped) lines.push(`✨ New character: ${result.characterDropped}`);
+      for (const [id, n] of Object.entries(result.materialsDropped ?? {})) {
+        lines.push(`💠 ${MATERIALS_MAP.get(id)?.name ?? id} ×${n}`);
+      }
 
       const overlay = crispText(this, this.scale.width / 2, 300, lines.join("\n"), {
           fontSize: "16px",

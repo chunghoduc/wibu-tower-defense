@@ -4,6 +4,7 @@ import { performMultiSummon, performSummon, type SummonResult } from "./gacha.ts
 import { awardHeroXp } from "./hero.ts";
 import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
 import { purchaseShopItem, type PurchaseResult } from "./shop.ts";
+import { attemptEnhance, type EnhanceResult } from "./enhance.ts";
 import type { ItemSlot } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
@@ -114,6 +115,24 @@ export class SaveManager {
   /** Clear the equipped active skill and persist. */
   unequipSkill(): void {
     unequipSkill(this.save);
+    this.persist();
+  }
+
+  /** Attempt to enhance an inventory item one level (T13). Persists on a real attempt. */
+  enhanceItem(instanceId: string, rng: Rng = new Rng((Math.random() * 1e9) | 0)): EnhanceResult {
+    const result = attemptEnhance(this.save, instanceId, rng);
+    if (result.ok) this.persist();
+    return result;
+  }
+
+  /** Material count by id (jewels, boxes). */
+  getMaterial(id: string): number {
+    return this.save.materials[id] ?? 0;
+  }
+
+  /** Grant materials and persist. */
+  addMaterial(id: string, n: number): void {
+    this.save.materials[id] = Math.max(0, (this.save.materials[id] ?? 0) + n);
     this.persist();
   }
 

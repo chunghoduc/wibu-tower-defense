@@ -30,7 +30,7 @@ describe("BattleState with heroSave", () => {
       acquiredLevel: 1,
       rolledStats: { goldFind: 0.05 },
       rolledPrimaryAffix: 0.05,
-      rolledAffixes: [],
+      rolledAffixes: [], enhanceLevel: 0,
     });
     save.inventory.equipped = { Pet: "test-pet-1" };
 

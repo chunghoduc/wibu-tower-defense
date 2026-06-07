@@ -33,6 +33,7 @@ import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
 import { heroStatPipeline, towerStatPipeline } from "./stats.ts";
 import { effectiveBehavior } from "./towerUpgrade.ts";
+import { scaleStatsByEnhance } from "./enhance.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
@@ -255,7 +256,7 @@ export class BattleState {
         if (!instance) continue;
         const def = ITEM_CATALOG_MAP.get(instance.defId);
         if (!def) continue;
-        itemStats.push(instance.rolledStats as Partial<Stats>);
+        itemStats.push(scaleStatsByEnhance(instance.rolledStats as Partial<Stats>, instance.enhanceLevel ?? 0));
         if (slot === "Pet" && def.petUtility?.goldPerSec) {
           this.petGoldPerSec = def.petUtility.goldPerSec;
         }

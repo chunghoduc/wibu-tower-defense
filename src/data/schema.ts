@@ -287,6 +287,8 @@ export interface ItemInstance {
   rolledStats: Partial<Stats>;
   rolledPrimaryAffix: number;
   rolledAffixes: RolledAffix[];
+  /** Enhancement level (+0..+15); scales primary stats & affix (T13). */
+  enhanceLevel: number;
 }
 
 /**

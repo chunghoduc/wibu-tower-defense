@@ -1,6 +1,6 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 
-export const CURRENT_SAVE_VERSION = 4;
+export const CURRENT_SAVE_VERSION = 5;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -36,6 +36,8 @@ export interface ItemInstanceSave {
   rolledStats: Record<string, number>;
   rolledPrimaryAffix: number;
   rolledAffixes: RolledAffix[];
+  /** Item enhancement level (+0..+15), see core/enhance.ts (T13). */
+  enhanceLevel: number;
 }
 
 export interface HeroSkillEntry {
@@ -68,6 +70,8 @@ export interface HeroSave {
   progress: ProgressSave;
   /** Chosen battle squad (tower ids, up to 7). Empty = auto-pick. */
   squad: string[];
+  /** Crafting materials & loot boxes, keyed by material id → count (T13/T15). */
+  materials: Record<string, number>;
   lastSavedAt: number;
 }
 
@@ -93,6 +97,7 @@ export function createFreshSave(): HeroSave {
     currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     squad: [],
+    materials: {},
     lastSavedAt: 0,
   };
 }
@@ -108,6 +113,11 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     version: 3,
   };
   if ((save.version ?? 0) < 4) save = { ...save, squad: [], version: 4 };
+  if ((save.version ?? 0) < 5) {
+    // Add materials + default every existing item to +0.
+    const items = (save.inventory?.items ?? []).map((it) => ({ ...it, enhanceLevel: it.enhanceLevel ?? 0 }));
+    save = { ...save, materials: save.materials ?? {}, inventory: { ...save.inventory, items }, version: 5 };
+  }
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }

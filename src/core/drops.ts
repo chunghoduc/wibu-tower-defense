@@ -4,6 +4,7 @@ import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection } from "./collection.ts";
 import { Rng } from "./rng.ts";
+import { BLESS_JEWEL, SOUL_JEWEL } from "../data/materials.ts";
 import type { HeroSave, ItemInstanceSave } from "./save.ts";
 
 export const CRYSTAL_REWARD: Record<Difficulty, number> = {
@@ -22,7 +23,13 @@ export interface DropResult {
   skillDropped: string | null;
   characterDropped: string | null;
   isFirstClear: boolean;
+  /** Enhance jewels (+ later boxes) gained this clear, by material id (T13/T15). */
+  materialsDropped: Record<string, number>;
 }
+
+// Every stage clear kills that stage's boss, so jewels drop from a win.
+const BLESS_DROP_CHANCE = 0.5;   // a clear usually yields a Bless jewel
+const SOUL_DROP_CHANCE = 0.15;   // Soul jewels are rarer (for high enhances)
 
 export function processStageClear(
   save: HeroSave,
@@ -58,6 +65,7 @@ export function processStageClear(
         ),
         rolledPrimaryAffix: inst.rolledPrimaryAffix,
         rolledAffixes: inst.rolledAffixes,
+        enhanceLevel: 0,
       };
       save.inventory.items.push(instSave);
       itemDropped = instSave;
@@ -87,5 +95,15 @@ export function processStageClear(
     }
   }
 
-  return { crystalsAwarded, itemDropped, skillDropped, characterDropped, isFirstClear };
+  // Enhance jewels (T13). Scale a touch with difficulty.
+  const materialsDropped: Record<string, number> = {};
+  const giveMat = (id: string, n: number) => {
+    save.materials[id] = (save.materials[id] ?? 0) + n;
+    materialsDropped[id] = (materialsDropped[id] ?? 0) + n;
+  };
+  const diffBonus = difficulty === "Nightmare" ? 0.2 : difficulty === "Hard" ? 0.1 : 0;
+  if (rng.next() < BLESS_DROP_CHANCE + diffBonus) giveMat(BLESS_JEWEL, 1);
+  if (rng.next() < SOUL_DROP_CHANCE + diffBonus) giveMat(SOUL_JEWEL, 1);
+
+  return { crystalsAwarded, itemDropped, skillDropped, characterDropped, isFirstClear, materialsDropped };
 }

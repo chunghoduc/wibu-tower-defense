@@ -240,5 +240,6 @@ export function rollItem(def: ItemDef, heroLevel: number, seed: number): ItemIns
     rolledStats,
     rolledPrimaryAffix,
     rolledAffixes,
+    enhanceLevel: 0,
   };
 }
