@@ -1,4 +1,4 @@
-import type { Rarity, Stats, TowerRole } from "./schema.ts";
+import type { DamageType, Rarity, Stats, TowerRole } from "./schema.ts";
 
 /**
  * Towers are full combat units, not glass turrets: they carry the same stat set
@@ -29,4 +29,32 @@ export function augmentTowerStats(role: TowerRole, rarity: Rarity, s: Stats): St
     tenacity: s.tenacity || r3(0.05 + 0.03 * tier),
     manaOnKill: s.manaOnKill || (s.maxMana > 0 ? Math.max(2, Math.round(s.manaOnHit * 1.5)) : 0),
   };
+}
+
+/**
+ * Damage-type identity. A tower's basic-attack type defines how it deals damage:
+ *
+ *  - PHYSICAL towers are auto-attack bruisers — higher atk and attack rate, and
+ *    NO skill power (skillPower = 1), so their actives stay modest. Their damage
+ *    comes from sustained hits.
+ *  - MAGIC towers are casters — weaker, slower basic attacks but high skill power
+ *    (scaling with rarity), which makes their active skill the powerful payoff
+ *    (active burst = atk × 2 × skillPower).
+ *
+ * Applied on top of `augmentTowerStats` so every tower conforms to its type.
+ */
+export function applyDamageArchetype(damageType: DamageType, rarity: Rarity, s: Stats): Stats {
+  const tier = RARITY_TIER[rarity];
+  if (damageType === "Physical") {
+    return { ...s, atk: Math.round(s.atk * 1.15), attackSpeed: r3(s.attackSpeed * 1.15), skillPower: 1 };
+  }
+  if (damageType === "Magic") {
+    return {
+      ...s,
+      atk: Math.round(s.atk * 0.8),
+      attackSpeed: r3(s.attackSpeed * 0.8),
+      skillPower: Math.max(s.skillPower, r3(1.6 + 0.1 * tier)),
+    };
+  }
+  return s; // True or other — left as authored
 }

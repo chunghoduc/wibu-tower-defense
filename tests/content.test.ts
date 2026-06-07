@@ -32,6 +32,16 @@ describe("character roster", () => {
     }
   });
 
+  it("enforces the damage-type stat archetype (Physical = no skill power, Magic = high)", () => {
+    for (const c of cat.characters.values()) {
+      if (c.damageType === "Physical") {
+        expect(c.baseStats.skillPower, `${c.id} (Physical) should have no skill power`).toBe(1);
+      } else if (c.damageType === "Magic") {
+        expect(c.baseStats.skillPower, `${c.id} (Magic) should have high skill power`).toBeGreaterThanOrEqual(1.6);
+      }
+    }
+  });
+
   it("gives role-dependent towers the behavior params they need to function", () => {
     for (const c of cat.characters.values()) {
       if (c.role === "support") expect(c.behavior?.buffAura).toBeTruthy();

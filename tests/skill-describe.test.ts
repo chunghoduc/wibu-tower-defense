@@ -6,9 +6,10 @@ const byId = (id: string) => TOWERS.find((t) => t.id === id)!;
 
 describe("skillDescribe", () => {
   it("active burst = atk x2 x skillPower with the right damage type", () => {
-    const t = byId("karu-sunfist"); // atk 56, skillPower 1.8, activeType True
+    const t = byId("karu-sunfist"); // activeType True
     const detail = activeSkillDetail(t, t.baseStats);
-    expect(detail).toContain(`${Math.round(56 * 2 * 1.8)} True`); // 202 True
+    const burst = Math.round(t.baseStats.atk * 2 * Math.max(1, t.baseStats.skillPower));
+    expect(detail).toContain(`${burst} True`);
     expect(detail).toContain("60px");
   });
 
