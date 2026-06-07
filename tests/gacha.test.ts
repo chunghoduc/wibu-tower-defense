@@ -155,3 +155,16 @@ describe("pity insurance pool", () => {
     expect(uniqueRate).toBeLessThanOrEqual(0.15);
   });
 });
+
+describe("maxed towers are no longer pulled", () => {
+  it("a 5★ tower never appears in pulls", () => {
+    const save = createFreshSave();
+    save.currency.crystals = 1_000_000;
+    const maxed = TOWERS[0].id;
+    save.collection[maxed] = { stars: 5, copies: 0 }; // fully ascended
+    const rng = new Rng(123);
+    for (let i = 0; i < 300; i++) {
+      expect(performSummon(save, rng).characterId).not.toBe(maxed);
+    }
+  });
+});

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BattleState } from "../src/core/battle.ts";
 import { makeStats } from "../src/data/schema.ts";
 import { createFreshSave } from "../src/core/save.ts";
-import { addTowerToCollection, addTowerDupe } from "../src/core/collection.ts";
+import { addTowerToCollection } from "../src/core/collection.ts";
 import { mkEnemy, mkStage, mkTower, oneWave, runUntilDone } from "./fixtures.ts";
 
 const baseHeroStats = makeStats({ atk: 500, maxHp: 1000, attackSpeed: 2, range: 400 });
@@ -37,7 +37,7 @@ describe("BattleState tower collection — Phase 3b", () => {
 
     const save5 = createFreshSave();
     addTowerToCollection(save5, "turret");
-    for (let i = 0; i < 4; i++) addTowerDupe(save5, "turret");
+    save5.collection["turret"].stars = 5; // fully ascended
 
     const b1 = makeWorld(save1);
     b1.placeTower("turret", 0);

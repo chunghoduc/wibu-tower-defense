@@ -14,7 +14,7 @@ import type { Difficulty } from "../data/schema.ts";
 import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } from "./save.ts";
 import { SINGLE_PULL_COST } from "./gacha.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
-import { addTowerToCollection } from "./collection.ts";
+import { addTowerToCollection, upgradeTowerStar, type StarUpResult } from "./collection.ts";
 
 const DAILY_LOGIN_CRYSTALS = 10;
 const STARTER_CRYSTALS = SINGLE_PULL_COST * 50; // enough for at least 50 summons
@@ -193,6 +193,13 @@ export class SaveManager {
   /** Reroll the shop for crystals. */
   refreshShop(): PurchaseResult {
     const r = refreshShop(this.save, new Rng((Math.random() * 1e9) | 0));
+    if (r.success) this.persist();
+    return r;
+  }
+
+  /** Ascend a collected tower one star (spends banked copies + crystals). */
+  upgradeTowerStar(towerId: string): StarUpResult {
+    const r = upgradeTowerStar(this.save, towerId);
     if (r.success) this.persist();
     return r;
   }

@@ -161,6 +161,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   // versioned hops above and would crash on first access. Ensure every required
   // top-level field exists regardless of version.
   save.collection ??= {};
+  for (const id in save.collection) { const e = save.collection[id]; if (e) e.copies ??= 0; }
   save.squad ??= [];
   save.materials ??= {};
   save.currency ??= { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false };

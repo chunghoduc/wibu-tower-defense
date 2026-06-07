@@ -1,6 +1,6 @@
 import type { Rarity } from "../data/schema.ts";
 import { TOWERS } from "../data/towers.ts";
-import { addTowerToCollection } from "./collection.ts";
+import { addTowerToCollection, isTowerMaxStar } from "./collection.ts";
 import { Rng } from "./rng.ts";
 import type { HeroSave } from "./save.ts";
 
@@ -65,9 +65,13 @@ function drawRarity(pityCount: number, rng: Rng): Rarity {
   return "Common";
 }
 
-function drawCharacter(rarity: Rarity, rng: Rng): string {
-  const pool = TOWERS.filter((t) => t.rarity === rarity);
-  const source = pool.length > 0 ? pool : TOWERS;
+function drawCharacter(save: HeroSave, rarity: Rarity, rng: Rng): string {
+  // A maxed (5★) tower can't be pulled anymore — prefer non-maxed of the rolled
+  // rarity, then any non-maxed tower, only falling back to the full list if the
+  // player has somehow maxed everything.
+  const fresh = TOWERS.filter((t) => !isTowerMaxStar(save, t.id));
+  const pool = fresh.filter((t) => t.rarity === rarity);
+  const source = pool.length > 0 ? pool : fresh.length > 0 ? fresh : TOWERS;
   return source[Math.floor(rng.next() * source.length)].id;
 }
 
@@ -91,7 +95,7 @@ export function performSummon(save: HeroSave, rng: Rng): SummonResult {
     rarity = drawRarity(save.currency.pityCount, rng);
   }
 
-  const characterId = drawCharacter(rarity, rng);
+  const characterId = drawCharacter(save, rarity, rng);
   const isNew = !(characterId in save.collection);
   addTowerToCollection(save, characterId);
   const newStars = save.collection[characterId].stars;

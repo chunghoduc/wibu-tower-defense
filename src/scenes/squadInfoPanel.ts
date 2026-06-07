@@ -10,6 +10,8 @@ import { ITEM_SLOTS } from "../data/schema.ts";
 import type { HeroSave } from "../core/save.ts";
 import { towerActiveInfo, passiveInfo } from "../data/passiveSkills.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
+import { towerStatPipeline } from "../core/stats.ts";
+import { starUpCost, MAX_STARS } from "../core/collection.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#9e9e9e", Magic: "#2196f3", Rare: "#9c27b0", Legendary: "#ff9800", Unique: "#f44336",
@@ -44,8 +46,17 @@ function section(scene: S, c: C, x: number, y: number, w: number, text: string):
   return y + 18;
 }
 
-/** Render a tower/character's full info into the panel box at (x,y) width w. */
-export function renderCharInfo(scene: S, c: C, x: number, y: number, w: number, def: CharacterDef, stars: number): void {
+/**
+ * Render a tower/character's full info into the panel box at (x,y) width w.
+ * Stats are shown at the tower's CURRENT star tier; the ascension block shows
+ * the banked copies vs the cost and an Upgrade button (wired via onUpgrade).
+ */
+export function renderCharInfo(
+  scene: S, c: C, x: number, y: number, w: number,
+  def: CharacterDef, entry: { stars: number; copies: number }, crystals: number,
+  onUpgrade: () => void,
+): void {
+  const stars = entry.stars;
   // Avatar + name header.
   const key = `tower__${def.id}`;
   if (scene.textures.exists(key)) {
@@ -55,18 +66,22 @@ export function renderCharInfo(scene: S, c: C, x: number, y: number, w: number, 
   }
   add(c, crispText(scene, x + 62, y, def.name, { fontSize: "13px", color: RARITY_HEX[def.rarity], fontStyle: "bold", wordWrap: { width: w - 62 } }));
   add(c, crispText(scene, x + 62, y + 22, `${def.rarity} · ${ROLE_LABEL[def.role] ?? def.role}`, { fontSize: "10px", color: "#9fb0c4" }));
-  if (stars > 0) add(c, crispText(scene, x + 62, y + 38, "★".repeat(stars), { fontSize: "11px", color: "#ffd24a" }));
+  if (stars > 0) add(c, crispText(scene, x + 62, y + 38, "★".repeat(stars) + "☆".repeat(MAX_STARS - stars), { fontSize: "11px", color: "#ffd24a" }));
 
-  // Stats (2-column grid of non-zero values).
+  // Stats at the current star tier (so an ascension visibly raises them).
+  const cur = towerStatPipeline(def.baseStats, 1, stars, def.role, 0);
   let sy = section(scene, c, x, y + 60, w, "Stats");
   const rows = STAT_ROWS.filter(([k]) => (def.baseStats[k] ?? 0) !== 0);
   const colW = w / 2;
   rows.forEach(([k, lbl, fmt], i) => {
     const cx = x + (i % 2) * colW, cy = sy + Math.floor(i / 2) * 15;
     add(c, crispText(scene, cx, cy, lbl, { fontSize: "9px", color: "#8fa0b4" }));
-    add(c, crispText(scene, cx + colW - 8, cy, fmt(def.baseStats[k]), { fontSize: "9px", color: "#e8eef6", fontStyle: "bold" }).setOrigin(1, 0));
+    add(c, crispText(scene, cx + colW - 8, cy, fmt(cur[k] ?? 0), { fontSize: "9px", color: "#e8eef6", fontStyle: "bold" }).setOrigin(1, 0));
   });
   sy += Math.ceil(rows.length / 2) * 15 + 6;
+
+  // Ascension: copies banked vs cost + an upgrade button.
+  sy = renderAscension(scene, c, x, sy, w, stars, entry.copies, crystals, onUpgrade);
 
   // Skills.
   sy = section(scene, c, x, sy, w, "Skills");
@@ -78,6 +93,37 @@ export function renderCharInfo(scene: S, c: C, x: number, y: number, w: number, 
     const p = passiveInfo(pid);
     sy = skillLine(scene, c, x, sy, w, `• ${p.name}`, p.description, "#cdd6e6");
   }
+}
+
+/** Ascension block: copies progress bar + cost + Upgrade ★ button. Returns next y. */
+function renderAscension(scene: S, c: C, x: number, y: number, w: number, stars: number, copies: number, crystals: number, onUpgrade: () => void): number {
+  let sy = section(scene, c, x, y, w, "Ascension");
+  const cost = starUpCost(stars);
+  if (!cost) { // maxed
+    add(c, crispText(scene, x, sy, "★★★★★  Max star reached", { fontSize: "10px", color: "#ffd24a", fontStyle: "bold" }));
+    return sy + 20;
+  }
+
+  const haveCopies = copies >= cost.copies, haveCrystals = crystals >= cost.crystals;
+  add(c, crispText(scene, x, sy, `Copies ${copies}/${cost.copies}`, { fontSize: "10px", color: haveCopies ? "#7ee0a0" : "#cdd6e6" }));
+  add(c, crispText(scene, x + w, sy, `${cost.crystals} 💎`, { fontSize: "10px", color: haveCrystals ? "#cdd6e6" : "#ff8a8a" }).setOrigin(1, 0));
+  sy += 15;
+
+  // Progress bar (copies toward the next star).
+  const bar = scene.add.graphics();
+  bar.fillStyle(0x0d1622, 1).fillRoundedRect(x, sy, w, 7, 3);
+  const frac = Math.max(0, Math.min(1, cost.copies ? copies / cost.copies : 1));
+  if (frac > 0) bar.fillStyle(haveCopies ? 0x52c878 : 0x4a78c8, 1).fillRoundedRect(x, sy, w * frac, 7, 3);
+  add(c, bar);
+  sy += 14;
+
+  const ready = haveCopies && haveCrystals;
+  const btn = crispText(scene, x, sy, ready ? "⬆ Upgrade ★" : "Upgrade ★ (locked)", {
+    fontSize: "11px", color: ready ? "#fff" : "#7a869a", backgroundColor: ready ? "#2f7d4a" : "#1a2230", fontStyle: "bold",
+  }).setPadding(8, 4, 8, 4);
+  if (ready) { btn.setInteractive({ useHandCursor: true }); btn.on("pointerup", onUpgrade); }
+  add(c, btn);
+  return sy + 24;
 }
 
 function skillLine(scene: S, c: C, x: number, y: number, w: number, title: string, desc: string, color: string): number {

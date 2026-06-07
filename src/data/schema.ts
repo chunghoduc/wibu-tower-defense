@@ -251,8 +251,10 @@ export interface PetUtility {
 
 /** One owned tower entry in the hero's collection. */
 export interface TowerCollectionEntry {
-  /** Star rank 1–5. 1 = first copy; each duplicate adds 1 star up to 5. */
+  /** Star rank 1–5. 1 = first copy; ascend with copies + crystals up to 5. */
   stars: number;
+  /** Duplicate copies banked toward the next star ascension. */
+  copies: number;
 }
 
 /** A node in the hero's PoE-style passive skill grid. */

@@ -3,7 +3,12 @@ import {
   addTowerToCollection,
   addTowerDupe,
   isTowerOwned,
+  isTowerMaxStar,
   getTowerStars,
+  getTowerCopies,
+  starUpCost,
+  upgradeTowerStar,
+  MAX_STARS,
 } from "../src/core/collection.ts";
 import { createFreshSave } from "../src/core/save.ts";
 
@@ -13,45 +18,71 @@ describe("collection helpers", () => {
     expect(isTowerOwned(save, "zoran-thricedraw")).toBe(false);
   });
 
-  it("addTowerToCollection sets stars to 1", () => {
+  it("addTowerToCollection sets stars 1 with no copies", () => {
     const save = createFreshSave();
     addTowerToCollection(save, "zoran-thricedraw");
-    expect(isTowerOwned(save, "zoran-thricedraw")).toBe(true);
     expect(getTowerStars(save, "zoran-thricedraw")).toBe(1);
+    expect(getTowerCopies(save, "zoran-thricedraw")).toBe(0);
   });
 
-  it("addTowerToCollection on already-owned tower acts as dupe", () => {
-    const save = createFreshSave();
-    addTowerToCollection(save, "zoran-thricedraw");
-    addTowerToCollection(save, "zoran-thricedraw");
-    expect(getTowerStars(save, "zoran-thricedraw")).toBe(2);
-  });
-
-  it("addTowerDupe increments stars", () => {
+  it("a duplicate banks a copy instead of raising the star", () => {
     const save = createFreshSave();
     addTowerToCollection(save, "t");
+    addTowerToCollection(save, "t"); // dupe
     addTowerDupe(save, "t");
-    expect(getTowerStars(save, "t")).toBe(2);
-  });
-
-  it("addTowerDupe caps at 5 stars", () => {
-    const save = createFreshSave();
-    addTowerToCollection(save, "t");
-    for (let i = 0; i < 10; i++) addTowerDupe(save, "t");
-    expect(getTowerStars(save, "t")).toBe(5);
+    expect(getTowerStars(save, "t")).toBe(1);
+    expect(getTowerCopies(save, "t")).toBe(2);
   });
 
   it("getTowerStars returns 0 for unowned tower", () => {
     const save = createFreshSave();
     expect(getTowerStars(save, "unknown")).toBe(0);
   });
+});
 
-  it("multiple towers tracked independently", () => {
+describe("star ascension", () => {
+  it("cost rises with the current star: 1, 3, 7, 15 copies, null at max", () => {
+    expect(starUpCost(1)?.copies).toBe(1);
+    expect(starUpCost(2)?.copies).toBe(3);
+    expect(starUpCost(3)?.copies).toBe(7);
+    expect(starUpCost(4)?.copies).toBe(15);
+    expect(starUpCost(MAX_STARS)).toBeNull();
+  });
+
+  it("upgrade spends copies + crystals and raises the star", () => {
     const save = createFreshSave();
-    addTowerToCollection(save, "a");
-    addTowerToCollection(save, "b");
-    addTowerDupe(save, "a");
-    expect(getTowerStars(save, "a")).toBe(2);
-    expect(getTowerStars(save, "b")).toBe(1);
+    addTowerToCollection(save, "t");
+    save.collection["t"].copies = 1;
+    save.currency.crystals = 9999;
+    const before = save.currency.crystals;
+    const r = upgradeTowerStar(save, "t");
+    expect(r.success).toBe(true);
+    expect(getTowerStars(save, "t")).toBe(2);
+    expect(getTowerCopies(save, "t")).toBe(0);
+    expect(save.currency.crystals).toBeLessThan(before);
+  });
+
+  it("fails without enough copies or crystals", () => {
+    const save = createFreshSave();
+    addTowerToCollection(save, "t");
+    save.currency.crystals = 9999;
+    expect(upgradeTowerStar(save, "t").success).toBe(false); // 0 copies
+    save.collection["t"].copies = 1;
+    save.currency.crystals = 0;
+    expect(upgradeTowerStar(save, "t").success).toBe(false); // no crystals
+  });
+
+  it("can be fully ascended to 5★, then dupes are ignored and cost is null", () => {
+    const save = createFreshSave();
+    addTowerToCollection(save, "t");
+    save.currency.crystals = 1_000_000;
+    save.collection["t"].copies = 1 + 3 + 7 + 15; // exactly enough for four upgrades
+    for (let s = 1; s < MAX_STARS; s++) expect(upgradeTowerStar(save, "t").success).toBe(true);
+    expect(getTowerStars(save, "t")).toBe(MAX_STARS);
+    expect(getTowerCopies(save, "t")).toBe(0);
+    expect(isTowerMaxStar(save, "t")).toBe(true);
+    addTowerDupe(save, "t"); // maxed → no more banking
+    expect(getTowerCopies(save, "t")).toBe(0);
+    expect(upgradeTowerStar(save, "t").success).toBe(false);
   });
 });

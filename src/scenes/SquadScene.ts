@@ -11,7 +11,7 @@
 import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
-import { getTowerStars } from "../core/collection.ts";
+import { getTowerStars, getTowerCopies, starUpCost } from "../core/collection.ts";
 import { TOWERS } from "../data/towers.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { TOWER_ROLES, type Rarity, type TowerRole, type CharacterDef } from "../data/schema.ts";
@@ -142,6 +142,16 @@ export class SquadScene extends Phaser.Scene {
 
   private select(id: string): void { this.selectedId = id; this.redraw(); }
 
+  private _feedback?: Phaser.GameObjects.Text;
+  /** Transient toast for ascension results (survives the redraw that follows). */
+  private flashMsg(msg: string, ok: boolean): void {
+    this._feedback?.destroy();
+    this._feedback = this.add.text(this.scale.width / 2, 508, msg, {
+      fontSize: "13px", color: ok ? "#a5d6a7" : "#ff9b9b", backgroundColor: "#10202c",
+    }).setOrigin(0.5).setPadding(8, 4, 8, 4).setDepth(60);
+    this.time.delayedCall(1600, () => this._feedback?.setVisible(false));
+  }
+
   // ---- rendering -----------------------------------------------------------
 
   private redraw(): void {
@@ -210,7 +220,7 @@ export class SquadScene extends Phaser.Scene {
     owned.forEach((t, idx) => {
       const cx = X0 + (idx % COLS) * CW, cy = Y0 + Math.floor(idx / COLS) * CH;
       if (cy + CH - 8 > BOTTOM) return; // clip overflow
-      this.dyn.add(this.makeCharTile(t, cx, cy, CW - 8, CH - 8, getTowerStars(save, t.id), this.slots.includes(t.id)));
+      this.dyn.add(this.makeCharTile(t, cx, cy, CW - 8, CH - 8, getTowerStars(save, t.id), getTowerCopies(save, t.id), this.slots.includes(t.id)));
     });
   }
 
@@ -236,7 +246,7 @@ export class SquadScene extends Phaser.Scene {
     });
   }
 
-  private makeCharTile(t: CharacterDef, cx: number, cy: number, w: number, h: number, stars: number, inSquad: boolean): Phaser.GameObjects.Container {
+  private makeCharTile(t: CharacterDef, cx: number, cy: number, w: number, h: number, stars: number, copies: number, inSquad: boolean): Phaser.GameObjects.Container {
     const selected = t.id === this.selectedId;
     const c = this.add.container(cx + w / 2, cy + h / 2).setSize(w, h);
     const g = this.add.graphics();
@@ -251,6 +261,21 @@ export class SquadScene extends Phaser.Scene {
     c.add(crispText(this, 0, h / 2 - 16, t.name, { fontSize: "8px", color: RARITY_HEX[t.rarity], align: "center", wordWrap: { width: w - 8 } }).setOrigin(0.5, 0));
     if (stars > 0) c.add(crispText(this, -w / 2 + 4, -h / 2 + 3, "★".repeat(stars), { fontSize: "9px", color: "#ffd24a" }));
     if (inSquad) c.add(crispText(this, w / 2 - 6, -h / 2 + 3, "✓", { fontSize: "12px", color: "#a5d6a7", fontStyle: "bold" }).setOrigin(1, 0));
+
+    // Ascension progress bar along the bottom edge: copies toward the next star,
+    // gold when maxed, green when enough copies are banked to upgrade.
+    const cost = starUpCost(stars);
+    const bw = w - 10, bx = -bw / 2, by = h / 2 - 4;
+    const bar = this.add.graphics();
+    bar.fillStyle(0x0b1018, 1).fillRoundedRect(bx, by, bw, 3, 1.5);
+    if (!cost) {
+      bar.fillStyle(0xffd24a, 1).fillRoundedRect(bx, by, bw, 3, 1.5); // maxed
+    } else {
+      const frac = Math.max(0, Math.min(1, copies / cost.copies));
+      if (frac > 0) bar.fillStyle(copies >= cost.copies ? 0x52c878 : 0x4a78c8, 1).fillRoundedRect(bx, by, bw * frac, 3, 1.5);
+    }
+    c.add(bar);
+
     c.setData("charId", t.id);
     c.setInteractive({ useHandCursor: true, draggable: true });
     c.on("pointerup", () => { if (!this.didDrag) this.select(t.id); });
@@ -275,7 +300,15 @@ export class SquadScene extends Phaser.Scene {
       renderHeroInfo(this, this.panel, PANEL_X + 12, bodyY, PANEL_W - 24, save);
     } else {
       const def = TOWERS.find((t) => t.id === this.selectedId);
-      if (def) renderCharInfo(this, this.panel, PANEL_X + 12, bodyY, PANEL_W - 24, def, getTowerStars(save, def.id));
+      if (def) {
+        const e = save.collection[def.id];
+        const entry = { stars: e?.stars ?? 0, copies: e?.copies ?? 0 };
+        renderCharInfo(this, this.panel, PANEL_X + 12, bodyY, PANEL_W - 24, def, entry, save.currency.crystals, () => {
+          const r = this.mgr.upgradeTowerStar(def.id);
+          this.flashMsg(r.message, r.success);
+          this.redraw();
+        });
+      }
     }
   }
 }
