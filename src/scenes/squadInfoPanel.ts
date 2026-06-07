@@ -81,7 +81,7 @@ export function renderCharInfo(
   sy += Math.ceil(rows.length / 2) * 15 + 6;
 
   // Ascension: copies banked vs cost + an upgrade button.
-  sy = renderAscension(scene, c, x, sy, w, stars, entry.copies, crystals, onUpgrade);
+  sy = renderAscension(scene, c, x, sy, w, def.rarity, stars, entry.copies, crystals, onUpgrade);
 
   // Skills.
   sy = section(scene, c, x, sy, w, "Skills");
@@ -96,9 +96,9 @@ export function renderCharInfo(
 }
 
 /** Ascension block: copies progress bar + cost + Upgrade ★ button. Returns next y. */
-function renderAscension(scene: S, c: C, x: number, y: number, w: number, stars: number, copies: number, crystals: number, onUpgrade: () => void): number {
+function renderAscension(scene: S, c: C, x: number, y: number, w: number, rarity: Rarity, stars: number, copies: number, crystals: number, onUpgrade: () => void): number {
   let sy = section(scene, c, x, y, w, "Ascension");
-  const cost = starUpCost(stars);
+  const cost = starUpCost(stars, rarity);
   if (!cost) { // maxed
     add(c, crispText(scene, x, sy, "★★★★★  Max star reached", { fontSize: "10px", color: "#ffd24a", fontStyle: "bold" }));
     return sy + 20;

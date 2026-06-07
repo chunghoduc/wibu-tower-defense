@@ -1,6 +1,17 @@
 import type { HeroSave } from "./save.ts";
+import type { Rarity } from "../data/schema.ts";
+import { TOWERS } from "../data/towers.ts";
 
 export const MAX_STARS = 5;
+
+/** Rarer heroes cost more crystals to ascend (the copy cost stays by star). */
+export const RARITY_COST_MULT: Record<Rarity, number> = {
+  Common: 1, Magic: 1.6, Rare: 2.4, Legendary: 3.5, Unique: 5,
+};
+const TOWER_RARITY = new Map<string, Rarity>(TOWERS.map((t) => [t.id, t.rarity]));
+export function towerRarity(towerId: string): Rarity {
+  return TOWER_RARITY.get(towerId) ?? "Common";
+}
 
 /**
  * Star ascension economy. A duplicate pull now banks a COPY toward the next
@@ -43,10 +54,17 @@ export function isTowerMaxStar(save: HeroSave, towerId: string): boolean {
   return (save.collection[towerId]?.stars ?? 0) >= MAX_STARS;
 }
 
-/** Copies + crystals required to ascend a tower at `stars`, or null if maxed. */
-export function starUpCost(stars: number): { copies: number; crystals: number } | null {
+/**
+ * Copies + crystals required to ascend a tower at `stars` (null if maxed). The
+ * crystal cost scales with BOTH the current star (rising base) and the hero's
+ * `rarity` (rarer heroes cost more); the copy cost depends on star only.
+ */
+export function starUpCost(stars: number, rarity: Rarity = "Common"): { copies: number; crystals: number } | null {
   if (stars < 1 || stars >= MAX_STARS) return null;
-  return { copies: STAR_UP_COPIES[stars], crystals: STAR_UP_CRYSTALS[stars] };
+  return {
+    copies: STAR_UP_COPIES[stars],
+    crystals: Math.round(STAR_UP_CRYSTALS[stars] * RARITY_COST_MULT[rarity]),
+  };
 }
 
 export interface StarUpResult {
@@ -59,7 +77,7 @@ export function upgradeTowerStar(save: HeroSave, towerId: string): StarUpResult 
   const entry = save.collection[towerId];
   if (!entry) return { success: false, message: "Not owned" };
   if (entry.stars >= MAX_STARS) return { success: false, message: "Already 5★" };
-  const cost = starUpCost(entry.stars)!;
+  const cost = starUpCost(entry.stars, towerRarity(towerId))!;
   const copies = entry.copies ?? 0;
   if (copies < cost.copies) return { success: false, message: `Need ${cost.copies - copies} more copies` };
   if (save.currency.crystals < cost.crystals) return { success: false, message: `Need ${cost.crystals} 💎` };

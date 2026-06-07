@@ -49,6 +49,17 @@ describe("star ascension", () => {
     expect(starUpCost(MAX_STARS)).toBeNull();
   });
 
+  it("the crystal cost rises with rarity (copies stay the same)", () => {
+    const common = starUpCost(2, "Common")!;
+    const rare = starUpCost(2, "Rare")!;
+    const unique = starUpCost(2, "Unique")!;
+    expect(rare.crystals).toBeGreaterThan(common.crystals);
+    expect(unique.crystals).toBeGreaterThan(rare.crystals);
+    expect(rare.copies).toBe(common.copies); // copies depend on star only
+    // and it still rises with the current star (base cost grows)
+    expect(starUpCost(3, "Rare")!.crystals).toBeGreaterThan(starUpCost(2, "Rare")!.crystals);
+  });
+
   it("upgrade spends copies + crystals and raises the star", () => {
     const save = createFreshSave();
     addTowerToCollection(save, "t");
