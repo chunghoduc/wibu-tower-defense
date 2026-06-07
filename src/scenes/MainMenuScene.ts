@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import type { SaveManager } from "../core/saveManager.ts";
 import { music } from "./audio.ts";
+import { dressHero } from "./dressHero.ts";
 import { bgKey } from "../data/bgManifest.ts";
 import { crispText } from "./ui.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
@@ -62,11 +63,14 @@ export class MainMenuScene extends Phaser.Scene {
 
   // ── hero on the throne + squad standing in the hall ─────────────────────────
   private drawHeroAndSquad(save: ReturnType<SaveManager["getSave"]>, W: number, H: number): void {
-    // Hero on the throne (centre dais).
+    // Hero on the throne (centre dais), wearing the player's equipped outfit.
     if (this.textures.exists("hero__hero")) {
-      const hero = this.add.sprite(W / 2, H * 0.45, "hero__hero").setOrigin(0.5, 0.8).setDepth(2);
-      hero.setScale(76 / hero.height);
+      const HERO_H = 104, cy = H * 0.45, originY = 0.8;
+      const hero = this.add.sprite(W / 2, cy, "hero__hero").setOrigin(0.5, originY).setDepth(2);
+      hero.setScale(HERO_H / hero.height);
       if (this.anims.exists("hero__hero_idle")) hero.play("hero__hero_idle");
+      // Overlay equipped weapon / wings / armour / boots / gloves / pet on the body.
+      dressHero(this, save.inventory, W / 2, cy - HERO_H * originY, HERO_H, 2);
     }
 
     // Up to 7 squad members in a shallow arc across the foreground hall.
