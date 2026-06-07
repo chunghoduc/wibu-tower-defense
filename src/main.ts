@@ -12,6 +12,9 @@ import { PreloadScene } from "./scenes/PreloadScene.ts";
 import { GAME_HEIGHT, GAME_WIDTH } from "./data/stage.ts";
 import { SaveManager } from "./core/saveManager.ts";
 import { LocalSaveProvider } from "./core/save.ts";
+import { installErrorOverlay } from "./debug/errorOverlay.ts";
+
+installErrorOverlay();
 
 const provider = new LocalSaveProvider();
 const saveManager = new SaveManager(provider);
