@@ -711,8 +711,11 @@ export class BattleScene extends Phaser.Scene {
     this.fx.play(ev);
     if (ev.type === "attack") {
       this.sfx.attack(ev.ranged);
-      const s = ev.source === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : (this.towerSprites.get(ev.uid) ?? null);
-      this.playAttack(s);
+      if (ev.source === "hero") {
+        this.heroSprite?.playAttack();   // body anim + weapon swing arc
+      } else {
+        this.playAttack(this.towerSprites.get(ev.uid) ?? null);
+      }
     } else if (ev.type === "hit") {
       this.sfx.hit();
       const e = this.enemySprites.get(ev.uid);

@@ -44,13 +44,42 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     world.add(this.petSprite);
   }
 
-  override update(_time: number, _delta: number): void {
-    this.petSprite.setPosition(this.x + 30, this.y + 8);
-  }
-
   play(animKey: string, ignoreIfPlaying = false): this {
     this.bodySprite.play(animKey, ignoreIfPlaying);
     return this;
+  }
+
+  /**
+   * Play the hero attack animation and swing the equipped weapon icon through a
+   * wind-up → strike → return arc so it doesn't look static. Mirrors the
+   * scene-level attack helper's return-to-idle, and is a no-op restart while a
+   * swing is already in progress (so rapid attacks don't stutter the body anim).
+   */
+  playAttack(): void {
+    const body = this.bodySprite;
+    const ATK = "hero__hero_attack", IDLE = "hero__hero_idle";
+    if (!this.scene.anims.exists(ATK)) return;
+    if (body.anims.currentAnim?.key === ATK && body.anims.isPlaying) return; // already swinging
+    body.play(ATK);
+    body.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (body.active && this.scene.anims.exists(IDLE)) body.play(IDLE);
+    });
+
+    if (!this.weaponSprite.visible) return;
+    const w = this.weaponSprite;
+    this.scene.tweens.killTweensOf(w);
+    w.setPosition(14, -10).setAngle(0);
+    this.scene.tweens.add({
+      targets: w, x: 8, y: -16, angle: -30, duration: 80, ease: "Sine.easeIn",
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: w, x: 20, y: -4, angle: 25, duration: 60, ease: "Quint.easeOut",
+          onComplete: () => {
+            this.scene.tweens.add({ targets: w, x: 14, y: -10, angle: 0, duration: 120, ease: "Back.easeOut" });
+          },
+        });
+      },
+    });
   }
 
   /** Expose the underlying body sprite for effects (attack animation, flash) that need a Sprite. */
@@ -79,6 +108,8 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
 
   override setPosition(x: number, y: number): this {
     super.setPosition(x, y);
+    // Pet floats outside the container, so keep it tracking the hero each move.
+    this.petSprite?.setPosition(x + 30, y + 8);
     return this;
   }
 
