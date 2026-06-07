@@ -171,6 +171,26 @@ export class FxLayer {
     if (source === "hero") this.scene.cameras.main.shake(120, 0.004);
   }
 
+  /** Celebratory burst when a tower gains an in-battle star (T10). */
+  starUp(at: Vec2, level: number): void {
+    const gold = 0xffd34d;
+    const ring = this.fac.circle(at.x, at.y, 8).setStrokeStyle(3, gold, 0.95).setDepth(this.depth + 2);
+    this.scene.tweens.add({ targets: ring, scale: 5, alpha: 0, duration: 480, ease: "Cubic.easeOut", onComplete: () => ring.destroy() });
+    const flash = this.fac.circle(at.x, at.y, 16, 0xffffff, 0.8).setDepth(this.depth + 2);
+    this.scene.tweens.add({ targets: flash, scale: 1.6, alpha: 0, duration: 240, onComplete: () => flash.destroy() });
+    const n = Math.min(5, Math.max(1, level));
+    for (let i = 0; i < n; i++) {
+      const sx = at.x + (i - (n - 1) / 2) * 9;
+      const st = this.fac.star(sx, at.y, 5, 3.2, 7.5, gold).setStrokeStyle(1.5, 0x9a6a1a).setDepth(this.depth + 3).setScale(0.2);
+      this.scene.tweens.add({ targets: st, y: at.y - 34, scale: 1, alpha: 0, duration: 640, delay: i * 55, ease: "Quad.easeOut", onComplete: () => st.destroy() });
+    }
+    for (let i = 0; i < 8; i++) {
+      const a = (Math.PI * 2 * i) / 8;
+      const p = this.fac.circle(at.x, at.y, 2, gold).setDepth(this.depth + 2);
+      this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * 26, y: at.y + Math.sin(a) * 26, alpha: 0, scale: 0.2, duration: 440, ease: "Quad.easeOut", onComplete: () => p.destroy() });
+    }
+  }
+
   private bolt(from: Vec2, to: Vec2, color: number): void {
     const g = this.fac.graphics().setDepth(this.depth + 1);
     g.lineStyle(2, color, 0.95);

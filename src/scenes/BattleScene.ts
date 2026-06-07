@@ -55,6 +55,24 @@ const ROLE_COLOR: Record<string, number> = {
   economy: 0xffd54f,
 };
 
+/** Towers with reach attack from afar (ranged); short-reach ones are melee (T5). */
+const RANGED_THRESHOLD = 120;
+export function towerKind(def: CharacterDef): "melee" | "ranged" {
+  return def.baseStats.range >= RANGED_THRESHOLD ? "ranged" : "melee";
+}
+const KIND_COLOR: Record<"melee" | "ranged", number> = { melee: 0xff7a33, ranged: 0x46c2f0 };
+
+/** Points of a 5-point star centered at (cx,cy). */
+function starPoints(cx: number, cy: number, outer: number, inner: number): Phaser.Geom.Point[] {
+  const pts: Phaser.Geom.Point[] = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? outer : inner;
+    const a = -Math.PI / 2 + (Math.PI * i) / 5;
+    pts.push(new Phaser.Geom.Point(cx + Math.cos(a) * r, cy + Math.sin(a) * r));
+  }
+  return pts;
+}
+
 /**
  * Build a squad of up to SQUAD_SIZE towers from the player's owned collection.
  * Prefers PREFERRED_SQUAD order when those towers are owned. If the player owns
@@ -285,6 +303,9 @@ export class BattleScene extends Phaser.Scene {
         c.add(img);
       }
       c.add(crispText(this, 0, 14, `${def.cost}g`, { fontSize: "10px", color: "#ffd86a" }).setOrigin(0.5));
+      const badge = this.add.graphics();
+      this.drawTypeBadge(badge, (TW - 8) / 2 - 9, -8, def); // melee/ranged + role (T5)
+      c.add(badge);
       c.setData("towerId", def.id);
       c.setInteractive({ useHandCursor: true, draggable: true });
       this.ui.add(c);
@@ -437,7 +458,11 @@ export class BattleScene extends Phaser.Scene {
 
     upBtn.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
       e.stopPropagation();
-      if (this.battle.upgradeTower(uid)) this.refreshTowerPanel(title, stats, upBtn, sellBtn);
+      if (this.battle.upgradeTower(uid)) {
+        const t = this.battle.towers.find((x) => x.uid === uid);
+        if (t) { this.fx.starUp(t.pos, t.battleLevel); this.sfx.place(); }
+        this.refreshTowerPanel(title, stats, upBtn, sellBtn);
+      }
     });
     sellBtn.on("pointerdown", (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
       e.stopPropagation();
@@ -672,7 +697,11 @@ export class BattleScene extends Phaser.Scene {
     for (const t of this.battle.towers) {
       if (!t.alive) continue;
       const s = this.ensureSprite(this.towerSprites, t.uid, `tower__${t.def.id}`, t.pos.x, t.pos.y, 50);
-      if (s) { seenT.add(t.uid); s.setAlpha(t.disabledTimer > 0 ? 0.5 : 1); }
+      if (s) {
+        seenT.add(t.uid);
+        s.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
+        if (s.height) s.setScale((50 / s.height) * (1 + 0.05 * t.battleLevel)); // grow as upgraded (T10)
+      }
     }
     for (const [uid, s] of this.towerSprites) if (!seenT.has(uid)) { s.destroy(); this.towerSprites.delete(uid); }
 
@@ -718,6 +747,45 @@ export class BattleScene extends Phaser.Scene {
         28 * Phaser.Math.Clamp(t.hp / t.stats.maxHp, 0, 1),
         3,
       );
+    }
+    // Upgrade glow — upgraded towers carry a gold aura that intensifies (T10).
+    if (t.battleLevel > 0 && !disabled) {
+      const a = 0.1 + 0.05 * t.battleLevel;
+      g.fillStyle(0xffd34d, a * 0.5).fillCircle(t.pos.x, t.pos.y, 19);
+      g.lineStyle(2, 0xffd34d, Math.min(0.85, a + 0.25)).strokeCircle(t.pos.x, t.pos.y, 17);
+    }
+    // Star pips — how many in-battle stars this tower has (T11).
+    if (t.battleLevel > 0) this.drawStarPips(g, t.pos.x, t.pos.y - 30, t.battleLevel);
+    // Type badge — melee vs ranged + role colour, upper-right of the avatar (T5).
+    this.drawTypeBadge(g, t.pos.x + 13, t.pos.y - 16, t.def);
+  }
+
+  /** A row of small gold stars marking a tower's in-battle upgrade level. */
+  private drawStarPips(g: Phaser.GameObjects.Graphics, cx: number, cy: number, count: number): void {
+    const gap = 8;
+    const startX = cx - ((count - 1) * gap) / 2;
+    for (let i = 0; i < count; i++) {
+      const x = startX + i * gap;
+      g.fillStyle(0x000000, 0.4).fillPoints(starPoints(x, cy + 0.6, 4.4, 1.9), true);
+      g.fillStyle(0xffd34d, 1).fillPoints(starPoints(x, cy, 3.8, 1.6), true);
+    }
+  }
+
+  /** Small badge showing tower type (melee/ranged) tinted by role, upper-right. */
+  private drawTypeBadge(g: Phaser.GameObjects.Graphics, x: number, y: number, def: CharacterDef): void {
+    const kind = towerKind(def);
+    g.fillStyle(0x10141c, 0.9).fillCircle(x, y, 7.5);
+    g.lineStyle(1.5, KIND_COLOR[kind], 1).strokeCircle(x, y, 7.5);
+    g.fillStyle(ROLE_COLOR[def.role] ?? 0xffffff, 0.5).fillCircle(x, y, 6);
+    g.lineStyle(1.6, 0xffffff, 0.95);
+    if (kind === "melee") {
+      // a little sword: blade + crossguard
+      g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x, y + 3.2); g.strokePath();
+      g.beginPath(); g.moveTo(x - 2.4, y + 1.4); g.lineTo(x + 2.4, y + 1.4); g.strokePath();
+    } else {
+      // a little arrow pointing right
+      g.beginPath(); g.moveTo(x - 3.4, y); g.lineTo(x + 3, y); g.strokePath();
+      g.beginPath(); g.moveTo(x + 0.6, y - 2.4); g.lineTo(x + 3.4, y); g.lineTo(x + 0.6, y + 2.4); g.strokePath();
     }
   }
 
