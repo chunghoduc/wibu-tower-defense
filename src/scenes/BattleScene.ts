@@ -22,6 +22,7 @@ import { Rng } from "../core/rng.ts";
 import type { HeroSave } from "../core/save.ts";
 import { hasSprite } from "./PreloadScene.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
+import { chapterThemeForStage } from "../data/chapters.ts";
 import { crispText } from "./ui.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
@@ -321,8 +322,19 @@ export class BattleScene extends Phaser.Scene {
     g.clear();
     this.terrainSprites.forEach((s) => s.destroy());
     this.terrainSprites = [];
-    // ground tint
-    g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    // Chapter backdrop (T2): a painted battlefield background per chapter theme,
+    // with a subtle dark veil over it for unit contrast. Falls back to a flat
+    // ground tint if the image failed to load.
+    const theme = chapterThemeForStage(this.stage.id);
+    if (this.textures.exists(theme.bgKey)) {
+      const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, theme.bgKey).setDepth(-10);
+      bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
+      this.world.add(bg);
+      this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
+      g.fillStyle(theme.groundOverlay, 0.4).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    } else {
+      g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    }
     // terrain features (T13): SVG art authored by the svg-asset-gen skill, drawn
     // as images above the ground but below units (depth 1). Falls back to a
     // tinted blob if a texture failed to load so the map is never blank.
@@ -333,6 +345,7 @@ export class BattleScene extends Phaser.Scene {
         // radius ≈ the feature radius (a touch of overhang reads as organic).
         const img = this.add.image(f.x, f.y, key)
           .setDisplaySize(f.r * 2.6, f.r * 2.6).setDepth(1);
+        if (theme.terrainTint !== 0xffffff) img.setTint(theme.terrainTint); // match the biome
         if (!f.blocks) img.setAlpha(0.92); // decor sits a hair lighter than obstacles
         this.world.add(img);
         this.terrainSprites.push(img);
