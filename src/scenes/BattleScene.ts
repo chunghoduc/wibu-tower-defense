@@ -710,7 +710,7 @@ export class BattleScene extends Phaser.Scene {
       const boss = e.def.archetype === "Boss";
       const key = `${boss ? "boss" : "enemy"}__${e.def.id}`;
       const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, boss ? 62 : 30);
-      if (s) { seenE.add(e.uid); s.setAlpha(e.stealth ? 0.45 : 1); }
+      if (s) { seenE.add(e.uid); s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1); }
     }
     for (const [uid, s] of this.enemySprites) if (!seenE.has(uid)) { s.destroy(); this.enemySprites.delete(uid); }
 
@@ -789,6 +789,24 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
+  /** A dashed circle (stealth "hidden" marker). */
+  private drawDashedRing(g: Phaser.GameObjects.Graphics, cx: number, cy: number, radius: number, color: number, alpha: number): void {
+    g.lineStyle(2, color, alpha);
+    const segs = 10;
+    for (let i = 0; i < segs; i++) {
+      const a0 = (Math.PI * 2 * i) / segs;
+      g.beginPath();
+      g.arc(cx, cy, radius, a0, a0 + ((Math.PI * 2) / segs) * 0.55, false);
+      g.strokePath();
+    }
+  }
+
+  /** A small eye glyph (stealth "spotted" marker). */
+  private drawEye(g: Phaser.GameObjects.Graphics, x: number, y: number, color: number): void {
+    g.fillStyle(color, 0.95).fillEllipse(x, y, 11, 6);
+    g.fillStyle(0x10131c, 1).fillCircle(x, y, 2);
+  }
+
   private drawEnemy(g: Phaser.GameObjects.Graphics, e: EnemyRuntime): void {
     const boss = e.def.archetype === "Boss";
     const r = boss ? 16 : e.flying ? 8 : 10;
@@ -798,6 +816,16 @@ export class BattleScene extends Phaser.Scene {
     else if (e.enraged) g.lineStyle(2, 0xff5252, 0.8).strokeCircle(e.pos.x, e.pos.y, r + 4);
     if (e.stunTimer > 0) g.lineStyle(2, 0xfff176, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
     else if (e.slowPct > 0) g.lineStyle(2, 0x4fc3f7, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
+    // Stealth (T9): a ghostly cyan dashed ring while hidden; an orange "spotted"
+    // ring + eye when revealed by the hero (towers can then hit it).
+    if (e.stealth) {
+      if (e.revealed) {
+        g.lineStyle(2, 0xffa726, 0.95).strokeCircle(e.pos.x, e.pos.y, r + 6);
+        this.drawEye(g, e.pos.x, e.pos.y - r - 11, 0xffd27a);
+      } else {
+        this.drawDashedRing(g, e.pos.x, e.pos.y, r + 5, 0x80deea, 0.8);
+      }
+    }
     const w = boss ? 40 : 20;
     const top = e.pos.y - r - 7;
     g.fillStyle(0x000000, 0.6).fillRect(e.pos.x - w / 2, top, w, 4);

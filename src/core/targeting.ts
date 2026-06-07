@@ -15,6 +15,8 @@ export interface Targetable {
   alive: boolean;
   /** Stealthed enemies are invisible to towers (but not to the hero). */
   stealth: boolean;
+  /** A stealthed enemy currently revealed (e.g. by hero proximity) — towers may hit it. */
+  revealed: boolean;
 }
 
 export interface TargetFilter {
@@ -34,7 +36,7 @@ export function selectTarget<T extends Targetable>(
   let best: T | null = null;
   for (const c of candidates) {
     if (!c.alive) continue;
-    if (c.stealth && !filter.seeStealth) continue;
+    if (c.stealth && !filter.seeStealth && !c.revealed) continue; // revealed stealth is targetable (T9)
     if (c.flying && !filter.canHitAir) continue;
     if (!c.flying && !filter.canHitGround) continue;
     if (dist(from, c.pos) > range) continue;

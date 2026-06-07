@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { selectTarget, type Targetable } from "../src/core/targeting.ts";
 
 function mob(over: Partial<Targetable>): Targetable {
-  return { pos: { x: 0, y: 0 }, threat: 0, flying: false, alive: true, stealth: false, ...over };
+  return { pos: { x: 0, y: 0 }, threat: 0, flying: false, alive: true, stealth: false, revealed: true, ...over };
 }
 
 describe("selectTarget", () => {
@@ -36,9 +36,17 @@ describe("selectTarget", () => {
   });
 
   it("towers cannot see stealthed enemies but the hero can", () => {
-    const ghost = mob({ pos: { x: 10, y: 0 }, threat: 0.9, stealth: true });
+    const ghost = mob({ pos: { x: 10, y: 0 }, threat: 0.9, stealth: true, revealed: false });
     const towerFilter = { canHitGround: true, canHitAir: true, seeStealth: false };
     expect(selectTarget(from, 100, [ghost], towerFilter)).toBeNull();
     expect(selectTarget(from, 100, [ghost], filter)).toBe(ghost);
+  });
+
+  it("towers CAN hit a stealthed enemy once it is revealed (T9)", () => {
+    const towerFilter = { canHitGround: true, canHitAir: true, seeStealth: false };
+    const hidden = mob({ pos: { x: 10, y: 0 }, threat: 0.9, stealth: true, revealed: false });
+    expect(selectTarget(from, 100, [hidden], towerFilter)).toBeNull();
+    const revealed = mob({ pos: { x: 10, y: 0 }, threat: 0.9, stealth: true, revealed: true });
+    expect(selectTarget(from, 100, [revealed], towerFilter)).toBe(revealed);
   });
 });

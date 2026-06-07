@@ -91,6 +91,8 @@ export interface EnemyRuntime {
   shield: number;
   flying: boolean;
   stealth: boolean;
+  /** A stealthed enemy is revealed (and tower-targetable) while in hero range (T9). */
+  revealed: boolean;
   distanceAlong: number;
   airProgress: number;
   airStart: Vec2;
@@ -414,6 +416,7 @@ export class BattleState {
     this.updateWaves(dt);
     this.recomputeTowerBuffs();
     this.updateEnemies(dt);
+    this.updateStealthReveal();
     this.updateTowers(dt);
     this.updateHero(dt);
     this.flushPending();
@@ -495,6 +498,7 @@ export class BattleState {
       shield: (def.special?.shieldHp ?? 0) * scale.hpMult,
       flying,
       stealth: def.special?.stealth ?? false,
+      revealed: !(def.special?.stealth ?? false),
       distanceAlong,
       airProgress,
       airStart,
@@ -720,6 +724,17 @@ export class BattleState {
           t.buffAsPct += aura.attackSpeedPct ?? 0;
         }
       }
+    }
+  }
+
+  /** A stealthed enemy is revealed while inside the hero's range; towers may then
+   *  target it (if it is also in the tower's range). The hero always sees them. */
+  private updateStealthReveal(): void {
+    const h = this.hero;
+    const r2 = h.stats.range * h.stats.range;
+    for (const e of this.enemies) {
+      if (!e.stealth) { e.revealed = true; continue; }
+      e.revealed = h.alive && (e.pos.x - h.pos.x) ** 2 + (e.pos.y - h.pos.y) ** 2 <= r2;
     }
   }
 
