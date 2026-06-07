@@ -15,6 +15,7 @@ import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } 
 import { SINGLE_PULL_COST } from "./gacha.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 import { addTowerToCollection, upgradeTowerStar, type StarUpResult } from "./collection.ts";
+import { canForgetNode } from "../data/passiveGrid.ts";
 
 const DAILY_LOGIN_CRYSTALS = 10;
 const STARTER_CRYSTALS = SINGLE_PULL_COST * 50; // enough for at least 50 summons
@@ -119,6 +120,35 @@ export class SaveManager {
     save.hero.skillPoints -= 1;
     this.persist();
     return true;
+  }
+
+  /**
+   * Forget one unlocked passive node, refunding its skill point. Returns false
+   * if the node isn't unlocked or if removing it would orphan the rest of the
+   * tree (only safely-removable nodes can be refunded — see canForgetNode).
+   */
+  forgetPassiveNode(nodeId: string): boolean {
+    const hero = this.save.hero;
+    if (!canForgetNode(hero.unlockedNodes, nodeId)) return false;
+    hero.unlockedNodes = hero.unlockedNodes.filter((id) => id !== nodeId);
+    hero.skillPoints += 1;
+    this.persist();
+    return true;
+  }
+
+  /**
+   * Forget the entire passive tree at once, refunding every spent point. Returns
+   * the number of points refunded (0 if nothing was allocated). A full reset is
+   * always safe — clearing all nodes leaves nothing to orphan.
+   */
+  resetPassiveTree(): number {
+    const hero = this.save.hero;
+    const refunded = hero.unlockedNodes.length;
+    if (refunded === 0) return 0;
+    hero.skillPoints += refunded;
+    hero.unlockedNodes = [];
+    this.persist();
+    return refunded;
   }
 
   /** Set the chosen battle squad (owned tower ids, capped at 7). Persists. */

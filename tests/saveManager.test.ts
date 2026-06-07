@@ -48,4 +48,48 @@ describe("SaveManager", () => {
     expect(manager.grantDailyLogin("2026-06-06")).toBe(0);
     expect(manager.grantDailyLogin("2026-06-07")).toBe(10);
   });
+
+  describe("respec (forget / reset passive points)", () => {
+    // Grant points then allocate the chain grid-start → brawler-p1 → brawler-p2.
+    const allocateChain = (m: SaveManager) => {
+      m.getSave().hero.skillPoints = 5;
+      m["persist"]();
+      expect(m.unlockPassiveNode("grid-start")).toBe(true);
+      expect(m.unlockPassiveNode("brawler-p1")).toBe(true);
+      expect(m.unlockPassiveNode("brawler-p2")).toBe(true);
+    };
+
+    it("forgetPassiveNode refunds a point and removes a forgettable leaf", () => {
+      allocateChain(manager);
+      const before = manager.getSave().hero.skillPoints;
+      expect(manager.forgetPassiveNode("brawler-p2")).toBe(true);
+      expect(manager.getSave().hero.skillPoints).toBe(before + 1);
+      expect(manager.getSave().hero.unlockedNodes).not.toContain("brawler-p2");
+      expect(manager.getSave().hero.unlockedNodes).toContain("brawler-p1");
+    });
+
+    it("forgetPassiveNode refuses to orphan the tree (interior node) and changes nothing", () => {
+      allocateChain(manager);
+      const before = manager.getSave().hero.skillPoints;
+      expect(manager.forgetPassiveNode("brawler-p1")).toBe(false);
+      expect(manager.getSave().hero.skillPoints).toBe(before);
+      expect(manager.getSave().hero.unlockedNodes).toContain("brawler-p1");
+    });
+
+    it("forgetPassiveNode persists the refund across reloads", () => {
+      allocateChain(manager);
+      manager.forgetPassiveNode("brawler-p2");
+      const reloaded = new SaveManager(new LocalSaveProvider(mockStorage as unknown as Storage));
+      expect(reloaded.getSave().hero.unlockedNodes).not.toContain("brawler-p2");
+    });
+
+    it("resetPassiveTree refunds every spent point and clears all nodes", () => {
+      allocateChain(manager);
+      const before = manager.getSave().hero.skillPoints; // 5 - 3 spent = 2
+      const refunded = manager.resetPassiveTree();
+      expect(refunded).toBe(3);
+      expect(manager.getSave().hero.skillPoints).toBe(before + 3);
+      expect(manager.getSave().hero.unlockedNodes).toEqual([]);
+    });
+  });
 });

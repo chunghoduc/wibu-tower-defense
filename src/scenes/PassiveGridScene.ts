@@ -1,73 +1,10 @@
 import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
-import { PASSIVE_NODES, getReachableNodes } from "../data/passiveGrid.ts";
+import { PASSIVE_NODES, getReachableNodes, canForgetNode } from "../data/passiveGrid.ts";
 import type { PassiveNodeDef } from "../data/schema.ts";
-
-// ── Per-region icon glyphs drawn with Phaser.Graphics (T1 / T18) ──────────────
-// Each glyph is a tiny recognisable shape centred at (x,y), sized to s (half-size).
-type GlyphFn = (g: Phaser.GameObjects.Graphics, x: number, y: number, s: number, col: number) => void;
-
-const REGION_GLYPH: Record<string, GlyphFn> = {
-  brawler: (g, x, y, s, col) => {          // sword
-    g.fillStyle(col, 1).fillRect(x - s * 0.18, y - s, s * 0.36, s * 1.5);
-    g.fillStyle(col, 0.7).fillRect(x - s * 0.55, y - s * 0.15, s * 1.1, s * 0.28);
-    g.fillStyle(col, 0.5).fillCircle(x, y + s * 0.65, s * 0.22);
-  },
-  arcane: (g, x, y, s, col) => {           // 4-point star
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 - Math.PI / 4;
-      g.fillStyle(col, 1).fillTriangle(x, y, x + Math.cos(a) * s * 0.45, y + Math.sin(a) * s * 0.45, x + Math.cos(a + Math.PI / 4) * s * 0.22, y + Math.sin(a + Math.PI / 4) * s * 0.22);
-    }
-    g.fillStyle(0xffffff, 0.7).fillCircle(x, y, s * 0.22);
-  },
-  warden: (g, x, y, s, col) => {           // shield
-    g.fillStyle(col, 0.9);
-    g.fillPoints([new Phaser.Geom.Point(x - s * 0.65, y - s), new Phaser.Geom.Point(x + s * 0.65, y - s), new Phaser.Geom.Point(x + s * 0.65, y + s * 0.25), new Phaser.Geom.Point(x, y + s), new Phaser.Geom.Point(x - s * 0.65, y + s * 0.25)], true);
-    g.fillStyle(0xffffff, 0.25).fillRect(x - s * 0.3, y - s * 0.7, s * 0.25, s * 1.2);
-  },
-  tactician: (g, x, y, s, col) => {        // coin circle with cross
-    g.fillStyle(col, 1).fillCircle(x, y, s * 0.75);
-    g.fillStyle(0x000000, 0.4).fillRect(x - s * 0.12, y - s * 0.5, s * 0.24, s); // vertical bar
-    g.fillStyle(0x000000, 0.4).fillRect(x - s * 0.5, y - s * 0.12, s, s * 0.24); // horizontal bar
-  },
-  predator: (g, x, y, s, col) => {         // two curved fangs
-    for (const sx of [-1, 1]) {
-      g.fillStyle(col, 1).fillTriangle(x + sx * s * 0.22, y - s, x + sx * s * 0.55, y + s * 0.6, x, y + s * 0.2);
-    }
-  },
-  phantom: (g, x, y, s, col) => {          // eye shape
-    g.fillStyle(col, 0.85).fillEllipse(x, y, s * 1.5, s * 0.85);
-    g.fillStyle(0x10141c, 1).fillCircle(x, y, s * 0.32);
-    g.fillStyle(0xffffff, 0.8).fillCircle(x - s * 0.12, y - s * 0.12, s * 0.12);
-  },
-  conduit: (g, x, y, s, col) => {          // pentagon gem
-    const pts = Array.from({ length: 5 }, (_, i) => { const a = (i / 5) * Math.PI * 2 - Math.PI / 2; return new Phaser.Geom.Point(x + Math.cos(a) * s * 0.7, y + Math.sin(a) * s * 0.7); });
-    g.fillStyle(col, 1).fillPoints(pts, true);
-    g.fillStyle(0xffffff, 0.35).fillTriangle(pts[0].x, pts[0].y, pts[1].x, pts[1].y, x, y);
-  },
-  prestige: (g, x, y, s, col) => {         // crown
-    g.fillStyle(col, 1);
-    g.fillRect(x - s * 0.65, y + s * 0.2, s * 1.3, s * 0.55);
-    g.fillTriangle(x - s * 0.65, y + s * 0.2, x - s * 0.65, y - s, x - s * 0.28, y + s * 0.2);
-    g.fillTriangle(x - s * 0.18, y + s * 0.2, x, y - s * 0.8, x + s * 0.18, y + s * 0.2);
-    g.fillTriangle(x + s * 0.28, y + s * 0.2, x + s * 0.65, y - s, x + s * 0.65, y + s * 0.2);
-    g.fillStyle(0xffffff, 0.5).fillCircle(x, y - s * 0.55, s * 0.17);
-  },
-};
-
-function drawNodeIcon(g: Phaser.GameObjects.Graphics, node: PassiveNodeDef, x: number, y: number, r: number, alpha: number): void {
-  if (node.type === "jewel-socket") {  // already has distinctive shape, skip extra glyph
-    g.fillStyle(0x80d8ff, alpha * 0.8).fillCircle(x, y, r * 0.5);
-    return;
-  }
-  const fn = REGION_GLYPH[node.region];
-  if (!fn) return;
-  const size = r * 0.58;
-  g.setAlpha(alpha);
-  fn(g, x, y, size, 0xffffff);
-  g.setAlpha(1);
-}
+import { drawNodeIcon } from "./passiveGridGlyphs.ts";
+import { formatStatBonuses } from "./passiveGridFormat.ts";
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 const MIN_X = 4;
@@ -117,6 +54,9 @@ export class PassiveGridScene extends Phaser.Scene {
   private panelStats!: Phaser.GameObjects.Text;
   private panelPoints!: Phaser.GameObjects.Text;
   private unlockBtn!: Phaser.GameObjects.Text;
+  private forgetBtn!: Phaser.GameObjects.Text;
+  private resetBtn!: Phaser.GameObjects.Text;
+  private resetArmed = false;
   private panelLevelReq!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -126,6 +66,10 @@ export class PassiveGridScene extends Phaser.Scene {
   create(): void {
     fadeIn(this);
     this.mgr = this.registry.get("saveManager");
+    // Phaser reuses scene instances — clear per-visit UI state so a stale armed
+    // reset or selection can't carry over into the next visit.
+    this.resetArmed = false;
+    this.selectedNode = null;
 
     // Back button
     this.add
@@ -181,6 +125,34 @@ export class PassiveGridScene extends Phaser.Scene {
     this.unlockBtn.on("pointerover", () => this.unlockBtn.setBackgroundColor("#2e86c1"));
     this.unlockBtn.on("pointerout",  () => this.unlockBtn.setBackgroundColor("#1a5276"));
     this.unlockBtn.on("pointerdown", () => this.tryUnlock());
+
+    // Forget the selected (already-unlocked) node, refunding its point. Shares the
+    // unlock button's slot — the two are mutually exclusive per node.
+    this.forgetBtn = this.add
+      .text(PANEL_X + PANEL_W / 2, 310, "Forget  (+1 pt)", {
+        fontSize: "16px", color: "#ffffff", backgroundColor: "#7b241c",
+      })
+      .setOrigin(0.5)
+      .setPadding(16, 8, 16, 8)
+      .setVisible(false)
+      .setInteractive({ useHandCursor: true });
+    this.forgetBtn.on("pointerover", () => this.forgetBtn.setBackgroundColor("#a93226"));
+    this.forgetBtn.on("pointerout",  () => this.forgetBtn.setBackgroundColor("#7b241c"));
+    this.forgetBtn.on("pointerdown", () => this.tryForget());
+
+    // Reset the whole tree, refunding every point. Two-click confirm so a stray
+    // tap can't wipe a carefully-built path.
+    this.resetBtn = this.add
+      .text(PANEL_X + PANEL_W / 2, 365, "Reset all points", {
+        fontSize: "14px", color: "#ffcdd2", backgroundColor: "#4a235a",
+      })
+      .setOrigin(0.5)
+      .setPadding(14, 7, 14, 7)
+      .setVisible(false)
+      .setInteractive({ useHandCursor: true });
+    this.resetBtn.on("pointerover", () => this.resetBtn.setBackgroundColor("#6c3483"));
+    this.resetBtn.on("pointerout",  () => this.resetBtn.setBackgroundColor(this.resetArmed ? "#922b21" : "#4a235a"));
+    this.resetBtn.on("pointerdown", () => this.tryResetAll());
 
     // Click detection on the grid area
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer) => {
@@ -340,6 +312,7 @@ export class PassiveGridScene extends Phaser.Scene {
     }
 
     if (closest) {
+      this.disarmReset();
       this.selectedNode = closest === this.selectedNode ? null : closest;
       this.redraw();
     }
@@ -353,6 +326,31 @@ export class PassiveGridScene extends Phaser.Scene {
     }
   }
 
+  private tryForget(): void {
+    if (!this.selectedNode) return;
+    if (this.mgr.forgetPassiveNode(this.selectedNode.id)) {
+      this.redraw();
+    }
+  }
+
+  private tryResetAll(): void {
+    if (!this.resetArmed) {
+      this.resetArmed = true;
+      this.resetBtn.setText("Confirm reset?").setBackgroundColor("#922b21");
+      return;
+    }
+    this.disarmReset();
+    this.mgr.resetPassiveTree();
+    this.selectedNode = null;
+    this.redraw();
+  }
+
+  private disarmReset(): void {
+    if (!this.resetArmed) return;
+    this.resetArmed = false;
+    this.resetBtn.setText("Reset all points").setBackgroundColor("#4a235a");
+  }
+
   // ── Side panel ───────────────────────────────────────────────────────────────
 
   private refreshPanel(
@@ -363,6 +361,10 @@ export class PassiveGridScene extends Phaser.Scene {
   ): void {
     this.panelPoints.setText(`Skill points: ${skillPoints}`);
 
+    // "Reset all" is offered whenever any point has been spent.
+    this.resetBtn.setVisible(unlockedSet.size > 0);
+    if (unlockedSet.size === 0) this.disarmReset();
+
     if (!this.selectedNode) {
       this.panelName.setText("Select a node");
       this.panelType.setText("");
@@ -370,6 +372,7 @@ export class PassiveGridScene extends Phaser.Scene {
       this.panelStats.setText("");
       this.panelLevelReq.setText("");
       this.unlockBtn.setVisible(false);
+      this.forgetBtn.setVisible(false);
       return;
     }
 
@@ -394,56 +397,15 @@ export class PassiveGridScene extends Phaser.Scene {
     this.unlockBtn.setVisible(!isUnlocked && (isReachable || levelLocked));
     this.unlockBtn.setAlpha(canUnlock ? 1 : 0.4);
 
+    // Forget is offered for any unlocked node; it's only actionable (full alpha)
+    // when removing it won't orphan the rest of the tree.
+    const forgettable = isUnlocked && canForgetNode([...unlockedSet], node.id);
+    this.forgetBtn.setVisible(isUnlocked);
+    this.forgetBtn.setAlpha(forgettable ? 1 : 0.4);
+
     if (isUnlocked) {
-      this.unlockBtn.setVisible(false);
       // Show a small "Unlocked ✓" badge
       this.panelLevelReq.setText("✓ Unlocked").setColor("#a5d6a7");
     }
   }
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatStatBonuses(node: PassiveNodeDef): string {
-  const lines: string[] = [];
-
-  const fmt = (label: string, v: number, pct: boolean) => {
-    const sign = v >= 0 ? "+" : "";
-    const val = pct ? `${sign}${(v * 100).toFixed(0)}%` : `${sign}${v}`;
-    lines.push(`${val} ${label}`);
-  };
-
-  if (node.flat) {
-    for (const [k, v] of Object.entries(node.flat) as [string, number][]) {
-      if (v) fmt(statLabel(k), v, false);
-    }
-  }
-  if (node.increased) {
-    for (const [k, v] of Object.entries(node.increased) as [string, number][]) {
-      if (v) fmt(statLabel(k), v, true);
-    }
-  }
-  if (node.more) {
-    for (const [k, v] of Object.entries(node.more) as [string, number][]) {
-      if (v) lines.push(`×${(1 + v).toFixed(2)} ${statLabel(k)} (more)`);
-    }
-  }
-
-  return lines.join("\n") || (node.effectId ? `Effect: ${node.effectId}` : "");
-}
-
-const STAT_LABELS: Record<string, string> = {
-  atk: "ATK", attackSpeed: "Atk Speed", range: "Range",
-  critRate: "Crit Rate", critDamage: "Crit Dmg", armorPen: "Armor Pen",
-  magicPen: "Magic Pen", skillPower: "Skill Power",
-  maxHp: "Max HP", hpRegen: "HP Regen", armor: "Armor",
-  magicResist: "Magic Resist", damageReduction: "Dmg Reduction",
-  tenacity: "Tenacity", maxMana: "Max Mana", manaRegen: "Mana Regen",
-  manaOnHit: "Mana/Hit", manaOnKill: "Mana/Kill",
-  manaCostReduction: "Mana Cost Red.", omnivamp: "Omnivamp",
-  moveSpeed: "Move Speed", goldFind: "Gold Find",
-};
-
-function statLabel(key: string): string {
-  return STAT_LABELS[key] ?? key;
 }

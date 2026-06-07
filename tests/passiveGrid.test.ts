@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PASSIVE_NODES, PASSIVE_NODES_MAP, getReachableNodes } from "../src/data/passiveGrid.ts";
+import { PASSIVE_NODES, PASSIVE_NODES_MAP, getReachableNodes, canForgetNode } from "../src/data/passiveGrid.ts";
 import { PASSIVE_REGIONS } from "../src/data/schema.ts";
 
 describe("PASSIVE_NODES catalog", () => {
@@ -55,5 +55,31 @@ describe("getReachableNodes", () => {
     const reachable = getReachableNodes([], 1);
     const locked = reachable.filter((n) => n.region === "prestige" && (n.unlockAtLevel ?? 0) > 1);
     expect(locked.length).toBe(0);
+  });
+});
+
+describe("canForgetNode", () => {
+  // A simple unlocked chain off the start: start → p1 → p2.
+  const chain = ["grid-start", "brawler-p1", "brawler-p2"];
+
+  it("a leaf node can be forgotten (removing it leaves the rest connected)", () => {
+    expect(canForgetNode(chain, "brawler-p2")).toBe(true);
+  });
+
+  it("an interior node cannot be forgotten (it would orphan its descendants)", () => {
+    // Forgetting brawler-p1 would disconnect brawler-p2 from grid-start.
+    expect(canForgetNode(chain, "brawler-p1")).toBe(false);
+  });
+
+  it("the start node cannot be forgotten while other nodes remain", () => {
+    expect(canForgetNode(chain, "grid-start")).toBe(false);
+  });
+
+  it("the start node CAN be forgotten when it is the only unlocked node", () => {
+    expect(canForgetNode(["grid-start"], "grid-start")).toBe(true);
+  });
+
+  it("a node that is not unlocked cannot be forgotten", () => {
+    expect(canForgetNode(chain, "brawler-notable-1")).toBe(false);
   });
 });

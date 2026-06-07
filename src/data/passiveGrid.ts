@@ -262,3 +262,38 @@ export function getReachableNodes(
   }
   return reachable;
 }
+
+/**
+ * Whether `nodeId` can be safely un-allocated (forgotten) without orphaning any
+ * other allocated node. Allocation only ever grows outward from `grid-start`
+ * (see getReachableNodes), so a node is forgettable only when every OTHER
+ * unlocked node stays reachable from the start along edges that pass solely
+ * through still-unlocked nodes. This keeps the saved tree always-valid — never
+ * leaving a floating node the player could not have legally bought.
+ */
+export function canForgetNode(unlockedIds: string[], nodeId: string): boolean {
+  const unlocked = new Set(unlockedIds);
+  if (!unlocked.has(nodeId)) return false;
+
+  const remaining = new Set(unlocked);
+  remaining.delete(nodeId);
+  if (remaining.size === 0) return true; // forgetting the last node clears the tree
+
+  // The start is the only root; if it's gone but other nodes remain, they orphan.
+  if (!remaining.has("grid-start")) return false;
+
+  // BFS from grid-start across the remaining unlocked nodes only.
+  const seen = new Set<string>(["grid-start"]);
+  const queue = ["grid-start"];
+  while (queue.length > 0) {
+    const node = PASSIVE_NODES_MAP.get(queue.pop()!);
+    if (!node) continue;
+    for (const nb of node.neighbors) {
+      if (remaining.has(nb) && !seen.has(nb)) {
+        seen.add(nb);
+        queue.push(nb);
+      }
+    }
+  }
+  return seen.size === remaining.size;
+}
