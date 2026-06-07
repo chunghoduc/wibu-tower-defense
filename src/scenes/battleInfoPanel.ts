@@ -34,6 +34,20 @@ export interface LiveVals { hp: number; maxHp: number; mana: number; maxMana: nu
 
 const PAD = 12;
 
+/** Manually wrap text to ~maxChars per line at word boundaries (Phaser's
+ *  wordWrap mis-measures under custom fonts + setResolution in some browsers). */
+function wrap(text: string, maxChars: number): string {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    if (line && (line.length + 1 + w.length) > maxChars) { lines.push(line); line = w; }
+    else line = line ? `${line} ${w}` : w;
+  }
+  if (line) lines.push(line);
+  return lines.join("\n");
+}
+
 export class BattleInfoPanel {
   private readonly content: Phaser.GameObjects.Container;
   private readonly barGfx: Phaser.GameObjects.Graphics;
@@ -77,7 +91,7 @@ export class BattleInfoPanel {
     if (vm.skill) {
       y = this.sectionLabel("Active Skill", y);
       this.add(crispText(this.scene, 0, y, `⚡ ${vm.skill.name}`, { fontSize: "13px", color: "#a8d8ff", fontStyle: "bold" }));
-      this.add(crispText(this.scene, 0, y + 18, vm.skill.desc, { fontSize: "11px", color: "#cdd9ea", wordWrap: { width: this.innerW } }));
+      this.add(crispText(this.scene, 0, y + 18, wrap(vm.skill.desc, 28), { fontSize: "11px", color: "#cdd9ea" }));
     }
   }
 
@@ -92,7 +106,7 @@ export class BattleInfoPanel {
     for (const s of vm.skills) {
       this.add(crispText(this.scene, 0, y, s.label, { fontSize: "12px", color: s.color, fontStyle: "bold" }));
       y += 15;
-      const desc = crispText(this.scene, 8, y, s.desc, { fontSize: "10px", color: "#b9c6d8", wordWrap: { width: this.innerW - 14 } });
+      const desc = crispText(this.scene, 8, y, wrap(s.desc, 30), { fontSize: "10px", color: "#b9c6d8" });
       this.add(desc);
       y += desc.height + 5; // advance by the actual wrapped height
     }
