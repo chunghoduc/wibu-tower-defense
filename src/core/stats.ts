@@ -121,7 +121,23 @@ const TOWER_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
   maxHp: 10,
 };
 
-const STAR_INCREASED_PER_STAR = 0.08;
+// Star ascension increased%. Each star-up grants a BIGGER bonus than the last —
+// +8% / +14% / +20% / +26% for reaching ★2..★5 — so the higher a tower's star,
+// the more stats each upgrade gives. STAR_STEP[s] = the bonus added by REACHING
+// star s. Cumulative by tier: ★1 0% · ★2 8% · ★3 22% · ★4 42% · ★5 68%.
+const STAR_STEP = [0, 0, 0.08, 0.14, 0.20, 0.26];
+
+/** Total star "increased%" a tower has at the given star tier. */
+export function starIncreasedPct(stars: number): number {
+  let total = 0;
+  for (let s = 2; s <= stars && s < STAR_STEP.length; s++) total += STAR_STEP[s];
+  return total;
+}
+
+/** The increased% the NEXT star-up will add (0 if already maxed). */
+export function starUpStepPct(stars: number): number {
+  return STAR_STEP[stars + 1] ?? 0;
+}
 
 /**
  * Tower final stats. `towerLevel` is the collection/hero-driven base level (flat
@@ -145,11 +161,12 @@ export function towerStatPipeline(
   }
   acc = addFlat(acc, levelFlat);
 
-  // Layer 2 — star bonus (increased%)
-  if (stars > 0) {
+  // Layer 2 — star bonus (increased%), with a per-star step that grows by tier
+  const starPct = starIncreasedPct(stars);
+  if (starPct > 0) {
     const starInc: Partial<Stats> = {};
     for (const k of Object.keys(base) as (keyof Stats)[]) {
-      starInc[k] = STAR_INCREASED_PER_STAR * stars;
+      starInc[k] = starPct;
     }
     acc = addIncreased(acc, starInc);
   }

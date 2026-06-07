@@ -87,11 +87,13 @@ describe("heroStatPipeline", () => {
 });
 
 describe("towerStatPipeline", () => {
-  it("star bonus: 3 stars on atk=100 → atk=124 (8% per star)", () => {
+  it("star bonus grows per tier: ★3 on atk=100 → atk=122 (+8% then +14%)", () => {
     const base = makeStats({ atk: 100 });
-    const star3 = towerStatPipeline(base, 1, 3);
-    // level 1: no level scaling; 3 stars = 24% increased → 100 * 1.24 = 124
-    expect(star3.atk).toBeCloseTo(124, 5);
+    // ★1 = 0%, ★2 = +8%, ★3 = +8%+14% = 22% → 122, ★5 = +68% → 168
+    expect(towerStatPipeline(base, 1, 1).atk).toBeCloseTo(100, 5);
+    expect(towerStatPipeline(base, 1, 2).atk).toBeCloseTo(108, 5);
+    expect(towerStatPipeline(base, 1, 3).atk).toBeCloseTo(122, 5);
+    expect(towerStatPipeline(base, 1, 5).atk).toBeCloseTo(168, 5);
   });
 
   it("tower level 20 scaling: atk=100 → atk=128.5 (1.5 flat/level × 19 levels)", () => {

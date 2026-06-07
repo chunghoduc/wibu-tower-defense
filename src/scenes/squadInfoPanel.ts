@@ -10,7 +10,7 @@ import { ITEM_SLOTS } from "../data/schema.ts";
 import type { HeroSave } from "../core/save.ts";
 import { towerActiveInfo, passiveInfo } from "../data/passiveSkills.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
-import { towerStatPipeline } from "../core/stats.ts";
+import { towerStatPipeline, starUpStepPct } from "../core/stats.ts";
 import { starUpCost, MAX_STARS } from "../core/collection.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
@@ -107,7 +107,10 @@ function renderAscension(scene: S, c: C, x: number, y: number, w: number, stars:
   const haveCopies = copies >= cost.copies, haveCrystals = crystals >= cost.crystals;
   add(c, crispText(scene, x, sy, `Copies ${copies}/${cost.copies}`, { fontSize: "10px", color: haveCopies ? "#7ee0a0" : "#cdd6e6" }));
   add(c, crispText(scene, x + w, sy, `${cost.crystals} 💎`, { fontSize: "10px", color: haveCrystals ? "#cdd6e6" : "#ff8a8a" }).setOrigin(1, 0));
-  sy += 15;
+  sy += 14;
+  // Higher stars grant a bigger stat jump — show what the next ★ adds.
+  add(c, crispText(scene, x, sy, `Next ★ → +${Math.round(starUpStepPct(stars) * 100)}% all stats`, { fontSize: "9px", color: "#ffd86a" }));
+  sy += 14;
 
   // Progress bar (copies toward the next star).
   const bar = scene.add.graphics();
