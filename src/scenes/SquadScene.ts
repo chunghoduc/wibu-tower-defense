@@ -50,6 +50,14 @@ export class SquadScene extends Phaser.Scene {
 
   constructor() { super("SquadScene"); }
 
+  /** Where "Back" returns — the stage-select if we came from a pre-battle
+   *  loadout edit, otherwise the main menu. Consumed (cleared) on read. */
+  private backScene(): string {
+    const back = (this.registry.get("loadoutReturnScene") as string) ?? "MainMenuScene";
+    this.registry.set("loadoutReturnScene", undefined);
+    return back;
+  }
+
   create(): void {
     fadeIn(this);
     this.mgr = this.registry.get("saveManager");
@@ -63,7 +71,7 @@ export class SquadScene extends Phaser.Scene {
 
     this.add.text(W / 2, 8, "Battle Squad", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "22px", color: "#ffd700", fontStyle: "bold" }).setOrigin(0.5, 0);
     this.add.text(20, 8, "← Back", { fontSize: "15px", color: "#90caf9" })
-      .setInteractive({ useHandCursor: true }).on("pointerup", () => fadeToScene(this, "MainMenuScene"));
+      .setInteractive({ useHandCursor: true }).on("pointerup", () => fadeToScene(this, this.backScene()));
 
     // Right info panel backdrop.
     const pg = this.add.graphics();
