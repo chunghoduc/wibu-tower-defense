@@ -726,10 +726,12 @@ export class BattleScene extends Phaser.Scene {
       this.sfx.enemyHit();
       const victim = ev.target === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : this.towerNear(ev.targetAt);
       if (victim) this.flash(victim, 0xff4444);
+      if (ev.target === "hero") this.heroSprite?.playHurt();   // recoil + hurt frames
     } else if (ev.type === "death") {
       this.sfx.death();
     } else if (ev.type === "cast") {
       this.sfx.cast();
+      if (ev.source === "hero") this.heroSprite?.playCast();   // skill-cast frames + flourish
     } else if (ev.type === "loot") {
       this.sfx.coin();
     } else if (ev.type === "killReward") {

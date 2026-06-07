@@ -33,9 +33,18 @@ const REST_POSE: Record<WeaponType, Pose> = {
 };
 const DEFAULT_POSE: Pose = REST_POSE.Any;
 
-const ATK = "hero__hero_attack";
 const IDLE = "hero__hero_idle";
 const WALK = "hero__hero_walk";
+const ATK = "hero__hero_attack";
+const CAST = "hero__hero_cast";
+const HURT = "hero__hero_hurt";
+
+// One-shot priority: a higher-priority state interrupts a lower one, never the
+// reverse — so a basic attack never cuts off a skill cast, but taking a hit
+// (hurt) always shows. Locomotion (idle/walk/float) is the priority-0 base.
+const PRIO_ATTACK = 1;
+const PRIO_CAST = 2;
+const PRIO_HURT = 3;
 
 export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   private readonly bodySprite: Phaser.GameObjects.Sprite;
@@ -55,8 +64,11 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
 
   private hasWings = false;
   private weaponType: WeaponType | null = null;
-  private attacking = false;
   private facingLeft = false;
+
+  // Active one-shot animation (attack / cast / hurt) over the locomotion base.
+  private oneShot: { key: string; prio: number } | null = null;
+  private oneShotGen = 0;
 
   private flapTween: Phaser.Tweens.Tween | null = null;
 
@@ -112,11 +124,11 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     this.lastNow = now;
 
     if (facingLeft !== undefined) this.facingLeft = facingLeft;
-    this.attacking = this.bodySprite.anims.currentAnim?.key === ATK && this.bodySprite.anims.isPlaying;
+    const busy = this.oneShot !== null; // an attack/cast/hurt is playing
 
     // Locomotion + hover. Floating heroes never use the walk cycle — they drift.
     let hover = 0;
-    if (!this.attacking) {
+    if (!busy) {
       if (this.hasWings) {
         // Lifted off the ground with a constant bob; idle frames while airborne.
         hover = -11 + Math.sin(now * 0.005) * 4;
@@ -131,7 +143,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     this.bodySprite.y = hover;
     this.wingsSprite.y = this.wingBaseY + hover;
     this.bodySprite.setFlipX(this.facingLeft);
-    if (!this.attacking) this.applyWeaponPose(hover);
+    if (!busy) this.applyWeaponPose(hover);
 
     this.updatePet(now, dt);
   }
@@ -147,24 +159,43 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   }
 
   /**
+   * Start a one-shot body animation if it isn't outranked by the current one,
+   * returning to the locomotion base when it finishes. Returns false (no-op) if
+   * the clip is missing or a higher-priority one-shot is already playing.
+   */
+  private beginOneShot(key: string, prio: number): boolean {
+    if (!this.scene.anims.exists(key)) return false;
+    if (this.oneShot && this.oneShot.prio > prio) return false;                       // outranked
+    if (this.oneShot && this.oneShot.key === key && this.bodySprite.anims.isPlaying) return false; // already in it
+    const body = this.bodySprite;
+    this.oneShot = { key, prio };
+    const gen = ++this.oneShotGen;
+    body.play(key);
+    body.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (this.oneShotGen !== gen) return; // superseded by a newer one-shot
+      this.oneShot = null;
+      if (body.active && this.scene.anims.exists(IDLE)) body.play(IDLE);
+    });
+    return true;
+  }
+
+  /** The weapon's resting (x, y, angle) for the current weapon family + facing. */
+  private restGeom(): { rx: number; ry: number; ra: number; side: number } {
+    const p = this.weaponType ? (REST_POSE[this.weaponType] ?? DEFAULT_POSE) : DEFAULT_POSE;
+    const side = this.facingLeft ? -1 : 1;
+    return { rx: p.x * side, ry: p.y, ra: p.angle * side, side };
+  }
+
+  /**
    * Play the hero attack and animate the held weapon with a motion that suits
    * its family: melee weapons lunge + swing, bows draw and loose, guns recoil,
    * staves/tomes raise and pulse to cast.
    */
   playAttack(): void {
-    const body = this.bodySprite;
-    if (!this.scene.anims.exists(ATK)) return;
-    if (body.anims.currentAnim?.key === ATK && body.anims.isPlaying) return; // already swinging
-    body.play(ATK);
-    body.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-      if (body.active && this.scene.anims.exists(IDLE)) body.play(IDLE);
-    });
-
+    if (!this.beginOneShot(ATK, PRIO_ATTACK)) return;
     if (!this.weaponSprite.visible) return;
     const w = this.weaponSprite;
-    const p = this.weaponType ? (REST_POSE[this.weaponType] ?? DEFAULT_POSE) : DEFAULT_POSE;
-    const side = this.facingLeft ? -1 : 1;
-    const rx = p.x * side, ry = p.y, ra = p.angle * side;
+    const { rx, ry, ra, side } = this.restGeom();
     this.scene.tweens.killTweensOf(w);
     w.setPosition(rx, ry).setAngle(ra).setScale(this.weaponScale);
     const back = () => this.scene.tweens.add({ targets: w, x: rx, y: ry, angle: ra, scaleX: this.weaponScale, scaleY: this.weaponScale, duration: 130, ease: "Back.easeOut" });
@@ -185,6 +216,45 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
         this.scene.tweens.add({ targets: w, x: rx - 6 * side, y: ry - 6, angle: ra - 50 * side, duration: 80, ease: "Sine.easeIn",
           onComplete: () => this.scene.tweens.add({ targets: w, x: rx + 8 * side, y: ry + 6, angle: ra + 45 * side, duration: 60, ease: "Quint.easeOut", onComplete: back }) });
     }
+  }
+
+  /**
+   * Play the hero skill-cast animation (the painted skill frames carry their own
+   * energy FX) and flourish the weapon overhead. Outranks basic attacks; if the
+   * sheet has no cast frames, falls back to an attack swing so the cast reads.
+   */
+  playCast(): void {
+    if (!this.beginOneShot(CAST, PRIO_CAST)) {
+      if (!this.scene.anims.exists(CAST)) this.playAttack();
+      return;
+    }
+    if (!this.weaponSprite.visible) return;
+    const w = this.weaponSprite;
+    const { rx, ry, ra, side } = this.restGeom();
+    this.scene.tweens.killTweensOf(w);
+    w.setPosition(rx, ry).setAngle(ra).setScale(this.weaponScale);
+    // Raise overhead with a bright scale pulse, then settle back to rest.
+    this.scene.tweens.add({
+      targets: w, x: rx - 4 * side, y: ry - 18, angle: ra - 24 * side,
+      scaleX: this.weaponScale * 1.32, scaleY: this.weaponScale * 1.32,
+      duration: 170, ease: "Sine.easeOut",
+      onComplete: () => this.scene.tweens.add({
+        targets: w, x: rx, y: ry, angle: ra, scaleX: this.weaponScale, scaleY: this.weaponScale,
+        duration: 220, ease: "Back.easeOut",
+      }),
+    });
+  }
+
+  /** Play the hurt recoil — interrupts attack/cast — with a small knock-back nudge. */
+  playHurt(): void {
+    if (!this.beginOneShot(HURT, PRIO_HURT)) return;
+    const body = this.bodySprite;
+    const dirx = this.facingLeft ? 7 : -7; // shoved opposite the way it faces
+    this.scene.tweens.killTweensOf(body);
+    this.scene.tweens.add({
+      targets: body, x: dirx, duration: 70, yoyo: true, ease: "Quad.easeOut",
+      onComplete: () => { if (body.active) body.x = 0; },
+    });
   }
 
   /** Pet wander: roam to random points around the hero, hopping as it runs. */

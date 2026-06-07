@@ -59,6 +59,7 @@ export class PreloadScene extends Phaser.Scene {
       mk("idle", idx(/idle/), 3, -1);
       mk("walk", idx(/walk/), 6, -1);
       mk("attack", idx(/atk|cast/), 9, 0);
+      mk("cast", idx(/skill/), 10, 0);  // skill-cast frames (hero + skill-having towers)
       mk("hurt", idx(/hurt/), 6, 0);
     }
     this.scene.start("MainMenuScene");
