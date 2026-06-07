@@ -5,6 +5,7 @@ import { awardHeroXp } from "./hero.ts";
 import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
 import { purchaseShopItem, type PurchaseResult } from "./shop.ts";
 import { attemptEnhance, type EnhanceResult } from "./enhance.ts";
+import { openBox, type BoxReward } from "./boxes.ts";
 import type { ItemSlot } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
@@ -123,6 +124,13 @@ export class SaveManager {
     const result = attemptEnhance(this.save, instanceId, rng);
     if (result.ok) this.persist();
     return result;
+  }
+
+  /** Open a boss loot box, granting its rewards. Persists when actually opened (T15). */
+  openBox(boxId: string, rng: Rng = new Rng((Math.random() * 1e9) | 0)): BoxReward {
+    const reward = openBox(this.save, boxId, rng);
+    if (reward.opened) this.persist();
+    return reward;
   }
 
   /** Material count by id (jewels, boxes). */

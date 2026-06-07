@@ -4,7 +4,8 @@ import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection } from "./collection.ts";
 import { Rng } from "./rng.ts";
-import { BLESS_JEWEL, SOUL_JEWEL } from "../data/materials.ts";
+import { BLESS_JEWEL, SOUL_JEWEL, boxIdForTier } from "../data/materials.ts";
+import { boxTierForStage } from "../data/stage.ts";
 import type { HeroSave, ItemInstanceSave } from "./save.ts";
 
 export const CRYSTAL_REWARD: Record<Difficulty, number> = {
@@ -104,6 +105,8 @@ export function processStageClear(
   const diffBonus = difficulty === "Nightmare" ? 0.2 : difficulty === "Hard" ? 0.1 : 0;
   if (rng.next() < BLESS_DROP_CHANCE + diffBonus) giveMat(BLESS_JEWEL, 1);
   if (rng.next() < SOUL_DROP_CHANCE + diffBonus) giveMat(SOUL_JEWEL, 1);
+  // Guaranteed boss chest, tier scaling with the stage (T15).
+  giveMat(boxIdForTier(boxTierForStage(stageId)), 1);
 
   return { crystalsAwarded, itemDropped, skillDropped, characterDropped, isFirstClear, materialsDropped };
 }

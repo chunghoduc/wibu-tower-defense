@@ -82,10 +82,21 @@ const LAYOUTS: Layout[] = [
 ];
 
 /** Final boss for each of the 10 stages (1-indexed), escalating in difficulty. */
-const BOSS_BY_STAGE = [
+export const BOSS_BY_STAGE = [
   "champion", "zabro", "ryomen", "kura", "warden",
   "akai", "mukade", "madarok", "overlord", "meruon",
 ];
+
+/** Stage number (1-based) parsed from a stage id like "ch1-s7". */
+export function stageNumber(stageId: string): number {
+  const m = stageId.match(/s(\d+)$/);
+  return m ? parseInt(m[1], 10) : 1;
+}
+
+/** Loot-box tier (1..5) for a stage — two stages per tier, escalating. */
+export function boxTierForStage(stageId: string): number {
+  return Math.max(1, Math.min(5, Math.ceil(stageNumber(stageId) / 2)));
+}
 
 const spawn = (enemyId: string, count: number, interval = 0.8, delay = 0): SpawnEntry => ({
   enemyId,
