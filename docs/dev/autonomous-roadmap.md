@@ -36,8 +36,13 @@ progresses (survives context compaction).
 - Battle speed controls (Pause / 1× / 2× / 3×).
 - Tower range preview on the placement ghost.
 - Procedural Web-Audio SFX (attacks/hits/deaths/casts/loot/place/win/lose) + mute.
+- **SVG terrain art** (replaces the circle-blob map features). New reusable
+  `svg-asset-gen` skill (`.claude/skills/svg-asset-gen/`) authors deterministic
+  top-down terrain SVGs; 18 assets (water/jungle/stone/mountain/grass/sand × 3)
+  loaded via Phaser `load.svg()` and drawn in `BattleScene.drawStatic`.
 
 ## LOOP polish — ideas (next iterations)
+- Extend `svg-asset-gen` to towers/props; parallax background from the same kit.
 - Wave-incoming announcement + a "start next wave early" bonus.
 - Castle + tower-placement-count HUD niceties; minimap for the larger world.
 - More chapters/stages; difficulty-tier rewards; boss intro cards.
