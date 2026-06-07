@@ -28,6 +28,10 @@ export class StageSelectScene extends Phaser.Scene {
   }
 
   create(): void {
+    // Phaser reuses the scene instance across visits, so clear refs from the
+    // previous visit — otherwise refreshDiffTabs() would call setBackgroundColor
+    // on destroyed Texts whose WebGL texture source is gone (crash on real GPU).
+    this.diffBtns = [];
     const mgr: SaveManager = this.registry.get("saveManager");
     const save = mgr.getSave();
     const W = this.scale.width;

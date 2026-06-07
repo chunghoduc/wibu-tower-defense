@@ -22,6 +22,9 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create(): void {
+    // Clear refs from a previous visit (Phaser reuses the scene instance) so
+    // refreshUI() never touches destroyed Texts from the last time.
+    this.itemRows = [];
     this.mgr = this.registry.get("saveManager");
     const W = this.scale.width;
 
