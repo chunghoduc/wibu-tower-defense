@@ -9,6 +9,7 @@ import { SPRITE_MANIFEST, SPRITE_BY_KEY } from "../data/spriteManifest.ts";
 import { TERRAIN_ASSETS, TERRAIN_TEX_SIZE } from "../data/terrainManifest.ts";
 import { SKILL_ICON_IDS } from "../data/skillIconManifest.ts";
 import { BG_IMAGES, bgKey } from "../data/bgManifest.ts";
+import { UI_SVGS, UI_IMAGES } from "../data/uiManifest.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -35,6 +36,10 @@ export class PreloadScene extends Phaser.Scene {
     for (const id of BG_IMAGES) {
       this.load.image(bgKey(id), `assets/bg/${id}.png`);
     }
+    // Design-team UI art set (icons, frames, buttons, badges, per-stage
+    // backdrops, logo) — catalogued in public/assets/ui/uiManifest.json.
+    for (const e of UI_SVGS) this.load.svg(e.key, e.path, { width: e.w, height: e.h });
+    for (const e of UI_IMAGES) this.load.image(e.key, e.path);
   }
 
   create(): void {

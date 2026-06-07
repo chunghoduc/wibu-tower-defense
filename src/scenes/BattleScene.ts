@@ -21,6 +21,7 @@ import { Rng } from "../core/rng.ts";
 import { hasSprite } from "./PreloadScene.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { chapterThemeForStage } from "../data/chapters.ts";
+import { stageBgKey } from "../data/uiManifest.ts";
 import { crispText } from "./ui.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
@@ -204,12 +205,18 @@ export class BattleScene extends Phaser.Scene {
     // with a subtle dark veil over it for unit contrast. Falls back to a flat
     // ground tint if the image failed to load.
     const theme = chapterThemeForStage(this.stage.id);
-    if (this.textures.exists(theme.bgKey)) {
-      const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, theme.bgKey).setDepth(-10);
+    // Prefer the design team's hand-painted per-stage backdrop; fall back to the
+    // per-chapter SDXL backdrop, then a flat ground tint.
+    const stageBg = stageBgKey(this.stage.id);
+    const bgKeyToUse = this.textures.exists(stageBg) ? stageBg : (this.textures.exists(theme.bgKey) ? theme.bgKey : null);
+    if (bgKeyToUse) {
+      const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
       bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
       this.world.add(bg);
       this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
-      g.fillStyle(theme.groundOverlay, 0.4).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+      // Lighter veil for the painted per-stage art (it's already balanced).
+      const veil = bgKeyToUse === stageBg ? 0.22 : 0.4;
+      g.fillStyle(theme.groundOverlay, veil).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     } else {
       g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     }

@@ -89,9 +89,16 @@ export class MainMenuScene extends Phaser.Scene {
     const today = new Date().toISOString().slice(0, 10);
     const granted = mgr.grantDailyLogin(today);
 
-    crispText(this, W / 2, 16, "WIBU TOWER DEFENSE", { fontSize: "30px", color: "#ffe9a8", fontStyle: "bold", stroke: "#2a1c05", strokeThickness: 5 }).setOrigin(0.5, 0).setDepth(5);
+    // Design-team crest emblem above the title (falls back to text-only).
+    let titleY = 12;
+    if (this.textures.exists("ui__logo")) {
+      const logo = this.add.image(W / 2, 6, "ui__logo").setOrigin(0.5, 0).setDepth(5);
+      logo.setScale(58 / logo.height);
+      titleY = 62;
+    }
+    crispText(this, W / 2, titleY, "WIBU TOWER DEFENSE", { fontSize: "26px", color: "#ffe9a8", fontStyle: "bold", stroke: "#2a1c05", strokeThickness: 5 }).setOrigin(0.5, 0).setDepth(5);
 
-    const crystals = crispText(this, W / 2, 54, `💎 ${save.currency.crystals}`, { fontSize: "18px", color: "#bfe4ff", stroke: "#0a1420", strokeThickness: 4 }).setOrigin(0.5, 0).setDepth(5);
+    const crystals = crispText(this, W / 2, titleY + 34, `💎 ${save.currency.crystals}`, { fontSize: "18px", color: "#bfe4ff", stroke: "#0a1420", strokeThickness: 4 }).setOrigin(0.5, 0).setDepth(5);
     if (granted > 0) {
       const bonus = crispText(this, W / 2, 80, `+${granted} daily bonus!`, { fontSize: "13px", color: "#a5f0b0" }).setOrigin(0.5, 0).setDepth(5);
       this.tweens.add({ targets: bonus, y: 72, alpha: 0, delay: 1400, duration: 900, onComplete: () => bonus.destroy() });

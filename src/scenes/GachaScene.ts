@@ -30,6 +30,11 @@ export class GachaScene extends Phaser.Scene {
     this.mgr = this.registry.get("saveManager");
     const W = this.scale.width;
 
+    // Design-team summon backdrop (magical portal), dimmed for legibility.
+    if (this.textures.exists("bg__gacha")) {
+      this.add.image(W / 2, this.scale.height / 2, "bg__gacha").setDisplaySize(W, this.scale.height).setDepth(-10).setAlpha(0.5);
+    }
+
     this.add
       .text(W / 2, 28, "✦ Summon Hall", {
         fontSize: "28px",
