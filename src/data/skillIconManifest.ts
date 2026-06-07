@@ -6,10 +6,12 @@
  * a future `gen.mjs --only=manifest` that folds these in won't double-load).
  */
 import { TOWER_ACTIVES, PASSIVE_SKILLS } from "./passiveSkills.ts";
+import { ACTIVE_SKILLS } from "./skills.ts";
 
 export const SKILL_ICON_IDS: string[] = [
   ...Object.keys(TOWER_ACTIVES),
   ...Object.keys(PASSIVE_SKILLS),
+  ...ACTIVE_SKILLS.map((s) => s.id), // hero active skills
 ];
 
 /** Texture key for a skill's painted icon. */

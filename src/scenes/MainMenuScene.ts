@@ -21,6 +21,7 @@ const MENU_ITEMS: MenuItem[] = [
   { key: "squad", label: "Squad", scene: "SquadScene", side: "right" },
   { key: "passive", label: "Passives", scene: "PassiveGridScene", side: "right" },
   { key: "shop", label: "Shop", scene: "ShopScene", side: "bottom" },
+  { key: "skills", label: "Skills", scene: "SkillsScene", side: "bottom" },
   { key: "settings", label: "Settings", scene: "SettingsScene", side: "bottom" },
 ];
 
