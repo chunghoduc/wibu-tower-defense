@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <g stroke="#8ce4ff" stroke-width="2.5" stroke-linecap="round" fill="none">
+    <line x1="20" y1="4" x2="20" y2="36"/><line x1="6" y1="12" x2="34" y2="28"/><line x1="34" y1="12" x2="6" y2="28"/>
+    <path d="M20 4 l-4 4 M20 4 l4 4 M20 36 l-4 -4 M20 36 l4 -4"/>
+    <path d="M6 12 l1 5 M6 12 l5 -1 M34 28 l-1 -5 M34 28 l-5 1"/>
+    <path d="M34 12 l-5 -1 M34 12 l-1 5 M6 28 l5 1 M6 28 l1 -5"/>
+  </g>
+  <circle cx="20" cy="20" r="3" fill="#d8f4ff"/>
+</svg>

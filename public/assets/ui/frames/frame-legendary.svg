@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260" viewBox="0 0 200 260">
+  <defs>
+    <linearGradient id="b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffc24a"/><stop offset="100%" stop-color="#c87a0a"/></linearGradient>
+  </defs>
+  <rect x="1" y="1" width="198" height="258" rx="16" fill="none" stroke="#ffaa20" stroke-width="13" opacity="0.28"/>
+  <!-- outer frame -->
+  <rect x="4" y="4" width="192" height="252" rx="14" fill="none" stroke="url(#b)" stroke-width="6"/>
+  <!-- inner hairline -->
+  <rect x="11" y="11" width="178" height="238" rx="9" fill="none" stroke="#ffc24a" stroke-width="1.5" opacity="0.6"/>
+  <!-- corner ornaments -->
+  <g fill="#fff0c0">
+    <path d="M4 18 L4 8 Q4 4 8 4 L18 4 L18 9 L9 9 L9 18 Z"/>
+    <path d="M196 18 L196 8 Q196 4 192 4 L182 4 L182 9 L191 9 L191 18 Z"/>
+    <path d="M4 242 L4 252 Q4 256 8 256 L18 256 L18 251 L9 251 L9 242 Z"/>
+    <path d="M196 242 L196 252 Q196 256 192 256 L182 256 L182 251 L191 251 L191 242 Z"/>
+  </g>
+  <!-- top center gem -->
+  <circle cx="100" cy="6" r="6" fill="#fff0c0" stroke="#c87a0a" stroke-width="1.5"/>
+  <!-- bottom nameplate bar -->
+  <rect x="20" y="232" width="160" height="18" rx="6" fill="#c87a0a" opacity="0.32"/>
+</svg>
