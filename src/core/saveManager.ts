@@ -15,7 +15,9 @@ import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } 
 import { SINGLE_PULL_COST } from "./gacha.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 import { addTowerToCollection, upgradeTowerStar, type StarUpResult } from "./collection.ts";
-import { canForgetNode } from "../data/passiveGrid.ts";
+import { canForgetNode, PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
+import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
+import type { JewelInstanceSave } from "./save.ts";
 
 const DAILY_LOGIN_CRYSTALS = 10;
 const STARTER_CRYSTALS = SINGLE_PULL_COST * 50; // enough for at least 50 summons
@@ -149,6 +151,62 @@ export class SaveManager {
     hero.unlockedNodes = [];
     this.persist();
     return refunded;
+  }
+
+  // ── Skill jewels ─────────────────────────────────────────────────────────
+
+  /** Grant a new owned jewel instance (used by loot). Persists. */
+  grantJewel(defId: string): JewelInstanceSave {
+    const instance: JewelInstanceSave = { id: `jewel-${defId}-${++SaveManager.jewelSeq}-${this.save.lastSavedAt}`, defId };
+    this.save.hero.jewels.push(instance);
+    this.persist();
+    return instance;
+  }
+  private static jewelSeq = 0;
+
+  /**
+   * Socket an owned jewel into an allocated jewel-socket node. Returns false if
+   * the node isn't an unlocked jewel-socket, the jewel isn't owned, the jewel is
+   * already socketed elsewhere, or the target socket already holds a jewel.
+   */
+  socketJewel(nodeId: string, jewelInstanceId: string): boolean {
+    const hero = this.save.hero;
+    const node = PASSIVE_NODES_MAP.get(nodeId);
+    if (!node || node.type !== "jewel-socket") return false;
+    if (!hero.unlockedNodes.includes(nodeId)) return false;
+    if (hero.socketedJewels[nodeId]) return false; // already filled
+    const owned = hero.jewels.some((j) => j.id === jewelInstanceId);
+    if (!owned) return false;
+    if (Object.values(hero.socketedJewels).includes(jewelInstanceId)) return false; // in another socket
+    if (!JEWEL_CATALOG_MAP.has(hero.jewels.find((j) => j.id === jewelInstanceId)!.defId)) return false;
+    hero.socketedJewels[nodeId] = jewelInstanceId;
+    this.persist();
+    return true;
+  }
+
+  /** Remove the jewel from a socket; it returns to the owned pool. Persists. */
+  unsocketJewel(nodeId: string): boolean {
+    const hero = this.save.hero;
+    if (!hero.socketedJewels[nodeId]) return false;
+    delete hero.socketedJewels[nodeId];
+    this.persist();
+    return true;
+  }
+
+  /**
+   * Destroy a jewel FOREVER — remove it from the owned pool and from any socket
+   * it occupies. There is no refund; the UI guards this behind a confirm. Persists.
+   */
+  discardJewel(jewelInstanceId: string): boolean {
+    const hero = this.save.hero;
+    const idx = hero.jewels.findIndex((j) => j.id === jewelInstanceId);
+    if (idx === -1) return false;
+    hero.jewels.splice(idx, 1);
+    for (const [nodeId, id] of Object.entries(hero.socketedJewels)) {
+      if (id === jewelInstanceId) delete hero.socketedJewels[nodeId];
+    }
+    this.persist();
+    return true;
   }
 
   /** Set the chosen battle squad (owned tower ids, capped at 7). Persists. */

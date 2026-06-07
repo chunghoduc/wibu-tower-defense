@@ -38,6 +38,18 @@ describe("PASSIVE_NODES catalog", () => {
   it("has at least 3 keystone nodes", () => {
     expect(PASSIVE_NODES.filter((n) => n.type === "keystone").length).toBeGreaterThanOrEqual(3);
   });
+  it("has 8 jewel-socket nodes — one per region", () => {
+    const sockets = PASSIVE_NODES.filter((n) => n.type === "jewel-socket");
+    expect(sockets.length).toBe(8);
+    expect(new Set(sockets.map((n) => n.region)).size).toBe(8);
+  });
+  it("jewel-socket nodes carry no innate stats (their power is the jewel)", () => {
+    for (const n of PASSIVE_NODES.filter((n) => n.type === "jewel-socket")) {
+      expect(n.flat, n.id).toBeUndefined();
+      expect(n.increased, n.id).toBeUndefined();
+      expect(n.more, n.id).toBeUndefined();
+    }
+  });
 });
 
 describe("getReachableNodes", () => {

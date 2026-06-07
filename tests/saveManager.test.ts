@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { SaveManager } from "../src/core/saveManager.ts";
-import { LocalSaveProvider } from "../src/core/save.ts";
+import { LocalSaveProvider, CURRENT_SAVE_VERSION } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
 
 const store: Record<string, string> = {};
@@ -21,7 +21,7 @@ describe("SaveManager", () => {
   it("getSave returns fresh save on first use", () => {
     const save = manager.getSave();
     expect(save.hero.level).toBe(1);
-    expect(save.version).toBe(5);
+    expect(save.version).toBe(CURRENT_SAVE_VERSION);
   });
 
   it("afterBattle awards crystals and persists", () => {
@@ -90,6 +90,70 @@ describe("SaveManager", () => {
       expect(refunded).toBe(3);
       expect(manager.getSave().hero.skillPoints).toBe(before + 3);
       expect(manager.getSave().hero.unlockedNodes).toEqual([]);
+    });
+  });
+
+  describe("jewels", () => {
+    // Pretend the socket is allocated (the unlock flow is covered elsewhere).
+    const allocateSocket = (m: SaveManager) => { m.getSave().hero.unlockedNodes = ["brawler-jewel-1"]; };
+
+    it("grantJewel adds an owned jewel instance", () => {
+      const inst = manager.grantJewel("crimson-shard");
+      expect(inst.defId).toBe("crimson-shard");
+      expect(manager.getSave().hero.jewels).toContainEqual(inst);
+    });
+
+    it("socketJewel places an owned jewel into an allocated jewel-socket", () => {
+      const inst = manager.grantJewel("crimson-shard");
+      allocateSocket(manager);
+      expect(manager.socketJewel("brawler-jewel-1", inst.id)).toBe(true);
+      expect(manager.getSave().hero.socketedJewels["brawler-jewel-1"]).toBe(inst.id);
+    });
+
+    it("socketJewel rejects an un-allocated socket", () => {
+      const inst = manager.grantJewel("crimson-shard");
+      expect(manager.socketJewel("brawler-jewel-1", inst.id)).toBe(false);
+    });
+
+    it("socketJewel rejects a node that isn't a jewel socket", () => {
+      const inst = manager.grantJewel("crimson-shard");
+      manager.getSave().hero.unlockedNodes = ["grid-start"];
+      expect(manager.socketJewel("grid-start", inst.id)).toBe(false);
+    });
+
+    it("socketJewel rejects when the socket already holds a jewel", () => {
+      const a = manager.grantJewel("crimson-shard");
+      const b = manager.grantJewel("honed-edge");
+      allocateSocket(manager);
+      manager.socketJewel("brawler-jewel-1", a.id);
+      expect(manager.socketJewel("brawler-jewel-1", b.id)).toBe(false);
+    });
+
+    it("discardJewel destroys the jewel forever and clears its socket", () => {
+      const inst = manager.grantJewel("crimson-shard");
+      allocateSocket(manager);
+      manager.socketJewel("brawler-jewel-1", inst.id);
+      expect(manager.discardJewel(inst.id)).toBe(true);
+      expect(manager.getSave().hero.jewels.some((j) => j.id === inst.id)).toBe(false);
+      expect(manager.getSave().hero.socketedJewels["brawler-jewel-1"]).toBeUndefined();
+    });
+
+    it("unsocketJewel frees the socket but keeps the jewel owned", () => {
+      const inst = manager.grantJewel("crimson-shard");
+      allocateSocket(manager);
+      manager.socketJewel("brawler-jewel-1", inst.id);
+      expect(manager.unsocketJewel("brawler-jewel-1")).toBe(true);
+      expect(manager.getSave().hero.socketedJewels["brawler-jewel-1"]).toBeUndefined();
+      expect(manager.getSave().hero.jewels.some((j) => j.id === inst.id)).toBe(true);
+    });
+
+    it("persists socketed jewels across reloads", () => {
+      const inst = manager.grantJewel("crimson-shard");
+      allocateSocket(manager);
+      manager["persist"]();
+      manager.socketJewel("brawler-jewel-1", inst.id);
+      const reloaded = new SaveManager(new LocalSaveProvider(mockStorage as unknown as Storage));
+      expect(reloaded.getSave().hero.socketedJewels["brawler-jewel-1"]).toBe(inst.id);
     });
   });
 });

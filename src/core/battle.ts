@@ -34,6 +34,7 @@ import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.t
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
 import { addHeroShare, collectPassiveMore, heroStatPipeline, towerStatPipeline } from "./stats.ts";
+import { socketedJewelBags } from "./jewelStats.ts";
 import { effectiveBehavior } from "./towerUpgrade.ts";
 import { scaleStatsByEnhance } from "./enhance.ts";
 import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
@@ -282,9 +283,15 @@ export class BattleState {
         }
       }
 
+      // Jewels socketed in allocated jewel-socket nodes empower the hero just like
+      // passive nodes (and reach towers via the 60% share). Un-allocated sockets
+      // contribute nothing.
+      const jewelBags = socketedJewelBags(save);
+
       // More% multipliers from every allocated node that declares one (keystones
-      // and the prestige gates alike — not gated on type, or a notable's more% is lost).
-      const keystoneMore = collectPassiveMore(unlockedNodes);
+      // and the prestige gates alike — not gated on type, or a notable's more% is lost),
+      // plus any Unique jewels' more% bags.
+      const keystoneMore = collectPassiveMore([...unlockedNodes, ...jewelBags]);
 
       // Item affixes (primary + rolled): flat contributions go straight in;
       // increased% contributions ride in as synthetic increased-only nodes.
@@ -294,7 +301,7 @@ export class BattleState {
       const resolvedStats = heroStatPipeline(
         opts.hero.stats,
         save.hero.level,
-        [...unlockedNodes, ...affixNodes],
+        [...unlockedNodes, ...affixNodes, ...jewelBags],
         itemStats,
         affix.flat,
         keystoneMore,

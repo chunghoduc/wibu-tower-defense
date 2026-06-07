@@ -1,12 +1,13 @@
 import type { Difficulty } from "../data/schema.ts";
 import { rollItemDrop, itemLevelForStage } from "./itemDrop.ts";
+import { rollJewelDrop } from "./jewelDrop.ts";
 import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection } from "./collection.ts";
 import { Rng } from "./rng.ts";
 import { BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, boxIdForTier } from "../data/materials.ts";
 import { boxTierForStage } from "../data/stage.ts";
-import type { HeroSave, ItemInstanceSave } from "./save.ts";
+import type { HeroSave, ItemInstanceSave, JewelInstanceSave } from "./save.ts";
 
 export const CRYSTAL_REWARD: Record<Difficulty, number> = {
   Normal: 20,
@@ -17,12 +18,14 @@ const FIRST_CLEAR_BONUS = 50;
 const ITEM_DROP_CHANCE = 0.30;
 const SKILL_DROP_CHANCE = 0.15;
 const CHARACTER_DROP_CHANCE = 0.05;
+const JEWEL_DROP_CHANCE = 0.12;
 
 export interface DropResult {
   crystalsAwarded: number;
   itemDropped: ItemInstanceSave | null;
   skillDropped: string | null;
   characterDropped: string | null;
+  jewelDropped: JewelInstanceSave | null;
   isFirstClear: boolean;
   /** Enhance jewels (+ later boxes) gained this clear, by material id (T13/T15). */
   materialsDropped: Record<string, number>;
@@ -83,6 +86,11 @@ export function processStageClear(
     }
   }
 
+  let jewelDropped: JewelInstanceSave | null = null;
+  if (rng.next() < JEWEL_DROP_CHANCE) {
+    jewelDropped = rollJewelDrop(save, rng);
+  }
+
   let characterDropped: string | null = null;
   if (rng.next() < CHARACTER_DROP_CHANCE) {
     const pool = TOWERS.filter(
@@ -113,5 +121,5 @@ export function processStageClear(
   // Rare Summoning Scroll — only the stage boss drops it.
   if (rng.next() < SCROLL_DROP_CHANCE + diffBonus * 0.5) giveMat(SUMMON_SCROLL, 1);
 
-  return { crystalsAwarded, itemDropped, skillDropped, characterDropped, isFirstClear, materialsDropped };
+  return { crystalsAwarded, itemDropped, skillDropped, characterDropped, jewelDropped, isFirstClear, materialsDropped };
 }

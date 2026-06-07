@@ -1,7 +1,7 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 
-export const CURRENT_SAVE_VERSION = 5;
+export const CURRENT_SAVE_VERSION = 6;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -47,6 +47,12 @@ export interface HeroSkillEntry {
   useXp: number;
 }
 
+/** One owned skill jewel instance (no per-instance rolls — mods come from the def). */
+export interface JewelInstanceSave {
+  id: string;
+  defId: string;
+}
+
 export interface HeroProgressSave {
   level: number;
   totalXp: number;
@@ -55,6 +61,10 @@ export interface HeroProgressSave {
   obtainedSkills: HeroSkillEntry[];
   /** Active skills currently equipped (up to MAX_ACTIVE_SKILLS). */
   equippedSkillIds: string[];
+  /** Owned skill jewels (socketed and un-socketed both live here). */
+  jewels: JewelInstanceSave[];
+  /** Which jewel instance sits in each jewel-socket node: nodeId → jewel instance id. */
+  socketedJewels: Record<string, string>;
 }
 
 export interface InventorySave {
@@ -124,6 +134,8 @@ export function createFreshSave(): HeroSave {
       unlockedNodes: [],
       obtainedSkills: [],
       equippedSkillIds: [],
+      jewels: [],
+      socketedJewels: {},
     },
     inventory: {
       items: [],
@@ -156,6 +168,10 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     const items = (save.inventory?.items ?? []).map((it) => ({ ...it, enhanceLevel: it.enhanceLevel ?? 0 }));
     save = { ...save, materials: save.materials ?? {}, inventory: { ...save.inventory, items }, version: 5 };
   }
+  if ((save.version ?? 0) < 6) {
+    // Skill jewels: add the owned-jewel inventory + socket map.
+    save = { ...save, hero: { ...save.hero, jewels: save.hero?.jewels ?? [], socketedJewels: save.hero?.socketedJewels ?? {} }, version: 6 };
+  }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the
   // versioned hops above and would crash on first access. Ensure every required
@@ -174,6 +190,8 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   // and grant the weapon-free starter skills so every hero has usable actives.
   if (save.hero) {
     save.hero.obtainedSkills ??= [];
+    save.hero.jewels ??= [];
+    save.hero.socketedJewels ??= {};
     const legacy = (save.hero as { equippedSkillId?: string | null }).equippedSkillId;
     save.hero.equippedSkillIds ??= legacy ? [legacy] : [];
     for (const id of STARTER_SKILL_IDS) {
