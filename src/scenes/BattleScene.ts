@@ -26,9 +26,14 @@ import { crispText } from "./ui.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
 import { upgradeSummary } from "../core/towerUpgrade.ts";
+import { BattleInfoPanel, type HeroPanelVM, type TowerPanelVM, type StatRow, type PanelItem } from "./battleInfoPanel.ts";
+import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
+import { ITEM_SLOTS, type Rarity } from "../data/schema.ts";
 import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
+import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 
 /** Preferred squad order — one per role plus a Unique marquee. */
 const PREFERRED_SQUAD: string[] = [
@@ -47,6 +52,38 @@ const SLOT_RADIUS = 26;
 const TERRAIN_COLOR: Record<string, number> = {
   grass: 0x35562f, sand: 0xb8a05a, water: 0x2a5f93, stone: 0x6b6c74, jungle: 0x1f4a2a, mountain: 0x5a4d40,
 };
+
+/** Width of the right-side info panel; the battlefield camera fills what's left. */
+const PANEL_W = 286;
+
+const RARITY_INT: Record<Rarity, number> = {
+  Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
+};
+const n0 = (v: number) => `${Math.round(v)}`;
+const n1 = (v: number) => v.toFixed(1);
+const pct = (v: number) => `${Math.round(v * 100)}%`;
+const mult = (v: number) => `${v.toFixed(1)}×`;
+/** Build panel stat rows from a stats object, in display order, skipping zeros. */
+function statRows(s: Record<string, number>, keys: [string, string, (v: number) => string][]): StatRow[] {
+  const out: StatRow[] = [];
+  for (const [key, label, fmt] of keys) {
+    const v = s[key];
+    if (v === undefined || v === 0) continue;
+    out.push({ label, value: fmt(v) });
+  }
+  return out;
+}
+const HERO_STAT_KEYS: [string, string, (v: number) => string][] = [
+  ["atk", "ATK", n0], ["range", "Range", n0], ["attackSpeed", "Atk Spd", n1],
+  ["critRate", "Crit", pct], ["critDamage", "Crit Dmg", mult],
+  ["armor", "Armor", n0], ["magicResist", "M.Resist", n0], ["moveSpeed", "Move", n0],
+  ["hpRegen", "HP Regen", n0], ["skillPower", "Skill Pwr", mult],
+  ["omnivamp", "Omnivamp", pct], ["goldFind", "Gold Find", pct],
+];
+const TOWER_STAT_KEYS: [string, string, (v: number) => string][] = [
+  ["atk", "ATK", n0], ["range", "Range", n0], ["attackSpeed", "Atk Spd", n1],
+  ["critRate", "Crit", pct], ["critDamage", "Crit Dmg", mult], ["armorPen", "Armor Pen", pct],
+];
 
 const ROLE_COLOR: Record<string, number> = {
   damage: 0x4fc3f7,
@@ -159,11 +196,12 @@ export class BattleScene extends Phaser.Scene {
   // Pixel-art sprite pools (keyed by entity uid); fall back to shapes if missing.
   private towerSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
-  private heroSprite: Phaser.GameObjects.Sprite | null = null;
+  private heroSprite: HeroLayeredSprite | null = null;
   private fx!: FxLayer;
-  private towerPanel: Phaser.GameObjects.Container | null = null;
-  private towerPanelUid = -1;
-  private towerPanelRefresh: (() => void) | null = null;
+  private panel!: BattleInfoPanel;
+  private battleW = 0;                      // battlefield viewport width (canvas − panel)
+  private selectedTowerUid = -1;            // -1 = hero view in the panel
+  private quickActions: Phaser.GameObjects.Container | null = null; // on-map upgrade/sell icons
   private keys?: {
     up: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key;
     left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key;
@@ -185,8 +223,8 @@ export class BattleScene extends Phaser.Scene {
     this.towerSprites.clear();
     this.enemySprites.clear();
     this.heroSprite = null;
-    this.towerPanel = null;
-    this.towerPanelUid = -1;
+    this.selectedTowerUid = -1;
+    this.quickActions = null;
     this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
     this.terrainSprites = [];
     this.placeGhost = null;
@@ -220,39 +258,49 @@ export class BattleScene extends Phaser.Scene {
     this.fx = new FxLayer(this, 6, this.world);
     this.drawStatic();
 
+    // The battlefield occupies everything left of the right-side info panel.
+    this.battleW = this.scale.width - PANEL_W;
+    const cx = this.battleW / 2;
+
     this.uiGfx = this.add.graphics().setDepth(8);
-    this.hud = crispText(this, 10, 8, "", { fontSize: "17px", color: "#ffffff" }).setDepth(10);
-    this.banner = crispText(this, 480, 250, "", { fontSize: "48px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
-    this.info = crispText(this, 10, 482, "", { fontSize: "13px", color: "#dbe6ee", wordWrap: { width: 940 } }).setDepth(10);
+    this.hud = crispText(this, 10, 8, "", { fontSize: "15px", color: "#ffffff", wordWrap: { width: this.battleW - 20 } }).setDepth(10);
+    this.banner = crispText(this, cx, 230, "", { fontSize: "44px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
+    this.info = crispText(this, 10, this.scale.height - 16, "", { fontSize: "12px", color: "#dbe6ee", wordWrap: { width: this.battleW - 20 } }).setDepth(10);
     this.hudLevelText = crispText(this, 36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
     this.hudSkillText = crispText(this, 58, 117, "", { fontSize: "10px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
     this.gameSpeed = 1;
-    this.speedBtn = crispText(this, this.scale.width - 14, 38, "", { fontSize: "15px", color: "#fff", backgroundColor: "#243a5a" })
-      .setOrigin(1, 0).setPadding(10, 5, 10, 5).setDepth(12).setInteractive({ useHandCursor: true });
+    // Speed / mute live at the very top of the info panel.
+    this.speedBtn = crispText(this, this.scale.width - 14, 8, "", { fontSize: "14px", color: "#fff", backgroundColor: "#243a5a" })
+      .setOrigin(1, 0).setPadding(9, 5, 9, 5).setDepth(18).setInteractive({ useHandCursor: true });
     this.speedBtn.on("pointerdown", () => { this.gameSpeed = this.gameSpeed === 0 ? 1 : this.gameSpeed >= 3 ? 0 : this.gameSpeed + 1; this.updateSpeedBtn(); });
     this.updateSpeedBtn();
-    const muteBtn = crispText(this, this.scale.width - 14, 66, "🔊", { fontSize: "15px", backgroundColor: "#243a5a" })
-      .setOrigin(1, 0).setPadding(8, 5, 8, 5).setDepth(12).setInteractive({ useHandCursor: true });
+    const muteBtn = crispText(this, this.battleW + 14, 8, "🔊", { fontSize: "14px", backgroundColor: "#243a5a" })
+      .setOrigin(0, 0).setPadding(7, 5, 7, 5).setDepth(18).setInteractive({ useHandCursor: true });
     muteBtn.on("pointerdown", () => muteBtn.setText(this.sfx.toggleMute() ? "🔇" : "🔊"));
     this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn]);
+
+    // The persistent right-side info panel (UI layer → crisp full-size text).
+    this.panel = new BattleInfoPanel(this, this.ui, this.battleW, PANEL_W, this.scale.height);
 
     this.buildBuildBar();
     this.setupPlacementDrag(); // register drag handlers once (tiles rebuild without re-registering)
     this.bindInput();
 
-    // Camera setup: main shows the whole world zoomed out; uiCam draws the HUD 1:1.
-    const zoom = Math.min(this.scale.width / WORLD_WIDTH, this.scale.height / WORLD_HEIGHT);
+    // Camera: main shows the world zoomed to fit the battlefield region; uiCam 1:1.
+    const zoom = Math.min(this.battleW / WORLD_WIDTH, this.scale.height / WORLD_HEIGHT);
+    this.cameras.main.setViewport(0, 0, this.battleW, this.scale.height);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT).setZoom(zoom).centerOn(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
     this.cameras.main.ignore(this.ui);
     const uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     uiCam.ignore(this.world);
+    this.showHeroPanel();
     const KC = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard?.addKeys({
       up: KC.UP, down: KC.DOWN, left: KC.LEFT, right: KC.RIGHT,
       w: KC.W, a: KC.A, s: KC.S, d: KC.D,
     }) as typeof this.keys;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.closeTowerPanel();
+      this.deselectTower();
       this.clearGhost();
       this.terrainSprites.forEach((s) => s.destroy());
       this.terrainSprites = [];
@@ -357,7 +405,8 @@ export class BattleScene extends Phaser.Scene {
       if (!id) return;
       this.clearGhost();
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
-      if (p.y < 500 && this.battle.outcome === "ongoing" && !this.towerPanel) {
+      // Only drops over the battlefield region (left of the panel) count.
+      if (p.x < this.battleW && p.y < 500 && this.battle.outcome === "ongoing") {
         if (this.battle.placeTowerAt(id, { x: wp.x, y: wp.y })) this.sfx.place();
       }
       this.rebuildAvatarTiles(); // snap the dragged tile home (drag handlers stay registered)
@@ -406,21 +455,16 @@ export class BattleScene extends Phaser.Scene {
       // that corner. Towers aren't interactive objects (tapped via towerAt), so
       // tapping a tower still falls through to the panel logic below.
       if (currentlyOver && currentlyOver.length > 0) return;
-      if (pointer.y >= 500) return; // bottom HUD strip (screen space)
+      if (pointer.x >= this.battleW) return; // over the info panel — its widgets handle it
+      if (pointer.y >= 500) return;          // bottom build-bar strip
       const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       const world: Vec2 = { x: wp.x, y: wp.y };
 
-      // An open tower panel: a tap inside it is for its buttons; outside closes it.
-      if (this.towerPanel) {
-        const b = this.towerPanel.getBounds();
-        if (Phaser.Geom.Rectangle.Contains(b, world.x, world.y)) return;
-        this.closeTowerPanel();
-        return;
-      }
-
-      // Tap an existing tower → upgrade/sell panel; else walk the hero there.
+      // Tap a tower → show it in the panel + on-map quick actions. Tap empty
+      // ground → revert the panel to the hero view and walk the hero there.
       const tower = this.towerAt(world);
-      if (tower) { this.openTowerPanel(tower.uid); return; }
+      if (tower) { this.selectTower(tower.uid); return; }
+      this.deselectTower();
       this.battle.commandHero(world);
     });
   }
@@ -670,7 +714,7 @@ export class BattleScene extends Phaser.Scene {
     this.fx.play(ev);
     if (ev.type === "attack") {
       this.sfx.attack(ev.ranged);
-      const s = ev.source === "hero" ? this.heroSprite : (this.towerSprites.get(ev.uid) ?? null);
+      const s = ev.source === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : (this.towerSprites.get(ev.uid) ?? null);
       this.playAttack(s);
     } else if (ev.type === "hit") {
       this.sfx.hit();
@@ -678,7 +722,7 @@ export class BattleScene extends Phaser.Scene {
       if (e) this.flash(e, 0xffffff);
     } else if (ev.type === "enemyAttack") {
       this.sfx.enemyHit();
-      const victim = ev.target === "hero" ? this.heroSprite : this.towerNear(ev.targetAt);
+      const victim = ev.target === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : this.towerNear(ev.targetAt);
       if (victim) this.flash(victim, 0xff4444);
     } else if (ev.type === "death") {
       this.sfx.death();
@@ -774,12 +818,16 @@ export class BattleScene extends Phaser.Scene {
     const h = this.battle.hero;
     if (h.alive && hasSprite(this, "hero__hero")) {
       if (!this.heroSprite) {
-        this.heroSprite = this.add.sprite(h.pos.x, h.pos.y, "hero__hero").setOrigin(0.5, 0.78).setDepth(3);
-        this.heroSprite.setScale(54 / this.heroSprite.height);
-        this.world.add(this.heroSprite);
+        this.heroSprite = new HeroLayeredSprite(this, h.pos.x, h.pos.y);
+        this.heroSprite.scaleToHeight(54).setDepth(3);
+        this.heroSprite.addToWorld(this.world);
         if (this.anims.exists("hero__hero_idle")) this.heroSprite.play("hero__hero_idle");
+        if (this.saveManager) {
+          this.heroSprite.syncEquipment(this.saveManager.getSave().inventory);
+        }
       }
-      this.heroSprite.setPosition(h.pos.x, h.pos.y).setVisible(true);
+      this.heroSprite.setPosition(h.pos.x, h.pos.y);
+      this.heroSprite.setVisible(true);
     } else if (this.heroSprite && !h.alive) {
       this.heroSprite.setVisible(false);
     }

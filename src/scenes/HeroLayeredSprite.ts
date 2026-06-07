@@ -39,8 +39,8 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     scene.add.existing(this);
   }
 
-  addToWorld(world: Phaser.GameObjects.Container): void {
-    world.add(this);
+  addToWorld(world: Phaser.GameObjects.Container | Phaser.GameObjects.Layer): void {
+    world.add(this as unknown as Phaser.GameObjects.GameObject);
     world.add(this.petSprite);
   }
 
@@ -51,6 +51,11 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   play(animKey: string, ignoreIfPlaying = false): this {
     this.bodySprite.play(animKey, ignoreIfPlaying);
     return this;
+  }
+
+  /** Expose the underlying body sprite for effects (attack animation, flash) that need a Sprite. */
+  getBodySprite(): Phaser.GameObjects.Sprite {
+    return this.bodySprite;
   }
 
   get currentAnimKey(): string | null {
