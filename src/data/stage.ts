@@ -227,8 +227,11 @@ export function defaultHeroStats() {
     atk: 28,
     attackSpeed: 1.1,
     range: 130,
-    critRate: 0.15,
-    critDamage: 1.6,
+    // Crit is a neutral growth stat: base chance 0% (level scaling ramps it to
+    // 30% by L90, see heroStatPipeline) and a fixed 150% crit damage. Gear,
+    // kills and passives add on top of both.
+    critRate: 0,
+    critDamage: 1.5,
     maxHp: 600,
     hpRegen: 8,
     armor: 30,

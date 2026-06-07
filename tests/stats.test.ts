@@ -7,6 +7,7 @@ import {
   resolveAcc,
   heroStatPipeline,
   towerStatPipeline,
+  heroBaseCritRate,
 } from "../src/core/stats.ts";
 import { makeStats, defaultStats } from "../src/data/schema.ts";
 
@@ -83,6 +84,24 @@ describe("heroStatPipeline", () => {
     const withItem = heroStatPipeline(base, 1, [], [item as any], [], null);
     // level 1: no level scaling; flat +30 → 130 * 1.0 = 130
     expect(withItem.atk).toBeCloseTo(130, 5);
+  });
+
+  it("neutral crit growth: 0% at L1, ramps linearly to 30% at L90, capped beyond", () => {
+    expect(heroBaseCritRate(1)).toBeCloseTo(0, 6);
+    expect(heroBaseCritRate(90)).toBeCloseTo(0.3, 6);
+    // Linear: level 45.5 is the midpoint of 1..90 → ~15%; check the exact L46 step.
+    expect(heroBaseCritRate(46)).toBeCloseTo(0.3 * 45 / 89, 6);
+    // Held at the cap past level 90.
+    expect(heroBaseCritRate(100)).toBeCloseTo(0.3, 6);
+  });
+
+  it("pipeline applies neutral crit growth as flat, with gear critRate stacking on top", () => {
+    const base = makeStats({ critRate: 0 });
+    // L90 alone → 30% crit chance from level scaling.
+    expect(heroStatPipeline(base, 90, [], [], [], null).critRate).toBeCloseTo(0.3, 6);
+    // +12% critRate from an item adds on top → 42%.
+    const withGear = heroStatPipeline(base, 90, [], [{ critRate: 0.12 } as any], [], null);
+    expect(withGear.critRate).toBeCloseTo(0.42, 6);
   });
 });
 

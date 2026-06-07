@@ -68,6 +68,23 @@ const HERO_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
   maxMana: 1,
 };
 
+/** Level at which the neutral crit-chance growth reaches its cap. */
+const HERO_CRIT_CAP_LEVEL = 90;
+/** The capped neutral crit chance (reached at HERO_CRIT_CAP_LEVEL). */
+const HERO_CRIT_CAP = 0.30;
+
+/**
+ * The hero's *neutral* crit chance from leveling alone: 0% at level 1, ramping
+ * linearly to the 30% cap at level 90 and held there beyond. This is the growth
+ * stat every hero gets for free — items, kills and passives add ON TOP of it
+ * (as flat critRate), so the effective crit can exceed 30%. Crit *damage* is a
+ * separate fixed 150% base that only gear/passives raise.
+ */
+export function heroBaseCritRate(level: number): number {
+  const t = (level - 1) / (HERO_CRIT_CAP_LEVEL - 1);
+  return HERO_CRIT_CAP * Math.min(1, Math.max(0, t));
+}
+
 /**
  * Compute the hero's final pre-battle Stats from all persistent sources.
  *
@@ -96,6 +113,9 @@ export function heroStatPipeline(
   for (const [k, v] of Object.entries(HERO_LEVEL_FLAT_PER_LEVEL) as [keyof Stats, number][]) {
     levelFlat[k] = v * (level - 1);
   }
+  // Neutral crit-chance growth: 0% → 30% across levels 1..90, then capped.
+  // Added as flat so gear/kill/passive critRate stacks on top of it.
+  levelFlat.critRate = (levelFlat.critRate ?? 0) + heroBaseCritRate(level);
   acc = addFlat(acc, levelFlat);
 
   // Layers 2–3 — item base stats + affix stats (flat)
