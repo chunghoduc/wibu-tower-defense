@@ -240,7 +240,10 @@ export const ENEMIES: EnemyDef[] = [
       attackSpeed: 0.9,
       tenacity: 0.4,
     }),
-    boss: { enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.5 } },
+    boss: {
+      enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.5 },
+      skill: { id: "champion-quake", name: "Seismic Slam", description: "Slams the ground — stuns nearby towers and hurts the hero.", manaCost: 110, type: "quake", radius: 150, power: 0.14 },
+    },
     artRef: "placeholder",
   },
   // --- Final boss: enrage + the works ---
@@ -262,7 +265,10 @@ export const ENEMIES: EnemyDef[] = [
       hpRegen: 6,
       tenacity: 0.55,
     }),
-    boss: { enrage: { belowHpPct: 0.4, atkMult: 1.7, speedMult: 1.6 } },
+    boss: {
+      enrage: { belowHpPct: 0.4, atkMult: 1.7, speedMult: 1.6 },
+      skill: { id: "warden-barrier", name: "Bulwark Ward", description: "Shields the Warden and nearby foes.", manaCost: 100, type: "barrier", radius: 170, power: 0.3 },
+    },
     artRef: "placeholder",
   },
   // --- Final boss variant: summoner + tower-disabler ---
@@ -287,6 +293,7 @@ export const ENEMIES: EnemyDef[] = [
     boss: {
       summon: { enemyId: "imp", count: 3, interval: 7 },
       towerDisable: { radius: 130, duration: 3, interval: 12 },
+      skill: { id: "overlord-surge", name: "Grave Surge", description: "Tears open the ground to spew a horde of imps.", manaCost: 120, type: "summon-surge", power: 4, summonId: "imp" },
     },
     artRef: "placeholder",
   },
@@ -298,7 +305,10 @@ export const ENEMIES: EnemyDef[] = [
     archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
     bounty: 80, castleDamage: 7,
     baseStats: makeStats({ maxHp: 1000, armor: 28, moveSpeed: 32, atk: 36, attackSpeed: 1.1, tenacity: 0.45 }),
-    boss: { enrage: { belowHpPct: 0.5, atkMult: 1.5, speedMult: 1.7 } },
+    boss: {
+      enrage: { belowHpPct: 0.5, atkMult: 1.5, speedMult: 1.7 },
+      skill: { id: "zabro-rally", name: "Hidden Mist", description: "Veils allies in healing mist.", manaCost: 90, type: "rally", radius: 180, power: 0.16 },
+    },
     artRef: "placeholder",
   },
   {
@@ -306,7 +316,10 @@ export const ENEMIES: EnemyDef[] = [
     archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
     bounty: 95, castleDamage: 9,
     baseStats: makeStats({ maxHp: 1200, armor: 36, moveSpeed: 26, atk: 50, attackSpeed: 1.0, tenacity: 0.55 }),
-    boss: { enrage: { belowHpPct: 0.45, atkMult: 1.8, speedMult: 1.5 } },
+    boss: {
+      enrage: { belowHpPct: 0.45, atkMult: 1.8, speedMult: 1.5 },
+      skill: { id: "ryomen-cleave", name: "Cursed Cleave", description: "An unseen slash stuns towers and rends the hero.", manaCost: 100, type: "quake", radius: 160, power: 0.18 },
+    },
     artRef: "placeholder",
   },
   {
@@ -314,7 +327,11 @@ export const ENEMIES: EnemyDef[] = [
     archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
     bounty: 105, castleDamage: 10,
     baseStats: makeStats({ maxHp: 1450, magicResist: 40, moveSpeed: 24, atk: 44, attackSpeed: 0.9, tenacity: 0.5 }),
-    boss: { summon: { enemyId: "imp", count: 2, interval: 6 }, enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 } },
+    boss: {
+      summon: { enemyId: "imp", count: 2, interval: 6 },
+      enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 },
+      skill: { id: "kura-cloak", name: "Tailed Cloak", description: "A roaring chakra cloak shields the Calamity and its brood.", manaCost: 105, type: "barrier", radius: 180, power: 0.32 },
+    },
     artRef: "placeholder",
   },
   {
@@ -322,7 +339,11 @@ export const ENEMIES: EnemyDef[] = [
     archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
     bounty: 140, castleDamage: 12,
     baseStats: makeStats({ maxHp: 2000, armor: 40, magicResist: 22, moveSpeed: 22, atk: 52, attackSpeed: 0.85, tenacity: 0.6 }),
-    boss: { towerDisable: { radius: 110, duration: 2.5, interval: 10 }, enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 } },
+    boss: {
+      towerDisable: { radius: 110, duration: 2.5, interval: 10 },
+      enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 },
+      skill: { id: "akai-eruption", name: "Magma Eruption", description: "Erupting magma melts towers and scorches the hero.", manaCost: 115, type: "quake", radius: 165, power: 0.2 },
+    },
     artRef: "placeholder",
   },
   {
@@ -330,7 +351,10 @@ export const ENEMIES: EnemyDef[] = [
     archetype: "Boss", flying: false, immunity: null, damageType: "True",
     bounty: 155, castleDamage: 13,
     baseStats: makeStats({ maxHp: 2200, armor: 30, moveSpeed: 20, atk: 48, attackSpeed: 0.9, hpRegen: 32, tenacity: 0.6 }),
-    boss: { enrage: { belowHpPct: 0.35, atkMult: 1.7, speedMult: 1.5 } },
+    boss: {
+      enrage: { belowHpPct: 0.35, atkMult: 1.7, speedMult: 1.5 },
+      skill: { id: "mukade-mend", name: "Undying Mend", description: "Reknits its flesh and that of its kin.", manaCost: 90, type: "rally", radius: 190, power: 0.2 },
+    },
     artRef: "placeholder",
   },
   {
@@ -342,6 +366,7 @@ export const ENEMIES: EnemyDef[] = [
       summon: { enemyId: "imp", count: 3, interval: 6 },
       towerDisable: { radius: 140, duration: 3, interval: 11 },
       enrage: { belowHpPct: 0.4, atkMult: 1.7, speedMult: 1.5 },
+      skill: { id: "madarok-susano", name: "Spectral Ribs", description: "A spectral guardian shields the Eternal Eye and its host.", manaCost: 110, type: "barrier", radius: 200, power: 0.35 },
     },
     artRef: "placeholder",
   },
@@ -353,6 +378,7 @@ export const ENEMIES: EnemyDef[] = [
     boss: {
       summon: { enemyId: "imp", count: 2, interval: 8 },
       enrage: { belowHpPct: 0.35, atkMult: 2.0, speedMult: 1.7 },
+      skill: { id: "meruon-rage", name: "Sovereign's Wrath", description: "An overwhelming shockwave devastates the hero and silences towers.", manaCost: 120, type: "quake", radius: 190, power: 0.24 },
     },
     artRef: "placeholder",
   },

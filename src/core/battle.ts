@@ -25,6 +25,7 @@ import {
   type Stats,
   type TargetType,
   type TowerBehavior,
+  type BossSkill,
   type Vec2,
 } from "../data/schema.ts";
 import { mitigatedDamage, type DamagePacket } from "./damage.ts";
@@ -65,6 +66,7 @@ export type FxEvent =
   | { type: "cast"; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
+  | { type: "bossCast"; at: Vec2; skill: string; radius: number; name: string }
   | { type: "loot"; at: Vec2; gold: number };
 
 /** How close an enemy must be to the hero to be body-blocked into melee. */
@@ -81,6 +83,8 @@ export const MIN_TOWER_DIST = 34;
 export const PLACE_MARGIN = 14;
 /** Max in-battle upgrade levels a tower can buy. */
 export const MAX_TOWER_UPGRADES = 5;
+/** Boss skill mana gained per second (T16); a boss casts roughly every manaCost/this seconds. */
+const BOSS_MANA_REGEN = 14;
 /** Fraction of a tower's invested gold refunded on sell. */
 export const TOWER_SELL_REFUND = 0.6;
 
@@ -111,6 +115,8 @@ export interface EnemyRuntime {
   bossSummonTimer: number;
   bossDisableTimer: number;
   enraged: boolean;
+  /** Boss skill mana (T16); fills over time + on taking damage, spent on cast. */
+  mana: number;
 }
 
 export interface TowerRuntime {
@@ -515,6 +521,7 @@ export class BattleState {
       bossSummonTimer: def.boss?.summon?.interval ?? 0,
       bossDisableTimer: def.boss?.towerDisable?.interval ?? 0,
       enraged: false,
+      mana: 0,
     });
   }
 
@@ -630,6 +637,47 @@ export class BattleState {
         }
         e.bossDisableTimer = b.towerDisable.interval;
       }
+    }
+    // Boss active skill — mana fills over time, cast when full (T16).
+    if (b.skill) {
+      e.mana += BOSS_MANA_REGEN * dt;
+      if (e.mana >= b.skill.manaCost) { this.castBossSkill(e, b.skill); e.mana = 0; }
+    }
+  }
+
+  /** Apply a boss's active skill and emit its cast FX. */
+  private castBossSkill(e: EnemyRuntime, skill: BossSkill): void {
+    const R = skill.radius ?? 150;
+    this.emit({ type: "bossCast", at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name });
+    switch (skill.type) {
+      case "quake": {
+        // Disable towers in radius and hammer the hero if caught inside.
+        for (const t of this.towers) {
+          if (t.alive && dist(e.pos, t.pos) <= R) t.disabledTimer = Math.max(t.disabledTimer, 2);
+        }
+        if (this.hero.alive && dist(e.pos, this.hero.pos) <= R) {
+          const dmg = (skill.power ?? 0.12) * this.hero.stats.maxHp;
+          this.hero.hp = Math.max(0, this.hero.hp - dmg);
+        }
+        break;
+      }
+      case "rally": {
+        const heal = skill.power ?? 0.15;
+        for (const o of this.enemies) {
+          if (o.alive && dist(e.pos, o.pos) <= R) o.hp = Math.min(o.stats.maxHp, o.hp + heal * o.stats.maxHp);
+        }
+        break;
+      }
+      case "barrier": {
+        const sh = skill.power ?? 0.25;
+        for (const o of this.enemies) {
+          if (o.alive && dist(e.pos, o.pos) <= R) o.shield = Math.max(o.shield, sh * o.stats.maxHp);
+        }
+        break;
+      }
+      case "summon-surge":
+        this.queueSummon(e, skill.summonId ?? "imp", Math.round(skill.power ?? 3));
+        break;
     }
   }
 

@@ -862,6 +862,13 @@ export class BattleScene extends Phaser.Scene {
         3,
       );
     }
+    // Boss skill mana bar (T16).
+    const bskill = e.def.boss?.skill;
+    if (bskill) {
+      const mf = Phaser.Math.Clamp(e.mana / bskill.manaCost, 0, 1);
+      g.fillStyle(0x000000, 0.6).fillRect(e.pos.x - w / 2, top + 5, w, 3);
+      g.fillStyle(0xb085f5, 1).fillRect(e.pos.x - w / 2, top + 5, w * mf, 3);
+    }
     // Status glyphs (T8): burning / poison / freeze above the bar.
     this.drawStatusGlyphs(g, e, top - (e.shield > 0 ? 12 : 8));
   }

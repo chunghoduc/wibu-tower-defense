@@ -77,7 +77,29 @@ export class FxLayer {
       case "enemyAttack":
         this.lunge(e.at, e.targetAt);
         break;
+      case "bossCast":
+        this.bossCast(e.at, e.skill, e.radius, e.name);
+        break;
     }
+  }
+
+  /** A menacing boss-skill cast: dark expanding shock ring + colored core + name. */
+  private bossCast(at: Vec2, skill: string, radius: number, name: string): void {
+    const color = skill === "barrier" ? 0x8ad8ff : skill === "rally" ? 0x9ccc65 : skill === "summon-surge" ? 0xb085f5 : 0xff5a4a;
+    this.ring(at, radius, color, 600);
+    this.scene.time.delayedCall(80, () => this.ring(at, radius * 0.7, 0xffffff, 420));
+    const core = this.fac.circle(at.x, at.y, 18, color, 0.6).setDepth(this.depth + 2);
+    this.scene.tweens.add({ targets: core, scale: 2.4, alpha: 0, duration: 460, ease: "Cubic.easeOut", onComplete: () => core.destroy() });
+    for (let i = 0; i < 14; i++) {
+      const a = (Math.PI * 2 * i) / 14;
+      const p = this.fac.circle(at.x, at.y, 3, color).setDepth(this.depth + 1);
+      this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * radius * 0.8, y: at.y + Math.sin(a) * radius * 0.8, alpha: 0, scale: 0.2, duration: 520, ease: "Quad.easeOut", onComplete: () => p.destroy() });
+    }
+    const label = makeCrisp(this.fac.text(at.x, at.y - 34, name, {
+      fontFamily: '"Trebuchet MS", system-ui, sans-serif', fontSize: "13px", color: "#ffd2cc", fontStyle: "bold", stroke: "#1a0808", strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(this.depth + 4));
+    this.scene.tweens.add({ targets: label, y: at.y - 54, alpha: 0, duration: 1100, ease: "Quad.easeOut", onComplete: () => label.destroy() });
+    this.scene.cameras.main.shake(180, 0.006);
   }
 
   /** A quick enemy strike: a streak toward the target + an impact at the target. */

@@ -343,6 +343,25 @@ export interface BossMechanics {
   summon?: { enemyId: string; count: number; interval: number };
   /** Periodically disable towers within a radius for a duration. */
   towerDisable?: { radius: number; duration: number; interval: number };
+  /** Active skill cast when the boss's mana bar fills (T16). */
+  skill?: BossSkill;
+}
+
+/** A boss active skill, auto-cast when its mana fills. */
+export interface BossSkill {
+  id: string;
+  name: string;
+  description: string;
+  /** Mana needed to cast (mana fills at a fixed rate + on taking damage). */
+  manaCost: number;
+  type: "quake" | "rally" | "barrier" | "summon-surge";
+  /** Effect radius (world units). */
+  radius?: number;
+  /** Effect magnitude: quake = frac of hero maxHp damage; rally = heal frac;
+   *  barrier = shield frac of maxHp; summon-surge = add count. */
+  power?: number;
+  /** summon-surge: which add to spawn (defaults to "imp"). */
+  summonId?: string;
 }
 
 /** An enemy archetype definition. */

@@ -22,10 +22,10 @@ Update the checkbox + log when a task lands.
 - [ ] **T17** Click tower → passive/active skill descriptions; hover skill → tooltip.
 - [ ] **T6** Per-character weapon-based attack visuals (arrows / fireball / iceball / lightning / slash …).
 - [ ] **T7** Active-skill visuals designed from each skill's description.
-- [ ] **T8** Enemy status visuals (burning / freezing / slowing / poison …).
+- [x] **T8** Enemy status visuals (burning / freezing / slowing / poison …).
 - [x] **T9** Stealth reveal rule (towers hit revealed stealth) + hidden/spotted visuals. (9f44a7e)
 - [ ] **T4** Squad UI redesign: 7 active slots + collected-character inventory with drag/drop + filter/sort.
-- [ ] **T13** Item enhance system (MU-style): bless jewel +1..+6 (100%), soul jewel +7+ (−10%/lvl, fail drops 1–5 levels); each level boosts primary stat + primary affix.
+- [x] **T13** (core; UI pending) Item enhance system (MU-style): bless jewel +1..+6 (100%), soul jewel +7+ (−10%/lvl, fail drops 1–5 levels); each level boosts primary stat + primary affix.
 - [ ] **T14** Hero loadout inventory filter (items / materials / boxes).
 - [ ] **T15** Boss-drop boxes: each boss guarantees a box scaled to its strength; balanced loot tables.
 - [ ] **T16** Bosses gain mana + active skills (cast on mana threshold).
