@@ -8,16 +8,26 @@ import { ShopScene } from "./scenes/ShopScene.ts";
 import { PassiveGridScene } from "./scenes/PassiveGridScene.ts";
 import { HeroScene } from "./scenes/HeroScene.ts";
 import { SquadScene } from "./scenes/SquadScene.ts";
+import { SettingsScene } from "./scenes/SettingsScene.ts";
 import { PreloadScene } from "./scenes/PreloadScene.ts";
 import { GAME_HEIGHT, GAME_WIDTH } from "./data/stage.ts";
 import { SaveManager } from "./core/saveManager.ts";
 import { LocalSaveProvider } from "./core/save.ts";
 import { installLogger, log } from "./debug/logger.ts";
+import { setAudioVolume, setAudioMuted } from "./scenes/audio.ts";
 
 installLogger();
 
 const provider = new LocalSaveProvider();
 const saveManager = new SaveManager(provider);
+
+// Apply persisted audio settings at boot (music starts on first user gesture
+// from the main menu, which is required for Web Audio to play).
+{
+  const s = saveManager.getSettings();
+  setAudioVolume(s.volume);
+  setAudioMuted(s.muted);
+}
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -30,7 +40,7 @@ const game = new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [PreloadScene, MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene, ShopScene, PassiveGridScene, HeroScene, SquadScene],
+  scene: [PreloadScene, MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene, ShopScene, PassiveGridScene, HeroScene, SquadScene, SettingsScene],
 });
 
 game.registry.set("saveManager", saveManager);

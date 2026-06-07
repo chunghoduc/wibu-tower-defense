@@ -60,6 +60,20 @@ export interface InventorySave {
   equipped: Partial<Record<ItemSlot, string>>;
 }
 
+/** Player-configurable audio/game settings (T9). */
+export interface GameSettings {
+  /** Master audio volume, 0..1. */
+  volume: number;
+  /** Mute all sound effects + music. */
+  muted: boolean;
+  /** Play the ambient background music bed. */
+  musicEnabled: boolean;
+}
+
+export function defaultSettings(): GameSettings {
+  return { volume: 0.7, muted: false, musicEnabled: true };
+}
+
 export interface HeroSave {
   version: number;
   heroId: string;
@@ -72,6 +86,8 @@ export interface HeroSave {
   squad: string[];
   /** Crafting materials & loot boxes, keyed by material id → count (T13/T15). */
   materials: Record<string, number>;
+  /** Audio/game settings (T9). */
+  settings: GameSettings;
   lastSavedAt: number;
 }
 
@@ -98,6 +114,7 @@ export function createFreshSave(): HeroSave {
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     squad: [],
     materials: {},
+    settings: defaultSettings(),
     lastSavedAt: 0,
   };
 }
@@ -127,6 +144,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   save.materials ??= {};
   save.currency ??= { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false };
   save.progress ??= { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 };
+  save.settings = { ...defaultSettings(), ...(save.settings ?? {}) };
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }

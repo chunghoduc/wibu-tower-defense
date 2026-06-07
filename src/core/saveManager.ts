@@ -9,7 +9,7 @@ import { openBox, type BoxReward } from "./boxes.ts";
 import type { ItemSlot } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
-import { createFreshSave, type HeroSave, type SaveProvider } from "./save.ts";
+import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } from "./save.ts";
 import { SINGLE_PULL_COST } from "./gacha.ts";
 import { addTowerToCollection } from "./collection.ts";
 
@@ -37,18 +37,41 @@ export class SaveManager {
 
   constructor(private readonly provider: SaveProvider) {
     const loaded = provider.load();
-    this.save = loaded ?? createFreshSave();
-    // New players get starter crystals AND a starter squad so they can place
-    // towers and play immediately (placement is ownership-gated).
-    if (!loaded) {
-      this.save.currency.crystals = STARTER_CRYSTALS;
-      for (const id of STARTER_SQUAD) addTowerToCollection(this.save, id);
-    }
+    this.save = loaded ?? SaveManager.freshWithStarters();
     this.persist();
+  }
+
+  /** A brand-new save seeded with starter crystals + a starter squad so a player
+   * can place towers and play immediately (placement is ownership-gated). */
+  private static freshWithStarters(): HeroSave {
+    const save = createFreshSave();
+    save.currency.crystals = STARTER_CRYSTALS;
+    for (const id of STARTER_SQUAD) addTowerToCollection(save, id);
+    return save;
   }
 
   getSave(): HeroSave {
     return this.save;
+  }
+
+  /** Read player settings (audio/etc.). */
+  getSettings(): GameSettings {
+    return this.save.settings;
+  }
+
+  /** Merge a settings change and persist. */
+  setSettings(partial: Partial<GameSettings>): GameSettings {
+    this.save.settings = { ...this.save.settings, ...partial };
+    this.persist();
+    return this.save.settings;
+  }
+
+  /** Wipe ALL progress back to a brand-new game (keeps the chosen audio settings). */
+  resetProgress(): void {
+    const keepSettings = this.save.settings;
+    this.save = SaveManager.freshWithStarters();
+    this.save.settings = keepSettings;
+    this.persist();
   }
 
   /** Persist immediately — used for mid-battle rewards (kill XP/loot) that the

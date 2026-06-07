@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { SaveManager } from "../core/saveManager.ts";
+import { music } from "./audio.ts";
 
 export class MainMenuScene extends Phaser.Scene {
   constructor() {
@@ -8,6 +9,12 @@ export class MainMenuScene extends Phaser.Scene {
 
   create(): void {
     const mgr: SaveManager = this.registry.get("saveManager");
+
+    // Start the ambient music bed on the first user gesture (Web Audio needs one).
+    const s0 = mgr.getSettings();
+    if (s0.musicEnabled && !s0.muted) {
+      this.input.once("pointerdown", () => music.start());
+    }
 
     const today = new Date().toISOString().slice(0, 10);
     const crystalsGranted = mgr.grantDailyLogin(today);
@@ -47,6 +54,7 @@ export class MainMenuScene extends Phaser.Scene {
       { label: "⬡  Passive Tree", scene: "PassiveGridScene" },
       { label: "⚔  Hero Loadout", scene: "HeroScene" },
       { label: "👥  Squad & Skill", scene: "SquadScene" },
+      { label: "⚙  Settings", scene: "SettingsScene" },
     ];
 
     // 2-column grid: 3 rows × 2 cols
