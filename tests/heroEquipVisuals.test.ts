@@ -52,14 +52,12 @@ describe("resolveHeroLayers", () => {
     expect(result.petKey).toBe("item__coin-sprite");
   });
 
-  it("returns wing appearanceRef when wing item has one", () => {
+  it("returns item icon key for wing when no appearanceRef set", () => {
     const inv = makeInventory({
       items: [makeItem("inst-3", "fledgling-wings")],
       equipped: { Wing: "inst-3" },
     });
     const result = resolveHeroLayers(inv);
-    // fledgling-wings currently has no appearanceRef yet (Task 2 adds it)
-    // so result is either null or "item__fledgling-wings" — both acceptable
-    expect(typeof result.wingKey === "string" || result.wingKey === null).toBe(true);
+    expect(result.wingKey).toBe("item__fledgling-wings");
   });
 });

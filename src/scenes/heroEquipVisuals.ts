@@ -1,5 +1,6 @@
 // src/scenes/heroEquipVisuals.ts
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import type { ItemSlot } from "../data/schema.ts";
 import type { InventorySave } from "../core/save.ts";
 
 export interface HeroLayerConfig {
@@ -16,8 +17,8 @@ export function resolveHeroLayers(inventory: InventorySave): HeroLayerConfig {
   };
 }
 
-function _instanceDef(inventory: InventorySave, slot: string) {
-  const instanceId = (inventory.equipped as Record<string, string | undefined>)[slot];
+function _instanceDef(inventory: InventorySave, slot: ItemSlot) {
+  const instanceId = inventory.equipped[slot];
   if (!instanceId) return null;
   const instance = inventory.items.find((i) => i.id === instanceId);
   if (!instance) return null;
