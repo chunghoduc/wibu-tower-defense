@@ -7,6 +7,7 @@
 import Phaser from "phaser";
 import { SPRITE_MANIFEST, SPRITE_BY_KEY } from "../data/spriteManifest.ts";
 import { TERRAIN_ASSETS, TERRAIN_TEX_SIZE } from "../data/terrainManifest.ts";
+import { SKILL_ICON_IDS } from "../data/skillIconManifest.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -21,6 +22,13 @@ export class PreloadScene extends Phaser.Scene {
     // Terrain map art (T13): Phaser rasterizes the .svg to a texture in-browser.
     for (const t of TERRAIN_ASSETS) {
       this.load.svg(t.key, t.path, { width: TERRAIN_TEX_SIZE, height: TERRAIN_TEX_SIZE });
+    }
+    // Painted skill ability icons (96×96). Skip ids already in the manifest so a
+    // future `gen.mjs --only=manifest` that folds them in won't double-load.
+    for (const id of SKILL_ICON_IDS) {
+      const key = `skill__${id}`;
+      if (SPRITE_BY_KEY.has(key)) continue;
+      this.load.spritesheet(key, `assets/sprites/skill/${id}.png`, { frameWidth: 96, frameHeight: 96 });
     }
   }
 

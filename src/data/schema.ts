@@ -193,6 +193,22 @@ export interface TowerBehavior {
   activeType?: DamageType;
 }
 
+/**
+ * Character codex metadata — the iconic anime archetype the character channels
+ * plus a player-facing visual profile (outfit + signature weapon). The `homage`
+ * is the designer/codex note; `outfit` and `weapon` are flavor shown in the
+ * collection. The character's main skill and passive skills live in `active` /
+ * `passives` on CharacterDef.
+ */
+export interface CharacterMeta {
+  /** The legendary anime archetype this original character is inspired by. */
+  homage: string;
+  /** Short description of the character's signature outfit / visual design. */
+  outfit: string;
+  /** The character's main weapon or fighting implement. */
+  weapon: string;
+}
+
 /** A collectible character — deployed in battle as a static tower. */
 export interface CharacterDef {
   id: string;
@@ -213,6 +229,8 @@ export interface CharacterDef {
   baseStats: Stats;
   /** Role-specific tuning (splash radius, dot, slow, aura, gold/sec, ...). */
   behavior?: TowerBehavior;
+  /** Codex metadata: homage source + outfit + signature weapon. */
+  meta?: CharacterMeta;
   /** Sprite/asset reference (placeholder until Phase 4 art). */
   artRef: string;
 }

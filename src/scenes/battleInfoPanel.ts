@@ -11,7 +11,7 @@ import { crispText } from "./ui.ts";
 
 export interface StatRow { key: string; value: string; }
 export interface PanelItem { iconKey: string | null; name: string; plus: number; rarityColor: number; }
-export interface SkillRow { label: string; desc: string; color: string; }
+export interface SkillRow { label: string; desc: string; color: string; iconKey?: string; }
 
 export interface HeroPanelVM {
   kind: "hero";
@@ -276,8 +276,15 @@ export class BattleInfoPanel {
       const col = Phaser.Display.Color.HexStringToColor(s.color.replace("#", "")).color;
       g.fillStyle(0x16202c, 1).fillRoundedRect(x, y, S, S, 5);
       g.lineStyle(1.5, col, 0.9).strokeRoundedRect(x, y, S, S, 5);
-      drawSkillGlyph(g, s.label, s.desc, x + S / 2, y + S / 2, 8, col);
       this.add(g);
+      // Prefer the painted skill icon texture; fall back to a procedural glyph.
+      if (s.iconKey && this.scene.textures.exists(s.iconKey)) {
+        const img = this.scene.add.image(x + S / 2, y + S / 2, s.iconKey).setOrigin(0.5);
+        img.setScale(Math.min((S - 5) / img.width, (S - 5) / img.height));
+        this.add(img);
+      } else {
+        drawSkillGlyph(g, s.label, s.desc, x + S / 2, y + S / 2, 8, col);
+      }
       const z = this.scene.add.zone(x, y, S, S).setOrigin(0).setInteractive({ useHandCursor: true });
       const title = s.label.replace(/^[⚡•▲]\s*/, "");
       z.on("pointerover", (p: Phaser.Input.Pointer) => this.showTip(`${title}\n${s.desc}`, p, 200));

@@ -489,7 +489,7 @@ export class BattleScene extends Phaser.Scene {
       items[slot] = { iconKey: `item__${inst.defId}`, name: def.name, plus: inst.enhanceLevel ?? 0, rarityColor: RARITY_INT[def.rarity as Rarity] };
     }
     const eqSkill = save.hero.equippedSkillId ? ACTIVE_SKILLS_MAP.get(save.hero.equippedSkillId) : undefined;
-    const skills = eqSkill ? [{ label: `⚡ ${eqSkill.name}`, desc: eqSkill.description, color: "#a8d8ff" }] : [];
+    const skills = eqSkill ? [{ label: `⚡ ${eqSkill.name}`, desc: eqSkill.description, color: "#a8d8ff", iconKey: `skill__${save.hero.equippedSkillId}` }] : [];
     return {
       kind: "hero", name: "Hero", level: save.hero.level,
       hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: h.stats.maxMana,
@@ -500,9 +500,9 @@ export class BattleScene extends Phaser.Scene {
 
   /** Build a tower view model from its runtime. */
   private towerVM(t: TowerRuntime): TowerPanelVM {
-    const skills: { label: string; desc: string; color: string }[] = [];
-    if (t.def.active) { const a = towerActiveInfo(t.def.active); skills.push({ label: `⚡ ${a.name}`, desc: a.description, color: "#a8d8ff" }); }
-    for (const pid of t.def.passives) { const p = passiveInfo(pid); skills.push({ label: `• ${p.name}`, desc: p.description, color: "#cdd6e6" }); }
+    const skills: { label: string; desc: string; color: string; iconKey?: string }[] = [];
+    if (t.def.active) { const a = towerActiveInfo(t.def.active); skills.push({ label: `⚡ ${a.name}`, desc: a.description, color: "#a8d8ff", iconKey: `skill__${t.def.active}` }); }
+    for (const pid of t.def.passives) { const p = passiveInfo(pid); skills.push({ label: `• ${p.name}`, desc: p.description, color: "#cdd6e6", iconKey: `skill__${pid}` }); }
     skills.push({ label: "▲ Upgrades", desc: upgradeSummary(t.def.role), color: "#ffd86a" });
     return {
       kind: "tower", uid: t.uid, name: t.def.name, iconKey: `tower__${t.def.id}`,
@@ -824,6 +824,10 @@ export class BattleScene extends Phaser.Scene {
       }
       this.heroSprite.setPosition(h.pos.x, h.pos.y);
       this.heroSprite.setVisible(true);
+      // Sync equipment visuals each frame (no-op when nothing changed)
+      if (this.heroSprite && this.saveManager) {
+        this.heroSprite.syncEquipment(this.saveManager.getSave().inventory);
+      }
     } else if (this.heroSprite && !h.alive) {
       this.heroSprite.setVisible(false);
     }

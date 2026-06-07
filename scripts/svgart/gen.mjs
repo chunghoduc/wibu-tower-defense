@@ -72,11 +72,14 @@ if (!only || only === "item") for (const [id, spec] of Object.entries(ITEM_SPECS
 if (!only || only === "vfx") for (const [id, spec] of Object.entries(VFX_SPECS)) saveStatic("vfx", id, composeVfx(spec));
 
 // Emit a TS manifest the game imports: key "<kind>__<id>" -> frame config.
-import { readFileSync, readdirSync } from "node:fs";
-if (!only) {
+// `--only=manifest` rebuilds ONLY this manifest by scanning the sprite dirs —
+// it does NOT regenerate art, so SDXL-painted sprites (tower/item/skill) survive.
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+if (!only || only === "manifest") {
   const entries = [];
-  for (const kind of ["tower", "hero", "enemy", "boss", "item", "vfx"]) {
+  for (const kind of ["tower", "hero", "enemy", "boss", "item", "skill", "vfx"]) {
     const dir = `${GAME}/${kind}`;
+    if (!existsSync(dir)) continue;
     for (const f of readdirSync(dir).filter((f) => f.endsWith(".json"))) {
       const id = f.slice(0, -5);
       const meta = JSON.parse(readFileSync(`${dir}/${f}`, "utf8"));
