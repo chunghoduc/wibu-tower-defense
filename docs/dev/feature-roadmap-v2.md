@@ -19,14 +19,14 @@ Update the checkbox + log when a task lands.
 - [x] **T5** Tower type badge (melee/ranged + role) on map + build bar. (c269367)
 - [ ] **T18** Skill-icon system: an SVG icon for every hero/tower passive & active skill.
 - [ ] **T1** Passive tree nodes show skill icons (uses T18 icon system).
-- [ ] **T17** Click tower → passive/active skill descriptions; hover skill → tooltip.
-- [ ] **T6** Per-character weapon-based attack visuals (arrows / fireball / iceball / lightning / slash …).
-- [ ] **T7** Active-skill visuals designed from each skill's description.
+- [x] **T17** Click tower → passive/active skill descriptions; hover skill → tooltip.
+- [x] **T6** Per-character weapon-based attack visuals (arrows / fireball / iceball / lightning / slash …).
+- [x] **T7** Active-skill visuals designed from each skill's description.
 - [x] **T8** Enemy status visuals (burning / freezing / slowing / poison …).
 - [x] **T9** Stealth reveal rule (towers hit revealed stealth) + hidden/spotted visuals. (9f44a7e)
 - [ ] **T4** Squad UI redesign: 7 active slots + collected-character inventory with drag/drop + filter/sort.
 - [x] **T13** (core; UI pending) Item enhance system (MU-style): bless jewel +1..+6 (100%), soul jewel +7+ (−10%/lvl, fail drops 1–5 levels); each level boosts primary stat + primary affix.
-- [ ] **T14** Hero loadout inventory filter (items / materials / boxes).
+- [x] **T14** Hero loadout inventory filter (items / materials / boxes).
 - [x] **T15** (core; open-box UI pending) Boss chests guaranteed per clear, 5 tiers, balanced loot. (5947718)
 - [x] **T16** Boss mana + active skills (quake/rally/barrier/summon-surge). (98796e7)
 
