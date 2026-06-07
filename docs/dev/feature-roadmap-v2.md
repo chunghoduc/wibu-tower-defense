@@ -28,7 +28,7 @@ Update the checkbox + log when a task lands.
 - [x] **T13** (core; UI pending) Item enhance system (MU-style): bless jewel +1..+6 (100%), soul jewel +7+ (−10%/lvl, fail drops 1–5 levels); each level boosts primary stat + primary affix.
 - [ ] **T14** Hero loadout inventory filter (items / materials / boxes).
 - [ ] **T15** Boss-drop boxes: each boss guarantees a box scaled to its strength; balanced loot tables.
-- [ ] **T16** Bosses gain mana + active skills (cast on mana threshold).
+- [x] **T16** Boss mana + active skills (quake/rally/barrier/summon-surge). (98796e7)
 
 ## Brainstorm decisions (per task) — filled as work proceeds
 
