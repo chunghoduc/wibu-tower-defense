@@ -99,7 +99,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
 
     this.add([this.wingsSprite, this.bodySprite, this.weaponSprite]);
 
-    this.petSprite = scene.add.sprite(x + 30, y + 8, "__missing").setVisible(false).setScale(0.18);
+    this.petSprite = scene.add.sprite(x + 30, y + 8, "__missing").setVisible(false).setScale(0.32);
 
     scene.add.existing(this);
   }
@@ -271,7 +271,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     if (now >= this.petRepickAt || d < 8) {
       // New roam target on a ring around the hero's current position.
       const ang = Math.random() * Math.PI * 2;
-      const r = 18 + Math.random() * 28;
+      const r = 26 + Math.random() * 30; // orbit a little wider so the bigger pet clears the hero
       this.petTX = this.heroX + Math.cos(ang) * r;
       this.petTY = this.heroY + Math.sin(ang) * r * 0.6; // flatter vertical spread
       this.petRepickAt = now + 500 + Math.random() * 900;
@@ -307,7 +307,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     this.bodySprite.setScale(scale);
     this.weaponSprite.setScale(this.weaponScale);
     this.wingsSprite.setScale(this.wingScale).setPosition(0, this.wingBaseY);
-    this.petSprite.setScale(scale * 0.18);
+    this.petSprite.setScale(scale * 0.42); // larger so the companion is clearly visible
     return this;
   }
 
