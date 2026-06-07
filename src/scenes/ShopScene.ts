@@ -10,6 +10,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import type { ShopStockEntry, ItemInstanceSave } from "../core/save.ts";
 import { ITEM_CATALOG_MAP, itemSellValue } from "../data/items.ts";
 import { crispText } from "./ui.ts";
+import { renderItemTooltip } from "./itemTooltip.ts";
 import type { Rarity } from "../data/schema.ts";
 
 const RARITY_INT: Record<Rarity, number> = {
@@ -24,6 +25,7 @@ export class ShopScene extends Phaser.Scene {
   private feedback!: Phaser.GameObjects.Text;
   private hoverLabel!: Phaser.GameObjects.Text;
   private grid!: Phaser.GameObjects.Container;
+  private tooltip!: Phaser.GameObjects.Container;
   private tabBuy!: Phaser.GameObjects.Text;
   private tabSell!: Phaser.GameObjects.Text;
   private refreshBtn!: Phaser.GameObjects.Text;
@@ -55,6 +57,7 @@ export class ShopScene extends Phaser.Scene {
     this.hoverLabel = this.add.text(W / 2, 478, "", { fontSize: "13px", color: "#e8eef6" }).setOrigin(0.5);
     this.feedback = this.add.text(W / 2, 500, "", { fontSize: "13px", color: "#a5d6a7" }).setOrigin(0.5);
     this.grid = this.add.container(0, 0);
+    this.tooltip = this.add.container(0, 0).setDepth(200).setVisible(false);
     this.redraw();
   }
 
@@ -75,6 +78,7 @@ export class ShopScene extends Phaser.Scene {
 
   private redraw(): void {
     this.grid.removeAll(true);
+    this.tooltip?.setVisible(false);
     const save = this.mgr.getSave();
     this.crystalText.setText(`💎 ${save.currency.crystals}`);
     this.tabBuy.setBackgroundColor(this.mode === "buy" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "buy" ? 1 : 0.7);
@@ -122,8 +126,12 @@ export class ShopScene extends Phaser.Scene {
     this.grid.add(crispText(this, x + w / 2, y + h - 32, `💎 ${slot.cost}`, { fontSize: "15px", color: afford ? "#ffe07a" : "#ff7a7a", fontStyle: "bold" }).setOrigin(0.5));
 
     const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
-    z.on("pointerover", () => this.hoverLabel.setText(name).setColor(isScroll ? "#ffe07a" : "#e8eef6"));
-    z.on("pointerout", () => this.hoverLabel.setText(""));
+    z.on("pointerover", () => {
+      this.hoverLabel.setText(name).setColor(isScroll ? "#ffe07a" : "#e8eef6");
+      // Item slots get a full stat tooltip (scrolls have no stats).
+      if (slot.item && def) renderItemTooltip(this, this.tooltip, slot.item, def, x + w, y); else this.tooltip.setVisible(false);
+    });
+    z.on("pointerout", () => { this.hoverLabel.setText(""); this.tooltip.setVisible(false); });
     z.on("pointerup", () => {
       const r = this.mgr.buyShopSlot(slot.slotId);
       this.flash(r.message, r.success);
@@ -164,8 +172,11 @@ export class ShopScene extends Phaser.Scene {
     this.grid.add(crispText(this, x + w / 2, y + h - 16, isEquipped ? "equipped" : `💎 +${sell}`, { fontSize: "11px", color: isEquipped ? "#6b7689" : "#8be06a", fontStyle: "bold" }).setOrigin(0.5));
 
     const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
-    z.on("pointerover", () => this.hoverLabel.setText(`${def?.name ?? "Item"}${isEquipped ? " (equipped — unequip to sell)" : ""}`));
-    z.on("pointerout", () => this.hoverLabel.setText(""));
+    z.on("pointerover", () => {
+      this.hoverLabel.setText(`${def?.name ?? "Item"}${isEquipped ? " (equipped — unequip to sell)" : ""}`);
+      if (def) renderItemTooltip(this, this.tooltip, inst, def, x + w, y);
+    });
+    z.on("pointerout", () => { this.hoverLabel.setText(""); this.tooltip.setVisible(false); });
     z.on("pointerup", () => {
       const r = this.mgr.sellItem(inst.id);
       this.flash(r.message, r.success);
