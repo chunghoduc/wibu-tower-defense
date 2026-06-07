@@ -25,6 +25,7 @@ import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { crispText } from "./ui.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
+import { activeSkillDetail } from "../data/skillDescribe.ts";
 import { upgradeSummary } from "../core/towerUpgrade.ts";
 import { BattleInfoPanel, type HeroPanelVM, type TowerPanelVM, type StatRow, type PanelItem } from "./battleInfoPanel.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
@@ -517,7 +518,7 @@ export class BattleScene extends Phaser.Scene {
   /** Build a tower view model from its runtime. */
   private towerVM(t: TowerRuntime): TowerPanelVM {
     const skills: { label: string; desc: string; color: string; iconKey?: string }[] = [];
-    if (t.def.active) { const a = towerActiveInfo(t.def.active); skills.push({ label: `⚡ ${a.name}`, desc: a.description, color: "#a8d8ff", iconKey: `skill__${t.def.active}` }); }
+    if (t.def.active) { const a = towerActiveInfo(t.def.active); skills.push({ label: `⚡ ${a.name}`, desc: activeSkillDetail(t.def, t.stats), color: "#a8d8ff", iconKey: `skill__${t.def.active}` }); }
     for (const pid of t.def.passives) { const p = passiveInfo(pid); skills.push({ label: `• ${p.name}`, desc: p.description, color: "#cdd6e6", iconKey: `skill__${pid}` }); }
     skills.push({ label: "▲ Upgrades", desc: upgradeSummary(t.def.role), color: "#ffd86a" });
     return {
