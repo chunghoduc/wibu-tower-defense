@@ -244,7 +244,16 @@ export class HeroScene extends Phaser.Scene {
     g.fillStyle(0x1c2636, 1).fillRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
     g.lineStyle(rarity ? 2.5 : 2, border, 1).strokeRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
     c.add(g);
-    c.add(this.add.text(0, -10, openable ? "🎁" : "💠", { fontSize: "20px" }).setOrigin(0.5));
+    // Higher rarities ship their own painted chest art (box__<id>); the better
+    // the rarity, the fancier the chest. Fall back to the emoji if unloaded.
+    const spriteKey = `box__${id}`;
+    if (this.textures.exists(spriteKey)) {
+      const img = this.add.image(0, -4, spriteKey).setOrigin(0.5);
+      img.setScale((TILE - 16) / img.height);
+      c.add(img);
+    } else {
+      c.add(this.add.text(0, -10, openable ? "🎁" : "💠", { fontSize: "20px" }).setOrigin(0.5));
+    }
     if (rarity) c.add(crispText(this, 0, TILE / 2 - 13, boxRarityName(rarity), { fontSize: "8px", color: Phaser.Display.Color.IntegerToColor(border).rgba, fontStyle: "bold" }).setOrigin(0.5));
     c.add(crispText(this, TILE / 2 - 4, -TILE / 2 + 4, `×${count}`, { fontSize: "11px", color: "#fff", fontStyle: "bold" }).setOrigin(1, 0));
     c.setInteractive({ useHandCursor: true });

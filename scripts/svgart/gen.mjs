@@ -77,7 +77,7 @@ if (!only || only === "vfx") for (const [id, spec] of Object.entries(VFX_SPECS))
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 if (!only || only === "manifest") {
   const entries = [];
-  for (const kind of ["tower", "hero", "enemy", "boss", "item", "skill", "vfx"]) {
+  for (const kind of ["tower", "hero", "enemy", "boss", "item", "skill", "vfx", "box"]) {
     const dir = `${GAME}/${kind}`;
     if (!existsSync(dir)) continue;
     for (const f of readdirSync(dir).filter((f) => f.endsWith(".json"))) {
