@@ -24,6 +24,7 @@ import {
   type StageDef,
   type Stats,
   type TargetType,
+  type TowerBehavior,
   type Vec2,
 } from "../data/schema.ts";
 import { mitigatedDamage, type DamagePacket } from "./damage.ts";
@@ -31,6 +32,7 @@ import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.t
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
 import { heroStatPipeline, towerStatPipeline } from "./stats.ts";
+import { effectiveBehavior } from "./towerUpgrade.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
@@ -121,6 +123,8 @@ export interface TowerRuntime {
   buffAtkPct: number;
   buffAsPct: number;
   disabledTimer: number;
+  /** Role behavior scaled for the current battleLevel (T12); never the shared def. */
+  behavior: TowerBehavior;
   /** Per-tower scaling inputs so in-battle upgrades can recompute stats. */
   baseLevel: number;
   stars: number;
@@ -334,7 +338,7 @@ export class BattleState {
     this.gold -= def.cost;
     const towerLevel = this._heroSave?.hero.level ?? 1;
     const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
-    const resolvedStats = towerStatPipeline(def.baseStats, towerLevel, towerStars);
+    const resolvedStats = towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0);
     this.towers.push({
       uid: this.nextUid++,
       def,
@@ -348,6 +352,7 @@ export class BattleState {
       buffAtkPct: 0,
       buffAsPct: 0,
       disabledTimer: 0,
+      behavior: effectiveBehavior(def, 0),
       baseLevel: towerLevel,
       stars: towerStars,
       battleLevel: 0,
@@ -382,7 +387,8 @@ export class BattleState {
     t.battleLevel += 1;
     const hpFrac = t.stats.maxHp > 0 ? t.hp / t.stats.maxHp : 1;
     const manaFrac = t.stats.maxMana > 0 ? t.mana / t.stats.maxMana : 0;
-    t.stats = towerStatPipeline(t.def.baseStats, t.baseLevel + t.battleLevel, t.stars);
+    t.stats = towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel);
+    t.behavior = effectiveBehavior(t.def, t.battleLevel);
     t.hp = t.stats.maxHp * hpFrac;
     t.mana = t.stats.maxMana * manaFrac;
     return true;
@@ -705,7 +711,7 @@ export class BattleState {
       t.buffAsPct = 0;
     }
     for (const s of this.towers) {
-      const aura = s.def.behavior?.buffAura;
+      const aura = s.behavior?.buffAura;
       if (!s.alive || s.disabledTimer > 0 || s.def.role !== "support" || !aura) continue;
       for (const t of this.towers) {
         if (!t.alive || t === s) continue;
@@ -740,7 +746,7 @@ export class BattleState {
 
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
         // Skills may deal True damage (the only path to True).
-        const activeType = t.def.behavior?.activeType ?? t.def.damageType;
+        const activeType = t.behavior?.activeType ?? t.def.damageType;
         this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.def.active ?? undefined);
         t.mana = 0;
       }
@@ -750,7 +756,7 @@ export class BattleState {
 
   /** Apply a tower's role-specific on-hit effect (splash/chain/dot/debuff). */
   private applyRoleEffect(t: TowerRuntime, effAtk: number, target: EnemyRuntime): void {
-    const bhv = t.def.behavior;
+    const bhv = t.behavior;
     switch (t.def.role) {
       case "splash":
         this.applySplash(t.stats, t.def.damageType, effAtk, target.pos, target, bhv?.splashRadius ?? SPLASH_RADIUS);

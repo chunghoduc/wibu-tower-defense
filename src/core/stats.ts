@@ -10,7 +10,8 @@
  *
  * Keeping bonuses additive within their bucket prevents runaway stacking.
  */
-import { defaultStats, type PassiveNodeDef, type Stats } from "../data/schema.ts";
+import { defaultStats, type PassiveNodeDef, type Stats, type TowerRole } from "../data/schema.ts";
+import { upgradeIncreased } from "./towerUpgrade.ts";
 
 export interface StatAccumulator {
   flat: Partial<Stats>;
@@ -122,7 +123,19 @@ const TOWER_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
 
 const STAR_INCREASED_PER_STAR = 0.08;
 
-export function towerStatPipeline(base: Stats, towerLevel: number, stars: number): Stats {
+/**
+ * Tower final stats. `towerLevel` is the collection/hero-driven base level (flat
+ * growth) and `stars` the collection star tier (increased%). `role` + `battleLevel`
+ * drive the in-battle upgrade emphasis (T12): a general bump plus role-specific
+ * increased% per purchased star. Behavior scaling is separate (effectiveBehavior).
+ */
+export function towerStatPipeline(
+  base: Stats,
+  towerLevel: number,
+  stars: number,
+  role?: TowerRole,
+  battleLevel = 0,
+): Stats {
   let acc = makeAcc();
 
   // Layer 1 — level scaling (flat)
@@ -139,6 +152,11 @@ export function towerStatPipeline(base: Stats, towerLevel: number, stars: number
       starInc[k] = STAR_INCREASED_PER_STAR * stars;
     }
     acc = addIncreased(acc, starInc);
+  }
+
+  // Layer 3 — in-battle upgrade emphasis (general + role), increased%
+  if (role && battleLevel > 0) {
+    acc = addIncreased(acc, upgradeIncreased(role, battleLevel));
   }
 
   return resolveAcc(base, acc);
