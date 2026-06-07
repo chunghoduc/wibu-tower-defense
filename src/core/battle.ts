@@ -33,7 +33,7 @@ import { combatLogOn, emitDamageLog } from "./combatLog.ts";
 import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
-import { heroStatPipeline, towerStatPipeline } from "./stats.ts";
+import { collectPassiveMore, heroStatPipeline, towerStatPipeline } from "./stats.ts";
 import { effectiveBehavior } from "./towerUpgrade.ts";
 import { scaleStatsByEnhance } from "./enhance.ts";
 import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
@@ -269,7 +269,6 @@ export class BattleState {
         .filter((n): n is PassiveNodeDef => n !== undefined);
 
       const itemStats: Partial<Stats>[] = [];
-      const keystoneMore: Partial<Stats>[] = [];
 
       for (const [slot, instanceId] of Object.entries(save.inventory.equipped)) {
         if (!instanceId) continue;
@@ -283,9 +282,9 @@ export class BattleState {
         }
       }
 
-      for (const node of unlockedNodes) {
-        if (node.type === "keystone" && node.more) keystoneMore.push(node.more);
-      }
+      // More% multipliers from every allocated node that declares one (keystones
+      // and the prestige gates alike — not gated on type, or a notable's more% is lost).
+      const keystoneMore = collectPassiveMore(unlockedNodes);
 
       // Item affixes (primary + rolled): flat contributions go straight in;
       // increased% contributions ride in as synthetic increased-only nodes.

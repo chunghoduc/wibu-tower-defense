@@ -10,7 +10,7 @@
  *
  * Keeping bonuses additive within their bucket prevents runaway stacking.
  */
-import { defaultStats, type PassiveNodeDef, type Stats, type TowerRole } from "../data/schema.ts";
+import { defaultStats, FRACTIONAL_STAT_KEYS, type PassiveNodeDef, type Stats, type TowerRole } from "../data/schema.ts";
 import { upgradeIncreased } from "./towerUpgrade.ts";
 
 export interface StatAccumulator {
@@ -86,6 +86,22 @@ export function heroBaseCritRate(level: number): number {
 }
 
 /**
+ * Gather the multiplicative more% bags from a hero's allocated passive nodes.
+ * heroStatPipeline deliberately skips `node.more` (Layer 4), so the caller passes
+ * the result back in as the `keystoneMore` argument. Any node that declares a
+ * `more` bag is included — not just keystones: gating on `type === "keystone"`
+ * silently dropped notable/gate nodes (e.g. the prestige Transcendent Gate's
+ * +15% more ATK), so their multiplier never reached the hero.
+ */
+export function collectPassiveMore(
+  nodes: Pick<PassiveNodeDef, "more">[],
+): Partial<Stats>[] {
+  const out: Partial<Stats>[] = [];
+  for (const node of nodes) if (node.more) out.push(node.more);
+  return out;
+}
+
+/**
  * Compute the hero's final pre-battle Stats from all persistent sources.
  *
  * @param base          Hero's base stats
@@ -125,7 +141,22 @@ export function heroStatPipeline(
   // Layer 4 — passive grid nodes (flat + increased only; more% via keystoneMore param)
   for (const node of passiveNodes) {
     if (node.flat) acc = addFlat(acc, node.flat);
-    if (node.increased) acc = addIncreased(acc, node.increased);
+    if (node.increased) {
+      // Fractional stats (crit, pen, %reductions, skillPower, omnivamp…) are
+      // absolute fractions sitting on a ~0 base — a node's "+8% crit" means
+      // +0.08, not "the tiny base ×1.08". Routing them through increased% would
+      // multiply near-zero and apply almost nothing, so split a node's increased
+      // bag: fractional keys add FLAT (matching how item affixes resolve them —
+      // see affixStats.ts), scalar keys (atk, maxHp, moveSpeed…) stay increased%.
+      const fracFlat: Partial<Stats> = {};
+      const scalarInc: Partial<Stats> = {};
+      for (const [k, v] of Object.entries(node.increased) as [keyof Stats, number][]) {
+        if (v === undefined) continue;
+        (FRACTIONAL_STAT_KEYS.has(k) ? fracFlat : scalarInc)[k] = v;
+      }
+      acc = addFlat(acc, fracFlat);
+      acc = addIncreased(acc, scalarInc);
+    }
     // node.more is intentionally skipped — caller extracts keystone more% into keystoneMore
   }
 

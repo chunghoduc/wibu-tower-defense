@@ -8,6 +8,7 @@ import {
   heroStatPipeline,
   towerStatPipeline,
   heroBaseCritRate,
+  collectPassiveMore,
 } from "../src/core/stats.ts";
 import { makeStats, defaultStats } from "../src/data/schema.ts";
 
@@ -102,6 +103,62 @@ describe("heroStatPipeline", () => {
     // +12% critRate from an item adds on top → 42%.
     const withGear = heroStatPipeline(base, 90, [], [{ critRate: 0.12 } as any], [], null);
     expect(withGear.critRate).toBeCloseTo(0.42, 6);
+  });
+
+  it("passive node fractional stat in `increased` is applied FLAT (a '+10% crit' node adds 0.10, not ~0)", () => {
+    // critRate has a ~0 base, so routing it through increased% would multiply a
+    // near-zero number and apply almost nothing. Fractional stats must add flat,
+    // matching how item affixes resolve them.
+    const base = makeStats({ critRate: 0 });
+    const node = { flat: undefined, increased: { critRate: 0.1 }, more: undefined };
+    const withNode = heroStatPipeline(base, 1, [node as any], [], [], null);
+    expect(withNode.critRate).toBeCloseTo(0.1, 6);
+  });
+
+  it("passive node critDamage in `increased` adds flat onto the 1.5 base (+0.20 → 1.70)", () => {
+    const base = makeStats({ critDamage: 1.5 });
+    const node = { flat: undefined, increased: { critDamage: 0.2 }, more: undefined };
+    const withNode = heroStatPipeline(base, 1, [node as any], [], [], null);
+    expect(withNode.critDamage).toBeCloseTo(1.7, 6);
+  });
+
+  it("passive node SCALAR stat in `increased` still applies as a percentage (+12% atk)", () => {
+    const base = makeStats({ atk: 100 });
+    const node = { flat: undefined, increased: { atk: 0.12 }, more: undefined };
+    const withNode = heroStatPipeline(base, 1, [node as any], [], [], null);
+    expect(withNode.atk).toBeCloseTo(112, 6);
+  });
+
+  it("mixed passive node: scalar increased% and fractional flat resolve independently", () => {
+    // Brutality: +12% atk (scalar → increased%) and +8% crit (fractional → flat).
+    const base = makeStats({ atk: 100, critRate: 0 });
+    const node = { flat: undefined, increased: { atk: 0.12, critRate: 0.08 }, more: undefined };
+    const withNode = heroStatPipeline(base, 1, [node as any], [], [], null);
+    expect(withNode.atk).toBeCloseTo(112, 6);
+    expect(withNode.critRate).toBeCloseTo(0.08, 6);
+  });
+});
+
+describe("collectPassiveMore", () => {
+  it("gathers more% from keystone nodes", () => {
+    const nodes = [{ type: "keystone", more: { atk: 0.5 } }];
+    expect(collectPassiveMore(nodes as any)).toEqual([{ atk: 0.5 }]);
+  });
+
+  it("also gathers more% from non-keystone nodes (a notable's more% must not be dropped)", () => {
+    // prestige-gate-90 is a `notable` with more: { atk: 0.15 } — gating on
+    // type === 'keystone' silently dropped it, so its +15% never applied.
+    const nodes = [{ type: "notable", more: { atk: 0.15 } }];
+    expect(collectPassiveMore(nodes as any)).toEqual([{ atk: 0.15 }]);
+  });
+
+  it("skips nodes without a more% bag", () => {
+    const nodes = [
+      { type: "path", increased: { atk: 0.03 } },
+      { type: "keystone", more: { atk: 0.5 } },
+      { type: "notable", flat: { maxHp: 30 } },
+    ];
+    expect(collectPassiveMore(nodes as any)).toEqual([{ atk: 0.5 }]);
   });
 });
 
