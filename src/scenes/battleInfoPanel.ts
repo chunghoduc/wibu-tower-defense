@@ -92,8 +92,9 @@ export class BattleInfoPanel {
     for (const s of vm.skills) {
       this.add(crispText(this.scene, 0, y, s.label, { fontSize: "12px", color: s.color, fontStyle: "bold" }));
       y += 15;
-      this.add(crispText(this.scene, 8, y, s.desc, { fontSize: "10px", color: "#b9c6d8", wordWrap: { width: this.innerW - 8 } }));
-      y += Math.max(16, Math.ceil(s.desc.length / 42) * 12 + 4);
+      const desc = crispText(this.scene, 8, y, s.desc, { fontSize: "10px", color: "#b9c6d8", wordWrap: { width: this.innerW - 14 } });
+      this.add(desc);
+      y += desc.height + 5; // advance by the actual wrapped height
     }
     // Upgrade / Sell buttons pinned near the bottom.
     const by = this.h - 44;
@@ -167,11 +168,12 @@ export class BattleInfoPanel {
   }
 
   private statGrid(stats: StatRow[], y: number): number {
-    const colW = this.innerW / 2;
+    const GUTTER = 16;
+    const colW = (this.innerW - GUTTER) / 2; // two columns with a clear gutter between
     stats.forEach((s, i) => {
-      const cx = (i % 2) * colW, cy = y + Math.floor(i / 2) * 18;
+      const cx = (i % 2) * (colW + GUTTER), cy = y + Math.floor(i / 2) * 18;
       this.add(crispText(this.scene, cx, cy, s.label, { fontSize: "11px", color: "#8fa3bb" }));
-      this.add(crispText(this.scene, cx + colW - 6, cy, s.value, { fontSize: "11px", color: "#e8eef6", fontStyle: "bold" }).setOrigin(1, 0));
+      this.add(crispText(this.scene, cx + colW, cy, s.value, { fontSize: "11px", color: "#e8eef6", fontStyle: "bold" }).setOrigin(1, 0));
     });
     return y + Math.ceil(stats.length / 2) * 18 + 8;
   }
