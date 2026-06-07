@@ -36,7 +36,7 @@ const DEFAULT_POSE: Pose = REST_POSE.Any;
 const IDLE = "hero__hero_idle";
 const WALK = "hero__hero_walk";
 const ATK = "hero__hero_attack";
-const CAST = "hero__hero_cast";
+const CAST = "hero__hero_skill"; // the painted skill-cast frames
 const HURT = "hero__hero_hurt";
 
 // One-shot priority: a higher-priority state interrupts a lower one, never the

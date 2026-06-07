@@ -67,10 +67,10 @@ export type FxEvent =
   | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
   | { type: "death"; at: Vec2; boss: boolean; bounty: number }
   | { type: "enemyAttack"; uid: number; at: Vec2; targetAt: Vec2; target: "hero" | "tower" }
-  | { type: "cast"; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
+  | { type: "cast"; uid: number; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
-  | { type: "bossCast"; at: Vec2; skill: string; radius: number; name: string }
+  | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
   | { type: "loot"; at: Vec2; gold: number }
   | { type: "killReward"; at: Vec2; xp: number; item: boolean };
 
@@ -658,7 +658,7 @@ export class BattleState {
   /** Apply a boss's active skill and emit its cast FX. */
   private castBossSkill(e: EnemyRuntime, skill: BossSkill): void {
     const R = skill.radius ?? 150;
-    this.emit({ type: "bossCast", at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name });
+    this.emit({ type: "bossCast", uid: e.uid, at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name });
     switch (skill.type) {
       case "quake": {
         // Disable towers in radius and hammer the hero if caught inside.
@@ -821,7 +821,7 @@ export class BattleState {
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
         // Skills may deal True damage (the only path to True).
         const activeType = t.behavior?.activeType ?? t.def.damageType;
-        this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.def.active ?? undefined);
+        this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.uid, t.def.active ?? undefined);
         t.mana = 0;
       }
       t.attackCd = 1 / effAs;
@@ -881,7 +881,7 @@ export class BattleState {
 
     this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1, heroAttackStyle(h.damageType, h.stats.range));
     if (h.stats.maxMana > 0 && h.mana >= h.stats.maxMana) {
-      this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero");
+      this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero", -1);
       h.mana = 0;
     }
     h.attackCd = 1 / h.stats.attackSpeed;
@@ -1051,9 +1051,10 @@ export class BattleState {
     damageType: DamageType,
     center: Vec2,
     source: "tower" | "hero",
+    uid: number,
     skillId?: string,
   ): void {
-    this.emit({ type: "cast", at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
+    this.emit({ type: "cast", uid, at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
     const burst = effAtk * 2 * Math.max(1, attacker.skillPower);
     for (const e of this.enemies) {
       if (!e.alive) continue;

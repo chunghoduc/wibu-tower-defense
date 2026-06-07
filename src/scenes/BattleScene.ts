@@ -716,22 +716,27 @@ export class BattleScene extends Phaser.Scene {
       if (ev.source === "hero") {
         this.heroSprite?.playAttack();   // body anim + weapon swing arc
       } else {
-        this.playAttack(this.towerSprites.get(ev.uid) ?? null);
+        this.playSpriteOneShot(this.towerSprites.get(ev.uid) ?? null, ["attack"], "idle");
       }
     } else if (ev.type === "hit") {
       this.sfx.hit();
       const e = this.enemySprites.get(ev.uid);
-      if (e) { this.flash(e, 0xffffff); e.setData("hurtUntil", this.time.now + 160); } // hurt squash
+      if (e) { this.flash(e, 0xffffff); e.setData("hurtUntil", this.time.now + 160); } // hurt squash (procedural fallback)
+      this.playSpriteOneShot(e ?? null, ["hurt"], "walk");    // enemy/boss recoil frames
     } else if (ev.type === "enemyAttack") {
       this.sfx.enemyHit();
       const victim = ev.target === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : this.towerNear(ev.targetAt);
       if (victim) this.flash(victim, 0xff4444);
       if (ev.target === "hero") this.heroSprite?.playHurt();   // recoil + hurt frames
+      this.playSpriteOneShot(this.enemySprites.get(ev.uid) ?? null, ["attack"], "walk"); // boss attack swing (no-op for plain enemies)
     } else if (ev.type === "death") {
       this.sfx.death();
     } else if (ev.type === "cast") {
       this.sfx.cast();
-      if (ev.source === "hero") this.heroSprite?.playCast();   // skill-cast frames + flourish
+      if (ev.source === "hero") this.heroSprite?.playCast();   // hero skill frames + flourish
+      else this.playSpriteOneShot(this.towerSprites.get(ev.uid) ?? null, ["skill", "attack"], "idle"); // tower active skill
+    } else if (ev.type === "bossCast") {
+      this.playSpriteOneShot(this.enemySprites.get(ev.uid) ?? null, ["skill", "attack"], "walk"); // boss ability
     } else if (ev.type === "loot") {
       this.sfx.coin();
     } else if (ev.type === "killReward") {
@@ -749,16 +754,21 @@ export class BattleScene extends Phaser.Scene {
     return best;
   }
 
-  /** Play a sprite's attack animation once, then return to idle. Guards against culling. */
-  private playAttack(s: Phaser.GameObjects.Sprite | null): void {
+  /**
+   * Play the first existing of `names` once on a sprite, then return to its
+   * looping `base` animation (towers → idle, enemies/bosses → walk). Missing
+   * clips fall through the list (so skill→attack fallback works), and a no-op
+   * keeps the base playing — partial/old sheets degrade gracefully.
+   */
+  private playSpriteOneShot(s: Phaser.GameObjects.Sprite | null, names: string[], base: string): void {
     if (!s || !s.active) return;
     const key = s.texture.key;
-    const atk = `${key}_attack`;
-    if (!this.anims.exists(atk)) return;
-    if (s.anims.currentAnim?.key === atk && s.anims.isPlaying) return; // already swinging
-    s.play(atk);
+    const anim = names.map((n) => `${key}_${n}`).find((a) => this.anims.exists(a));
+    if (!anim) return;
+    if (s.anims.currentAnim?.key === anim && s.anims.isPlaying) return; // already playing it
+    s.play(anim);
     s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-      if (s.active && this.anims.exists(`${key}_idle`)) s.play(`${key}_idle`);
+      if (s.active && this.anims.exists(`${key}_${base}`)) s.play(`${key}_${base}`);
     });
   }
 
@@ -804,7 +814,11 @@ export class BattleScene extends Phaser.Scene {
   private animateEnemy(s: Phaser.GameObjects.Sprite, e: EnemyRuntime, key: string): void {
     const frozen = e.slowPct >= 0.6;
     if (this.anims.exists(`${key}_walk`)) {
-      if (!frozen && s.anims.currentAnim?.key !== `${key}_walk`) s.play(`${key}_walk`);
+      // Don't interrupt a one-shot (attack / skill / hurt) — it returns to walk itself.
+      const cur = s.anims.currentAnim?.key;
+      const inOneShot = s.anims.isPlaying &&
+        (cur === `${key}_attack` || cur === `${key}_skill` || cur === `${key}_hurt`);
+      if (!frozen && !inOneShot && cur !== `${key}_walk`) s.play(`${key}_walk`);
       return;
     }
 

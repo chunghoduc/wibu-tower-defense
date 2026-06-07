@@ -56,11 +56,16 @@ export class PreloadScene extends Phaser.Scene {
         if (this.anims.exists(key)) return;
         this.anims.create({ key, frames: frames.map((f) => ({ key: e.key, frame: f })), frameRate, repeat });
       };
-      mk("idle", idx(/idle/), 3, -1);
-      mk("walk", idx(/walk/), 6, -1);
-      mk("attack", idx(/atk|cast/), 9, 0);
-      mk("cast", idx(/skill/), 10, 0);  // skill-cast frames (hero + skill-having towers)
-      mk("hurt", idx(/hurt/), 6, 0);
+      // Per-kind FPS: the hero gets the smoothest motion (more frames, faster).
+      const k = e.kind;
+      const idleFps = k === "hero" ? 5 : 4;
+      const walkFps = k === "hero" ? 10 : 7;
+      const atkFps = k === "hero" ? 12 : k === "boss" ? 9 : 11;
+      mk("idle", idx(/idle/), idleFps, -1);
+      mk("walk", idx(/walk/), walkFps, -1);
+      mk("attack", idx(/atk/), atkFps, 0);   // basic attack frames only
+      mk("skill", idx(/skill/), 10, 0);      // active-skill frames
+      mk("hurt", idx(/hurt/), 8, 0);
     }
     this.scene.start("MainMenuScene");
   }
