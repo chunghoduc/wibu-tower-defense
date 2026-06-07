@@ -820,6 +820,23 @@ export class BattleScene extends Phaser.Scene {
     return s;
   }
 
+  /**
+   * Walk animation (T5): play a real walk sheet if the art has one (bosses use
+   * rig animations) — otherwise a lightweight procedural waddle + bob so the
+   * static enemy art reads as marching. Frozen enemies stand still.
+   */
+  private animateWalk(s: Phaser.GameObjects.Sprite, e: EnemyRuntime, key: string): void {
+    const frozen = e.slowPct >= 0.6;
+    if (this.anims.exists(`${key}_walk`)) {
+      if (!frozen && s.anims.currentAnim?.key !== `${key}_walk`) s.play(`${key}_walk`);
+      return;
+    }
+    if (frozen) { s.setAngle(0); return; }
+    const t = this.time.now * 0.011 + e.uid * 1.7;
+    s.setAngle(Math.sin(t) * 5);                        // side-to-side waddle
+    s.y = e.pos.y - Math.abs(Math.sin(t * 2)) * 2.2;    // little stride bob
+  }
+
   /** Create/update/cull pixel-art sprites for towers, enemies and the hero. */
   private manageSprites(): void {
     const seenT = new Set<number>();
@@ -844,6 +861,7 @@ export class BattleScene extends Phaser.Scene {
         s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1);
         const tint = enemyStatusTint(e);   // burn/poison/freeze body tint (T8)
         if (tint === null) s.clearTint(); else s.setTint(tint);
+        this.animateWalk(s, e, key);       // T5: walk animation
       }
     }
     for (const [uid, s] of this.enemySprites) if (!seenE.has(uid)) { s.destroy(); this.enemySprites.delete(uid); }
