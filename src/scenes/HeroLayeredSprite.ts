@@ -44,9 +44,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     world.add(this.petSprite);
   }
 
-  override update(time: number, delta: number): void {
-    // Drive body sprite animation tick (preUpdate is protected on Sprite).
-    (this.bodySprite as unknown as { preUpdate(t: number, d: number): void }).preUpdate(time, delta);
+  override update(_time: number, _delta: number): void {
     this.petSprite.setPosition(this.x + 30, this.y + 8);
   }
 
