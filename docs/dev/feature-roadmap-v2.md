@@ -11,19 +11,19 @@ Update the checkbox + log when a task lands.
 - Skill/tower/terrain icons authored via the `svg-asset-gen` skill family (SVG).
 
 ## Tasks
-- [ ] **T3** Fix hero moving to corner when clicking UI (speed btn etc.) — guard scene pointerdown when over a UI object.
-- [ ] **T2** In-battle UI text: crisp, high-DPI, readable (resolution + stroke + bg plates).
-- [ ] **T12** Per-tower upgrade design: each role/tower scales meaningfully per star (sim + plan list).
-- [ ] **T11** Star pips indicator on placed towers (map).
-- [ ] **T10** Upgraded towers change appearance + star-up burst FX.
-- [ ] **T5** Tower type icon (melee/ranged/role) badge on tower avatar + build bar.
+- [x] **T3** Fix hero moving to corner when clicking UI — guard scene pointerdown when over a UI object. (cf3ffc2)
+- [x] **T2** In-battle UI text: crisp high-DPI (crispText: resolution + LINEAR + stroke). (26b97f4)
+- [x] **T12** Per-tower upgrade design (towerUpgrade.ts; role emphasis + behavior scaling). (3d543ba)
+- [x] **T11** Star pips on placed towers. (c269367)
+- [x] **T10** Upgraded towers: gold aura + sprite grow + star-up burst FX. (c269367)
+- [x] **T5** Tower type badge (melee/ranged + role) on map + build bar. (c269367)
 - [ ] **T18** Skill-icon system: an SVG icon for every hero/tower passive & active skill.
 - [ ] **T1** Passive tree nodes show skill icons (uses T18 icon system).
 - [ ] **T17** Click tower → passive/active skill descriptions; hover skill → tooltip.
 - [ ] **T6** Per-character weapon-based attack visuals (arrows / fireball / iceball / lightning / slash …).
 - [ ] **T7** Active-skill visuals designed from each skill's description.
 - [ ] **T8** Enemy status visuals (burning / freezing / slowing / poison …).
-- [ ] **T9** Stealth enemy visual + rule: towers can hit stealth only if the enemy is within hero range (revealed) AND tower range.
+- [x] **T9** Stealth reveal rule (towers hit revealed stealth) + hidden/spotted visuals. (9f44a7e)
 - [ ] **T4** Squad UI redesign: 7 active slots + collected-character inventory with drag/drop + filter/sort.
 - [ ] **T13** Item enhance system (MU-style): bless jewel +1..+6 (100%), soul jewel +7+ (−10%/lvl, fail drops 1–5 levels); each level boosts primary stat + primary affix.
 - [ ] **T14** Hero loadout inventory filter (items / materials / boxes).
