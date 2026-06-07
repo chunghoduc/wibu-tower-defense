@@ -118,6 +118,15 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     const items = (save.inventory?.items ?? []).map((it) => ({ ...it, enhanceLevel: it.enhanceLevel ?? 0 }));
     save = { ...save, materials: save.materials ?? {}, inventory: { ...save.inventory, items }, version: 5 };
   }
+  // Defensive backfill: a save persisted AT the current version but missing a
+  // field (e.g. a dev save stamped v5 before `materials` was added) skips the
+  // versioned hops above and would crash on first access. Ensure every required
+  // top-level field exists regardless of version.
+  save.collection ??= {};
+  save.squad ??= [];
+  save.materials ??= {};
+  save.currency ??= { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false };
+  save.progress ??= { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 };
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }
