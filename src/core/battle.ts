@@ -42,6 +42,8 @@ import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
 import type { HeroSave } from "./save.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
+import { processEnemyKill } from "./killRewards.ts";
+import { itemLevelForStage } from "./itemDrop.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -68,7 +70,8 @@ export type FxEvent =
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
   | { type: "bossCast"; at: Vec2; skill: string; radius: number; name: string }
-  | { type: "loot"; at: Vec2; gold: number };
+  | { type: "loot"; at: Vec2; gold: number }
+  | { type: "killReward"; at: Vec2; xp: number; item: boolean };
 
 /** How close an enemy must be to the hero to be body-blocked into melee. */
 export const HERO_BLOCK_RANGE = 28;
@@ -1063,6 +1066,11 @@ export class BattleState {
     const boss = e.def.archetype === "Boss";
     this.emit({ type: "death", at: { x: e.pos.x, y: e.pos.y }, boss, bounty: e.def.bounty });
     this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, gold: reward });
+    // Per-kill XP + loot persist immediately (kept even if the stage is abandoned).
+    if (this._heroSave) {
+      const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng);
+      this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, xp: kr.xp, item: kr.itemDropped !== null });
+    }
     const split = e.def.special?.splitInto;
     if (split) {
       for (let i = 0; i < split.count; i++) {

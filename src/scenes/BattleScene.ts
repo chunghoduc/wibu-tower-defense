@@ -186,6 +186,8 @@ export class BattleScene extends Phaser.Scene {
   private _victoryProcessed = false;
   private _defeatPlayed = false;
   private _menuBtn: Phaser.GameObjects.Text | null = null;
+  private killSaveDirty = false;   // kill XP/loot pending a debounced flush
+  private lastKillFlush = 0;
 
   // Pixel-art sprite pools (keyed by entity uid); fall back to shapes if missing.
   private towerSprites = new Map<number, Phaser.GameObjects.Sprite>();
@@ -292,11 +294,22 @@ export class BattleScene extends Phaser.Scene {
       w: KC.W, a: KC.A, s: KC.S, d: KC.D,
     }) as typeof this.keys;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.killSaveDirty) { this.saveManager.flush(); this.killSaveDirty = false; }
       this.deselectTower();
       this.clearGhost();
       this.terrainSprites.forEach((s) => s.destroy());
       this.terrainSprites = [];
     });
+  }
+
+  /** Persist mid-battle kill rewards at most ~once/sec to avoid storage thrash. */
+  private maybeFlushKillRewards(): void {
+    if (!this.killSaveDirty) return;
+    const now = this.time.now;
+    if (now - this.lastKillFlush < 1000) return;
+    this.lastKillFlush = now;
+    this.killSaveDirty = false;
+    this.saveManager.flush();
   }
 
   private drawStatic(): void {
@@ -631,6 +644,7 @@ export class BattleScene extends Phaser.Scene {
 
     this.manageSprites();
     for (const ev of this.battle.fx) this.playFx(ev);
+    this.maybeFlushKillRewards();
     for (const t of this.battle.towers) this.drawTower(g, t);
     for (const e of this.battle.enemies) this.drawEnemy(g, e);
     this.drawHero(g);
@@ -730,6 +744,8 @@ export class BattleScene extends Phaser.Scene {
       this.sfx.cast();
     } else if (ev.type === "loot") {
       this.sfx.coin();
+    } else if (ev.type === "killReward") {
+      this.killSaveDirty = true;   // XP/loot already in the save; flush debounced
     }
   }
 

@@ -51,6 +51,12 @@ export class SaveManager {
     return this.save;
   }
 
+  /** Persist immediately — used for mid-battle rewards (kill XP/loot) that the
+   * BattleState has already written into the save object. */
+  flush(): void {
+    this.persist();
+  }
+
   afterBattle(
     stageId: string,
     outcome: "won" | "lost",

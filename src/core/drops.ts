@@ -1,5 +1,5 @@
 import type { Difficulty } from "../data/schema.ts";
-import { ITEM_CATALOG, rollItem } from "../data/items.ts";
+import { rollItemDrop, itemLevelForStage } from "./itemDrop.ts";
 import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection } from "./collection.ts";
@@ -50,30 +50,11 @@ export function processStageClear(
   const crystalsAwarded = CRYSTAL_REWARD[difficulty] + (isFirstClear ? FIRST_CLEAR_BONUS : 0);
   save.currency.crystals += crystalsAwarded;
 
-  const stageMatch = stageId.match(/(\d+)$/);
-  const stageIndex = stageMatch ? parseInt(stageMatch[1]) : 1;
-  const itemLevel = Math.max(1, stageIndex * 8 + 5);
+  const itemLevel = itemLevelForStage(stageId);
 
   let itemDropped: ItemInstanceSave | null = null;
   if (rng.next() < ITEM_DROP_CHANCE) {
-    const eligible = ITEM_CATALOG.filter((d) => d.requiredLevel <= itemLevel);
-    if (eligible.length > 0) {
-      const def = eligible[Math.floor(rng.next() * eligible.length)];
-      const inst = rollItem(def, itemLevel, Math.floor(rng.next() * 999983));
-      const instSave: ItemInstanceSave = {
-        id: inst.id,
-        defId: inst.defId,
-        acquiredLevel: inst.acquiredLevel,
-        rolledStats: Object.fromEntries(
-          Object.entries(inst.rolledStats).filter(([, v]) => v !== undefined).map(([k, v]) => [k, v as number])
-        ),
-        rolledPrimaryAffix: inst.rolledPrimaryAffix,
-        rolledAffixes: inst.rolledAffixes,
-        enhanceLevel: 0,
-      };
-      save.inventory.items.push(instSave);
-      itemDropped = instSave;
-    }
+    itemDropped = rollItemDrop(save, itemLevel, rng);
   }
 
   let skillDropped: string | null = null;

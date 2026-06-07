@@ -77,12 +77,29 @@ export class FxLayer {
       case "loot":
         this.coinPop(e.at, e.gold);
         break;
+      case "killReward":
+        this.xpPop(e.at, e.xp, e.item);
+        break;
       case "enemyAttack":
         this.lunge(e.at, e.targetAt);
         break;
       case "bossCast":
         this.bossCast(e.at, e.skill, e.radius, e.name);
         break;
+    }
+  }
+
+  /** Floating "+N XP" on a kill, plus a gold "Loot!" tag when an item dropped. */
+  private xpPop(at: Vec2, xp: number, item: boolean): void {
+    const label = makeCrisp(this.fac.text(at.x, at.y, `+${xp} XP`, {
+      fontFamily: '"Trebuchet MS", system-ui, sans-serif', fontSize: "11px", color: "#cdebff", fontStyle: "bold", stroke: "#0a1420", strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(this.depth + 4));
+    this.scene.tweens.add({ targets: label, y: at.y - 26, alpha: 0, duration: 800, ease: "Quad.easeOut", onComplete: () => label.destroy() });
+    if (item) {
+      const tag = makeCrisp(this.fac.text(at.x, at.y - 13, "★ Loot!", {
+        fontFamily: '"Trebuchet MS", system-ui, sans-serif', fontSize: "11px", color: "#ffe07a", fontStyle: "bold", stroke: "#2a1c05", strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(this.depth + 5));
+      this.scene.tweens.add({ targets: tag, y: at.y - 42, alpha: 0, duration: 1000, ease: "Quad.easeOut", onComplete: () => tag.destroy() });
     }
   }
 
