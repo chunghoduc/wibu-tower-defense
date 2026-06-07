@@ -18,6 +18,8 @@ export interface MaterialDef {
   description: string;
   /** box only: which loot table to roll when opened. */
   lootTable?: string;
+  /** box only: rarity tier (1..5) — higher = bigger reward. */
+  rarity?: number;
 }
 
 export const MATERIALS: MaterialDef[] = [
@@ -35,16 +37,30 @@ export const MATERIALS: MaterialDef[] = [
   },
 ];
 
-/** Boss loot boxes, one tier per pair of stages (T15). Higher tier = better loot. */
+/**
+ * Boss loot boxes (T15). A chest's TIER doubles as its RARITY (1..5 =
+ * Common..Unique): the higher the rarity, the bigger the reward when opened.
+ * Bosses usually drop a chest near the stage's base rarity, but can drop a
+ * higher (or lower) one by luck — better difficulty improves the odds.
+ */
 export const BOX_TIERS = 5;
 export function boxIdForTier(tier: number): string {
   return `boss-box-t${Math.max(1, Math.min(BOX_TIERS, tier))}`;
 }
-const BOX_TIER_NAME = ["", "Worn", "Sturdy", "Gilded", "Royal", "Sovereign"];
+
+const BOX_RARITY_NAME = ["", "Common", "Magic", "Rare", "Legendary", "Unique"];
+/** Display colour for a box's rarity tier (matches the item rarity palette). */
+export const BOX_RARITY_COLOR: Record<number, number> = {
+  1: 0x9e9e9e, 2: 0x2196f3, 3: 0x9c27b0, 4: 0xff9800, 5: 0xf44336,
+};
+export function boxRarityName(tier: number): string {
+  return BOX_RARITY_NAME[Math.max(1, Math.min(BOX_TIERS, tier))];
+}
+
 for (let t = 1; t <= BOX_TIERS; t++) {
   MATERIALS.push({
-    id: boxIdForTier(t), name: `${BOX_TIER_NAME[t]} Boss Chest`, kind: "box", icon: "box",
-    description: `A chest dropped by a stage boss. Open for crystals, jewels and gear (tier ${t}).`,
+    id: boxIdForTier(t), name: `${boxRarityName(t)} Boss Chest`, kind: "box", icon: "box", rarity: t,
+    description: `A ${boxRarityName(t).toLowerCase()} chest dropped by a stage boss — open for crystals, jewels and gear. Higher rarity = bigger reward.`,
     lootTable: `t${t}`,
   });
 }

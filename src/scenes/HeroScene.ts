@@ -10,7 +10,7 @@ import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { itemStatRows, SOURCE_COLOR, QUALITY_COLOR } from "../data/itemDisplay.ts";
 import { ITEM_SLOTS, type ItemSlot, type Rarity } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
-import { MATERIALS, MATERIALS_MAP } from "../data/materials.ts";
+import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { enhanceChance, jewelForLevel, enhanceBonus, MAX_ENHANCE } from "../core/enhance.ts";
 import { crispText } from "./ui.ts";
 
@@ -237,13 +237,16 @@ export class HeroScene extends Phaser.Scene {
   /** A material/box tile showing its count; boxes are clickable to open (T15). */
   private makeMaterialTile(id: string, count: number, x: number, y: number, openable: boolean): Phaser.GameObjects.Container {
     const def = MATERIALS_MAP.get(id);
+    const rarity = def?.rarity;   // boxes carry a 1..5 rarity tier
+    const border = rarity ? (BOX_RARITY_COLOR[rarity] ?? 0xffb74d) : (openable ? 0xffb74d : 0x7ec8ff);
     const c = this.add.container(x, y).setSize(TILE, TILE);
     const g = this.add.graphics();
     g.fillStyle(0x1c2636, 1).fillRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
-    g.lineStyle(2, openable ? 0xffb74d : 0x7ec8ff, 1).strokeRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
+    g.lineStyle(rarity ? 2.5 : 2, border, 1).strokeRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
     c.add(g);
-    c.add(this.add.text(0, -6, openable ? "🎁" : "💠", { fontSize: "22px" }).setOrigin(0.5));
-    c.add(crispText(this, TILE / 2 - 4, TILE / 2 - 4, `×${count}`, { fontSize: "11px", color: "#fff", fontStyle: "bold" }).setOrigin(1));
+    c.add(this.add.text(0, -10, openable ? "🎁" : "💠", { fontSize: "20px" }).setOrigin(0.5));
+    if (rarity) c.add(crispText(this, 0, TILE / 2 - 13, boxRarityName(rarity), { fontSize: "8px", color: Phaser.Display.Color.IntegerToColor(border).rgba, fontStyle: "bold" }).setOrigin(0.5));
+    c.add(crispText(this, TILE / 2 - 4, -TILE / 2 + 4, `×${count}`, { fontSize: "11px", color: "#fff", fontStyle: "bold" }).setOrigin(1, 0));
     c.setInteractive({ useHandCursor: true });
     c.on("pointerover", () => this.showTextTooltip(def?.name ?? id, def?.description ?? "", x, y));
     c.on("pointerout", () => this.hideTooltip());

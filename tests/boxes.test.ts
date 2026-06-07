@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { openBox, tierOfBox } from "../src/core/boxes.ts";
-import { boxIdForTier } from "../src/data/materials.ts";
+import { boxIdForTier, boxRarityName, MATERIALS_MAP } from "../src/data/materials.ts";
 import { processStageClear } from "../src/core/drops.ts";
 import { boxTierForStage } from "../src/data/stage.ts";
 import { createFreshSave } from "../src/core/save.ts";
@@ -55,5 +55,15 @@ describe("T15 — boss loot boxes", () => {
       return total / 40;
     };
     expect(avg(5)).toBeGreaterThan(avg(1) * 2);
+  });
+
+  it("names each box tier by its rarity and tags the def with that rarity", () => {
+    expect(boxRarityName(1)).toBe("Common");
+    expect(boxRarityName(5)).toBe("Unique");
+    for (let t = 1; t <= 5; t++) {
+      const def = MATERIALS_MAP.get(boxIdForTier(t))!;
+      expect(def.rarity).toBe(t);
+      expect(def.name).toContain(boxRarityName(t));
+    }
   });
 });

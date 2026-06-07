@@ -32,6 +32,20 @@ export interface DropResult {
 const BLESS_DROP_CHANCE = 0.5;   // a clear usually yields a Bless jewel
 const SOUL_DROP_CHANCE = 0.15;   // Soul jewels are rarer (for high enhances)
 const SCROLL_DROP_CHANCE = 0.05; // Summoning Scrolls are a rare boss drop
+
+/**
+ * Roll a dropped chest's rarity tier (1..5) around the stage's `base`: usually
+ * the base, with a chance to upgrade one (or rarely two) rarities for a bigger
+ * reward, and a small chance to be one lower. Difficulty skews the odds upward.
+ */
+function rollBoxTier(base: number, diffBonus: number, rng: Rng): number {
+  const up = 0.2 + diffBonus * 1.5; // chance to roll a better rarity
+  const r = rng.next();
+  if (r < up * 0.22) return Math.min(5, base + 2);
+  if (r < up) return Math.min(5, base + 1);
+  if (r > 0.88) return Math.max(1, base - 1);
+  return base;
+}
 // Boss chest: guaranteed the FIRST time you beat a stage+difficulty, then a rare
 // bonus on repeat farming so the box stays a meaningful first-clear reward (T15).
 const BOX_REPEAT_CHANCE = 0.08;
@@ -90,10 +104,11 @@ export function processStageClear(
   const diffBonus = difficulty === "Nightmare" ? 0.2 : difficulty === "Hard" ? 0.1 : 0;
   if (rng.next() < BLESS_DROP_CHANCE + diffBonus) giveMat(BLESS_JEWEL, 1);
   if (rng.next() < SOUL_DROP_CHANCE + diffBonus) giveMat(SOUL_JEWEL, 1);
-  // Boss chest, tier scaling with the stage (T15): 100% on first clear of this
-  // stage+difficulty, dropping dramatically to a rare bonus on repeat clears.
+  // Boss chest (T15): 100% on first clear of this stage+difficulty, then a rare
+  // bonus on repeats. Its RARITY tier is rolled around the stage's base — usually
+  // the base, sometimes higher (bigger reward) or lower; difficulty skews it up.
   if (isFirstClear || rng.next() < BOX_REPEAT_CHANCE + diffBonus) {
-    giveMat(boxIdForTier(boxTierForStage(stageId)), 1);
+    giveMat(boxIdForTier(rollBoxTier(boxTierForStage(stageId), diffBonus, rng)), 1);
   }
   // Rare Summoning Scroll — only the stage boss drops it.
   if (rng.next() < SCROLL_DROP_CHANCE + diffBonus * 0.5) giveMat(SUMMON_SCROLL, 1);
