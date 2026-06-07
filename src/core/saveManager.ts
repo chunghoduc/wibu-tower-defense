@@ -3,7 +3,7 @@ import { processStageClear, type DropResult } from "./drops.ts";
 import { performMultiSummon, performSummon, type SummonResult } from "./gacha.ts";
 import { awardHeroXp } from "./hero.ts";
 import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
-import { ensureShopStock, refreshShop, buyShopSlot, sellItem, type PurchaseResult } from "./shop.ts";
+import { ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, sellItem, type PurchaseResult } from "./shop.ts";
 import { SUMMON_SCROLL } from "../data/materials.ts";
 import type { ShopStockEntry } from "./save.ts";
 import { attemptEnhance, type EnhanceResult } from "./enhance.ts";
@@ -179,6 +179,11 @@ export class SaveManager {
   getShopStock(): ShopStockEntry[] {
     ensureShopStock(this.save, new Rng((Math.random() * 1e9) | 0));
     return this.save.shop.stock;
+  }
+
+  /** Crystals the next shop reroll will cost (0 while today's free refreshes remain). */
+  shopRefreshCost(): number {
+    return shopRefreshCost(this.save);
   }
 
   /** Reroll the shop for crystals. */

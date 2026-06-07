@@ -8,13 +8,16 @@
 import { ITEM_CATALOG, ITEM_CATALOG_MAP, rollItem, itemValue, itemSellValue } from "../data/items.ts";
 import { toItemInstanceSave } from "./itemDrop.ts";
 import { SUMMON_SCROLL } from "../data/materials.ts";
+import { SINGLE_PULL_COST } from "./gacha.ts";
 import { Rng } from "./rng.ts";
 import type { HeroSave, ShopStockEntry } from "./save.ts";
 
 export const SHOP_SIZE = 8;
-export const SHOP_REFRESH_COST = 60;   // crystals to reroll the stock
-export const SCROLL_SHOP_COST = 400;   // crystals to buy a summoning scroll slot
-const SCROLL_SLOT_CHANCE = 0.14;       // chance a given slot offers a scroll
+export const SHOP_FREE_REFRESHES = 3;   // free rerolls granted each day
+export const SHOP_REFRESH_STEP = 20;    // every reroll past the free ones costs +20 crystals
+// A summoning scroll is a bargain versus the summon UI: cheaper than a single pull.
+export const SCROLL_SHOP_COST = Math.round(SINGLE_PULL_COST * 0.75); // 120, vs a 160 pull
+export const SCROLL_SLOT_CHANCE = 0.04; // <5% chance a given slot offers a scroll, per refresh
 
 export interface PurchaseResult {
   success: boolean;
@@ -53,12 +56,32 @@ export function ensureShopStock(save: HeroSave, rng: Rng): void {
   }
 }
 
-/** Reroll the shop stock for crystals. */
-export function refreshShop(save: HeroSave, rng: Rng): PurchaseResult {
-  if (save.currency.crystals < SHOP_REFRESH_COST) return { success: false, message: "Not enough crystals to refresh" };
-  save.currency.crystals -= SHOP_REFRESH_COST;
+function todayStr(): string { return new Date().toISOString().slice(0, 10); }
+
+/** Reset the day's free-refresh allowance when the calendar date changes. */
+function rolloverRefreshes(save: HeroSave, today: string): void {
+  if (save.shop.refreshDate !== today) { save.shop.refreshDate = today; save.shop.refreshesToday = 0; }
+}
+
+/**
+ * Crystals the NEXT manual refresh will cost. The first SHOP_FREE_REFRESHES of
+ * the day are free; after that each one costs SHOP_REFRESH_STEP more than the
+ * last (20, 40, 60, …). The allowance resets daily.
+ */
+export function shopRefreshCost(save: HeroSave, today: string = todayStr()): number {
+  rolloverRefreshes(save, today);
+  const past = save.shop.refreshesToday - SHOP_FREE_REFRESHES;
+  return past < 0 ? 0 : SHOP_REFRESH_STEP * (past + 1);
+}
+
+/** Reroll the shop stock; the first few rerolls each day are free (see shopRefreshCost). */
+export function refreshShop(save: HeroSave, rng: Rng, today: string = todayStr()): PurchaseResult {
+  const cost = shopRefreshCost(save, today);
+  if (save.currency.crystals < cost) return { success: false, message: `Need ${cost} 💎 to refresh` };
+  save.currency.crystals -= cost;
+  save.shop.refreshesToday += 1;
   save.shop.stock = generateShopStock(save, rng);
-  return { success: true, message: "Shop refreshed" };
+  return { success: true, message: cost > 0 ? `Refreshed (−${cost} 💎)` : "Refreshed (free)" };
 }
 
 /** Buy a stock slot: grant the item (→ inventory) or scroll (→ materials), remove the slot. */

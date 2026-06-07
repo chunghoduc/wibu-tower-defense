@@ -9,7 +9,6 @@ import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import type { ShopStockEntry, ItemInstanceSave } from "../core/save.ts";
 import { ITEM_CATALOG_MAP, itemSellValue } from "../data/items.ts";
-import { SHOP_REFRESH_COST } from "../core/shop.ts";
 import { crispText } from "./ui.ts";
 import type { Rarity } from "../data/schema.ts";
 
@@ -45,7 +44,7 @@ export class ShopScene extends Phaser.Scene {
     this.tabBuy = this.tab(W / 2 - 86, "Buy", () => this.setMode("buy"));
     this.tabSell = this.tab(W / 2 + 6, "Sell", () => this.setMode("sell"));
 
-    this.refreshBtn = crispText(this, W - 20, 46, `⟳ Refresh (${SHOP_REFRESH_COST}💎)`, { fontSize: "12px", color: "#fff", backgroundColor: "#243a5a" })
+    this.refreshBtn = crispText(this, W - 20, 46, this.refreshLabel(), { fontSize: "12px", color: "#fff", backgroundColor: "#243a5a" })
       .setOrigin(1, 0).setPadding(8, 4, 8, 4).setInteractive({ useHandCursor: true });
     this.refreshBtn.on("pointerup", () => {
       const r = this.mgr.refreshShop();
@@ -68,13 +67,19 @@ export class ShopScene extends Phaser.Scene {
 
   private setMode(m: "buy" | "sell"): void { this.mode = m; this.redraw(); }
 
+  /** Refresh button caption — shows "free" while today's free rerolls remain, else the cost. */
+  private refreshLabel(): string {
+    const cost = this.mgr.shopRefreshCost();
+    return cost > 0 ? `⟳ Refresh (${cost}💎)` : "⟳ Refresh (free)";
+  }
+
   private redraw(): void {
     this.grid.removeAll(true);
     const save = this.mgr.getSave();
     this.crystalText.setText(`💎 ${save.currency.crystals}`);
     this.tabBuy.setBackgroundColor(this.mode === "buy" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "buy" ? 1 : 0.7);
     this.tabSell.setBackgroundColor(this.mode === "sell" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "sell" ? 1 : 0.7);
-    this.refreshBtn.setVisible(this.mode === "buy");
+    this.refreshBtn.setVisible(this.mode === "buy").setText(this.refreshLabel());
 
     if (this.mode === "buy") this.drawBuy();
     else this.drawSell(save.inventory.items, save.inventory.equipped);

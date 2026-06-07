@@ -84,6 +84,10 @@ export interface ShopStockEntry {
 }
 export interface ShopSave {
   stock: ShopStockEntry[];
+  /** Manual rerolls used today; the first few each day are free, then they cost more. */
+  refreshesToday: number;
+  /** YYYY-MM-DD the refresh count applies to; rolls over (resets) daily. */
+  refreshDate: string;
 }
 
 export interface HeroSave {
@@ -129,7 +133,7 @@ export function createFreshSave(): HeroSave {
     squad: [],
     materials: {},
     settings: defaultSettings(),
-    shop: { stock: [] },
+    shop: { stock: [], refreshesToday: 0, refreshDate: "" },
     lastSavedAt: 0,
   };
 }
@@ -160,7 +164,9 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   save.currency ??= { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false };
   save.progress ??= { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 };
   save.settings = { ...defaultSettings(), ...(save.settings ?? {}) };
-  save.shop ??= { stock: [] };
+  save.shop ??= { stock: [], refreshesToday: 0, refreshDate: "" };
+  save.shop.refreshesToday ??= 0;
+  save.shop.refreshDate ??= "";
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }
