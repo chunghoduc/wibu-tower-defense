@@ -16,22 +16,37 @@ const has = (s: string, ...keys: string[]) => keys.some((k) => s.includes(k));
 
 /** Pick an attack style for a character. */
 export function attackStyleFor(def: CharacterDef): AttackStyle {
-  const n = def.name.toLowerCase() + " " + def.id.toLowerCase();
-  const fire = has(n, "ember", "flame", "fire", "molten", "magma", "wild", "inferno", "blaze", "sun", "phoenix", "burn", "powder", "spark");
-  const ice = has(n, "ice", "frost", "glace", "chill", "snow", "hoar", "blizzard", "winter", "glacial");
-  const elec = has(n, "spark", "thunder", "lightning", "bolt", "storm", "tempo", "volt");
+  // Elements are read from the WEAPON description only — the character name can
+  // contain misleading substrings (e.g. "Thr-ice-draw"); every elemental weapon
+  // states its element explicitly.
+  const w = (def.meta?.weapon ?? "").toLowerCase();
+  const fire = has(w, "ember", "flame", "fire", "molten", "magma", "wild", "inferno", "blaze", "burn", "powder", "explosion", "eruption", "lava", "foxfire", "ignit", "bomb");
+  const ice = has(w, "ice", "frost", "chill", "snow", "hoar", "blizzard", "glacial", "freez");
+  const elec = has(w, "thunder", "lightning", "bolt", "storm", "volt", "chidori", "spark");
+  const poison = has(w, "poison", "venom", "toxin", "plague", "rot", "bramble", "corros", "blight", "decay", "barbed", "thorn");
 
-  switch (def.role) {
-    case "support": return "holy";
-    case "chain": return def.damageType === "Magic" ? (ice ? "iceball" : "lightning") : "lightning";
-    case "splash": return fire ? "fireball" : "cannon";
-    case "dot": return fire ? "fireball" : "poison";
-    case "debuff": return ice ? "iceball" : "hex";
-    case "damage":
-    default:
-      if (def.damageType === "Magic") return fire ? "fireball" : ice ? "iceball" : elec ? "lightning" : "arcane";
-      return def.baseStats.range >= RANGED_MELEE ? "arrow" : "slash";
-  }
+  // Aura-based archetypes read by effect, not by a flying projectile.
+  if (def.role === "support") return "holy";
+  if (def.role === "debuff") return ice ? "iceball" : "hex";
+
+  // Elemental theme drives the projectile flavor.
+  if (fire) return "fireball";
+  if (ice) return "iceball";
+  if (elec) return "lightning";
+  if (poison) return "poison";
+
+  // Otherwise match the weapon the character actually holds.
+  if (has(w, "bow", "arrow")) return "arrow";
+  if (has(w, "cannon", "gun", "firearm", "artillery", "shell", "rifle")) return "cannon";
+  if (has(w, "katana", "sword", "blade", "rapier", "glaive", "saber", "chokuto", "cleaver")) return def.baseStats.range >= RANGED_MELEE ? "arcane" : "slash";
+  if (has(w, "staff", "wand", "tome", "grimoire", "scepter", "rod")) return "arcane";
+  if (/\bki\b/.test(w) || has(w, "fist", "punch", "chakra", "knuckle", "gauntlet", "palm")) return def.damageType === "Magic" ? "arcane" : "slash";
+
+  // Final fallbacks by role / damage type.
+  if (def.role === "dot") return "poison";
+  if (def.role === "chain") return "lightning";
+  if (def.damageType === "Magic") return "arcane";
+  return def.baseStats.range >= RANGED_MELEE ? "arrow" : "slash";
 }
 
 /** A simple hero attack style from its damage type + range. */

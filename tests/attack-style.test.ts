@@ -13,6 +13,15 @@ describe("T6 — per-character attack styles", () => {
     expect(style("pip-powderkeg")).toBe("fireball");     // powder splash → fiery
   });
 
+  it("projectiles match the weapon the character holds", () => {
+    expect(style("iron-bo-cannonarm")).toBe("cannon");   // arm cannons
+    expect(style("kanae-petalfall")).not.toBe("cannon");  // katana, not a shell
+    expect(style("megu-explosion-sage")).toBe("fireball"); // explosion, not a shell
+    expect(style("akagan-ashen")).toBe("fireball");        // molten magma
+    expect(style("zoran-thricedraw")).toBe("slash");       // three katana (melee)
+    expect(style("sota-caped-fist")).toBe("slash");        // bare-fisted punch
+  });
+
   it("physical damage towers are arrow (ranged) or slash (melee)", () => {
     for (const t of TOWERS.filter((x) => x.role === "damage" && x.damageType === "Physical")) {
       const s = attackStyleFor(t);
