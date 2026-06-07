@@ -45,6 +45,30 @@ describe("tower upgrade / sell", () => {
     expect(t.battleLevel).toBe(0);
   });
 
+  it("previewUpgradeRange returns the range the tower will have after one upgrade", () => {
+    const b = battle();
+    b.placeTower("zoran-thricedraw", 0);
+    const t = b.towers[0];
+    b.gold = 10000;
+    const preview = b.previewUpgradeRange(t.uid);
+    expect(preview).not.toBeNull();
+    b.upgradeTower(t.uid);
+    expect(t.stats.range).toBeCloseTo(preview!, 5);
+  });
+
+  it("previewUpgradeRange is null when the tower is maxed", () => {
+    const b = battle();
+    b.placeTower("zoran-thricedraw", 0);
+    const t = b.towers[0];
+    b.gold = 1e9;
+    while (b.upgradeCost(t.uid) > 0) b.upgradeTower(t.uid);
+    expect(b.previewUpgradeRange(t.uid)).toBeNull();
+  });
+
+  it("previewUpgradeRange is null for an unknown tower", () => {
+    expect(battle().previewUpgradeRange(9999)).toBeNull();
+  });
+
   it("sellTower refunds gold and removes the tower", () => {
     const b = battle();
     b.placeTower("zoran-thricedraw", 0);

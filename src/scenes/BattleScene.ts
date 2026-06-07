@@ -919,9 +919,12 @@ export class BattleScene extends Phaser.Scene {
     if (!this.towerSprites.has(t.uid)) {
       g.fillStyle(color, 1).fillRect(t.pos.x - 14, t.pos.y - 14, 28, 28);
     }
-    // Range ring only while previewing this tower's upgrade (hover), not always.
+    // No range ring on a placed tower normally — it only appears while hovering
+    // the upgrade button, and then it previews the POST-UPGRADE range (falling
+    // back to the current range when the tower is already maxed).
     if (t.uid === this.rangePreviewUid) {
-      g.lineStyle(1.5, color, 0.5).strokeCircle(t.pos.x, t.pos.y, t.stats.range);
+      const r = this.battle.previewUpgradeRange(t.uid) ?? t.stats.range;
+      g.lineStyle(1.5, color, 0.5).strokeCircle(t.pos.x, t.pos.y, r);
     }
     if (t.stats.maxMana > 0) {
       g.fillStyle(0x42a5f5, 0.9);

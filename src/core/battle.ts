@@ -408,6 +408,22 @@ export class BattleState {
     return Math.round(t.def.cost * 0.8 * (t.battleLevel + 1));
   }
 
+  /**
+   * The attack range this tower WOULD have after one more upgrade — used to
+   * preview coverage on the upgrade button. Non-mutating; returns null if the
+   * tower is missing or already maxed. Mirrors upgradeTower's stat resolution
+   * (towerStatPipeline at battleLevel+1, plus the hero share).
+   */
+  previewUpgradeRange(uid: number): number | null {
+    const t = this.towers.find((x) => x.uid === uid && x.alive);
+    if (!t || t.battleLevel >= MAX_TOWER_UPGRADES) return null;
+    const upgraded = addHeroShare(
+      towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel + 1),
+      this.hero.stats,
+    );
+    return upgraded.range;
+  }
+
   /** Gold refunded when selling a tower (fraction of total invested). */
   sellValue(uid: number): number {
     const t = this.towers.find((x) => x.uid === uid && x.alive);
