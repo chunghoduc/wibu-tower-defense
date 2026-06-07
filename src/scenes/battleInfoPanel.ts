@@ -94,7 +94,7 @@ export class BattleInfoPanel {
     // Hover tooltip (shared).
     this.tip = scene.add.container(0, 0).setDepth(60).setVisible(false);
     this.tipBg = scene.add.graphics();
-    this.tipText = crispText(scene, 0, 0, "", { fontSize: "11px", color: "#eef3fb" });
+    this.tipText = crispText(scene, 0, 0, "", { fontSize: "13px", color: "#f3f7fd", lineSpacing: 3 });
     this.tip.add([this.tipBg, this.tipText]);
 
     // Toggle tab on the panel's left edge.
@@ -297,16 +297,17 @@ export class BattleInfoPanel {
     return y + S + 4;
   }
 
-  private showTip(text: string, p: Phaser.Input.Pointer, wrapW = 150): void {
+  private showTip(text: string, p: Phaser.Input.Pointer, wrapW = 160): void {
     this.tipText.setText(text).setWordWrapWidth(wrapW, true);
-    const w = Math.min(wrapW, this.tipText.width) + 12, h = this.tipText.height + 10;
+    const padX = 9, padY = 7;
+    const w = Math.min(wrapW, this.tipText.width) + padX * 2, h = this.tipText.height + padY * 2;
     let tx = p.x - w - 8;
     if (tx < 4) tx = p.x + 12;
     const ty = Phaser.Math.Clamp(p.y - h / 2, 4, this.screenH - h - 4);
     this.tipBg.clear();
-    this.tipBg.fillStyle(0x05070c, 0.97).fillRoundedRect(0, 0, w, h, 5);
-    this.tipBg.lineStyle(1.5, 0x4a6a9a, 1).strokeRoundedRect(0, 0, w, h, 5);
-    this.tipText.setPosition(6, 5);
+    this.tipBg.fillStyle(0x070b12, 0.98).fillRoundedRect(0, 0, w, h, 6);
+    this.tipBg.lineStyle(1.5, 0x5a7cb0, 1).strokeRoundedRect(0, 0, w, h, 6);
+    this.tipText.setPosition(padX, padY);
     this.tip.setPosition(tx, ty).setVisible(true);
     this.scene.children.bringToTop(this.tip);
   }
