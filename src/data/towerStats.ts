@@ -14,6 +14,53 @@ const ROLE_TANK: Record<TowerRole, number> = {
 };
 
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
+const r2 = (n: number) => Math.round(n * 100) / 100;
+const round5 = (n: number) => Math.round(n / 5) * 5;
+
+/**
+ * Core power budget per role × rarity. Each tower's CORE combat stats (atk,
+ * attack rate, range, hp, mana economy, placement cost) are derived from this
+ * table so the whole roster scales coherently — monotonic with rarity, and the
+ * role defines the shape (damage = high atk; support = tanky, low atk; etc.).
+ * Per-tower data keeps its IDENTITY (role, type, passives, active, behavior) and
+ * FLAVOUR stats (crit, penetration, lifesteal); the baseline owns the budget so
+ * no single character is accidentally stronger than a higher tier.
+ *
+ * Skill/behaviour magnitudes (splash radius, chain targets, dot dps, slow %, buff
+ * aura) are authored per-tower and already scale cleanly, so they're untouched.
+ */
+const RARITY_POWER = [1.0, 1.35, 1.8, 2.45, 3.3]; // by tier (Common…Unique)
+
+// NOTE: `range` is deliberately NOT budgeted here — it's an identity stat (a
+// melee brawler has short reach, an archer long), kept per-tower so the roster
+// still reads as melee vs ranged and the attack-style picker stays correct.
+interface RoleBase { atk: number; aspd: number; hp: number; cost: number }
+const ROLE_BASE: Record<TowerRole, RoleBase> = {
+  // role      atk  aspd   hp   cost   (values at the Common tier)
+  damage:  { atk: 16, aspd: 1.20, hp: 130, cost: 45 },
+  splash:  { atk: 15, aspd: 0.90, hp: 145, cost: 55 },
+  chain:   { atk: 13, aspd: 1.05, hp: 115, cost: 55 },
+  dot:     { atk: 10, aspd: 1.00, hp: 125, cost: 50 },
+  debuff:  { atk:  9, aspd: 0.85, hp: 150, cost: 55 },
+  support: { atk:  6, aspd: 0.75, hp: 175, cost: 60 },
+};
+
+/** The role × rarity core-stat budget + placement cost (before the damage-type archetype). */
+export function towerBaseline(role: TowerRole, rarity: Rarity): { core: Partial<Stats>; cost: number } {
+  const tier = RARITY_TIER[rarity];
+  const p = RARITY_POWER[tier];
+  const b = ROLE_BASE[role];
+  const isSupport = role === "support";
+  const core: Partial<Stats> = {
+    atk: Math.round(b.atk * p),
+    attackSpeed: r2(b.aspd * (1 + 0.04 * tier)),
+    maxHp: Math.round(b.hp * (0.5 + 0.5 * p)),
+    maxMana: isSupport ? 0 : 55 + 12 * tier,       // supports are aura-only, never cast
+    manaOnHit: isSupport ? 0 : 7,
+    manaRegen: isSupport ? 0 : r2(1.4 + 0.3 * tier),
+  };
+  return { core, cost: round5(b.cost * p) };
+}
 
 /** Return a copy of `s` with defensive/survival baselines filled where unset (0). */
 export function augmentTowerStats(role: TowerRole, rarity: Rarity, s: Stats): Stats {
