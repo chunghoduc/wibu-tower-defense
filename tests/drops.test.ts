@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { processStageClear, CRYSTAL_REWARD } from "../src/core/drops.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
+import { boxIdForTier } from "../src/data/materials.ts";
+import { boxTierForStage } from "../src/data/stage.ts";
 
 describe("processStageClear", () => {
   it("awards crystals on win", () => {
@@ -35,6 +37,25 @@ describe("processStageClear", () => {
     const n = processStageClear(saveN, "s", "Normal", new Rng(99));
     const h = processStageClear(saveH, "s", "Hard", new Rng(99));
     expect(h.crystalsAwarded).toBeGreaterThan(n.crystalsAwarded);
+  });
+
+  it("boss box is guaranteed on first clear, then drops dramatically", () => {
+    const save = createFreshSave();
+    const boxId = boxIdForTier(boxTierForStage("stage-1"));
+    const first = processStageClear(save, "stage-1", "Normal", new Rng(1));
+    expect(first.isFirstClear).toBe(true);
+    expect(first.materialsDropped[boxId]).toBe(1); // 100% on first defeat
+
+    // Repeat clears: the box becomes a rare bonus, far below every-time.
+    const N = 200;
+    let boxes = 0;
+    for (let seed = 0; seed < N; seed++) {
+      const r = processStageClear(save, "stage-1", "Normal", new Rng(seed));
+      expect(r.isFirstClear).toBe(false);
+      if (r.materialsDropped[boxId]) boxes++;
+    }
+    expect(boxes).toBeLessThan(N * 0.3); // dramatically lower than 100%
+    expect(boxes).toBeGreaterThan(0);    // but still occasionally drops
   });
 
   it("may drop an item over 100 runs", () => {

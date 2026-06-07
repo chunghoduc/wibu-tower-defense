@@ -31,6 +31,9 @@ export interface DropResult {
 // Every stage clear kills that stage's boss, so jewels drop from a win.
 const BLESS_DROP_CHANCE = 0.5;   // a clear usually yields a Bless jewel
 const SOUL_DROP_CHANCE = 0.15;   // Soul jewels are rarer (for high enhances)
+// Boss chest: guaranteed the FIRST time you beat a stage+difficulty, then a rare
+// bonus on repeat farming so the box stays a meaningful first-clear reward (T15).
+const BOX_REPEAT_CHANCE = 0.08;
 
 export function processStageClear(
   save: HeroSave,
@@ -105,8 +108,11 @@ export function processStageClear(
   const diffBonus = difficulty === "Nightmare" ? 0.2 : difficulty === "Hard" ? 0.1 : 0;
   if (rng.next() < BLESS_DROP_CHANCE + diffBonus) giveMat(BLESS_JEWEL, 1);
   if (rng.next() < SOUL_DROP_CHANCE + diffBonus) giveMat(SOUL_JEWEL, 1);
-  // Guaranteed boss chest, tier scaling with the stage (T15).
-  giveMat(boxIdForTier(boxTierForStage(stageId)), 1);
+  // Boss chest, tier scaling with the stage (T15): 100% on first clear of this
+  // stage+difficulty, dropping dramatically to a rare bonus on repeat clears.
+  if (isFirstClear || rng.next() < BOX_REPEAT_CHANCE + diffBonus) {
+    giveMat(boxIdForTier(boxTierForStage(stageId)), 1);
+  }
 
   return { crystalsAwarded, itemDropped, skillDropped, characterDropped, isFirstClear, materialsDropped };
 }
