@@ -39,3 +39,22 @@ export function heroAttackStyle(damageType: string, range: number): AttackStyle 
   if (damageType === "Magic") return "arcane";
   return range >= RANGED_MELEE ? "arrow" : "slash";
 }
+
+export type SkillStyle = "fire" | "ice" | "lightning" | "heal" | "slash" | "poison" | "arcane";
+
+/** Visual style for an ACTIVE skill, derived from its id/name keywords (T7). */
+export function skillStyleFor(skillId: string | undefined): SkillStyle {
+  const s = (skillId ?? "").toLowerCase();
+  if (has(s, "ember", "flame", "fire", "inferno", "eruption", "magma", "wild", "blaze", "ignit", "sun")) return "fire";
+  if (has(s, "ice", "glaci", "blizzard", "geyser", "frost", "chill", "snow", "freez")) return "ice";
+  if (has(s, "thunder", "lightning", "chain", "kirin", "bolt", "spark", "storm")) return "lightning";
+  if (has(s, "heal", "rebirth", "reject", "rally", "pep", "cheer", "crescendo", "wind", "creation", "blessing")) return "heal";
+  if (has(s, "slash", "cleave", "iaido", "punch", "fist", "strike", "draw", "war-cry")) return "slash";
+  if (has(s, "poison", "plague", "rot", "bramble", "toxin", "venom", "tar", "corros")) return "poison";
+  return "arcane";
+}
+
+/** Primary color for a skill style. */
+export const SKILL_STYLE_COLOR: Record<SkillStyle, number> = {
+  fire: 0xff6a2a, ice: 0x6fc6ff, lightning: 0x9fe6ff, heal: 0x8be06a, slash: 0xffe07a, poison: 0x9ccc65, arcane: 0xc77dde,
+};

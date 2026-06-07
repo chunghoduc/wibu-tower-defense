@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attackStyleFor, heroAttackStyle, type AttackStyle } from "../src/data/attackStyle.ts";
+import { attackStyleFor, heroAttackStyle, skillStyleFor, type AttackStyle } from "../src/data/attackStyle.ts";
 import { TOWERS } from "../src/data/towers.ts";
 
 const style = (id: string): AttackStyle => attackStyleFor(TOWERS.find((t) => t.id === id)!);
@@ -30,5 +30,15 @@ describe("T6 — per-character attack styles", () => {
     expect(heroAttackStyle("Magic", 200)).toBe("arcane");
     expect(heroAttackStyle("Physical", 200)).toBe("arrow");
     expect(heroAttackStyle("Physical", 90)).toBe("slash");
+  });
+
+  it("derives active-skill visual styles from skill ids (T7)", () => {
+    expect(skillStyleFor("great-eruption")).toBe("fire");
+    expect(skillStyleFor("glacial-chain")).toBe("ice");
+    expect(skillStyleFor("chain-lightning")).toBe("lightning");
+    expect(skillStyleFor("creation-rebirth")).toBe("heal");
+    expect(skillStyleFor("iaido-slash")).toBe("slash");
+    expect(skillStyleFor("plague-cloud")).toBe("poison");
+    expect(skillStyleFor("hollow-purple")).toBe("arcane"); // fallback
   });
 });
