@@ -223,11 +223,15 @@ export class SquadScene extends Phaser.Scene {
     skills.slice(0, 6).forEach((entry, idx) => {
       const def = ACTIVE_SKILLS_MAP.get(entry.skillId);
       if (!def) return;
-      const equipped = save.hero.equippedSkillId === entry.skillId;
+      const equipped = save.hero.equippedSkillIds.includes(entry.skillId);
       const chip = crispText(this, 92 + idx * 104, 480, `${def.name}`, {
         fontSize: "10px", color: equipped ? "#fff" : RARITY_HEX[def.rarity], backgroundColor: equipped ? "#5a2a7a" : "#1a2230",
       }).setPadding(6, 3, 6, 3).setInteractive({ useHandCursor: true });
-      chip.on("pointerup", () => { if (!this.didDrag) { this.mgr.equipSkill(entry.skillId); this.redraw(); } });
+      chip.on("pointerup", () => {
+        if (this.didDrag) return;
+        if (equipped) this.mgr.unequipSkill(entry.skillId); else this.mgr.equipSkill(entry.skillId);
+        this.redraw();
+      });
       this.dyn.add(chip);
     });
   }

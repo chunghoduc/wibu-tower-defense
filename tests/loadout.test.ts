@@ -75,23 +75,36 @@ describe("equipSkill", () => {
     save.hero.obtainedSkills.push({ skillId: skill.id, level: 1, useXp: 0 });
     const ok = equipSkill(save, skill.id);
     expect(ok).toBe(true);
-    expect(save.hero.equippedSkillId).toBe(skill.id);
+    expect(save.hero.equippedSkillIds).toContain(skill.id);
   });
 
   it("returns false for a skill the hero does not own", () => {
     const save = createFreshSave();
     expect(equipSkill(save, ACTIVE_SKILLS[0].id)).toBe(false);
-    expect(save.hero.equippedSkillId).toBeNull();
+    expect(save.hero.equippedSkillIds).toHaveLength(0);
+  });
+
+  it("holds at most two skills, bumping the oldest", () => {
+    const save = createFreshSave();
+    const free = ACTIVE_SKILLS.filter((s) => !s.requiresWeapon).slice(0, 3);
+    for (const s of free) save.hero.obtainedSkills.push({ skillId: s.id, level: 1, useXp: 0 });
+    equipSkill(save, free[0].id);
+    equipSkill(save, free[1].id);
+    equipSkill(save, free[2].id); // bumps free[0]
+    expect(save.hero.equippedSkillIds).toEqual([free[1].id, free[2].id]);
   });
 });
 
 describe("unequipSkill", () => {
-  it("clears the equipped skill", () => {
+  it("removes one skill, or clears all when no id is given", () => {
     const save = createFreshSave();
-    const skill = ACTIVE_SKILLS[0];
-    save.hero.obtainedSkills.push({ skillId: skill.id, level: 1, useXp: 0 });
-    equipSkill(save, skill.id);
+    const free = ACTIVE_SKILLS.filter((s) => !s.requiresWeapon).slice(0, 2);
+    for (const s of free) save.hero.obtainedSkills.push({ skillId: s.id, level: 1, useXp: 0 });
+    equipSkill(save, free[0].id);
+    equipSkill(save, free[1].id);
+    unequipSkill(save, free[0].id);
+    expect(save.hero.equippedSkillIds).toEqual([free[1].id]);
     unequipSkill(save);
-    expect(save.hero.equippedSkillId).toBeNull();
+    expect(save.hero.equippedSkillIds).toHaveLength(0);
   });
 });

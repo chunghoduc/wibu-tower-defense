@@ -25,7 +25,7 @@ describe("skill weapon requirement on equip", () => {
     const save = withSkill("iron-cleave"); // requires Sword
     expect(skillWeaponMet(save, "iron-cleave")).toBe(false);
     expect(equipSkill(save, "iron-cleave")).toBe(false);
-    expect(save.hero.equippedSkillId).toBeNull();
+    expect(save.hero.equippedSkillIds).not.toContain("iron-cleave");
   });
 
   it("can equip once the required weapon is worn, and breaks if it's removed before re-equip", () => {
@@ -33,10 +33,10 @@ describe("skill weapon requirement on equip", () => {
     giveAndEquip(save, swordDef);
     expect(equippedWeaponType(save)).toBe("Sword");
     expect(equipSkill(save, "iron-cleave")).toBe(true);
-    expect(save.hero.equippedSkillId).toBe("iron-cleave");
+    expect(save.hero.equippedSkillIds).toContain("iron-cleave");
 
     // wrong weapon → can't (re-)equip
-    save.hero.equippedSkillId = null;
+    save.hero.equippedSkillIds = [];
     unequipSlot(save, "Weapon");
     giveAndEquip(save, bowDef);
     expect(equipSkill(save, "iron-cleave")).toBe(false);

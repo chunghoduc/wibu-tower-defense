@@ -13,6 +13,7 @@ import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
 import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } from "./save.ts";
 import { SINGLE_PULL_COST } from "./gacha.ts";
+import { STARTER_SKILL_IDS } from "../data/skills.ts";
 import { addTowerToCollection } from "./collection.ts";
 
 const DAILY_LOGIN_CRYSTALS = 10;
@@ -49,6 +50,9 @@ export class SaveManager {
     const save = createFreshSave();
     save.currency.crystals = STARTER_CRYSTALS;
     for (const id of STARTER_SQUAD) addTowerToCollection(save, id);
+    // Every hero starts with two weapon-free active skills (one Physical, one Magic).
+    for (const id of STARTER_SKILL_IDS) save.hero.obtainedSkills.push({ skillId: id, level: 1, useXp: 0 });
+    save.hero.equippedSkillIds = [...STARTER_SKILL_IDS];
     return save;
   }
 
@@ -144,9 +148,9 @@ export class SaveManager {
     return ok;
   }
 
-  /** Clear the equipped active skill and persist. */
-  unequipSkill(): void {
-    unequipSkill(this.save);
+  /** Unequip one active skill (or all if no id), then persist. */
+  unequipSkill(skillId?: string): void {
+    unequipSkill(this.save, skillId);
     this.persist();
   }
 

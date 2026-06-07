@@ -440,8 +440,10 @@ export class BattleScene extends Phaser.Scene {
       if (!inst || !def) continue;
       items[slot] = { iconKey: `item__${inst.defId}`, name: def.name, plus: inst.enhanceLevel ?? 0, rarityColor: RARITY_INT[def.rarity as Rarity] };
     }
-    const eqSkill = save.hero.equippedSkillId ? ACTIVE_SKILLS_MAP.get(save.hero.equippedSkillId) : undefined;
-    const skills = eqSkill ? [{ label: `⚡ ${eqSkill.name}`, desc: eqSkill.description, color: "#a8d8ff", iconKey: `skill__${save.hero.equippedSkillId}` }] : [];
+    const skills = save.hero.equippedSkillIds
+      .map((id) => ({ id, def: ACTIVE_SKILLS_MAP.get(id) }))
+      .filter((e) => e.def)
+      .map((e) => ({ label: `⚡ ${e.def!.name}`, desc: e.def!.description, color: "#a8d8ff", iconKey: `skill__${e.id}` }));
     return {
       kind: "hero", name: "Hero", level: save.hero.level,
       hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: h.stats.maxMana,
@@ -1104,9 +1106,10 @@ export class BattleScene extends Phaser.Scene {
       g.fillStyle(0x44aaff, 1).fillRect(68, 88, Math.floor(140 * xpPct), 8);
     }
 
-    if (save.hero.equippedSkillId) {
+    if (save.hero.equippedSkillIds.length > 0) {
+      const names = save.hero.equippedSkillIds.map((id) => ACTIVE_SKILLS_MAP.get(id)?.name ?? id);
       g.fillStyle(0x442266, 1).fillRect(8, 110, 100, 14);
-      this.hudSkillText.setText(`Skill: ${save.hero.equippedSkillId}`).setVisible(true);
+      this.hudSkillText.setText(`Skill: ${names.join(", ")}`).setVisible(true);
     } else {
       this.hudSkillText.setVisible(false);
     }

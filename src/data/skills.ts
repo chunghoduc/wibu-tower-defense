@@ -5,6 +5,14 @@ function s(def: ActiveSkillDef): ActiveSkillDef {
 }
 
 export const ACTIVE_SKILLS: ActiveSkillDef[] = [
+  // Starter skills every hero begins with — one Physical, one Magic, and neither
+  // needs a particular weapon, so a brand-new hero always has usable actives.
+  s({ id: "valiant-strike", name: "Valiant Strike", rarity: "Common",
+      description: "A sweeping heroic blow that strikes all nearby foes. Works with any weapon.",
+      damageType: "Physical", basePower: 85, artRef: "placeholder" }),
+  s({ id: "spirit-bolt", name: "Spirit Bolt", rarity: "Common",
+      description: "Hurl a bolt of raw spirit energy that bursts on impact. Works with any weapon.",
+      damageType: "Magic", basePower: 85, artRef: "placeholder" }),
   s({ id: "iron-cleave", name: "Iron Cleave", rarity: "Common",
       description: "A wide arc that cleaves all nearby enemies.",
       requiresWeapon: "Sword", damageType: "Physical", basePower: 80, artRef: "placeholder" }),
@@ -46,3 +54,9 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
 export const ACTIVE_SKILLS_MAP = new Map<string, ActiveSkillDef>(
   ACTIVE_SKILLS.map((s) => [s.id, s])
 );
+
+/** The weapon-free actives every hero starts with (one Physical, one Magic). */
+export const STARTER_SKILL_IDS = ["valiant-strike", "spirit-bolt"] as const;
+
+/** How many active skills the hero can have equipped at once. */
+export const MAX_ACTIVE_SKILLS = 2;

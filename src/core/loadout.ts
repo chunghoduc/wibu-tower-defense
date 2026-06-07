@@ -6,7 +6,7 @@
  * through its hero stat pipeline.
  */
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
-import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
+import { ACTIVE_SKILLS_MAP, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import type { ItemSlot, WeaponType } from "../data/schema.ts";
 import type { HeroSave } from "./save.ts";
 
@@ -46,18 +46,23 @@ export function skillWeaponMet(save: HeroSave, skillId: string): boolean {
 }
 
 /**
- * Equip an active skill the hero has obtained. Returns false if the hero does
- * not own the skill, OR the skill requires a weapon type that isn't equipped.
+ * Equip an active skill the hero has obtained into one of the MAX_ACTIVE_SKILLS
+ * slots. Returns false if the hero doesn't own the skill or it needs a weapon
+ * that isn't equipped. When all slots are full, the oldest is bumped out.
  */
 export function equipSkill(save: HeroSave, skillId: string): boolean {
   const owned = save.hero.obtainedSkills.some((s) => s.skillId === skillId);
   if (!owned) return false;
   if (!skillWeaponMet(save, skillId)) return false;  // requires a matching weapon
-  save.hero.equippedSkillId = skillId;
+  const eq = save.hero.equippedSkillIds;
+  if (eq.includes(skillId)) return true;             // already equipped
+  if (eq.length >= MAX_ACTIVE_SKILLS) eq.shift();    // drop the oldest slot
+  eq.push(skillId);
   return true;
 }
 
-/** Clear the equipped active skill. */
-export function unequipSkill(save: HeroSave): void {
-  save.hero.equippedSkillId = null;
+/** Unequip a specific active skill, or clear all slots when no id is given. */
+export function unequipSkill(save: HeroSave, skillId?: string): void {
+  if (skillId === undefined) { save.hero.equippedSkillIds = []; return; }
+  save.hero.equippedSkillIds = save.hero.equippedSkillIds.filter((id) => id !== skillId);
 }

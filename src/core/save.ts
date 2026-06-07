@@ -1,4 +1,5 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
+import { STARTER_SKILL_IDS } from "../data/skills.ts";
 
 export const CURRENT_SAVE_VERSION = 5;
 
@@ -52,7 +53,8 @@ export interface HeroProgressSave {
   skillPoints: number;
   unlockedNodes: string[];
   obtainedSkills: HeroSkillEntry[];
-  equippedSkillId: string | null;
+  /** Active skills currently equipped (up to MAX_ACTIVE_SKILLS). */
+  equippedSkillIds: string[];
 }
 
 export interface InventorySave {
@@ -121,7 +123,7 @@ export function createFreshSave(): HeroSave {
       skillPoints: 0,
       unlockedNodes: [],
       obtainedSkills: [],
-      equippedSkillId: null,
+      equippedSkillIds: [],
     },
     inventory: {
       items: [],
@@ -167,6 +169,19 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   save.shop ??= { stock: [], refreshesToday: 0, refreshDate: "" };
   save.shop.refreshesToday ??= 0;
   save.shop.refreshDate ??= "";
+  // Hero active skills: migrate the old single equip slot to the multi-slot list
+  // and grant the weapon-free starter skills so every hero has usable actives.
+  if (save.hero) {
+    save.hero.obtainedSkills ??= [];
+    const legacy = (save.hero as { equippedSkillId?: string | null }).equippedSkillId;
+    save.hero.equippedSkillIds ??= legacy ? [legacy] : [];
+    for (const id of STARTER_SKILL_IDS) {
+      if (!save.hero.obtainedSkills.some((s) => s.skillId === id)) {
+        save.hero.obtainedSkills.push({ skillId: id, level: 1, useXp: 0 });
+      }
+    }
+    if (save.hero.equippedSkillIds.length === 0) save.hero.equippedSkillIds = [...STARTER_SKILL_IDS];
+  }
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }

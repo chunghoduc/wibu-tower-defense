@@ -7,7 +7,7 @@
 import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
-import { ACTIVE_SKILLS } from "../data/skills.ts";
+import { ACTIVE_SKILLS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { skillXpToLevel, skillEffectivePower } from "../core/hero.ts";
 import { skillWeaponMet } from "../core/loadout.ts";
 import type { Rarity, ActiveSkillDef } from "../data/schema.ts";
@@ -38,8 +38,9 @@ export class SkillsScene extends Phaser.Scene {
     this.add.text(20, 10, "← Back", { fontSize: "15px", color: "#90caf9" })
       .setInteractive({ useHandCursor: true }).on("pointerup", () => fadeToScene(this, "MainMenuScene"));
 
-    const owned = this.mgr.getSave().hero.obtainedSkills.length;
-    this.add.text(W / 2, 38, `${owned}/${ACTIVE_SKILLS.length} collected  ·  click a skill to equip it`, { fontSize: "12px", color: "#90a4bb" }).setOrigin(0.5, 0);
+    const save0 = this.mgr.getSave();
+    const owned = save0.hero.obtainedSkills.length;
+    this.add.text(W / 2, 38, `${owned}/${ACTIVE_SKILLS.length} collected  ·  ${save0.hero.equippedSkillIds.length}/${MAX_ACTIVE_SKILLS} equipped  ·  tap to equip / unequip`, { fontSize: "12px", color: "#90a4bb" }).setOrigin(0.5, 0);
 
     this.layer = this.add.container(0, 0);
     this.toast = this.add.text(W / 2, 516, "", { fontSize: "12px", color: "#ffd6a0", backgroundColor: "#2a1a1a" })
@@ -54,7 +55,7 @@ export class SkillsScene extends Phaser.Scene {
     ACTIVE_SKILLS.forEach((def, i) => {
       const x = X0 + (i % COLS) * (CW + GAP_X);
       const y = Y0 + Math.floor(i / COLS) * (CH + GAP_Y);
-      this.drawCard(def, x, y, byId.get(def.id), save.hero.equippedSkillId === def.id);
+      this.drawCard(def, x, y, byId.get(def.id), save.hero.equippedSkillIds.includes(def.id));
     });
   }
 
@@ -107,10 +108,10 @@ export class SkillsScene extends Phaser.Scene {
       this.layer.add(crispText(this, x + 10, fy + 6, "🔒 Not collected — drops from battles", { fontSize: "10px", color: "#6b7689" }));
     }
 
-    // Whole owned card is clickable to equip.
-    if (owned && !equipped) {
+    // Whole owned card toggles: tap to equip into a free slot, tap again to remove.
+    if (owned) {
       const z = this.add.zone(x, y, CW, CH).setOrigin(0).setInteractive({ useHandCursor: true });
-      z.on("pointerup", () => this.tryEquip(def));
+      z.on("pointerup", () => (equipped ? this.unequip(def) : this.tryEquip(def)));
       this.layer.add(z);
     }
   }
@@ -124,6 +125,12 @@ export class SkillsScene extends Phaser.Scene {
     } else {
       this.showToast(`Cannot equip ${def.name}`);
     }
+  }
+
+  private unequip(def: ActiveSkillDef): void {
+    this.mgr.unequipSkill(def.id);
+    this.showToast(`Unequipped ${def.name}`);
+    this.redraw();
   }
 
   private showToast(msg: string): void {
