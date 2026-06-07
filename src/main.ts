@@ -15,6 +15,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "./data/stage.ts";
 import { SaveManager } from "./core/saveManager.ts";
 import { LocalSaveProvider } from "./core/save.ts";
 import { installLogger, log } from "./debug/logger.ts";
+import { setCombatLogSink } from "./core/combatLog.ts";
 import { setAudioVolume, setAudioMuted } from "./scenes/audio.ts";
 
 installLogger();
@@ -60,4 +61,10 @@ game.events.once(Phaser.Core.Events.READY, () => {
 // Expose the game for the headless playtest harness (dev, or ?debug on a build).
 if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug")) {
   (globalThis as unknown as { __game: typeof game }).__game = game;
+  // Damage-calculation debugging: call __damageLog() in the console to stream the
+  // full per-hit formula to the console + runtime log, __damageLog(false) to stop.
+  (globalThis as unknown as { __damageLog: (on?: boolean) => string }).__damageLog = (on = true) => {
+    setCombatLogSink(on ? (line) => { console.log(line); log.info("dmg", line); } : null);
+    return on ? "damage logging ON" : "damage logging OFF";
+  };
 }

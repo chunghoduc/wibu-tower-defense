@@ -31,19 +31,51 @@ function curveMitigation(rating: number): number {
 
 /** Final damage a defender takes from a packet, never below 0. */
 export function mitigatedDamage(packet: DamagePacket, defender: Stats): number {
-  let dmg = Math.max(0, packet.amount);
+  return mitigationBreakdown(packet, defender).final;
+}
+
+export interface MitigationBreakdown {
+  /** raw input (clamped ≥ 0) */
+  input: number;
+  /** the defender's armor (Physical) or magic resist (Magic); 0 for True */
+  defRating: number;
+  /** rating after the attacker's penetration */
+  effRating: number;
+  /** fraction removed by the armor/resist curve (0 for True) */
+  mitigationFrac: number;
+  /** damage after armor/resist, before flat damage reduction */
+  afterMitig: number;
+  /** the defender's flat damage reduction fraction */
+  damageReduction: number;
+  /** final damage taken (== mitigatedDamage) */
+  final: number;
+}
+
+/**
+ * Full, step-by-step damage resolution — the single source of truth that
+ * {@link mitigatedDamage} returns the `final` of. Exposed so the combat logger
+ * prints every term of the formula without re-deriving (and drifting from) it.
+ */
+export function mitigationBreakdown(packet: DamagePacket, defender: Stats): MitigationBreakdown {
+  const input = Math.max(0, packet.amount);
+  let defRating = 0, effRating = 0, mitigationFrac = 0, afterMitig = input;
 
   if (packet.type === "Physical") {
-    const effArmor = defender.armor * (1 - clamp01(packet.armorPen));
-    dmg *= 1 - curveMitigation(effArmor);
+    defRating = defender.armor;
+    effRating = defRating * (1 - clamp01(packet.armorPen));
+    mitigationFrac = curveMitigation(effRating);
+    afterMitig = input * (1 - mitigationFrac);
   } else if (packet.type === "Magic") {
-    const effResist = defender.magicResist * (1 - clamp01(packet.magicPen));
-    dmg *= 1 - curveMitigation(effResist);
+    defRating = defender.magicResist;
+    effRating = defRating * (1 - clamp01(packet.magicPen));
+    mitigationFrac = curveMitigation(effRating);
+    afterMitig = input * (1 - mitigationFrac);
   }
   // True: skips armor/resist entirely.
 
-  dmg *= 1 - clamp01(defender.damageReduction);
-  return Math.max(0, dmg);
+  const damageReduction = clamp01(defender.damageReduction);
+  const final = Math.max(0, afterMitig * (1 - damageReduction));
+  return { input, defRating, effRating, mitigationFrac, afterMitig, damageReduction, final };
 }
 
 /**

@@ -25,4 +25,17 @@ export class Rng {
     if (p >= 1) return true;
     return this.next() < p;
   }
+
+  /**
+   * Like {@link chance} but also returns the rolled value (for debug logging of
+   * crit rolls). RNG consumption is IDENTICAL to chance() — a single next() is
+   * drawn only when 0 < p < 1 — so swapping chance→rollChance is deterministic.
+   * `roll` is NaN when no draw was made (p ≤ 0 or p ≥ 1).
+   */
+  rollChance(p: number): { hit: boolean; roll: number } {
+    if (p <= 0) return { hit: false, roll: NaN };
+    if (p >= 1) return { hit: true, roll: NaN };
+    const roll = this.next();
+    return { hit: roll < p, roll };
+  }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mitigatedDamage, rollAttackDamage, critMultiplier, MITIGATION_CONSTANT } from "../src/core/damage.ts";
+import { mitigatedDamage, mitigationBreakdown, rollAttackDamage, critMultiplier, MITIGATION_CONSTANT } from "../src/core/damage.ts";
 import { makeStats } from "../src/data/schema.ts";
 
 describe("mitigatedDamage", () => {
@@ -38,6 +38,37 @@ describe("mitigatedDamage", () => {
     const def = makeStats({ damageReduction: 1 });
     const out = mitigatedDamage({ amount: 100, type: "Physical", armorPen: 0, magicPen: 0 }, def);
     expect(out).toBe(0);
+  });
+});
+
+describe("mitigationBreakdown", () => {
+  it("its `final` always equals mitigatedDamage (single source of truth)", () => {
+    const def = makeStats({ armor: 150, magicResist: 60, damageReduction: 0.1 });
+    for (const type of ["Physical", "Magic", "True"] as const) {
+      for (const pen of [0, 0.3, 1]) {
+        const packet = { amount: 200, type, armorPen: pen, magicPen: pen };
+        expect(mitigationBreakdown(packet, def).final).toBeCloseTo(mitigatedDamage(packet, def), 9);
+      }
+    }
+  });
+
+  it("reports each term of the formula", () => {
+    const def = makeStats({ armor: 100, damageReduction: 0.5 });
+    // 100 armor, 50% pen → eff 50 → curve 50/150 = 33.3% mitigation → 66.67 → DR 50% → 33.33
+    const b = mitigationBreakdown({ amount: 100, type: "Physical", armorPen: 0.5, magicPen: 0 }, def);
+    expect(b.defRating).toBe(100);
+    expect(b.effRating).toBeCloseTo(50, 5);
+    expect(b.mitigationFrac).toBeCloseTo(50 / 150, 5);
+    expect(b.afterMitig).toBeCloseTo(66.667, 2);
+    expect(b.damageReduction).toBe(0.5);
+    expect(b.final).toBeCloseTo(33.333, 2);
+  });
+
+  it("True damage shows no armor/resist mitigation", () => {
+    const b = mitigationBreakdown({ amount: 100, type: "True", armorPen: 0, magicPen: 0 }, makeStats({ armor: 999, magicResist: 999 }));
+    expect(b.mitigationFrac).toBe(0);
+    expect(b.afterMitig).toBe(100);
+    expect(b.final).toBe(100);
   });
 });
 

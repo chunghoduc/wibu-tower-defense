@@ -28,7 +28,8 @@ import {
   type BossSkill,
   type Vec2,
 } from "../data/schema.ts";
-import { mitigatedDamage, critMultiplier, type DamagePacket } from "./damage.ts";
+import { mitigatedDamage, mitigationBreakdown, critMultiplier, type DamagePacket } from "./damage.ts";
+import { combatLogOn, emitDamageLog } from "./combatLog.ts";
 import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
@@ -73,6 +74,15 @@ export type FxEvent =
   | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
   | { type: "loot"; at: Vec2; gold: number }
   | { type: "killReward"; at: Vec2; xp: number; item: boolean };
+
+/** Debug context threaded into applyDamage so the combat logger can print the
+ * full per-hit formula (only built when logging is on). */
+interface DmgCtx {
+  src: string;
+  kind: string;
+  rawFormula: string;
+  crit?: { rate: number; roll: number; hit: boolean; mult: number };
+}
 
 /** How close an enemy must be to the hero to be body-blocked into melee. */
 export const HERO_BLOCK_RANGE = 28;
@@ -584,7 +594,10 @@ export class BattleState {
       const survivors: Dot[] = [];
       for (const d of e.dots) {
         const active = Math.min(dt, d.remaining);
-        if (active > 0) this.applyDamage(e, d.type, d.dps * active, d.armorPen, d.magicPen, false, false);
+        if (active > 0) {
+          const ctx = this.dmgCtx("dot", "dot", `dot ${d.dps}/s ×${active.toFixed(2)}s`);
+          this.applyDamage(e, d.type, d.dps * active, d.armorPen, d.magicPen, false, false, ctx);
+        }
         const left = d.remaining - dt;
         if (left > 0 && e.alive) survivors.push({ ...d, remaining: left });
       }
@@ -734,7 +747,22 @@ export class BattleState {
     };
     this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: this.hero.pos.x, y: this.hero.pos.y }, target: "hero" });
     this.hero.hp -= mitigatedDamage(packet, this.hero.stats);
+    this.logEnemyHit(attacker, "hero", packet, this.hero.stats, this.hero.hp);
     if (this.hero.hp <= 0) this.hero.alive = false;
+  }
+
+  /** Log an enemy's hit on the hero/a tower (these don't run through applyDamage). */
+  private logEnemyHit(attacker: EnemyRuntime, targetLabel: string, packet: DamagePacket, defender: Stats, hpAfter: number): void {
+    if (!combatLogOn()) return;
+    const b = mitigationBreakdown(packet, defender);
+    emitDamageLog({
+      src: `enemy:${attacker.uid}`, target: targetLabel, kind: "enemy-atk", type: packet.type,
+      raw: Math.max(0, packet.amount), rawFormula: `atk ${packet.amount.toFixed(1)}`,
+      defRating: b.defRating, pen: packet.type === "Physical" ? packet.armorPen : packet.type === "Magic" ? packet.magicPen : 0,
+      effRating: b.effRating, mitigationFrac: b.mitigationFrac, afterMitig: b.afterMitig,
+      damageReduction: b.damageReduction, afterDR: b.final, shieldAbsorbed: 0, hpDamage: b.final,
+      targetHpAfter: Math.max(0, hpAfter), targetHpMax: defender.maxHp,
+    });
   }
 
   private dealDamageToTower(attacker: EnemyRuntime, tower: TowerRuntime): void {
@@ -746,6 +774,7 @@ export class BattleState {
     };
     this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: tower.pos.x, y: tower.pos.y }, target: "tower" });
     tower.hp -= mitigatedDamage(packet, tower.stats);
+    this.logEnemyHit(attacker, `tower:${tower.uid}`, packet, tower.stats, tower.hp);
     if (tower.hp <= 0) tower.alive = false;
   }
 
@@ -907,8 +936,9 @@ export class BattleState {
     style: string,
   ): void {
     const wasAlive = target.alive;
-    const didCrit = this.rng.chance(unit.stats.critRate);
-    const raw = didCrit ? rawAtk * critMultiplier(unit.stats.critDamage, target.stats.critDefense) : rawAtk;
+    const { hit: didCrit, roll: critRoll } = this.rng.rollChance(unit.stats.critRate);
+    const critMult = critMultiplier(unit.stats.critDamage, target.stats.critDefense);
+    const raw = didCrit ? rawAtk * critMult : rawAtk;
     this.emit({
       type: "attack",
       uid: srcUid,
@@ -921,7 +951,9 @@ export class BattleState {
       source,
       style,
     });
-    const dealt = this.applyDamage(target, damageType, raw, unit.stats.armorPen, unit.stats.magicPen, false);
+    const ctx = this.dmgCtx(`${source}:${srcUid}`, "basic", `atk ${rawAtk.toFixed(1)}`,
+      combatLogOn() ? { rate: unit.stats.critRate, roll: critRoll, hit: didCrit, mult: critMult } : undefined);
+    const dealt = this.applyDamage(target, damageType, raw, unit.stats.armorPen, unit.stats.magicPen, false, true, ctx);
 
     if (unit.stats.maxMana > 0) {
       unit.mana = Math.min(unit.stats.maxMana, unit.mana + unit.stats.manaOnHit);
@@ -947,6 +979,7 @@ export class BattleState {
     magicPen: number,
     isAoE: boolean,
     emitHit = true,
+    dbg?: DmgCtx,
   ): number {
     if (!target.alive) return 0;
     if (this.isImmune(target, damageType, isAoE)) return 0;
@@ -960,8 +993,26 @@ export class BattleState {
     const { shield, overflow } = absorbWithShield(target.shield, incoming);
     target.shield = shield;
     target.hp -= overflow;
+
+    if (dbg && combatLogOn()) {
+      const b = mitigationBreakdown(packet, target.stats);
+      emitDamageLog({
+        src: dbg.src, target: `${target.def.id}#${target.uid}`, kind: dbg.kind, type: damageType,
+        raw: Math.max(0, rawAmount), rawFormula: dbg.rawFormula, crit: dbg.crit,
+        defRating: b.defRating, pen: damageType === "Physical" ? armorPen : damageType === "Magic" ? magicPen : 0,
+        effRating: b.effRating, mitigationFrac: b.mitigationFrac, afterMitig: b.afterMitig,
+        damageReduction: b.damageReduction, afterDR: b.final,
+        shieldAbsorbed: incoming - overflow, hpDamage: overflow,
+        targetHpAfter: Math.max(0, target.hp), targetHpMax: target.stats.maxHp,
+      });
+    }
     if (target.hp <= 0) this.killEnemy(target);
     return incoming;
+  }
+
+  /** Build a damage-log context only when logging is on (cheap no-op otherwise). */
+  private dmgCtx(src: string, kind: string, rawFormula: string, crit?: DmgCtx["crit"]): DmgCtx | undefined {
+    return combatLogOn() ? { src, kind, rawFormula, crit } : undefined;
   }
 
   private isImmune(target: EnemyRuntime, damageType: DamageType, isAoE: boolean): boolean {
@@ -982,10 +1033,11 @@ export class BattleState {
     radius: number,
   ): void {
     this.emit({ type: "splash", at: { x: center.x, y: center.y }, radius, damageType });
+    const ctx = this.dmgCtx("splash", "splash", `splash atk ${effAtk.toFixed(1)}`);
     for (const e of this.enemies) {
       if (!e.alive || e === primary) continue;
       if (dist(e.pos, center) <= radius) {
-        this.applyDamage(e, damageType, effAtk, attacker.armorPen, attacker.magicPen, true);
+        this.applyDamage(e, damageType, effAtk, attacker.armorPen, attacker.magicPen, true, true, ctx);
       }
     }
   }
@@ -1010,7 +1062,8 @@ export class BattleState {
       }
       if (!next) break;
       this.emit({ type: "chain", from: { x: from.pos.x, y: from.pos.y }, to: { x: next.pos.x, y: next.pos.y } });
-      this.applyDamage(next, t.def.damageType, dmg, t.stats.armorPen, t.stats.magicPen, false);
+      const ctx = this.dmgCtx(`tower:${t.uid}`, "chain", `chain bounce ${i + 1} dmg ${dmg.toFixed(1)} (×falloff ${falloff})`);
+      this.applyDamage(next, t.def.damageType, dmg, t.stats.armorPen, t.stats.magicPen, false, true, ctx);
       hit.add(next.uid);
       from = next;
       dmg *= falloff;
@@ -1055,11 +1108,13 @@ export class BattleState {
     skillId?: string,
   ): void {
     this.emit({ type: "cast", uid, at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
-    const burst = effAtk * 2 * Math.max(1, attacker.skillPower);
+    const sp = Math.max(1, attacker.skillPower);
+    const burst = effAtk * 2 * sp;
+    const ctx = this.dmgCtx(`${source}:${uid}`, "active", `atk ${effAtk.toFixed(1)} ×2 ×skillPower ${sp.toFixed(2)}`);
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist(e.pos, center) <= SPLASH_RADIUS) {
-        this.applyDamage(e, damageType, burst, attacker.armorPen, attacker.magicPen, true);
+        this.applyDamage(e, damageType, burst, attacker.armorPen, attacker.magicPen, true, true, ctx);
       }
     }
   }
