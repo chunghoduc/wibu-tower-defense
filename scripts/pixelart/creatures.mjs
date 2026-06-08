@@ -21,6 +21,12 @@ export const ENEMY_SPECS = {
   imp: { type: "humanoid", size: 24, skin: "#c0392b", cloth: "#5a1a1a", horns: true, eye: "#ffd24a" },
   raider: { type: "ogre", size: 38, skin: "#7a5a4a", cloth: "#3a2a2a", weapon: "axe", eye: "#d23b3b" },
   courier: { type: "humanoid", size: 26, skin: "#9a8a6a", cloth: "#4a4a2a", bag: true, eye: "#e8d24a" },
+  // Juggernauts — hulking stone constructs (one iron-plated, one rune-carved).
+  golem: { type: "ogre", size: 42, skin: "#7a8290", cloth: "#3a4250", armor: "#9aa6b8", eye: "#bfe8ff" },
+  monolith: { type: "ogre", size: 42, skin: "#6a6276", cloth: "#2a2438", armor: "#8a7ab0", eye: "#c77dde" },
+  // Support enemies — a banner-bearing herald and a hooded hex-caster.
+  herald: { type: "humanoid", size: 32, skin: "#caa1a1", cloth: "#7a2a3a", weapon: "sword", eye: "#ffd24a" },
+  hexer: { type: "caster", size: 32, skin: "#9aae9a", cloth: "#3a4a3a", orb: "#c77dde", eye: "#c77dde" },
   champion: { type: "boss", size: 44, skin: "#cfcad0", armor: "#8a8f9c", trim: "#caa84a", weapon: "sword", eye: "#d23b3b" },
   warden: { type: "boss", size: 46, skin: "#b0b4bc", armor: "#5a6070", trim: "#9aa6b8", weapon: "axe", shield: "#6a7280", eye: "#bfe8ff" },
   overlord: { type: "boss", size: 48, skin: "#7a6a8a", armor: "#3a2a4a", trim: "#b07ad8", cape: "#2a1a3a", orb: "#c77dde", eye: "#ff5a5a" },

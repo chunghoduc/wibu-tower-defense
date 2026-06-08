@@ -222,6 +222,63 @@ export const ENEMIES: EnemyDef[] = [
     baseStats: makeStats({ maxHp: 85, moveSpeed: 72, atk: 0, attackSpeed: 0 }),
     artRef: "placeholder",
   },
+  // --- Juggernauts (slow, immovable damage sponges; halve ALL damage and are
+  //     immune to one type — answer with the OTHER type, True, or penetration) ---
+  {
+    // Physical-immune: arrows/swords do nothing. Bring magic or True damage.
+    id: "golem",
+    name: "Ironclad Golem",
+    archetype: "Juggernaut",
+    flying: false,
+    immunity: "Physical",
+    damageType: "Physical",
+    bounty: 34,
+    castleDamage: 5,
+    baseStats: makeStats({ maxHp: 420, armor: 50, magicResist: 30, damageReduction: 0.5, moveSpeed: 15, atk: 20, attackSpeed: 0.55 }),
+    artRef: "placeholder",
+  },
+  {
+    // Magic-immune: spells fizzle. Bring physical or True damage.
+    id: "monolith",
+    name: "Runed Monolith",
+    archetype: "Juggernaut",
+    flying: false,
+    immunity: "Magic",
+    damageType: "Physical",
+    bounty: 34,
+    castleDamage: 5,
+    baseStats: makeStats({ maxHp: 420, armor: 30, magicResist: 50, damageReduction: 0.5, moveSpeed: 15, atk: 20, attackSpeed: 0.55 }),
+    artRef: "placeholder",
+  },
+  // --- Support enemies (fragile but force-multipliers; kill them FIRST) ---
+  {
+    // Herald: a rallying banner — speeds up and toughens every nearby ally.
+    id: "herald",
+    name: "Warbanner Herald",
+    archetype: "Herald",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 26,
+    castleDamage: 1,
+    baseStats: makeStats({ maxHp: 135, armor: 20, magicResist: 20, moveSpeed: 34, atk: 6, attackSpeed: 0.8 }),
+    special: { supportAura: { radius: 115, moveSpeedMult: 1.3, damageReductionAdd: 0.15 } },
+    artRef: "placeholder",
+  },
+  {
+    // Hexer: heals and armors nearby allies AND hexes nearby towers to attack slower.
+    id: "hexer",
+    name: "Grave Hexbinder",
+    archetype: "Hexer",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 28,
+    castleDamage: 1,
+    baseStats: makeStats({ maxHp: 120, magicResist: 50, moveSpeed: 30, atk: 8, attackSpeed: 0.9 }),
+    special: { supportAura: { radius: 125, healPerSec: 14, armorAdd: 25, magicResistAdd: 25, towerAttackSpeedMult: 0.75 } },
+    artRef: "placeholder",
+  },
   // --- Mid-boss: a teaching enrager ---
   {
     id: "champion",

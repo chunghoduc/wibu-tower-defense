@@ -155,7 +155,7 @@ export class BattleScene extends Phaser.Scene {
     const bcx = this.battleW / 2;
     this.uiGfx = this.add.graphics().setDepth(8);
     this.hud = crispText(this, 10, 8, "", { fontSize: "15px", color: "#ffffff", wordWrap: { width: this.battleW - 120 } }).setDepth(10);
-    this.banner = crispText(this, bcx, 188, "", { fontSize: "40px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
+    this.banner = crispText(this, bcx, 150, "", { fontSize: "40px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
     this.info = crispText(this, 10, this.scale.height - 16, "", { fontSize: "12px", color: "#dbe6ee", wordWrap: { width: this.battleW - 20 } }).setDepth(10);
     this.hudLevelText = crispText(this, 36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
     this.hudSkillText = crispText(this, 58, 117, "", { fontSize: "10px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
@@ -667,7 +667,7 @@ export class BattleScene extends Phaser.Scene {
     }
 
     if (b.outcome !== "ongoing" && !this._menuBtn) {
-      this._menuBtn = crispText(this, this.battleW / 2, 370, "← Return to Menu", {
+      this._menuBtn = crispText(this, this.battleW / 2, 478, "← Return to Menu", {
           fontSize: "20px",
           color: "#ffffff",
           backgroundColor: "#223355",
@@ -698,7 +698,7 @@ export class BattleScene extends Phaser.Scene {
       : null;
 
     const summary = buildLootSummary(outcome, this.battle.battleLoot, clear);
-    this.ui.add(showBattleLootPanel(this, summary, this.battleW / 2, 262));
+    this.ui.add(showBattleLootPanel(this, summary, this.battleW / 2, 182));
   }
 
   /** Render one sim FX event, and trigger sprite animations (attack swing, hit flash). */
@@ -721,7 +721,7 @@ export class BattleScene extends Phaser.Scene {
       const victim = ev.target === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : this.towerNear(ev.targetAt);
       if (victim) this.flash(victim, 0xff4444);
       if (ev.target === "hero") this.heroSprite?.playHurt();   // recoil + hurt frames
-      this.playSpriteOneShot(this.enemySprites.get(ev.uid) ?? null, ["attack"], "walk"); // boss attack swing (no-op for plain enemies)
+      this.playSpriteOneShot(this.enemySprites.get(ev.uid) ?? null, ["attack"], "walk"); // enemy/boss attack swing (atk1/atk2 frames)
     } else if (ev.type === "death") {
       this.sfx.death();
     } else if (ev.type === "cast") {

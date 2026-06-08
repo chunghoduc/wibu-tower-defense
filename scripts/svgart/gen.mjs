@@ -64,8 +64,13 @@ const BOSS_CELL = 64; // bosses render larger + animated via the rig
 if (!only || only === "tower") for (const [id, spec] of Object.entries(CHARACTERS)) saveAnim("tower", id, spec, roleOf.get(id));
 if (!only || only === "hero") saveAnim("hero", "hero", HERO, "damage");
 // Non-boss enemies: distinct static creature art. Bosses: animated rig sheets.
+// `--ids=a,b` restricts generation to those ids (used to add NEW enemies without
+// clobbering design-team multi-frame sheets already on disk).
+const idsArg = arg("ids");
+const idFilter = idsArg ? new Set(idsArg.split(",")) : null;
 if (!only || only === "enemy")
-  for (const [id, s] of Object.entries(ENEMY_SPECS)) if (!BOSS_IDS.has(id)) saveStatic("enemy", id, composeEnemy(s));
+  for (const [id, s] of Object.entries(ENEMY_SPECS))
+    if (!BOSS_IDS.has(id) && (!idFilter || idFilter.has(id))) saveStatic("enemy", id, composeEnemy(s));
 if (!only || only === "boss")
   for (const [id, spec] of Object.entries(BOSSES)) saveAnim("boss", id, spec, "damage", BOSS_CELL);
 if (!only || only === "item") for (const [id, spec] of Object.entries(ITEM_SPECS)) saveStatic("item", id, composeItem(spec));

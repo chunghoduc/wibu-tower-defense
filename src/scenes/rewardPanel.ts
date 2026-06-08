@@ -6,6 +6,11 @@
 // equipment uses the full stat tooltip, everything else a titled info card.
 // The icons carry the meaning; names live in the hover, per design. The pure
 // tile mapping lives in data/rewardTiles.ts.
+//
+// The grid lives inside a fixed, masked viewport and SCROLLS (wheel + drag) when
+// a long run produces more loot than fits — so a big haul never spills off the
+// screen or over the Return-to-Menu button (the old bug). The hover tooltip is
+// drawn OUTSIDE the mask and tracks the scrolled tile, so it is never clipped.
 import Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
@@ -13,17 +18,19 @@ import { renderInfoTooltip } from "./infoTooltip.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { battleLootTiles, type BattleLootSummary, type RewardTileSpec } from "../data/rewardTiles.ts";
 
-const TILE = 64, GAP = 10, PER_ROW = 6;
+const TILE = 56, GAP = 8, PER_ROW = 8;
+const ROW_H = TILE + 22;     // tile + room for the count/rarity label
+const MAX_VISIBLE_ROWS = 3;  // rows shown before the grid starts scrolling
 
 function hex(int: number): string {
   return "#" + int.toString(16).padStart(6, "0");
 }
 
 /**
- * Build the post-battle loot panel at (centerX, topY): a centred, wrapping grid
- * of icon tiles with hover tooltips, shown on win OR loss. Returns the root
- * container (already added to the scene at depth 25). The caller owns its
- * lifetime.
+ * Build the post-battle loot panel at (centerX, topY): a centred grid of icon
+ * tiles with hover tooltips, shown on win OR loss. Tiles beyond MAX_VISIBLE_ROWS
+ * scroll within a masked viewport. Returns the root container (already added to
+ * the scene at depth 25). The caller owns its lifetime.
  */
 export function showBattleLootPanel(
   scene: Phaser.Scene, summary: BattleLootSummary, centerX: number, topY: number,
@@ -47,26 +54,91 @@ export function showBattleLootPanel(
     gridTop = topY + 20;
   }
 
-  specs.forEach((spec, i) => {
-    const col = i % PER_ROW;
-    const row = Math.floor(i / PER_ROW);
-    const rowCount = Math.min(PER_ROW, specs.length - row * PER_ROW);
-    const rowW = rowCount * TILE + (rowCount - 1) * GAP;
-    const x = centerX - rowW / 2 + col * (TILE + GAP) + TILE / 2;
-    const y = gridTop + row * (TILE + 26) + TILE / 2;
-    root.add(buildTile(scene, spec, x, y, tooltip));
-  });
+  if (specs.length > 0) {
+    buildScrollableGrid(scene, root, tooltip, specs, centerX, gridTop);
+  }
 
   // Tooltip drawn last so it layers above every tile.
   root.add(tooltip);
   return root;
 }
 
-function buildTile(
-  scene: Phaser.Scene, spec: RewardTileSpec, x: number, y: number,
+/** Lay the tiles out in a masked, scrollable viewport centred on `centerX`. */
+function buildScrollableGrid(
+  scene: Phaser.Scene,
+  root: Phaser.GameObjects.Container,
   tooltip: Phaser.GameObjects.Container,
+  specs: RewardTileSpec[],
+  centerX: number,
+  vpTop: number,
+): void {
+  const cols = Math.min(PER_ROW, specs.length);
+  const rows = Math.ceil(specs.length / PER_ROW);
+  const visRows = Math.min(rows, MAX_VISIBLE_ROWS);
+  const vpW = cols * (TILE + GAP) - GAP;
+  const vpH = visRows * ROW_H;
+  const vpLeft = Math.round(centerX - vpW / 2);
+  const contentH = rows * ROW_H;
+  const scrollable = contentH > vpH;
+
+  // Tiles live in a scrolling list container; the mask clips it to the viewport.
+  const list = scene.add.container(vpLeft, vpTop);
+  root.add(list);
+  const maskG = scene.make.graphics({}).fillRect(vpLeft, vpTop, vpW, vpH);
+  const mask = maskG.createGeometryMask();
+  list.setMask(mask);
+
+  specs.forEach((spec, i) => {
+    const col = i % PER_ROW;
+    const row = Math.floor(i / PER_ROW);
+    const x = col * (TILE + GAP) + TILE / 2;
+    const y = row * ROW_H + TILE / 2;
+    list.add(buildTile(scene, spec, x, y, list, tooltip));
+  });
+
+  if (!scrollable) return;
+
+  // Scroll affordance + wheel/drag handlers, clamped to the content range.
+  const minY = vpTop - (contentH - vpH);
+  const hint = crispText(scene, centerX, vpTop + vpH + 2, "⇕ scroll for more", {
+    fontSize: "10px", color: "#7f93a8", fontStyle: "bold", stroke: "#0a1420", strokeThickness: 3,
+  }).setOrigin(0.5, 0);
+  root.add(hint);
+
+  let dragging = false, dragStartY = 0, listStartY = 0;
+  const clamp = (v: number) => Phaser.Math.Clamp(v, minY, vpTop);
+  const inViewport = (p: Phaser.Input.Pointer) =>
+    p.x >= vpLeft && p.x <= vpLeft + vpW && p.y >= vpTop && p.y <= vpTop + vpH;
+  const wheel = (p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
+    if (!list.active || !inViewport(p)) return;
+    list.y = clamp(list.y - dy * 0.5);
+    tooltip.setVisible(false);
+  };
+  const down = (p: Phaser.Input.Pointer) => {
+    if (list.active && inViewport(p)) { dragging = true; dragStartY = p.y; listStartY = list.y; }
+  };
+  const move = (p: Phaser.Input.Pointer) => {
+    if (dragging && list.active) { list.y = clamp(listStartY + (p.y - dragStartY)); tooltip.setVisible(false); }
+  };
+  const up = () => { dragging = false; };
+  scene.input.on("wheel", wheel);
+  scene.input.on("pointerdown", down);
+  scene.input.on("pointermove", move);
+  scene.input.on("pointerup", up);
+  root.once(Phaser.GameObjects.Events.DESTROY, () => {
+    scene.input.off("wheel", wheel);
+    scene.input.off("pointerdown", down);
+    scene.input.off("pointermove", move);
+    scene.input.off("pointerup", up);
+    maskG.destroy();
+  });
+}
+
+function buildTile(
+  scene: Phaser.Scene, spec: RewardTileSpec, localX: number, localY: number,
+  list: Phaser.GameObjects.Container, tooltip: Phaser.GameObjects.Container,
 ): Phaser.GameObjects.Container {
-  const c = scene.add.container(x, y);
+  const c = scene.add.container(localX, localY);
 
   const bg = scene.add.graphics();
   bg.fillStyle(0x121a28, 0.96).fillRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 8);
@@ -74,15 +146,17 @@ function buildTile(
   c.add(bg);
 
   if (scene.textures.exists(spec.iconKey)) {
-    c.add(scene.add.image(0, -4, spec.iconKey).setDisplaySize(40, 40));
+    c.add(scene.add.image(0, -4, spec.iconKey).setDisplaySize(36, 36));
   } else {
-    c.add(scene.add.text(0, -4, spec.emoji, { fontSize: "26px" }).setOrigin(0.5));
+    c.add(scene.add.text(0, -4, spec.emoji, { fontSize: "24px" }).setOrigin(0.5));
   }
-  c.add(crispText(scene, 0, TILE / 2 - 14, spec.label, { fontSize: "10px", color: hex(spec.color), fontStyle: "bold" }).setOrigin(0.5, 0));
+  c.add(crispText(scene, 0, TILE / 2 - 13, spec.label, { fontSize: "10px", color: hex(spec.color), fontStyle: "bold" }).setOrigin(0.5, 0));
 
   c.setSize(TILE, TILE).setInteractive({ useHandCursor: true });
   c.on("pointerover", () => {
-    showTileTooltip(scene, tooltip, spec, x, y);
+    // Tooltip lives outside the mask, so anchor it to the tile's CURRENT world
+    // position (list scrolls, so read list.y live).
+    showTileTooltip(scene, tooltip, spec, list.x + localX, list.y + localY);
     scene.tweens.add({ targets: c, scale: 1.1, duration: 90, ease: "Back.easeOut" });
   });
   c.on("pointerout", () => {
@@ -103,5 +177,6 @@ function showTileTooltip(
   } else {
     renderInfoTooltip(scene, tooltip, spec.tooltip.data, x, y);
   }
+  tooltip.setVisible(true);
   tooltip.parentContainer?.bringToTop(tooltip);
 }

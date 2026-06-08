@@ -123,10 +123,13 @@ function buildWaves(n: number): WaveDef[] {
   const w3: SpawnEntry[] = [];
   if (n >= 3) w3.push(spawn("bulwark", 1 + Math.floor(n / 3), 1.5));
   if (n >= 3) w3.push(spawn("slime", 1 + Math.floor(n / 3), 1.5, 2));
+  if (n >= 3) w3.push(spawn("herald", 1, 1, 3)); // rally support — kill it first
   if (n >= 4) w3.push(spawn("regenerator", Math.floor(n / 3), 2, 3));
   if (n >= 4) w3.push(spawn("mender", 1, 1, 4));
+  if (n >= 4) w3.push(spawn("golem", 1, 2.5, 5)); // physical-immune wall
   if (n >= 5) w3.push(spawn("phantom", Math.floor(n / 2), 1.2, 5));
   if (n >= 5) w3.push(spawn("sapper", 1, 1, 6));
+  if (n >= 5) w3.push(spawn("monolith", 1, 2.5, 6)); // magic-immune wall
   if (n >= 6) w3.push(spawn("stormflyer", 1 + Math.floor(n / 4), 1.5, 4));
   if (w3.length === 0) w3.push(spawn("grunt", 9, 0.6));
   w.push({ spawns: w3 });
@@ -138,8 +141,10 @@ function buildWaves(n: number): WaveDef[] {
   if (n >= 6) {
     const wx: SpawnEntry[] = [spawn("runner", 6 + n, 0.4)];
     wx.push(spawn("summoner", 1, 1, 5));
+    wx.push(spawn("hexer", 1, 1, 6)); // tower-slowing healer — a priority kill
     if (n >= 7) wx.push(spawn("raider", 1 + Math.floor(n / 4), 2, 3));
     if (n >= 7) wx.push(spawn("courier", 1, 1, 2));
+    if (n >= 8) wx.push(spawn(n % 2 === 0 ? "golem" : "monolith", 1 + Math.floor(n / 6), 2.5, 4));
     w.push({ spawns: wx });
   }
 

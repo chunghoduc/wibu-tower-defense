@@ -1,15 +1,25 @@
-import type { Stats } from "../data/schema.ts";
+import type { Immunity, Stats } from "../data/schema.ts";
 import type { Rng } from "./rng.ts";
 
 /**
- * Elite enemies (T17). Any non-boss spawn has a small chance to be promoted to
- * an "elite": dramatically tougher stats, 1.5× size with a pulsing aura, and a
- * GUARANTEED loot box on death whose rarity is weighted toward Common (Unique
- * is very rare). Bosses are never made elite — they are already special.
+ * Elite enemies (T17). At most ONE elite appears per battle, gated by a single
+ * per-battle roll (ELITE_BATTLE_CHANCE). When it appears it is dramatically
+ * tougher, 1.5× size with a pulsing aura, immune to EITHER physical OR magic
+ * damage, takes a flat 50% less damage from everything else, and GUARANTEES a
+ * loot box on death (rarity weighted toward Common; Unique is very rare).
+ * Bosses are never made elite — they are already special.
  */
 
-/** Per-spawn chance a normal enemy is promoted to an elite. */
-export const ELITE_SPAWN_CHANCE = 0.05;
+/** Chance that a given battle contains an elite (rolled once per battle). */
+export const ELITE_BATTLE_CHANCE = 0.25;
+
+/**
+ * Flat damage reduction an elite gains. The damage pipeline applies the
+ * defender's damageReduction as its FINAL step (after armor/resist), so folding
+ * this into the elite's stats satisfies "reduction applied last". Combined
+ * multiplicatively with any reduction the base enemy already had.
+ */
+export const ELITE_DAMAGE_REDUCTION = 0.5;
 
 /** Visual scale-up vs a normal enemy (the spec's "150% bigger"). */
 export const ELITE_SIZE_MULT = 1.5;
@@ -31,7 +41,9 @@ export const ELITE_MULT = {
   moveSpeed: 1.15,
 } as const;
 
-/** Return a NEW Stats object with the elite multipliers applied. */
+const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+/** Return a NEW Stats object with the elite multipliers + flat 50% reduction applied. */
 export function applyEliteBoost(stats: Stats): Stats {
   return {
     ...stats,
@@ -41,7 +53,18 @@ export function applyEliteBoost(stats: Stats): Stats {
     armor: stats.armor * ELITE_MULT.armor,
     magicResist: stats.magicResist * ELITE_MULT.magicResist,
     moveSpeed: stats.moveSpeed * ELITE_MULT.moveSpeed,
+    // Combine with any existing reduction so it never *lowers* a tankier base.
+    damageReduction: 1 - (1 - clamp01(stats.damageReduction)) * (1 - ELITE_DAMAGE_REDUCTION),
   };
+}
+
+/**
+ * The damage type an elite becomes immune to — Physical or Magic, 50/50. Only
+ * granted to elites that have no innate immunity, so we never create a
+ * physical-AND-magic-immune unit that only True damage can scratch.
+ */
+export function rollEliteImmunity(rng: Rng): Immunity {
+  return rng.next() < 0.5 ? "Physical" : "Magic";
 }
 
 /**

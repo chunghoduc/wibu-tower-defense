@@ -59,6 +59,9 @@ export const ENEMY_ARCHETYPES = [
   "Summoner",
   "Raider",
   "Courier",
+  "Juggernaut",
+  "Herald",
+  "Hexer",
   "Boss",
 ] as const;
 export type EnemyArchetype = (typeof ENEMY_ARCHETYPES)[number];
@@ -378,6 +381,26 @@ export interface EnemySpecial {
   stealth?: boolean;
   /** Sapper/Raider: stops to attack towers within this range. */
   attacksTowers?: { range: number };
+  /**
+   * Support enemies (Herald/Hexer): a radial aura that bolsters nearby allies
+   * and/or hampers nearby towers. Buffs are transient — recomputed each tick, so
+   * they fade the instant the support dies or an ally leaves the radius.
+   */
+  supportAura?: {
+    radius: number;
+    /** Ally move-speed multiplier (e.g. 1.3 = +30%). */
+    moveSpeedMult?: number;
+    /** Ally healing per second. */
+    healPerSec?: number;
+    /** Flat damage-reduction added to allies (0..1), combined multiplicatively. */
+    damageReductionAdd?: number;
+    /** Flat armor added to allies. */
+    armorAdd?: number;
+    /** Flat magic resist added to allies. */
+    magicResistAdd?: number;
+    /** Nearby towers' attack-speed multiplier (e.g. 0.75 = −25%, a tower slow). */
+    towerAttackSpeedMult?: number;
+  };
 }
 
 /** Boss-only mechanics. Composable: a boss may use several. */
@@ -443,10 +466,20 @@ export interface DifficultyScaling {
   bountyMult: number;
 }
 
+/**
+ * Difficulty is modelled as an enemy's combat power — effective HP × DPS. Hard
+ * enemies are ~5× as hard to beat as Normal, Nightmare ~20×. The power factor is
+ * split ~70/30 between HP and ATK (hp ∝ f^0.7, atk ∝ f^0.3) so harder tiers make
+ * enemies dramatically TANKIER and somewhat deadlier — rather than turning into
+ * one-shot glass cannons. Normal itself is tuned above the old 1.0 baseline so
+ * the base game asks for real defence. Bounty rises with difficulty to reward
+ * the climb. (hpMult × atkMult ratios: Normal ≈ 1.5, Hard ≈ 7.4 ≈ 5×, Nightmare
+ * ≈ 30 ≈ 20×.)
+ */
 export const DIFFICULTY_SCALING: Record<Difficulty, DifficultyScaling> = {
-  Normal: { hpMult: 1, atkMult: 1, bountyMult: 1 },
-  Hard: { hpMult: 1.6, atkMult: 1.3, bountyMult: 1.25 },
-  Nightmare: { hpMult: 2.6, atkMult: 1.7, bountyMult: 1.5 },
+  Normal: { hpMult: 1.3, atkMult: 1.15, bountyMult: 1 },
+  Hard: { hpMult: 4, atkMult: 1.85, bountyMult: 2 },
+  Nightmare: { hpMult: 10.5, atkMult: 2.85, bountyMult: 4 },
 };
 
 /** A point on the map in world coordinates. */

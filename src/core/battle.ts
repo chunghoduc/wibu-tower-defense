@@ -20,6 +20,7 @@ import {
   type DamageType,
   type Difficulty,
   type EnemyDef,
+  type Immunity,
   type StageDef,
   type Stats,
   type TargetType,
@@ -27,7 +28,7 @@ import {
   type BossSkill,
   type Vec2,
 } from "../data/schema.ts";
-import { mitigatedDamage, mitigationBreakdown, critMultiplier, type DamagePacket } from "./damage.ts";
+import { mitigatedDamage, mitigationBreakdown, critMultiplier, clamp01, type DamagePacket } from "./damage.ts";
 import { combatLogOn, emitDamageLog } from "./combatLog.ts";
 import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
@@ -38,7 +39,8 @@ import { effectiveBehavior } from "./towerUpgrade.ts";
 import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
-import { ELITE_SPAWN_CHANCE, ELITE_BOUNTY_MULT, applyEliteBoost } from "./elite.ts";
+import { ELITE_BATTLE_CHANCE, ELITE_BOUNTY_MULT, applyEliteBoost, rollEliteImmunity } from "./elite.ts";
+import { computeAuraMods, NEUTRAL_AURA, type AuraMods } from "./enemyAuras.ts";
 import type { HeroSave } from "./save.ts";
 import type { BattleLoot } from "../data/rewardTiles.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
@@ -131,6 +133,10 @@ export interface EnemyRuntime {
   enraged: boolean;
   /** Elite (T17): a promoted normal enemy — boosted stats, bigger, guaranteed box drop. */
   elite: boolean;
+  /** Elite-only damage-type immunity (Physical or Magic); null for normal enemies. */
+  eliteImmunity: Immunity | null;
+  /** Transient support-aura buffs from nearby Heralds/Hexers (recomputed each tick). */
+  aura: AuraMods;
   /** Boss skill mana (T16); fills over time + on taking damage, spent on cast. */
   mana: number;
 }
@@ -181,7 +187,7 @@ export interface BattleOptions {
   hero: HeroConfig;
   difficulty?: Difficulty;
   heroSave?: HeroSave;
-  /** Override the per-spawn elite chance (defaults to ELITE_SPAWN_CHANCE). */
+  /** Override the per-BATTLE elite chance (defaults to ELITE_BATTLE_CHANCE); 0 disables elites. */
   eliteChance?: number;
 }
 
@@ -200,6 +206,8 @@ interface SpawnRequest {
   distanceAlong?: number;
   airProgress?: number;
   airStart?: Vec2;
+  /** True for scheduled wave spawns (eligible for elite promotion); false for summons/splits. */
+  fromWave?: boolean;
 }
 
 function targetFilter(target: TargetType): TargetFilter {
@@ -239,8 +247,14 @@ export class BattleState {
   private petGoldPerSec = 0;
   private petGoldCarry = 0;
   private _heroSave: HeroSave | undefined;
-  /** Per-spawn elite-promotion chance (T17); overridable for tuning/tests. */
-  private readonly eliteChance: number;
+  /** True if THIS battle is fated to contain exactly one elite (rolled once at start). */
+  private readonly eliteThisBattle: boolean;
+  /** Which eligible wave-spawn index (0-based) becomes that elite, or -1 for none. */
+  private readonly eliteTargetIndex: number;
+  /** Count of eligible (non-boss) wave spawns seen so far — drives elite targeting. */
+  private eligibleSpawnSeen = 0;
+  /** Set once the battle's single elite has been spawned. */
+  private eliteSpawned = false;
 
   private schedule: ScheduledSpawn[] = [];
   private schedulePtr = 0;
@@ -256,7 +270,17 @@ export class BattleState {
     this.cat = catalogs;
     this.rng = new Rng(opts.seed ?? 1);
     this.difficulty = opts.difficulty ?? "Normal";
-    this.eliteChance = opts.eliteChance ?? ELITE_SPAWN_CHANCE;
+    // Roll once whether this battle contains an elite, then pick which eligible
+    // wave-spawn it will be. Bias toward the first ~70% of spawns so a fated
+    // elite reliably shows up before the run ends.
+    const eliteChance = opts.eliteChance ?? ELITE_BATTLE_CHANCE;
+    this.eliteThisBattle = this.rng.next() < eliteChance;
+    if (this.eliteThisBattle) {
+      const eligible = this.countEligibleWaveSpawns(stage, catalogs);
+      this.eliteTargetIndex = eligible > 0 ? Math.floor(this.rng.next() * Math.ceil(eligible * 0.7)) : -1;
+    } else {
+      this.eliteTargetIndex = -1;
+    }
     this.totalPathLen = pathLength(stage.path);
     this.castlePos = stage.path[stage.path.length - 1];
     this.castleHp = stage.castleHp;
@@ -449,6 +473,7 @@ export class BattleState {
     this.time += dt;
 
     this.updateWaves(dt);
+    this.recomputeEnemyAuras(dt);
     this.recomputeTowerBuffs();
     this.updateEnemies(dt);
     this.updateStealthReveal();
@@ -476,7 +501,7 @@ export class BattleState {
       this.schedulePtr < this.schedule.length &&
       this.schedule[this.schedulePtr].at <= this.time
     ) {
-      this.spawnEnemy({ enemyId: this.schedule[this.schedulePtr].enemyId });
+      this.spawnEnemy({ enemyId: this.schedule[this.schedulePtr].enemyId, fromWave: true });
       this.schedulePtr++;
     }
 
@@ -506,6 +531,18 @@ export class BattleState {
     this.waveActive = true;
   }
 
+  /** Total non-boss enemies scheduled across all waves — the elite-target pool. */
+  private countEligibleWaveSpawns(stage: StageDef, cat: Catalogs): number {
+    let n = 0;
+    for (const wave of stage.waves) {
+      for (const group of wave.spawns) {
+        const d = cat.enemies.get(group.enemyId);
+        if (d && d.archetype !== "Boss") n += group.count;
+      }
+    }
+    return n;
+  }
+
   private spawnEnemy(req: SpawnRequest): void {
     const def = this.cat.enemies.get(req.enemyId);
     if (!def) return;
@@ -515,10 +552,24 @@ export class BattleState {
       maxHp: def.baseStats.maxHp * scale.hpMult,
       atk: def.baseStats.atk * scale.atkMult,
     };
-    // Elite promotion (T17): a small chance any non-boss enemy becomes a
-    // dramatically tougher elite that guarantees a loot box on death.
-    const elite = def.archetype !== "Boss" && this.eliteChance > 0 && this.rng.next() < this.eliteChance;
-    if (elite) stats = applyEliteBoost(stats);
+    // Elite promotion (T17, reworked): at most ONE elite per battle, fixed to a
+    // pre-rolled eligible wave-spawn index. Summons/splits are never elite.
+    let elite = false;
+    if (req.fromWave && def.archetype !== "Boss") {
+      if (this.eliteThisBattle && !this.eliteSpawned && this.eligibleSpawnSeen === this.eliteTargetIndex) {
+        elite = true;
+        this.eliteSpawned = true;
+      }
+      this.eligibleSpawnSeen++;
+    }
+    // Elites gain a damage-type immunity (Physical or Magic) and a flat 50%
+    // reduction — but only grant the immunity if the base has none, so we never
+    // make a unit that only True damage can hurt.
+    let eliteImmunity: Immunity | null = null;
+    if (elite) {
+      stats = applyEliteBoost(stats);
+      if (def.immunity === null) eliteImmunity = rollEliteImmunity(this.rng);
+    }
     const flying = def.flying;
     const airStart =
       req.airStart ??
@@ -554,6 +605,8 @@ export class BattleState {
       bossDisableTimer: def.boss?.towerDisable?.interval ?? 0,
       enraged: false,
       elite,
+      eliteImmunity,
+      aura: { moveMult: 1, drAdd: 0, armorAdd: 0, magicResistAdd: 0 },
       mana: 0,
     });
   }
@@ -645,6 +698,33 @@ export class BattleState {
     }
   }
 
+  /** Refresh every enemy's transient support-aura buffs and apply aura healing. */
+  private recomputeEnemyAuras(dt: number): void {
+    const results = computeAuraMods(this.enemies);
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      const r = results.get(e.uid);
+      if (r) {
+        e.aura = r.mods;
+        if (r.healPerSec > 0) e.hp = Math.min(e.stats.maxHp, e.hp + r.healPerSec * dt);
+      } else if (e.aura !== NEUTRAL_AURA) {
+        e.aura = NEUTRAL_AURA;
+      }
+    }
+  }
+
+  /** Enemy defence stats with current support-aura bonuses folded in (for mitigation). */
+  private effDefStats(e: EnemyRuntime): Stats {
+    const a = e.aura;
+    if (a.armorAdd === 0 && a.magicResistAdd === 0 && a.drAdd === 0) return e.stats;
+    return {
+      ...e.stats,
+      armor: e.stats.armor + a.armorAdd,
+      magicResist: e.stats.magicResist + a.magicResistAdd,
+      damageReduction: 1 - (1 - clamp01(e.stats.damageReduction)) * (1 - clamp01(a.drAdd)),
+    };
+  }
+
   private applyHealAura(healer: EnemyRuntime, dt: number): void {
     const aura = healer.def.special!.healAura!;
     for (const o of this.enemies) {
@@ -718,7 +798,7 @@ export class BattleState {
   }
 
   private enemySpeed(e: EnemyRuntime): number {
-    const base = slowedSpeed(e.stats.moveSpeed, e.slowPct);
+    const base = slowedSpeed(e.stats.moveSpeed, e.slowPct) * e.aura.moveMult;
     return e.enraged && e.def.boss?.enrage ? base * e.def.boss.enrage.speedMult : base;
   }
 
@@ -824,6 +904,14 @@ export class BattleState {
           t.buffAtkPct += aura.atkPct ?? 0;
           t.buffAsPct += aura.attackSpeedPct ?? 0;
         }
+      }
+    }
+    // Hexer support enemies slow nearby towers (a negative attack-speed buff).
+    for (const s of this.enemies) {
+      const a = s.def.special?.supportAura;
+      if (!s.alive || !a?.towerAttackSpeedMult) continue;
+      for (const t of this.towers) {
+        if (t.alive && dist(s.pos, t.pos) <= a.radius) t.buffAsPct += a.towerAttackSpeedMult - 1;
       }
     }
   }
@@ -996,8 +1084,9 @@ export class BattleState {
   ): number {
     if (!target.alive) return 0;
     if (this.isImmune(target, damageType, isAoE)) return 0;
+    const defStats = this.effDefStats(target);
     const packet: DamagePacket = { amount: rawAmount, type: damageType, armorPen, magicPen };
-    const incoming = mitigatedDamage(packet, target.stats);
+    const incoming = mitigatedDamage(packet, defStats);
     if (incoming <= 0) return 0;
 
     if (emitHit) {
@@ -1008,7 +1097,7 @@ export class BattleState {
     target.hp -= overflow;
 
     if (dbg && combatLogOn()) {
-      const b = mitigationBreakdown(packet, target.stats);
+      const b = mitigationBreakdown(packet, defStats);
       emitDamageLog({
         src: dbg.src, target: `${target.def.id}#${target.uid}`, kind: dbg.kind, type: damageType,
         raw: Math.max(0, rawAmount), rawFormula: dbg.rawFormula, crit: dbg.crit,
@@ -1030,10 +1119,16 @@ export class BattleState {
 
   private isImmune(target: EnemyRuntime, damageType: DamageType, isAoE: boolean): boolean {
     const imm = target.def.immunity;
-    if (imm === null) return false;
-    if (isAoE && imm === "AoE") return true;
-    if (imm === "Physical" && damageType === "Physical") return true;
-    if (imm === "Magic" && damageType === "Magic") return true;
+    if (imm !== null) {
+      if (isAoE && imm === "AoE") return true;
+      if (imm === "Physical" && damageType === "Physical") return true;
+      if (imm === "Magic" && damageType === "Magic") return true;
+    }
+    // Elite-granted immunity (only ever Physical or Magic; never set when the
+    // base already has an immunity).
+    const ei = target.eliteImmunity;
+    if (ei === "Physical" && damageType === "Physical") return true;
+    if (ei === "Magic" && damageType === "Magic") return true;
     return false;
   }
 
