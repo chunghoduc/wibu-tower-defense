@@ -13,6 +13,7 @@ import { BG_IMAGES, bgKey } from "../data/bgManifest.ts";
 import { UI_SVGS, UI_IMAGES } from "../data/uiManifest.ts";
 import { FX_IDS } from "../data/fxManifest.ts";
 import { ITEM_CATALOG } from "../data/items.ts";
+import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -57,6 +58,8 @@ export class PreloadScene extends Phaser.Scene {
     this.load.image("herodoll__base", "assets/ui/hero-doll/hero-base.png");
     // Additive-blend VFX textures (box-open burst/glow/sparkle).
     for (const id of FX_IDS) this.load.image(`fx__${id}`, `assets/sprites/fx/${id}.png`);
+    // Crafting-material icons (enhance jewels + summon scroll).
+    for (const id of MATERIAL_ICON_IDS) this.load.image(`material__${id}`, `assets/sprites/material/${id}.png`);
     // Every catalog item's 96×96 inventory icon (worn on the hero + shown in
     // inventory). Driven by the catalog so newly-added items load without a
     // manifest regen; skip any already provided by the sprite manifest.
