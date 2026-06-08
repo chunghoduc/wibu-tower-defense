@@ -41,6 +41,25 @@ export function tierOfBox(boxId: string): number {
   return m ? Math.max(1, Math.min(5, parseInt(m[1], 10))) : 1;
 }
 
+export interface BoxOdds {
+  tier: number;
+  /** Base crystals (gold) before the ±20% roll variance. */
+  crystals: number;
+  bless: number;
+  /** Soul-jewel chance, 0..1. */
+  soulChance: number;
+  /** Gear-drop chance, 0..1. */
+  itemChance: number;
+  /** Reference item level for the gear roll. */
+  itemLevel: number;
+}
+
+/** The opening odds for a box id — drives the reward-panel "drop rate" tooltip. */
+export function boxOdds(boxId: string): BoxOdds {
+  const tier = tierOfBox(boxId);
+  return { tier, ...TIERS[tier] };
+}
+
 /** Open one chest of `boxId`, mutating `save`. Returns the rolled rewards (or
  *  opened:false if the player has none). */
 export function openBox(save: HeroSave, boxId: string, rng: Rng): BoxReward {

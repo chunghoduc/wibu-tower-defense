@@ -93,6 +93,21 @@ describe("battleLootTiles", () => {
     expect(tiles[0].iconKey).toBe(`box__${boxId}`);
     expect(tiles[0].label).toBe("×2");
   });
+
+  it("box tooltip lists the opening odds (gold/bless/soul/gear rates)", () => {
+    const boxId = boxIdForTier(3);
+    const tiles = battleLootTiles({ ...summary, materials: { [boxId]: 1 } });
+    const tip = tiles[0].tooltip;
+    expect(tip.kind).toBe("info");
+    if (tip.kind === "info") {
+      expect(tip.data.subtitle).toContain("Tier 3 Boss Chest");
+      const body = tip.data.body ?? "";
+      expect(body).toContain("Opening odds:");
+      expect(body).toContain("Bless Jewel");
+      expect(body).toMatch(/% Soul Jewel/);
+      expect(body).toMatch(/% gear drop/);
+    }
+  });
 });
 
 describe("buildLootSummary", () => {

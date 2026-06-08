@@ -19,6 +19,7 @@ import { ACTIVE_SKILLS_MAP } from "./skills.ts";
 import { skillIconKey } from "./skillIconManifest.ts";
 import { TOWERS } from "./towers.ts";
 import { MATERIALS_MAP } from "./materials.ts";
+import { boxOdds } from "../core/boxes.ts";
 
 const RARITY_ORDER: Rarity[] = ["Common", "Magic", "Rare", "Legendary", "Unique"];
 const RARITY_HEX: Record<Rarity, string> = {
@@ -132,15 +133,30 @@ function characterTile(id: string): RewardTileSpec {
   };
 }
 
+/** A box tooltip lists its opening odds so players can see the drop rates. */
+function boxOddsBody(id: string, desc?: string): string {
+  const o = boxOdds(id);
+  const pct = (p: number) => `${Math.round(p * 100)}%`;
+  const lines = [
+    "Opening odds:",
+    `• ~${o.crystals} gold + ${o.bless}× Bless Jewel (guaranteed)`,
+    `• ${pct(o.soulChance)} Soul Jewel`,
+    `• ${pct(o.itemChance)} gear drop (around lvl ${o.itemLevel})`,
+  ];
+  return desc ? `${desc}\n\n${lines.join("\n")}` : lines.join("\n");
+}
+
 function materialTile(id: string, n: number): RewardTileSpec {
   const def = MATERIALS_MAP.get(id);
   // Boxes only ship a `box__<id>` texture; other materials use `material__<id>`.
   const isBox = def?.kind === "box";
   const iconKey = isBox ? `box__${id}` : `material__${id}`;
   const color = isBox && def?.rarity ? RARITY_INT[RARITY_ORDER[def.rarity - 1] ?? "Common"] : MAT_INT;
+  const subtitle = isBox ? `Tier ${boxOdds(id).tier} Boss Chest · ×${n}` : `×${n}`;
+  const body = isBox ? boxOddsBody(id, def?.description) : def?.description;
   return {
     iconKey, emoji: isBox ? "🎁" : "💠", label: `×${n}`, color,
-    tooltip: { kind: "info", data: { title: def?.name ?? id, titleColor: hex(color), borderColor: color, subtitle: `×${n}`, body: def?.description } },
+    tooltip: { kind: "info", data: { title: def?.name ?? id, titleColor: hex(color), borderColor: color, subtitle, body } },
   };
 }
 
