@@ -26,6 +26,8 @@ import { craftAlchemy, exchangeCopies } from "./alchemy.ts";
 import { expeditionActive, expeditionPendingGold, startExpedition, collectExpedition } from "./expedition.ts";
 import { bestEndlessWave, recordEndlessWave } from "./endless.ts";
 import { rolloverBossRush, recordBossRushTier } from "./bossRush.ts";
+import { claimableMilestoneCount, nextClaimableTier, claimMilestone, unlockedTitles } from "./milestones.ts";
+import { powerRating, profileSummary, setTitle } from "./profile.ts";
 import { claimStreak, streakClaimable, type StreakClaim } from "./streak.ts";
 import { spin, freeSpinAvailable, PAID_SPIN_COST, type SpinResult } from "./spin.ts";
 import { rolloverBounties, claimBounty } from "./bounties.ts";
@@ -460,6 +462,27 @@ export class SaveManager {
     const n = exchangeCopies(this.save, towerId, crystals);
     if (n > 0) this.persist();
     return n;
+  }
+
+  // ── F15 Milestones ──────────────────────────────────────────────────────────
+  claimableMilestoneCount(): number { return claimableMilestoneCount(this.save); }
+  nextClaimableTier(milestoneId: string): number { return nextClaimableTier(this.save, milestoneId); }
+  /** Claim the next available milestone tier. Returns the reward or null. */
+  claimMilestone(milestoneId: string): Reward | null {
+    const r = claimMilestone(this.save, milestoneId);
+    if (r) this.persist();
+    return r;
+  }
+
+  // ── F16 Profile / power / titles ─────────────────────────────────────────────
+  powerRating(): number { return powerRating(this.save); }
+  profileSummary(): ReturnType<typeof profileSummary> { return profileSummary(this.save); }
+  unlockedTitles(): string[] { return unlockedTitles(this.save); }
+  /** Equip an unlocked title (or "" to clear). Returns false if locked. */
+  setTitle(titleId: string): boolean {
+    const ok = setTitle(this.save, titleId);
+    if (ok) this.persist();
+    return ok;
   }
 
   // ── F2 Idle expedition ──────────────────────────────────────────────────────
