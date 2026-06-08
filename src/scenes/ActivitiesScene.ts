@@ -37,6 +37,7 @@ export class ActivitiesScene extends Phaser.Scene {
 
   create(): void {
     fadeIn(this);
+    this.scrollY = 0; this.contentH = 0; // reset on scene re-entry (Phaser reuses instances)
     this.mgr = this.registry.get("saveManager");
     const today = new Date().toISOString().slice(0, 10);
     const week = isoWeekKey(new Date());

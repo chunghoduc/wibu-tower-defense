@@ -26,6 +26,7 @@ const MENU_ITEMS: MenuItem[] = [
   { key: "passive", label: "Passives", scene: "PassiveGridScene", side: "right" },
   { key: "shop", label: "Shop", scene: "ShopScene", side: "bottom" },
   { key: "skills", label: "Skills", scene: "SkillsScene", side: "bottom" },
+  { key: "forge", label: "Forge", scene: "ForgeScene", side: "bottom" },
   { key: "settings", label: "Settings", scene: "SettingsScene", side: "bottom" },
 ];
 
@@ -209,6 +210,10 @@ function drawMenuGlyph(g: Phaser.GameObjects.Graphics, key: string, x: number, y
       g.lineStyle(1.4, 0xb89a5e, 1).strokeRoundedRect(x - s * 0.8, y - s * 0.7, s * 1.6, s * 1.4, 3);
       g.fillStyle(W, 1).fillPoints(star4(x, y, s * 0.5, s * 0.2), true);
       g.lineStyle(1.4, 0x9a7d4a, 1).lineBetween(x - s * 0.8, y - s * 0.35, x + s * 0.8, y - s * 0.35); break;
+    case "forge": // anvil + spark
+      g.fillStyle(0x9aa0ac, 1).fillRect(x - s * 0.7, y + s * 0.2, s * 1.4, s * 0.4);
+      g.fillStyle(0x6a7079, 1).fillRect(x - s * 0.3, y + s * 0.55, s * 0.6, s * 0.35);
+      g.fillStyle(W, 1).fillPoints(star4(x + s * 0.3, y - s * 0.4, s * 0.4, s * 0.16), true); break;
     case "settings": // gear
       g.lineStyle(3.4, 0xd6dded, 1).strokeCircle(x, y, s * 0.55);
       for (let i = 0; i < 8; i++) { const a = (Math.PI / 4) * i; g.lineBetween(x + Math.cos(a) * s * 0.55, y + Math.sin(a) * s * 0.55, x + Math.cos(a) * s, y + Math.sin(a) * s); } break;
