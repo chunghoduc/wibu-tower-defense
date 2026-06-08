@@ -23,6 +23,9 @@ import { getMasteryLevel, getMasteryXp } from "./mastery.ts";
 import { getAwakening, canAwaken, awaken } from "./awakening.ts";
 import { ensureWishlist, setWishlist, canClaimSpark, claimSpark } from "./banner.ts";
 import { craftAlchemy, exchangeCopies } from "./alchemy.ts";
+import { expeditionActive, expeditionPendingGold, startExpedition, collectExpedition } from "./expedition.ts";
+import { bestEndlessWave, recordEndlessWave } from "./endless.ts";
+import { rolloverBossRush, recordBossRushTier } from "./bossRush.ts";
 import { claimStreak, streakClaimable, type StreakClaim } from "./streak.ts";
 import { spin, freeSpinAvailable, PAID_SPIN_COST, type SpinResult } from "./spin.ts";
 import { rolloverBounties, claimBounty } from "./bounties.ts";
@@ -457,6 +460,42 @@ export class SaveManager {
     const n = exchangeCopies(this.save, towerId, crystals);
     if (n > 0) this.persist();
     return n;
+  }
+
+  // ── F2 Idle expedition ──────────────────────────────────────────────────────
+  expeditionActive(): boolean { return expeditionActive(this.save); }
+  expeditionPendingGold(nowMs = Date.now()): number { return expeditionPendingGold(this.save, nowMs); }
+  startExpedition(towerIds: string[], nowMs = Date.now()): void {
+    startExpedition(this.save, towerIds, nowMs);
+    this.persist();
+  }
+  collectExpedition(nowMs = Date.now(), rng: Rng = new Rng((Math.random() * 1e9) | 0)): Reward {
+    const r = collectExpedition(this.save, nowMs, rng);
+    this.persist();
+    return r;
+  }
+
+  // ── F11 Endless survival ────────────────────────────────────────────────────
+  bestEndlessWave(stageId: string): number { return bestEndlessWave(this.save, stageId); }
+  /** Record an endless run result; returns true on a new personal best. Persists. */
+  recordEndlessWave(stageId: string, wave: number): boolean {
+    const pb = recordEndlessWave(this.save, stageId, wave);
+    this.persist();
+    return pb;
+  }
+
+  // ── F12 Boss rush (weekly) ──────────────────────────────────────────────────
+  bestBossRushTier(): number { return this.save.meta.bossRush.bestTier; }
+  refreshBossRush(weekKey: string): void {
+    if (this.save.meta.bossRush.weekKey === weekKey) return;
+    rolloverBossRush(this.save, weekKey);
+    this.persist();
+  }
+  /** Record a boss-rush result; grants + returns any newly-earned reward. Persists. */
+  recordBossRushTier(weekKey: string, tier: number): Reward {
+    const r = recordBossRushTier(this.save, weekKey, tier);
+    this.persist();
+    return r;
   }
 
   // ── F1 Login streak ───────────────────────────────────────────────────────
