@@ -49,7 +49,9 @@ import { itemLevelForStage, chapterLevelRange } from "./itemDrop.ts";
 import { incrementQuestKey } from "./questTracker.ts";
 import { incrementBountyEvent } from "./bounties.ts";
 import { isoWeekKey } from "./meta.ts";
-import { recordKill } from "./bestiary.ts";
+import { recordKill, bestiaryDamageMul } from "./bestiary.ts";
+import { addMasteryXp, getMasteryLevel, masteryStatMul, MASTERY_XP_PER_KILL } from "./mastery.ts";
+import { squadSynergyMul } from "../data/synergies.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -267,6 +269,10 @@ export class BattleState {
   private nextUid = 1;
   /** Mid-tick spawn queue (summons/splits) flushed after all updates. */
   private pending: SpawnRequest[] = [];
+  /** F6: distinct tower defIds fielded this battle — each earns mastery XP per kill. */
+  private readonly deployedTowerIds = new Set<string>();
+  /** F8: team stat multipliers from the chosen squad's active synergies. */
+  private synergyMul: { atkMul: number; hpMul: number; attackSpeedMul: number } = { atkMul: 1, hpMul: 1, attackSpeedMul: 1 };
 
   constructor(stage: StageDef, catalogs: Catalogs, opts: BattleOptions) {
     this.stage = stage;
@@ -318,6 +324,19 @@ export class BattleState {
       };
     }
     this._heroSave = opts.heroSave;
+
+    // F8: resolve squad synergies once at battle start from the chosen squad.
+    if (opts.heroSave?.squad?.length) {
+      const defs = opts.heroSave.squad
+        .map((id) => catalogs.characters.get(id))
+        .filter((d): d is CharacterDef => !!d);
+      this.synergyMul = squadSynergyMul(defs);
+    }
+  }
+
+  /** Active squad-synergy multipliers (for the battle HUD). */
+  getSynergyMul(): { atkMul: number; hpMul: number; attackSpeedMul: number } {
+    return this.synergyMul;
   }
 
   // ---- Input -------------------------------------------------------------
@@ -378,6 +397,13 @@ export class BattleState {
       towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0),
       this.hero.stats,
     );
+    // F6 mastery (per-tower permanent growth) × F8 squad synergy (team auras).
+    const mLvl = this._heroSave ? getMasteryLevel(this._heroSave, characterId) : 1;
+    const mMul = masteryStatMul(mLvl);
+    resolvedStats.atk *= mMul * this.synergyMul.atkMul;
+    resolvedStats.maxHp *= mMul * this.synergyMul.hpMul;
+    resolvedStats.attackSpeed *= this.synergyMul.attackSpeedMul;
+    if (this._heroSave) this.deployedTowerIds.add(characterId);
     this.towers.push({
       uid: this.nextUid++,
       def,
@@ -449,6 +475,11 @@ export class BattleState {
       towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel),
       this.hero.stats,
     );
+    // Re-apply F6 mastery + F8 synergy so upgrading never drops the bonus.
+    const mMul = masteryStatMul(this._heroSave ? getMasteryLevel(this._heroSave, t.def.id) : 1);
+    t.stats.atk *= mMul * this.synergyMul.atkMul;
+    t.stats.maxHp *= mMul * this.synergyMul.hpMul;
+    t.stats.attackSpeed *= this.synergyMul.attackSpeedMul;
     t.behavior = effectiveBehavior(t.def, t.battleLevel);
     t.hp = t.stats.maxHp * hpFrac;
     t.mana = t.stats.maxMana * manaFrac;
@@ -1087,6 +1118,8 @@ export class BattleState {
   ): number {
     if (!target.alive) return 0;
     if (this.isImmune(target, damageType, isAoE)) return 0;
+    // F9 bestiary: permanent +% damage vs an archetype the player has mastered.
+    if (this._heroSave) rawAmount *= bestiaryDamageMul(this._heroSave, target.def.archetype);
     const defStats = this.effDefStats(target);
     const packet: DamagePacket = { amount: rawAmount, type: damageType, armorPen, magicPen };
     const incoming = mitigatedDamage(packet, defStats);
@@ -1252,6 +1285,8 @@ export class BattleState {
       incrementQuestKey(this._heroSave, boss ? "kill_bosses" : "kill_enemies", 1, today);
       incrementBountyEvent(this._heroSave, "kill", 1, isoWeekKey(new Date()));
       recordKill(this._heroSave, e.def.archetype); // F9 bestiary + F16 lifetime kills
+      // F6: every tower fielded this battle earns mastery XP from the kill.
+      for (const id of this.deployedTowerIds) addMasteryXp(this._heroSave, id, MASTERY_XP_PER_KILL);
     }
     const split = e.def.special?.splitInto;
     if (split) {

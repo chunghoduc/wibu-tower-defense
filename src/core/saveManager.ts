@@ -19,6 +19,7 @@ import { addTowerToCollection, upgradeTowerStar, type StarUpResult } from "./col
 import { canForgetNode, PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import type { JewelInstanceSave } from "./save.ts";
+import { getMasteryLevel, getMasteryXp } from "./mastery.ts";
 import { claimStreak, streakClaimable, type StreakClaim } from "./streak.ts";
 import { spin, freeSpinAvailable, PAID_SPIN_COST, type SpinResult } from "./spin.ts";
 import { rolloverBounties, claimBounty } from "./bounties.ts";
@@ -408,6 +409,10 @@ export class SaveManager {
     if (ok) this.persist();
     return ok;
   }
+
+  // ── F6 Tower mastery (read-only; XP is earned in battle) ───────────────────
+  masteryLevel(towerId: string): number { return getMasteryLevel(this.save, towerId); }
+  masteryXp(towerId: string): number { return getMasteryXp(this.save, towerId); }
 
   // ── F1 Login streak ───────────────────────────────────────────────────────
   /** Claim today's streak reward (advances/continues/resets the chain). Null if
