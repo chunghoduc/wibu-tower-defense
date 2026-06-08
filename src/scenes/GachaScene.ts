@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { HARD_PITY, MULTI_PULL_COST, SINGLE_PULL_COST, type SummonResult } from "../core/gacha.ts";
+import { SUMMON_SCROLL } from "../data/materials.ts";
 import { Rng } from "../core/rng.ts";
 import { TOWERS } from "../data/towers.ts";
 import { frameKey } from "../data/uiManifest.ts";
@@ -20,7 +21,7 @@ export class GachaScene extends Phaser.Scene {
   private pityText!: Phaser.GameObjects.Text;
   private pull1Btn!: Phaser.GameObjects.Text;
   private pull10Btn!: Phaser.GameObjects.Text;
-  private scrollBtn!: Phaser.GameObjects.Text;
+  private freeBtn!: Phaser.GameObjects.Text;
   private resultContainer!: Phaser.GameObjects.Container;
 
   constructor() {
@@ -58,8 +59,14 @@ export class GachaScene extends Phaser.Scene {
       .text(W / 2, 100, "", { fontSize: "14px", color: "#aaaaaa" })
       .setOrigin(0.5);
 
+    // Free summon recharges every 8 hours; shows a live countdown when on cooldown.
+    this.freeBtn = this.add
+      .text(W / 2, 128, "", { fontSize: "15px", color: "#fff", backgroundColor: "#2e7d32" })
+      .setOrigin(0.5).setPadding(14, 7, 14, 7).setInteractive({ useHandCursor: true });
+    this.freeBtn.on("pointerdown", () => this.claimFree());
+
     this.pull1Btn = this.add
-      .text(W / 2 - 140, 144, `1× Pull  (${SINGLE_PULL_COST} 💎)`, {
+      .text(W / 2 - 140, 168, "", {
         fontSize: "16px",
         color: "#ffffff",
         backgroundColor: "#1a4a7a",
@@ -69,7 +76,7 @@ export class GachaScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     this.pull10Btn = this.add
-      .text(W / 2 + 140, 144, `10× Pull  (${MULTI_PULL_COST} 💎)`, {
+      .text(W / 2 + 140, 168, "", {
         fontSize: "16px",
         color: "#ffffff",
         backgroundColor: "#1a4a7a",
@@ -81,32 +88,64 @@ export class GachaScene extends Phaser.Scene {
     this.pull1Btn.on("pointerdown", () => this.doPull(1));
     this.pull10Btn.on("pointerdown", () => this.doPull(10));
 
-    // Use a Summoning Scroll for one FREE pull (scrolls drop from bosses).
-    this.scrollBtn = this.add
-      .text(W / 2, 178, "", { fontSize: "14px", color: "#fff", backgroundColor: "#5a3a1a" })
-      .setOrigin(0.5).setPadding(12, 6, 12, 6).setInteractive({ useHandCursor: true });
-    this.scrollBtn.on("pointerdown", () => this.useScroll());
-
     this.resultContainer = this.add.container(0, 0);
+
+    // Tick the free-summon countdown once a second.
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => this.refreshFreeButton() });
 
     this.refreshUI();
   }
 
   private refreshUI(): void {
     const s = this.mgr.getSave();
-    this.crystalText.setText(`💎 ${s.currency.diamonds} Diamonds`);
+    const scrolls = s.materials[SUMMON_SCROLL] ?? 0;
+    this.crystalText.setText(`💎 ${s.currency.diamonds} Diamonds    📜 ${scrolls} Scrolls`);
     this.pityText.setText(
       `Pity: ${s.currency.pityCount} / ${HARD_PITY}` +
         (s.currency.pityInsuranceActive ? "  ⚡ Insurance active" : ""),
     );
-    this.pull1Btn.setAlpha(s.currency.diamonds >= SINGLE_PULL_COST ? 1 : 0.4);
-    this.pull10Btn.setAlpha(s.currency.diamonds >= MULTI_PULL_COST ? 1 : 0.4);
-    const scrolls = s.materials["summon-scroll"] ?? 0;
-    this.scrollBtn.setText(`📜 Use Scroll — free pull  (×${scrolls})`).setAlpha(scrolls > 0 ? 1 : 0.4);
+
+    // Scroll priority: a held scroll replaces the diamond cost on the 1× button,
+    // and 10+ scrolls replace the diamond cost on the 10× button.
+    if (scrolls >= 1) {
+      this.pull1Btn.setText("1× Pull  (📜 Scroll)").setBackgroundColor("#5a3a1a").setAlpha(1);
+    } else {
+      this.pull1Btn.setText(`1× Pull  (${SINGLE_PULL_COST} 💎)`).setBackgroundColor("#1a4a7a")
+        .setAlpha(s.currency.diamonds >= SINGLE_PULL_COST ? 1 : 0.4);
+    }
+    if (scrolls >= 10) {
+      this.pull10Btn.setText("10× Pull  (📜 ×10)").setBackgroundColor("#5a3a1a").setAlpha(1);
+    } else {
+      this.pull10Btn.setText(`10× Pull  (${MULTI_PULL_COST} 💎)`).setBackgroundColor("#1a4a7a")
+        .setAlpha(s.currency.diamonds >= MULTI_PULL_COST ? 1 : 0.4);
+    }
+
+    this.refreshFreeButton();
   }
 
-  private useScroll(): void {
-    const result = this.mgr.useSummonScroll(new Rng(Date.now()));
+  /** Update only the free-summon button — cheap enough to run every second. */
+  private refreshFreeButton(): void {
+    if (!this.freeBtn || !this.freeBtn.active) return;
+    const remaining = this.mgr.freeSummonReadyAt() - Date.now();
+    if (remaining <= 0) {
+      this.freeBtn.setText("🎁 Free Summon!").setBackgroundColor("#2e7d32").setAlpha(1);
+    } else {
+      this.freeBtn.setText(`🎁 Free in ${this.formatCountdown(remaining)}`).setBackgroundColor("#37474f").setAlpha(0.55);
+    }
+  }
+
+  private formatCountdown(ms: number): string {
+    const total = Math.ceil(ms / 1000);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const sec = total % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${sec}s`;
+    return `${sec}s`;
+  }
+
+  private claimFree(): void {
+    const result = this.mgr.claimFreeSummon(Date.now(), new Rng(Date.now()));
     if (!result) return;
     this.showResults([result]);
     this.refreshUI();
@@ -114,10 +153,28 @@ export class GachaScene extends Phaser.Scene {
 
   private doPull(count: 1 | 10): void {
     const s = this.mgr.getSave();
-    const needed = count === 1 ? SINGLE_PULL_COST : MULTI_PULL_COST;
-    if (s.currency.diamonds < needed) return;
+    const scrolls = s.materials[SUMMON_SCROLL] ?? 0;
+    const rng = new Rng(Date.now());
 
-    const results = this.mgr.afterSummon(count, new Rng(Date.now()));
+    let results: SummonResult[] | null;
+    if (count === 1) {
+      if (scrolls >= 1) {
+        const r = this.mgr.useSummonScroll(rng);
+        results = r ? [r] : null;
+      } else {
+        if (s.currency.diamonds < SINGLE_PULL_COST) return;
+        results = this.mgr.afterSummon(1, rng);
+      }
+    } else {
+      if (scrolls >= 10) {
+        results = this.mgr.useSummonScrollsMulti(10, rng);
+      } else {
+        if (s.currency.diamonds < MULTI_PULL_COST) return;
+        results = this.mgr.afterSummon(10, rng);
+      }
+    }
+
+    if (!results) return;
     this.showResults(results);
     this.refreshUI();
   }
@@ -131,7 +188,7 @@ export class GachaScene extends Phaser.Scene {
     const COLS = Math.min(results.length, 5);
     const GAP_X = 96;
     const ROW_H = CARD_H + 18;
-    const START_Y = 190;
+    const START_Y = 200;
 
     results.forEach((r, i) => {
       const col = i % COLS;

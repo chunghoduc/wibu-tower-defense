@@ -6,6 +6,8 @@ import type { HeroSave } from "./save.ts";
 
 export const SINGLE_PULL_COST = 160;
 export const MULTI_PULL_COST = 1440;
+/** A free single summon recharges 8 hours after the previous one is claimed. */
+export const FREE_SUMMON_INTERVAL_MS = 8 * 60 * 60 * 1000;
 export const HARD_PITY = 90;
 const SOFT_PITY_START = 75;
 const SOFT_PITY_INCREASE = 0.06;

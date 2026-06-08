@@ -1,7 +1,7 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 
-export const CURRENT_SAVE_VERSION = 8;
+export const CURRENT_SAVE_VERSION = 9;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -14,6 +14,13 @@ export interface CurrencySave {
   lastDailyLoginDate: string;
   /** When true, the next pull draws from the 95% Legendary / 5% Unique insurance pool. */
   pityInsuranceActive: boolean;
+  /**
+   * Epoch ms at which the next FREE single summon becomes claimable. A free
+   * summon is available whenever `Date.now() >= freeSummonReadyAt`. The 8-hour
+   * timer only restarts when the free summon is actually claimed, so at most one
+   * free summon is ever banked. `0` means "available now" (fresh/migrated saves).
+   */
+  freeSummonReadyAt: number;
 }
 
 export interface StageClearRecord {
@@ -159,7 +166,7 @@ export function createFreshSave(): HeroSave {
       equipped: {},
     },
     collection: {},
-    currency: { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
+    currency: { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false, freeSummonReadyAt: 0 },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     squad: [],
     materials: {},
@@ -176,7 +183,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   if ((save.version ?? 0) < 2) save = { ...save, collection: {}, version: 2 };
   if ((save.version ?? 0) < 3) save = {
     ...save,
-    currency: { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
+    currency: { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false, freeSummonReadyAt: 0 },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     version: 3,
   };
@@ -193,11 +200,15 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   if ((save.version ?? 0) < 7) {
     // Currency redesign: crystals → gold (everyday), add diamonds (premium).
     const legacyCrystals = (save.currency as unknown as { crystals?: number }).crystals ?? 0;
-    save = { ...save, currency: { gold: legacyCrystals, diamonds: 0, pityCount: save.currency?.pityCount ?? 0, lastDailyLoginDate: save.currency?.lastDailyLoginDate ?? "", pityInsuranceActive: save.currency?.pityInsuranceActive ?? false }, version: 7 };
+    save = { ...save, currency: { gold: legacyCrystals, diamonds: 0, pityCount: save.currency?.pityCount ?? 0, lastDailyLoginDate: save.currency?.lastDailyLoginDate ?? "", pityInsuranceActive: save.currency?.pityInsuranceActive ?? false, freeSummonReadyAt: save.currency?.freeSummonReadyAt ?? 0 }, version: 7 };
   }
   if ((save.version ?? 0) < 8) {
     // Daily quest system: stub in empty quest state.
     save = { ...save, quests: { date: "", progress: {}, claimed: [], allClaimed: false }, version: 8 };
+  }
+  if ((save.version ?? 0) < 9) {
+    // Free-summon timer: existing players start with one free summon ready.
+    save = { ...save, currency: { ...save.currency, freeSummonReadyAt: 0 }, version: 9 };
   }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the
@@ -207,9 +218,10 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   for (const id in save.collection) { const e = save.collection[id]; if (e) e.copies ??= 0; }
   save.squad ??= [];
   save.materials ??= {};
-  save.currency ??= { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false };
+  save.currency ??= { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false, freeSummonReadyAt: 0 };
   (save.currency as unknown as Record<string, unknown>).gold ??= 0;
   (save.currency as unknown as Record<string, unknown>).diamonds ??= 0;
+  (save.currency as unknown as Record<string, unknown>).freeSummonReadyAt ??= 0;
   save.progress ??= { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 };
   save.settings = { ...defaultSettings(), ...(save.settings ?? {}) };
   save.shop ??= { stock: [], refreshesToday: 0, refreshDate: "" };

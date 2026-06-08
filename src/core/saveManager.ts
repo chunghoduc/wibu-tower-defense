@@ -13,7 +13,7 @@ import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
 import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } from "./save.ts";
 import { rolloverQuests } from "./questTracker.ts";
-import { SINGLE_PULL_COST } from "./gacha.ts";
+import { SINGLE_PULL_COST, MULTI_PULL_COST, FREE_SUMMON_INTERVAL_MS } from "./gacha.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 import { addTowerToCollection, upgradeTowerStar, type StarUpResult } from "./collection.ts";
 import { canForgetNode, PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
@@ -331,6 +331,46 @@ export class SaveManager {
     this.save.materials[SUMMON_SCROLL] -= 1;
     this.save.currency.diamonds += SINGLE_PULL_COST; // pre-credit so the pull nets free
     const result = performSummon(this.save, rng);
+    checkAndGrantAchievements(this.save);
+    this.persist();
+    return result;
+  }
+
+  /**
+   * Spend `count` Summoning Scrolls on a free multi-summon (default 10). Mirrors
+   * the diamond 10× pull but pays in scrolls. Null if not enough scrolls held.
+   */
+  useSummonScrollsMulti(count = 10, rng: Rng = new Rng((Math.random() * 1e9) | 0)): SummonResult[] | null {
+    if ((this.save.materials[SUMMON_SCROLL] ?? 0) < count) return null;
+    this.save.materials[SUMMON_SCROLL] -= count;
+    // Pre-credit the multi cost so performMultiSummon's deduction nets to free.
+    this.save.currency.diamonds += count === 10 ? MULTI_PULL_COST : SINGLE_PULL_COST * count;
+    const results = performMultiSummon(this.save, rng, count);
+    checkAndGrantAchievements(this.save);
+    this.persist();
+    return results;
+  }
+
+  /** Whether a free single summon is currently claimable. */
+  freeSummonAvailable(nowMs: number = Date.now()): boolean {
+    return nowMs >= (this.save.currency.freeSummonReadyAt ?? 0);
+  }
+
+  /** Epoch ms at which the next free summon unlocks (≤ now means available). */
+  freeSummonReadyAt(): number {
+    return this.save.currency.freeSummonReadyAt ?? 0;
+  }
+
+  /**
+   * Claim the 8-hourly free single summon. Restarts the 8-hour timer only on a
+   * successful claim, so at most one free summon is ever banked. Null if the
+   * timer has not elapsed yet.
+   */
+  claimFreeSummon(nowMs: number = Date.now(), rng: Rng = new Rng((Math.random() * 1e9) | 0)): SummonResult | null {
+    if (!this.freeSummonAvailable(nowMs)) return null;
+    this.save.currency.diamonds += SINGLE_PULL_COST; // pre-credit so the pull nets free
+    const result = performSummon(this.save, rng);
+    this.save.currency.freeSummonReadyAt = nowMs + FREE_SUMMON_INTERVAL_MS;
     checkAndGrantAchievements(this.save);
     this.persist();
     return result;

@@ -44,6 +44,65 @@ describe("SaveManager", () => {
     expect(results).toHaveLength(10);
   });
 
+  describe("free summon (8-hour timer)", () => {
+    const HOUR = 60 * 60 * 1000;
+
+    it("is available on a fresh save", () => {
+      expect(manager.freeSummonAvailable(1_000_000)).toBe(true);
+    });
+
+    it("claims a summon and restarts the 8-hour timer", () => {
+      const now = 1_000_000;
+      const result = manager.claimFreeSummon(now, new Rng(7));
+      expect(result).not.toBeNull();
+      expect(manager.freeSummonAvailable(now)).toBe(false);
+      expect(manager.freeSummonAvailable(now + 7 * HOUR)).toBe(false);
+      expect(manager.freeSummonAvailable(now + 8 * HOUR)).toBe(true);
+    });
+
+    it("does not cost diamonds", () => {
+      manager.getSave().currency.diamonds = 0;
+      manager["persist"]();
+      manager.claimFreeSummon(1_000_000, new Rng(3));
+      expect(manager.getSave().currency.diamonds).toBe(0);
+    });
+
+    it("returns null while on cooldown (never banks more than one)", () => {
+      const now = 1_000_000;
+      manager.claimFreeSummon(now, new Rng(1));
+      expect(manager.claimFreeSummon(now + 1, new Rng(2))).toBeNull();
+      // Even long after, only one becomes available — no stacking.
+      expect(manager.claimFreeSummon(now + 100 * HOUR, new Rng(2))).not.toBeNull();
+      expect(manager.claimFreeSummon(now + 100 * HOUR + 1, new Rng(2))).toBeNull();
+    });
+
+    it("persists the timer across reloads", () => {
+      const now = 1_000_000;
+      manager.claimFreeSummon(now, new Rng(1));
+      const reloaded = new SaveManager(new LocalSaveProvider(mockStorage as unknown as Storage));
+      expect(reloaded.freeSummonAvailable(now + HOUR)).toBe(false);
+    });
+  });
+
+  describe("scroll-priority summons", () => {
+    it("useSummonScrollsMulti spends 10 scrolls for 10 results, no diamonds", () => {
+      manager.addMaterial("summon-scroll", 12);
+      manager.getSave().currency.diamonds = 0;
+      manager["persist"]();
+      const results = manager.useSummonScrollsMulti(10, new Rng(5));
+      expect(results).toHaveLength(10);
+      expect(manager.getSave().materials["summon-scroll"]).toBe(2);
+      expect(manager.getSave().currency.diamonds).toBe(0);
+    });
+
+    it("useSummonScrollsMulti returns null with fewer than 10 scrolls", () => {
+      manager.addMaterial("summon-scroll", 9);
+      manager["persist"]();
+      expect(manager.useSummonScrollsMulti(10, new Rng(5))).toBeNull();
+      expect(manager.getSave().materials["summon-scroll"]).toBe(9);
+    });
+  });
+
   it("grantDailyLogin gives crystals once per day", () => {
     expect(manager.grantDailyLogin("2026-06-06")).toBe(50);
     expect(manager.grantDailyLogin("2026-06-06")).toBe(0);
