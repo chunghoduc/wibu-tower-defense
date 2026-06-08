@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { effectiveBehavior, upgradeIncreased } from "../src/core/towerUpgrade.ts";
+import { effectiveBehavior, upgradeIncreased, battleLevelAtkMul } from "../src/core/towerUpgrade.ts";
 import { towerStatPipeline } from "../src/core/stats.ts";
 import { BattleState } from "../src/core/battle.ts";
 import { loadCatalog } from "../src/data/catalog.ts";
@@ -10,10 +10,15 @@ import type { CharacterDef } from "../src/data/schema.ts";
 const def = (id: string): CharacterDef => TOWERS.find((t) => t.id === id)!;
 
 describe("T12 — per-role tower upgrade scaling", () => {
-  it("every star adds general atk/hp increased%", () => {
+  it("every star adds a general hp increased% bump", () => {
     const inc = upgradeIncreased("damage", 5);
-    expect(inc.atk).toBeGreaterThan(0);
     expect(inc.maxHp).toBeGreaterThan(0);
+  });
+
+  it("each star multiplies final attack by ~+60% (additive, hero-share-proof)", () => {
+    expect(battleLevelAtkMul(0)).toBe(1);
+    expect(battleLevelAtkMul(1)).toBeCloseTo(1.6, 5);   // first star: +60%
+    expect(battleLevelAtkMul(5)).toBeCloseTo(4.0, 5);   // ★5: 4× base attack
   });
 
   it("stat emphasis grows range with battleLevel (towerStatPipeline)", () => {

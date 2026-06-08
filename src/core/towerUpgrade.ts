@@ -25,18 +25,44 @@
  */
 import type { Stats, TowerBehavior, TowerRole, CharacterDef } from "../data/schema.ts";
 
-/** General increased% applied per battleLevel to every tower, regardless of role. */
-export const BATTLE_LEVEL_GENERAL: Partial<Stats> = { atk: 0.06, maxHp: 0.05 };
+/**
+ * Per-star ATTACK growth. This is the headline of an in-battle upgrade: each star
+ * makes the tower hit ~60% harder. It is applied as a MULTIPLIER on the tower's
+ * FINAL resolved attack (after the hero share + mastery), not as increased% inside
+ * the stat pipeline — otherwise the flat hero share would dilute it down to ~40%
+ * and shrink further as the hero levels. As a multiplier it stays a true ~+60% per
+ * star regardless of how strong the commanding hero is.
+ *
+ * Additive-per-level (not compounding) so it scales sanely: ×1.6 / ×2.2 / ×2.8 /
+ * ×3.4 / ×4.0 at ★1..★5 — the first star is exactly +60%, later stars +60% of base.
+ */
+export const BATTLE_LEVEL_ATK_PER_STAR = 0.6;
 
-/** Extra increased% applied per battleLevel, by role (on top of the general bump). */
+/** Final-attack multiplier for a tower's purchased star level (1.0 at battleLevel 0). */
+export function battleLevelAtkMul(battleLevel: number): number {
+  return 1 + BATTLE_LEVEL_ATK_PER_STAR * Math.max(0, battleLevel);
+}
+
+/**
+ * General increased% applied per battleLevel to every tower, regardless of role.
+ * Attack is handled separately by battleLevelAtkMul; this covers the durability
+ * bump so an upgraded tower also survives a bit longer.
+ */
+export const BATTLE_LEVEL_GENERAL: Partial<Stats> = { maxHp: 0.1 };
+
+/**
+ * Extra increased% applied per battleLevel, by role (on top of the general bump).
+ * Attack scaling lives in battleLevelAtkMul; these are the SECONDARY stats that
+ * keep each archetype's identity as it stars up (reach, bulk, armor).
+ */
 export const ROLE_STAT_EMPHASIS: Record<TowerRole, Partial<Stats>> = {
-  damage: { atk: 0.04, range: 0.05 },
-  splash: { atk: 0.03, range: 0.02 },
+  damage: { range: 0.05 },
+  splash: { range: 0.03 },
   chain: { range: 0.05 },
   dot: { range: 0.03 },
   debuff: { range: 0.06 },
-  support: { maxHp: 0.05, range: 0.03 },
-  tanker: { maxHp: 0.06, armor: 0.05 },
+  support: { maxHp: 0.1, range: 0.03 },
+  tanker: { maxHp: 0.12, armor: 0.05 },
 };
 
 /** Combined increased% per battleLevel for a role (general + emphasis), ×battleLevel. */
@@ -73,17 +99,21 @@ export function effectiveBehavior(def: CharacterDef, battleLevel: number): Tower
       b.chainFalloff = clamp((b.chainFalloff ?? 0.6) + 0.04 * L, 0, 0.95); // retains more dmg
       break;
     case "dot":
-      if (b.dot) b.dot = { ...b.dot, dps: b.dot.dps * (1 + 0.12 * L), duration: b.dot.duration + 0.15 * L };
+      // dot power lives in the burn, not the on-hit — scale its dps ~+50%/star so
+      // a dot tower's real damage rises in step with the +60% attack headline.
+      if (b.dot) b.dot = { ...b.dot, dps: b.dot.dps * (1 + 0.5 * L), duration: b.dot.duration + 0.15 * L };
       break;
     case "debuff":
       if (b.slow) b.slow = { pct: clamp(b.slow.pct + 0.05 * L, 0, 0.85), duration: b.slow.duration + 0.1 * L };
       if (b.stun) b.stun = { chance: clamp(b.stun.chance + 0.03 * L, 0, 0.9), duration: b.stun.duration + 0.05 * L };
       break;
     case "support":
+      // support power is the aura it projects — scale its atk/atkspd buff hard so
+      // each star meaningfully lifts the whole squad's damage, not just its own.
       if (b.buffAura) b.buffAura = {
         radius: b.buffAura.radius * (1 + 0.08 * L),
-        atkPct: (b.buffAura.atkPct ?? 0) + 0.03 * L,
-        attackSpeedPct: (b.buffAura.attackSpeedPct ?? 0) + 0.02 * L,
+        atkPct: (b.buffAura.atkPct ?? 0) + 0.06 * L,
+        attackSpeedPct: (b.buffAura.attackSpeedPct ?? 0) + 0.04 * L,
       };
       break;
     default:
@@ -95,12 +125,13 @@ export function effectiveBehavior(def: CharacterDef, battleLevel: number): Tower
 /** Short player-facing summary of how a role upgrades (for the tooltip / panel). */
 export function upgradeSummary(role: TowerRole): string {
   switch (role) {
-    case "damage": return "Each star: more attack & range.";
-    case "splash": return "Each star: more attack, range & splash radius.";
-    case "chain": return "Each star: more range & damage; +1 bounce at ★2 and ★4.";
-    case "dot": return "Each star: more range & far stronger/longer damage-over-time.";
-    case "debuff": return "Each star: much more range, and a stronger/longer slow (and stun).";
-    case "support": return "Each star: tougher, with a wider, stronger buff aura.";
-    default: return "Each star: stronger.";
+    case "damage": return "Each star: ~+60% attack & more range.";
+    case "splash": return "Each star: ~+60% attack, more range & splash radius.";
+    case "chain": return "Each star: ~+60% attack & range; +1 bounce at ★2 and ★4.";
+    case "dot": return "Each star: ~+60% attack & far stronger/longer damage-over-time.";
+    case "debuff": return "Each star: ~+60% attack, much more range, and a stronger/longer slow (and stun).";
+    case "support": return "Each star: ~+60% attack, tougher, with a wider, far stronger buff aura.";
+    case "tanker": return "Each star: ~+60% attack, much tougher with more armor.";
+    default: return "Each star: ~+60% stronger.";
   }
 }

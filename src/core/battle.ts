@@ -36,7 +36,7 @@ import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
 import { addHeroShare, towerStatPipeline } from "./stats.ts";
 import { resolveHeroBattleStats } from "./heroStats.ts";
-import { effectiveBehavior } from "./towerUpgrade.ts";
+import { effectiveBehavior, battleLevelAtkMul } from "./towerUpgrade.ts";
 import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
@@ -478,7 +478,11 @@ export class BattleState {
   upgradeCost(uid: number): number {
     const t = this.towers.find((x) => x.uid === uid && x.alive);
     if (!t || t.battleLevel >= MAX_TOWER_UPGRADES) return 0;
-    return Math.round(t.def.cost * 0.8 * (t.battleLevel + 1));
+    // A star-up is a premium: it always costs MORE than buying a fresh tower of
+    // this type (≥1.25× its placement cost), and escalates with each star. You
+    // pay extra to concentrate ~+60% power onto one defended slot instead of
+    // spreading it across a new unit that needs its own spot and protection.
+    return Math.round(this.towerCost(t.def) * 1.25 * (t.battleLevel + 1));
   }
 
   /**
@@ -527,6 +531,9 @@ export class BattleState {
     t.stats.atk *= mMul * this.synergyMul.atkMul;
     t.stats.maxHp *= mMul * this.synergyMul.hpMul;
     t.stats.attackSpeed *= this.synergyMul.attackSpeedMul;
+    // The headline of a star-up: ~+60% attack per star, applied to the final
+    // resolved atk so the hero share can't dilute it (see battleLevelAtkMul).
+    t.stats.atk *= battleLevelAtkMul(t.battleLevel);
     t.behavior = effectiveBehavior(t.def, t.battleLevel);
     t.hp = t.stats.maxHp * hpFrac;
     t.mana = t.stats.maxMana * manaFrac;
