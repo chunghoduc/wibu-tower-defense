@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { effectiveBehavior, upgradeIncreased, battleLevelAtkMul } from "../src/core/towerUpgrade.ts";
 import { towerStatPipeline } from "../src/core/stats.ts";
-import { BattleState } from "../src/core/battle.ts";
+import { BattleState, MAX_TOWER_UPGRADES } from "../src/core/battle.ts";
 import { loadCatalog } from "../src/data/catalog.ts";
 import { STAGE_1, defaultHeroStats } from "../src/data/stage.ts";
 import { TOWERS } from "../src/data/towers.ts";
@@ -16,9 +16,9 @@ describe("T12 — per-role tower upgrade scaling", () => {
   });
 
   it("each star multiplies final attack by ~+60% (additive, hero-share-proof)", () => {
-    expect(battleLevelAtkMul(0)).toBe(1);
-    expect(battleLevelAtkMul(1)).toBeCloseTo(1.6, 5);   // first star: +60%
-    expect(battleLevelAtkMul(5)).toBeCloseTo(4.0, 5);   // ★5: 4× base attack
+    expect(battleLevelAtkMul(0)).toBe(1);               // ★1 placed: base
+    expect(battleLevelAtkMul(1)).toBeCloseTo(1.6, 5);   // ★2: +60%
+    expect(battleLevelAtkMul(2)).toBeCloseTo(2.2, 5);   // ★3 (maxed): 2.2× base
   });
 
   it("stat emphasis grows range with battleLevel (towerStatPipeline)", () => {
@@ -83,8 +83,8 @@ describe("T12 — per-role tower upgrade scaling", () => {
     const t = b.towers[0];
     const slow0 = t.behavior.slow!.pct, range0 = t.stats.range;
     b.gold = 100000;
-    for (let i = 0; i < 5; i++) b.upgradeTower(t.uid);
-    expect(t.battleLevel).toBe(5);
+    for (let i = 0; i < 10; i++) b.upgradeTower(t.uid); // caps at MAX_TOWER_UPGRADES
+    expect(t.battleLevel).toBe(MAX_TOWER_UPGRADES);
     expect(t.behavior.slow!.pct).toBeGreaterThan(slow0);
     expect(t.stats.range).toBeGreaterThan(range0);
   });

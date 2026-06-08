@@ -117,8 +117,12 @@ export const LANE_CLEARANCE = 30;
 export const MIN_TOWER_DIST = 34;
 /** Free-placement: keep towers this far inside the world edges. */
 export const PLACE_MARGIN = 14;
-/** Max in-battle upgrade levels a tower can buy. */
-export const MAX_TOWER_UPGRADES = 5;
+/**
+ * Max in-battle upgrades a tower can buy. A freshly placed tower is ★1 (battleLevel
+ * 0, base power); two upgrades take it to ★2 and ★3 (battleLevel 2 = maxed). The
+ * player-facing star count is always battleLevel + 1.
+ */
+export const MAX_TOWER_UPGRADES = 2;
 /** Boss skill mana gained per second (T16); a boss casts roughly every manaCost/this seconds. */
 const BOSS_MANA_REGEN = 14;
 /** Fraction of a tower's invested gold refunded on sell. */

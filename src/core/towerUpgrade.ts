@@ -1,7 +1,7 @@
 /**
  * In-battle tower upgrade design (T12).
  *
- * Buying a star (battleLevel 1..MAX_TOWER_UPGRADES) makes a tower stronger in a
+ * Buying a star (★2..★3, battleLevel 1..MAX_TOWER_UPGRADES) makes a tower stronger in a
  * way that fits its ROLE, not just bigger numbers. Two layers stack per level:
  *
  *   1. A general power bump every role gets (atk + maxHp), so an upgrade always
@@ -33,8 +33,9 @@ import type { Stats, TowerBehavior, TowerRole, CharacterDef } from "../data/sche
  * and shrink further as the hero levels. As a multiplier it stays a true ~+60% per
  * star regardless of how strong the commanding hero is.
  *
- * Additive-per-level (not compounding) so it scales sanely: ×1.6 / ×2.2 / ×2.8 /
- * ×3.4 / ×4.0 at ★1..★5 — the first star is exactly +60%, later stars +60% of base.
+ * Additive-per-level (not compounding) so it scales sanely. Towers run ★1..★3:
+ * a placed tower is ★1 (battleLevel 0, ×1.0 base), then ×1.6 at ★2 and ×2.2 at ★3
+ * — the first upgrade is exactly +60%, the second +60% of base on top.
  */
 export const BATTLE_LEVEL_ATK_PER_STAR = 0.6;
 

@@ -482,7 +482,7 @@ export class BattleScene extends Phaser.Scene {
     skills.push({ label: "▲ Upgrades", desc: upgradeSummary(t.def.role), color: "#ffd86a" });
     return {
       kind: "tower", uid: t.uid, name: t.def.name, iconKey: `tower__${t.def.id}`,
-      stars: t.battleLevel,
+      stars: t.battleLevel + 1, // ★1 freshly placed → ★3 maxed
       hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.stats.maxMana,
       stats: statRows(t.stats as unknown as Record<string, number>, TOWER_STAT_KEYS),
       skills,
@@ -1003,8 +1003,8 @@ export class BattleScene extends Phaser.Scene {
       g.fillStyle(0xffd34d, a * 0.5).fillCircle(t.pos.x, t.pos.y, 19);
       g.lineStyle(2, 0xffd34d, Math.min(0.85, a + 0.25)).strokeCircle(t.pos.x, t.pos.y, 17);
     }
-    // Star pips — how many in-battle stars this tower has (T11).
-    if (t.battleLevel > 0) this.drawStarPips(g, t.pos.x, t.pos.y - 30, t.battleLevel);
+    // Star pips — in-battle stars (★1 when placed, up to ★3 maxed).
+    this.drawStarPips(g, t.pos.x, t.pos.y - 30, t.battleLevel + 1);
     // Type badge — melee vs ranged + role colour, upper-right of the avatar (T5).
     this.drawTypeBadge(g, t.pos.x + 13, t.pos.y - 16, t.def);
   }
