@@ -866,7 +866,7 @@ export class BattleScene extends Phaser.Scene {
       const boss = e.def.archetype === "Boss";
       const key = `${boss ? "boss" : "enemy"}__${e.def.id}`;
       // Elites render 150% bigger so the player can spot them at a glance (T17).
-      const displayH = (boss ? 62 : 30) * (e.elite ? ELITE_SIZE_MULT : 1);
+      const displayH = (boss ? 80 : 44) * (e.elite ? ELITE_SIZE_MULT : 1);
       const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, displayH);
       if (s) {
         seenE.add(e.uid);
