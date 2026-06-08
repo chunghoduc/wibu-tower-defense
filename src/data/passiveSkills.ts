@@ -87,6 +87,18 @@ export const PASSIVE_SKILLS: Record<string, PassiveSkillInfo> = {
   "hundred-healings": { name: "Hundred Healings", description: "Its healing scales with skill power and never overheals to waste." },
   "monster-strength": { name: "Monster Strength", description: "Massive raw power that also lifts allied attack." },
   "sannin-resolve": { name: "Sage's Resolve", description: "Veteran poise — auras persist briefly even after it falls." },
+  // tanker
+  "ironhide": { name: "Ironhide", description: "Hardens its body — part of its armor is folded into its skill damage." },
+  "guts": { name: "Guts", description: "Refuses to fall; survives a lethal blow at 1 HP once per battle." },
+  "iron-scales": { name: "Iron Scales", description: "Metal scales turn a share of its bulk into retaliating force." },
+  "counter-stance": { name: "Counter Stance", description: "Answers each blow it tanks with a punishing strike." },
+  "diamond-body": { name: "Diamond Body", description: "Crystalline skin reflects a portion of melee damage back." },
+  "unbreakable": { name: "Unbreakable", description: "The more armor it stacks, the harder its skill strikes." },
+  "plated-hide": { name: "Plated Hide", description: "Layered plating soaks hits and stores them as power." },
+  "bulwark": { name: "Bulwark", description: "Stands as a wall — nearby allies take reduced damage." },
+  "last-bastion": { name: "Last Bastion", description: "Grows mightier as its own health drops." },
+  "indomitable": { name: "Indomitable", description: "Cannot be stunned while above half health." },
+  "symbol-of-peace": { name: "Symbol of Defense", description: "Its mere presence steels every ally's resolve." },
 };
 
 /** Tower active skills (auto-cast when the tower's mana fills). */
@@ -123,6 +135,12 @@ export const TOWER_ACTIVES: Record<string, PassiveSkillInfo> = {
   "reject-fate": { name: "Reject Fate", description: "Shields and revitalizes wounded allies." },
   "war-cry": { name: "War Cry", description: "An empowering roar — allies hit harder and faster." },
   "creation-rebirth": { name: "Creation Rebirth", description: "Restores allies and cleanses their afflictions." },
+  // tanker — actives whose burst scales off the caster's defenses
+  "ironhide-slam": { name: "Ironhide Slam", description: "Hardens and slams the ground for area damage scaled by its armor." },
+  "scaleguard-crash": { name: "Scaleguard Crash", description: "A club-like forearm smashes the lane, fueled by its bulk." },
+  "adamant-burst": { name: "Adamant Burst", description: "Crystalline fists shatter outward for armor-scaled damage." },
+  "armored-charge": { name: "Armored Charge", description: "Barrels through the front line, its plating turned to a weapon." },
+  "fortress-smash": { name: "Fortress Smash", description: "An earth-shaking blow whose force is drawn from its defenses." },
 };
 
 /** Name + description for a tower active id (humanized fallback if uncatalogued). */

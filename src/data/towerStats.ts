@@ -10,7 +10,7 @@ import type { DamageType, Rarity, Stats, TowerRole } from "./schema.ts";
 const RARITY_TIER: Record<Rarity, number> = { Common: 0, Magic: 1, Rare: 2, Legendary: 3, Unique: 4 };
 
 const ROLE_TANK: Record<TowerRole, number> = {
-  damage: 1, splash: 1, chain: 0.85, dot: 0.85, debuff: 1.3, support: 1.2,
+  damage: 1, splash: 1, chain: 0.85, dot: 0.85, debuff: 1.3, support: 1.2, tanker: 1.6,
 };
 
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
@@ -43,6 +43,9 @@ const ROLE_BASE: Record<TowerRole, RoleBase> = {
   dot:     { atk: 10, aspd: 1.00, hp: 125, cost: 50 },
   debuff:  { atk:  9, aspd: 0.85, hp: 150, cost: 55 },
   support: { atk:  6, aspd: 0.75, hp: 175, cost: 60 },
+  // tanker: lowest atk + slowest cadence of any role, but the highest HP — its
+  // payoff is the defense-scaled active, not the basic attack.
+  tanker:  { atk:  8, aspd: 0.70, hp: 230, cost: 60 },
 };
 
 /** The role × rarity core-stat budget + placement cost (before the damage-type archetype). */

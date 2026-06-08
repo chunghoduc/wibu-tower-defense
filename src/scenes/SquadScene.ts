@@ -26,7 +26,7 @@ const RARITY_INT: Record<Rarity, number> = {
 };
 const RARITY_ORDER: Record<Rarity, number> = { Common: 0, Magic: 1, Rare: 2, Legendary: 3, Unique: 4 };
 const ROLE_LABEL: Record<TowerRole, string> = {
-  damage: "Dmg", splash: "Splash", chain: "Chain", dot: "DoT", debuff: "Debuff", support: "Support",
+  damage: "Dmg", splash: "Splash", chain: "Chain", dot: "DoT", debuff: "Debuff", support: "Support", tanker: "Tank",
 };
 const SQUAD_MAX = 7;
 const HERO_SEL = "__hero__";

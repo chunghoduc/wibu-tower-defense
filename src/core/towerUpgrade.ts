@@ -36,6 +36,7 @@ export const ROLE_STAT_EMPHASIS: Record<TowerRole, Partial<Stats>> = {
   dot: { range: 0.03 },
   debuff: { range: 0.06 },
   support: { maxHp: 0.05, range: 0.03 },
+  tanker: { maxHp: 0.06, armor: 0.05 },
 };
 
 /** Combined increased% per battleLevel for a role (general + emphasis), ×battleLevel. */

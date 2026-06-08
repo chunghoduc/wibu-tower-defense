@@ -27,6 +27,7 @@ export const TOWER_ROLES = [
   "dot",
   "support",
   "debuff",
+  "tanker",
 ] as const;
 export type TowerRole = (typeof TOWER_ROLES)[number];
 
@@ -217,6 +218,13 @@ export interface TowerBehavior {
   stun?: { duration: number; chance: number };
   /** support role: aura buffing nearby towers. */
   buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number };
+  /**
+   * tanker role: the active skill's burst is amplified by the caster's OWN
+   * defensive stats, on top of the usual atk-scaling — the fortress fights back.
+   * Each field is a multiplier on that stat, summed into the burst. So a
+   * `{ armor: 2, maxHp: 0.1 }` tower adds `armor×2 + maxHp×0.1` damage to its cast.
+   */
+  defenseScale?: { armor?: number; magicResist?: number; maxHp?: number };
   /** active-skill damage type override — lets a skill deal True (the only path to True). */
   activeType?: DamageType;
 }

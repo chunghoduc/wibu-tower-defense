@@ -20,11 +20,16 @@ export function activeSkillDetail(def: CharacterDef, stats: Stats): string {
   if (!def.active) return "";
   const info = towerActiveInfo(def.active);
   const sp = Math.max(1, stats.skillPower);
-  const burst = Math.round(stats.atk * ACTIVE_MULT * sp);
+  const ds = def.behavior?.defenseScale;
+  const defBonus = ds
+    ? stats.armor * (ds.armor ?? 0) + stats.magicResist * (ds.magicResist ?? 0) + stats.maxHp * (ds.maxHp ?? 0)
+    : 0;
+  const burst = Math.round(stats.atk * ACTIVE_MULT * sp + defBonus);
   const type = def.behavior?.activeType ?? def.damageType;
   const radius = def.behavior?.splashRadius ?? SPLASH_RADIUS;
+  const defNote = ds ? ` + ${n0(defBonus)} from defenses` : "";
   const role = roleEffectDetail(def, stats);
-  return `${info.description}\n▸ Burst: ${burst} ${type} (atk ${n0(stats.atk)} ×${ACTIVE_MULT} × ${sp.toFixed(2)} skill power), ${radius}px AoE.`
+  return `${info.description}\n▸ Burst: ${burst} ${type} (atk ${n0(stats.atk)} ×${ACTIVE_MULT} × ${sp.toFixed(2)} skill power${defNote}), ${radius}px AoE.`
     + (role ? `\n▸ ${role}` : "");
 }
 
@@ -55,6 +60,15 @@ export function roleEffectDetail(def: CharacterDef, stats: Stats): string | null
         if (a.attackSpeedPct) parts.push(`+${pct(a.attackSpeedPct)} atk spd`);
         return `Aura ${a.radius}px: ${parts.join(", ")} to allies.`;
       }
+    case "tanker": {
+      const d = b?.defenseScale;
+      if (!d) return null;
+      const parts: string[] = [];
+      if (d.armor) parts.push(`${d.armor}× armor (${n0(stats.armor * d.armor)})`);
+      if (d.magicResist) parts.push(`${d.magicResist}× resist (${n0(stats.magicResist * d.magicResist)})`);
+      if (d.maxHp) parts.push(`${pct(d.maxHp)} max HP (${n0(stats.maxHp * d.maxHp)})`);
+      return `Fortress: its cast adds ${parts.join(" + ")} as damage.`;
+    }
     default:
       return null;
   }

@@ -49,6 +49,7 @@ export const ROLE_SILHOUETTE: Record<TowerRole, string> = {
   dot: "hooded or hunched poison-themed figure, dripping/trailing motif",
   support: "banner, standard, or instrument raised; open welcoming stance",
   debuff: "cold/controlling theme, frost or chains, outstretched controlling hand",
+  tanker: "massive armored bulwark frame, planted braced stance, heavy plating/shield-like bulk, low wide silhouette",
 };
 
 /** Global style preamble repeated in every prompt for consistency. */

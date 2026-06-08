@@ -340,4 +340,120 @@ export const TOWERS_B: CharacterDef[] = [
     behavior: { buffAura: { radius: 185, atkPct: 0.25, attackSpeedPct: 0.18 } },
     baseStats: makeStats({ atk: 16, attackSpeed: 0.8, range: 160, maxHp: 260, maxMana: 0 }),
   }),
+
+  // ============================ TANKER ============================
+  // Front-line bulwarks: lowest atk + slowest cadence, immense armor/HP. Their
+  // payoff is a signature skill whose burst is fueled by their OWN defenses
+  // (behavior.defenseScale) — the harder they are to break, the harder they hit.
+  t({
+    id: "riku-ironhide",
+    name: "Riku the Ironhide", // homage: Kirishima / Red Riot (My Hero Academia) — Hardening
+    rarity: "Common",
+    role: "tanker",
+    damageType: "Physical",
+    target: "Ground",
+    cost: 60,
+    description:
+      "A big-hearted rookie who hardens his skin to iron and plants himself between danger and everyone behind him. Manliness above all.",
+    meta: {
+      homage: "Kirishima / Red Riot (My Hero Academia) — the Hardening tank",
+      outfit: "A rugged red-trimmed guard's harness over hardened, jagged skin, spiked crimson hair",
+      weapon: "Iron-hardened fists and a shoulder-first body slam",
+    },
+    passives: ["ironhide", "guts"],
+    active: "ironhide-slam",
+    behavior: { defenseScale: { armor: 1.2, maxHp: 0.05 } },
+    baseStats: makeStats({
+      range: 95, critRate: 0.05, armor: 18, magicResist: 12, damageReduction: 0.05, hpRegen: 4,
+    }),
+  }),
+  t({
+    id: "garrek-ironscale",
+    name: "Garrek Ironscale", // homage: Gajeel / Iron Dragon Slayer (Fairy Tail)
+    rarity: "Magic",
+    role: "tanker",
+    damageType: "Magic",
+    target: "Ground",
+    cost: 80,
+    description:
+      "A surly drifter whose skin sheaths itself in dragon-iron scales. Picks fights, holds grudges, and never once steps back from the wall.",
+    meta: {
+      homage: "Gajeel / the Iron Dragon Slayer (Fairy Tail)",
+      outfit: "A dark studded coat over iron-scaled skin, wild black mane and riveted brow",
+      weapon: "Iron-scaled fists and a club-like dragon-iron forearm",
+    },
+    passives: ["iron-scales", "counter-stance"],
+    active: "scaleguard-crash",
+    behavior: { defenseScale: { armor: 1.5, magicResist: 1.0, maxHp: 0.06 } },
+    baseStats: makeStats({
+      range: 100, critRate: 0.05, armor: 28, magicResist: 22, damageReduction: 0.06, hpRegen: 5,
+    }),
+  }),
+  t({
+    id: "joro-diamondhide",
+    name: "Joro the Diamondhide", // homage: Diamond Jozu (One Piece)
+    rarity: "Rare",
+    role: "tanker",
+    damageType: "Physical",
+    target: "Ground",
+    cost: 110,
+    description:
+      "A towering commander who turns his entire body to flawless diamond, shrugging off blows that would fell an army and answering with crushing fists.",
+    meta: {
+      homage: "Diamond Jozu (One Piece)",
+      outfit: "A broad-shouldered officer's coat over a body faceted like cut diamond, glinting hard light",
+      weapon: "Diamond-hard fists that crack the ground on impact",
+    },
+    passives: ["diamond-body", "unbreakable"],
+    active: "adamant-burst",
+    behavior: { defenseScale: { armor: 1.8, maxHp: 0.07 } },
+    baseStats: makeStats({
+      range: 100, critRate: 0.08, critDamage: 1.8, armor: 42, magicResist: 28, damageReduction: 0.08, hpRegen: 6,
+    }),
+  }),
+  t({
+    id: "reinhart-armored-wall",
+    name: "Reinhart the Armored Wall", // homage: Reiner / the Armored Titan (Attack on Titan)
+    rarity: "Legendary",
+    role: "tanker",
+    damageType: "Physical",
+    target: "Ground",
+    cost: 145,
+    description:
+      "A grim soldier clad head to toe in living plate, who becomes the wall when the wall must hold. Carries the weight of duty like armor that never comes off.",
+    meta: {
+      homage: "Reiner / the Armored Titan (Attack on Titan)",
+      outfit: "Interlocking bone-white armor plating over every limb, weathered and battle-scarred",
+      weapon: "Plated fists and a full-body charge that flattens the line",
+    },
+    passives: ["plated-hide", "bulwark", "last-bastion"],
+    active: "armored-charge",
+    behavior: { defenseScale: { armor: 2.2, maxHp: 0.08 } },
+    baseStats: makeStats({
+      range: 105, critRate: 0.1, armor: 60, magicResist: 40, damageReduction: 0.1, hpRegen: 8,
+    }),
+  }),
+  t({
+    id: "garron-unbreaking-pillar",
+    name: "Garron the Unbreaking Pillar", // homage: All Might (My Hero Academia)
+    rarity: "Unique",
+    role: "tanker",
+    damageType: "Physical",
+    target: "Both",
+    cost: 200,
+    description:
+      "The smiling symbol every defender rallies behind — he takes the hardest blow the enemy can throw, plants his feet, and answers with a strike that shakes the sky. As long as he stands, no one falls.",
+    meta: {
+      homage: "All Might (My Hero Academia) — the unbreakable Symbol of Peace",
+      outfit: "A broad heroic frame in blue-and-gold, golden swept-back hair and an unshakeable grin",
+      weapon: "Bare fists and a city-block-shaking smash",
+    },
+    passives: ["indomitable", "symbol-of-peace", "counter-stance"],
+    active: "fortress-smash",
+    behavior: { defenseScale: { armor: 2.6, magicResist: 1.5, maxHp: 0.1 } },
+    baseStats: makeStats({
+      range: 120, critRate: 0.15, critDamage: 2.0, armor: 80, magicResist: 60,
+      damageReduction: 0.14, hpRegen: 10, omnivamp: 0.1,
+    }),
+  }),
 ];

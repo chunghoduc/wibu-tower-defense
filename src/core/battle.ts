@@ -1071,7 +1071,7 @@ export class BattleState {
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
         // Skills may deal True damage (the only path to True).
         const activeType = t.behavior?.activeType ?? t.def.damageType;
-        this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.uid, t.def.active ?? undefined);
+        this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
         t.mana = 0;
       }
       t.attackCd = 1 / effAs;
@@ -1336,11 +1336,21 @@ export class BattleState {
     source: "tower" | "hero",
     uid: number,
     skillId?: string,
+    defenseScale?: { armor?: number; magicResist?: number; maxHp?: number },
   ): void {
     this.emit({ type: "cast", uid, at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
     const sp = Math.max(1, attacker.skillPower);
-    const burst = effAtk * 2 * sp;
-    const ctx = this.dmgCtx(`${source}:${uid}`, "active", `atk ${effAtk.toFixed(1)} ×2 ×skillPower ${sp.toFixed(2)}`);
+    let burst = effAtk * 2 * sp;
+    let detail = `atk ${effAtk.toFixed(1)} ×2 ×skillPower ${sp.toFixed(2)}`;
+    if (defenseScale) {
+      // tanker payoff: fold the caster's own defenses into the burst.
+      const defBonus = attacker.armor * (defenseScale.armor ?? 0)
+        + attacker.magicResist * (defenseScale.magicResist ?? 0)
+        + attacker.maxHp * (defenseScale.maxHp ?? 0);
+      burst += defBonus;
+      detail += ` + defense ${defBonus.toFixed(1)}`;
+    }
+    const ctx = this.dmgCtx(`${source}:${uid}`, "active", detail);
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist(e.pos, center) <= SPLASH_RADIUS) {

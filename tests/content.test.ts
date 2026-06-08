@@ -48,6 +48,7 @@ describe("character roster", () => {
       if (c.role === "dot") expect(c.behavior?.dot).toBeTruthy();
       if (c.role === "debuff") expect(c.behavior?.slow ?? c.behavior?.stun).toBeTruthy();
       if (c.role === "chain") expect(c.behavior?.chainTargets).toBeGreaterThan(0);
+      if (c.role === "tanker") expect(c.behavior?.defenseScale).toBeTruthy();
     }
   });
 
