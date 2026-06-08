@@ -2,7 +2,8 @@
  * ShopScene — buy rolled gear (and the occasional Summoning Scroll) and sell
  * unwanted items back for 75%. Items show as icon + price (name on hover); a
  * crystal-paid Refresh rerolls the stock. Purchases persist (the slot is removed
- * from stock), so bought items no longer "vanish".
+ * from stock), so bought items no longer "vanish". Selling asks for confirmation
+ * (it's irreversible) and the sell grid hides equipped items — unequip first.
  */
 import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
@@ -29,12 +30,15 @@ export class ShopScene extends Phaser.Scene {
   private tabBuy!: Phaser.GameObjects.Text;
   private tabSell!: Phaser.GameObjects.Text;
   private refreshBtn!: Phaser.GameObjects.Text;
+  private confirmDialog: Phaser.GameObjects.Container | null = null;
 
   constructor() { super("ShopScene"); }
 
   create(): void {
     fadeIn(this);
     this.mode = "buy";
+    this.confirmDialog?.destroy(true);
+    this.confirmDialog = null;
     this.mgr = this.registry.get("saveManager");
     const W = this.scale.width;
 
@@ -145,52 +149,92 @@ export class ShopScene extends Phaser.Scene {
     this.grid.add(z);
   }
 
-  // ── Sell: inventory grid ──
+  // ── Sell: inventory grid (equipped items are hidden — unequip them first) ──
   private drawSell(items: ItemInstanceSave[], equipped: Record<string, string | undefined>): void {
     const equippedIds = new Set(Object.values(equipped).filter(Boolean) as string[]);
-    if (items.length === 0) {
+    const sellable = items.filter((inst) => !equippedIds.has(inst.id));
+    if (sellable.length === 0) {
       this.grid.add(crispText(this, this.scale.width / 2, 220, "No items to sell.", { fontSize: "14px", color: "#90a4bb" }).setOrigin(0.5));
       return;
     }
     const COLS = 7, CW = 124, CH = 96, X0 = 24, Y0 = 84, GX = 6, GY = 8, BOTTOM = 466;
-    items.forEach((inst, i) => {
+    sellable.forEach((inst, i) => {
       const x = X0 + (i % COLS) * (CW + GX), y = Y0 + Math.floor(i / COLS) * (CH + GY);
       if (y + CH > BOTTOM) return;
-      this.drawSellCard(inst, x, y, CW, CH, equippedIds.has(inst.id));
+      this.drawSellCard(inst, x, y, CW, CH);
     });
   }
 
-  private drawSellCard(inst: ItemInstanceSave, x: number, y: number, w: number, h: number, isEquipped: boolean): void {
+  private drawSellCard(inst: ItemInstanceSave, x: number, y: number, w: number, h: number): void {
     const def = ITEM_CATALOG_MAP.get(inst.defId);
     const col = def ? RARITY_INT[def.rarity] : 0x888888;
     const sell = def ? itemSellValue(def) : 0;
     const g = this.add.graphics();
-    g.fillStyle(0x141c28, isEquipped ? 0.5 : 1).fillRoundedRect(x, y, w, h, 6);
-    g.lineStyle(1.5, col, isEquipped ? 0.5 : 1).strokeRoundedRect(x, y, w, h, 6);
+    g.fillStyle(0x141c28, 1).fillRoundedRect(x, y, w, h, 6);
+    g.lineStyle(1.5, col, 1).strokeRoundedRect(x, y, w, h, 6);
     this.grid.add(g);
     let icon: Phaser.GameObjects.Image | undefined;
     if (this.textures.exists(`item__${inst.defId}`)) {
-      icon = this.add.image(x + w / 2, y + 32, `item__${inst.defId}`).setOrigin(0.5).setAlpha(isEquipped ? 0.5 : 1);
+      icon = this.add.image(x + w / 2, y + 32, `item__${inst.defId}`).setOrigin(0.5);
       icon.setScale(Math.min(44 / icon.width, 44 / icon.height));
       this.grid.add(icon);
     }
     if ((inst.enhanceLevel ?? 0) > 0) this.grid.add(crispText(this, x + w - 4, y + 3, `+${inst.enhanceLevel}`, { fontSize: "9px", color: "#ffe07a", fontStyle: "bold" }).setOrigin(1, 0));
-    this.grid.add(crispText(this, x + w / 2, y + h - 16, isEquipped ? "equipped" : `🪙 +${sell}`, { fontSize: "11px", color: isEquipped ? "#6b7689" : "#8be06a", fontStyle: "bold" }).setOrigin(0.5));
+    this.grid.add(crispText(this, x + w / 2, y + h - 16, `🪙 +${sell}`, { fontSize: "11px", color: "#8be06a", fontStyle: "bold" }).setOrigin(0.5));
 
     const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
     hoverGlowRect(this, z, this.grid, x, y, w, h, { color: col });
     if (icon) hoverPop(this, z, icon, 1.12);
     z.on("pointerover", () => {
-      this.hoverLabel.setText(`${def?.name ?? "Item"}${isEquipped ? " (equipped — unequip to sell)" : ""}`);
+      this.hoverLabel.setText(def?.name ?? "Item");
       if (def) renderItemTooltip(this, this.tooltip, inst, def, x + w, y);
     });
     z.on("pointerout", () => { this.hoverLabel.setText(""); this.tooltip.setVisible(false); });
-    z.on("pointerup", () => {
+    z.on("pointerup", () => this.confirmSell(inst, def?.name ?? "Item", sell));
+    this.grid.add(z);
+  }
+
+  /** Ask before selling — selling is irreversible. */
+  private confirmSell(inst: ItemInstanceSave, name: string, sell: number): void {
+    this.confirmDialog?.destroy(true);
+    this.tooltip.setVisible(false);
+    const W = this.scale.width, H = this.scale.height;
+    const c = this.add.container(0, 0).setDepth(300);
+
+    const dim = this.add.graphics();
+    dim.fillStyle(0x000000, 0.55).fillRect(0, 0, W, H);
+    const dimZone = this.add.zone(W / 2, H / 2, W, H).setInteractive().on("pointerup", () => this.closeConfirm());
+    c.add([dim, dimZone]);
+
+    const bw = 300, bh = 136, bx = (W - bw) / 2, by = (H - bh) / 2;
+    const panel = this.add.graphics();
+    panel.fillStyle(0x141c28, 0.99).fillRoundedRect(bx, by, bw, bh, 10);
+    panel.lineStyle(2, 0x7a2e2e, 1).strokeRoundedRect(bx, by, bw, bh, 10);
+    const panelZone = this.add.zone(bx + bw / 2, by + bh / 2, bw, bh).setInteractive(); // swallow clicks
+    c.add([panel, panelZone]);
+
+    c.add(crispText(this, W / 2, by + 18, "Sell this item?", { fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0));
+    c.add(crispText(this, W / 2, by + 46, `${name}\n🪙 +${sell}`, { fontSize: "12px", color: "#ffd6a0", align: "center" }).setOrigin(0.5, 0));
+
+    const yes = crispText(this, bx + bw / 2 - 70, by + bh - 36, "Sell", { fontSize: "14px", color: "#fff", backgroundColor: "#7a2e2e", fixedWidth: 96, align: "center" })
+      .setOrigin(0.5, 0).setPadding(0, 8, 0, 8).setInteractive({ useHandCursor: true });
+    yes.on("pointerup", () => {
+      this.closeConfirm();
       const r = this.mgr.sellItem(inst.id);
       this.flash(r.message, r.success);
       this.redraw();
     });
-    this.grid.add(z);
+    const no = crispText(this, bx + bw / 2 + 70, by + bh - 36, "Cancel", { fontSize: "14px", color: "#fff", backgroundColor: "#33415a", fixedWidth: 96, align: "center" })
+      .setOrigin(0.5, 0).setPadding(0, 8, 0, 8).setInteractive({ useHandCursor: true });
+    no.on("pointerup", () => this.closeConfirm());
+    c.add([yes, no]);
+
+    this.confirmDialog = c;
+  }
+
+  private closeConfirm(): void {
+    this.confirmDialog?.destroy(true);
+    this.confirmDialog = null;
   }
 
   private flash(msg: string, ok: boolean): void {
