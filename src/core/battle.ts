@@ -51,6 +51,7 @@ import { incrementBountyEvent } from "./bounties.ts";
 import { isoWeekKey } from "./meta.ts";
 import { recordKill, bestiaryDamageMul } from "./bestiary.ts";
 import { addMasteryXp, getMasteryLevel, masteryStatMul, MASTERY_XP_PER_KILL } from "./mastery.ts";
+import { getAwakening, awakeningStatMul } from "./awakening.ts";
 import { squadSynergyMul } from "../data/synergies.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
@@ -397,9 +398,10 @@ export class BattleState {
       towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0),
       this.hero.stats,
     );
-    // F6 mastery (per-tower permanent growth) × F8 squad synergy (team auras).
-    const mLvl = this._heroSave ? getMasteryLevel(this._heroSave, characterId) : 1;
-    const mMul = masteryStatMul(mLvl);
+    // F6 mastery × F7 awakening (per-tower permanent growth) × F8 squad synergy.
+    const mMul = this._heroSave
+      ? masteryStatMul(getMasteryLevel(this._heroSave, characterId)) * awakeningStatMul(getAwakening(this._heroSave, characterId))
+      : 1;
     resolvedStats.atk *= mMul * this.synergyMul.atkMul;
     resolvedStats.maxHp *= mMul * this.synergyMul.hpMul;
     resolvedStats.attackSpeed *= this.synergyMul.attackSpeedMul;
@@ -475,8 +477,10 @@ export class BattleState {
       towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel),
       this.hero.stats,
     );
-    // Re-apply F6 mastery + F8 synergy so upgrading never drops the bonus.
-    const mMul = masteryStatMul(this._heroSave ? getMasteryLevel(this._heroSave, t.def.id) : 1);
+    // Re-apply F6 mastery + F7 awakening + F8 synergy so upgrading never drops it.
+    const mMul = this._heroSave
+      ? masteryStatMul(getMasteryLevel(this._heroSave, t.def.id)) * awakeningStatMul(getAwakening(this._heroSave, t.def.id))
+      : 1;
     t.stats.atk *= mMul * this.synergyMul.atkMul;
     t.stats.maxHp *= mMul * this.synergyMul.hpMul;
     t.stats.attackSpeed *= this.synergyMul.attackSpeedMul;

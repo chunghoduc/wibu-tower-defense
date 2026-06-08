@@ -20,6 +20,9 @@ import { canForgetNode, PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import type { JewelInstanceSave } from "./save.ts";
 import { getMasteryLevel, getMasteryXp } from "./mastery.ts";
+import { getAwakening, canAwaken, awaken } from "./awakening.ts";
+import { ensureWishlist, setWishlist, canClaimSpark, claimSpark } from "./banner.ts";
+import { craftAlchemy, exchangeCopies } from "./alchemy.ts";
 import { claimStreak, streakClaimable, type StreakClaim } from "./streak.ts";
 import { spin, freeSpinAvailable, PAID_SPIN_COST, type SpinResult } from "./spin.ts";
 import { rolloverBounties, claimBounty } from "./bounties.ts";
@@ -413,6 +416,48 @@ export class SaveManager {
   // ── F6 Tower mastery (read-only; XP is earned in battle) ───────────────────
   masteryLevel(towerId: string): number { return getMasteryLevel(this.save, towerId); }
   masteryXp(towerId: string): number { return getMasteryXp(this.save, towerId); }
+
+  // ── F7 Awakening ───────────────────────────────────────────────────────────
+  awakeningRank(towerId: string): number { return getAwakening(this.save, towerId); }
+  canAwaken(towerId: string): ReturnType<typeof canAwaken> { return canAwaken(this.save, towerId); }
+  /** Awaken a 5★ tower one rank (spends Awakening Crystals). Returns new rank or -1. */
+  awaken(towerId: string): number {
+    const rank = awaken(this.save, towerId);
+    if (rank >= 0) this.persist();
+    return rank;
+  }
+
+  // ── F10 Spotlight banner + spark ────────────────────────────────────────────
+  sparks(): number { return this.save.meta.banner.sparks; }
+  /** Roll the featured rotation forward + default the wishlist for the week. */
+  ensureBanner(weekKey: string): void { ensureWishlist(this.save, weekKey); this.persist(); }
+  /** Choose which featured Unique the spark guarantee targets. */
+  setWishlist(towerId: string): boolean {
+    const ok = setWishlist(this.save, towerId);
+    if (ok) this.persist();
+    return ok;
+  }
+  canClaimSpark(): boolean { return canClaimSpark(this.save); }
+  /** Claim the spark guarantee — grant the wishlisted Unique. Returns its id or null. */
+  claimSpark(): string | null {
+    const id = claimSpark(this.save);
+    if (id) this.persist();
+    return id;
+  }
+
+  // ── F18 Alchemy / surplus exchange ──────────────────────────────────────────
+  /** Craft a material recipe `times` times. Returns crafts performed. */
+  craftAlchemy(recipeId: string, times = 1): number {
+    const n = craftAlchemy(this.save, recipeId, times);
+    if (n > 0) this.persist();
+    return n;
+  }
+  /** Convert banked dupe copies of a tower into Awakening Crystals. Returns crystals minted. */
+  exchangeCopies(towerId: string, crystals = 1): number {
+    const n = exchangeCopies(this.save, towerId, crystals);
+    if (n > 0) this.persist();
+    return n;
+  }
 
   // ── F1 Login streak ───────────────────────────────────────────────────────
   /** Claim today's streak reward (advances/continues/resets the chain). Null if

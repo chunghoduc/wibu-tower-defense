@@ -5,6 +5,7 @@ import { Rng } from "./rng.ts";
 import type { HeroSave } from "./save.ts";
 import { incrementBountyEvent } from "./bounties.ts";
 import { isoWeekKey } from "./meta.ts";
+import { featuredDraw } from "./banner.ts";
 
 export const SINGLE_PULL_COST = 160;
 export const MULTI_PULL_COST = 1440;
@@ -70,6 +71,10 @@ function drawRarity(pityCount: number, rng: Rng): Rarity {
 }
 
 function drawCharacter(save: HeroSave, rarity: Rarity, rng: Rng): string {
+  // F10 spotlight tilt: within the rolled rarity, the featured character has a
+  // boosted chance to be the one drawn.
+  const featured = featuredDraw(save, rarity, rng.next(), isoWeekKey(new Date()));
+  if (featured) return featured;
   // A maxed (5★) tower can't be pulled anymore — prefer non-maxed of the rolled
   // rarity, then any non-maxed tower, only falling back to the full list if the
   // player has somehow maxed everything.
