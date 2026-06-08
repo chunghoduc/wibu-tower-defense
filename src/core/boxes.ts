@@ -60,6 +60,22 @@ export function boxOdds(boxId: string): BoxOdds {
   return { tier, ...TIERS[tier] };
 }
 
+/**
+ * Human-readable opening odds for a box, shown in every box tooltip across the
+ * UI (inventory + post-battle reward panel) so players see the drop rates before
+ * opening. `\n`-joined; callers append it under the box's own description.
+ */
+export function boxOddsText(boxId: string): string {
+  const o = boxOdds(boxId);
+  const pct = (p: number) => `${Math.round(p * 100)}%`;
+  return [
+    "Opening odds:",
+    `• ~${o.crystals} gold + ${o.bless}× Bless Jewel (guaranteed)`,
+    `• ${pct(o.soulChance)} Soul Jewel`,
+    `• ${pct(o.itemChance)} gear drop (around lvl ${o.itemLevel})`,
+  ].join("\n");
+}
+
 /** Open one chest of `boxId`, mutating `save`. Returns the rolled rewards (or
  *  opened:false if the player has none). */
 export function openBox(save: HeroSave, boxId: string, rng: Rng): BoxReward {

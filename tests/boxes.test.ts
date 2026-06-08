@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { openBox, tierOfBox } from "../src/core/boxes.ts";
+import { openBox, tierOfBox, boxOddsText } from "../src/core/boxes.ts";
 import { boxIdForTier, boxRarityName, MATERIALS_MAP } from "../src/data/materials.ts";
 import { processStageClear } from "../src/core/drops.ts";
 import { boxTierForStage } from "../src/data/stage.ts";
@@ -55,6 +55,14 @@ describe("T15 — boss loot boxes", () => {
       return total / 40;
     };
     expect(avg(5)).toBeGreaterThan(avg(1) * 2);
+  });
+
+  it("boxOddsText lists guaranteed + chance drops with rate percentages", () => {
+    const text = boxOddsText(boxIdForTier(3));
+    expect(text).toContain("Opening odds:");
+    expect(text).toMatch(/Bless Jewel \(guaranteed\)/);
+    expect(text).toMatch(/\d+% Soul Jewel/);
+    expect(text).toMatch(/\d+% gear drop \(around lvl \d+\)/);
   });
 
   it("names each box tier by its rarity and tags the def with that rarity", () => {

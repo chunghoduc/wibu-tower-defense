@@ -19,7 +19,7 @@ import { ACTIVE_SKILLS_MAP } from "./skills.ts";
 import { skillIconKey } from "./skillIconManifest.ts";
 import { TOWERS } from "./towers.ts";
 import { MATERIALS_MAP } from "./materials.ts";
-import { boxOdds } from "../core/boxes.ts";
+import { boxOdds, boxOddsText } from "../core/boxes.ts";
 
 const RARITY_ORDER: Rarity[] = ["Common", "Magic", "Rare", "Legendary", "Unique"];
 const RARITY_HEX: Record<Rarity, string> = {
@@ -135,15 +135,8 @@ function characterTile(id: string): RewardTileSpec {
 
 /** A box tooltip lists its opening odds so players can see the drop rates. */
 function boxOddsBody(id: string, desc?: string): string {
-  const o = boxOdds(id);
-  const pct = (p: number) => `${Math.round(p * 100)}%`;
-  const lines = [
-    "Opening odds:",
-    `• ~${o.crystals} gold + ${o.bless}× Bless Jewel (guaranteed)`,
-    `• ${pct(o.soulChance)} Soul Jewel`,
-    `• ${pct(o.itemChance)} gear drop (around lvl ${o.itemLevel})`,
-  ];
-  return desc ? `${desc}\n\n${lines.join("\n")}` : lines.join("\n");
+  const odds = boxOddsText(id);
+  return desc ? `${desc}\n\n${odds}` : odds;
 }
 
 function materialTile(id: string, n: number): RewardTileSpec {

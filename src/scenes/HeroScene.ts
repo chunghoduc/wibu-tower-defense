@@ -15,6 +15,7 @@ import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName, type Materia
 import { enhanceChance, jewelForLevel, enhanceBonus, MAX_ENHANCE } from "../core/enhance.ts";
 import { crispText, panelText } from "./ui.ts";
 import { BoxOpenOverlay } from "./boxOpenOverlay.ts";
+import { boxOddsText } from "../core/boxes.ts";
 
 type InvFilter = "items" | "materials" | "boxes";
 
@@ -279,7 +280,12 @@ export class HeroScene extends Phaser.Scene {
     if (rarity) c.add(crispText(this, 0, TILE / 2 - 13, boxRarityName(rarity), { fontSize: "8px", color: Phaser.Display.Color.IntegerToColor(border).rgba, fontStyle: "bold" }).setOrigin(0.5));
     c.add(crispText(this, TILE / 2 - 4, -TILE / 2 + 4, `×${count}`, { fontSize: "11px", color: "#fff", fontStyle: "bold" }).setOrigin(1, 0));
     c.setInteractive({ useHandCursor: true });
-    c.on("pointerover", () => this.showTextTooltip(def?.name ?? id, def?.description ?? "", x, y));
+    // Boxes show their opening odds (drop rates) under the description so the
+    // player can see what's inside before spending the chest.
+    const desc = openable
+      ? (def?.description ? `${def.description}\n\n${boxOddsText(id)}` : boxOddsText(id))
+      : (def?.description ?? "");
+    c.on("pointerover", () => this.showTextTooltip(def?.name ?? id, desc, x, y));
     c.on("pointerout", () => this.hideTooltip());
     if (openable) c.on("pointerup", () => this.openBoxAction(id));
     return c;
