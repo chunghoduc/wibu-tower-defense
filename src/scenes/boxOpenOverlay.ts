@@ -120,12 +120,12 @@ export class BoxOpenOverlay {
       g.lineStyle(2, col, 1).strokeRoundedRect(-tw / 2, -36, tw, 72, 8);
       tile.add(g);
 
-      if (e.kind === "item" && e.iconKey && s.textures.exists(e.iconKey)) {
+      if (e.iconKey && s.textures.exists(e.iconKey)) {
         tile.add(s.add.image(0, -8, e.iconKey).setDisplaySize(34, 34));
       } else {
-        tile.add(s.add.text(0, -8, e.kind === "crystals" ? "💎" : e.kind === "item" ? "📦" : "💠", { fontSize: "24px" }).setOrigin(0.5));
+        tile.add(s.add.text(0, -8, e.kind === "gold" ? "🪙" : e.kind === "item" ? "📦" : "💠", { fontSize: "24px" }).setOrigin(0.5));
       }
-      const label = e.kind === "crystals" ? `+${e.count}` : e.count > 1 ? `${e.name} ×${e.count}` : e.name;
+      const label = e.kind === "gold" ? `+${e.count}` : e.count > 1 ? `${e.name} ×${e.count}` : e.name;
       tile.add(s.add.text(0, 22, label, { fontSize: "9px", color: e.color, align: "center", wordWrap: { width: tw - 8 }, fontStyle: "bold" }).setOrigin(0.5, 0));
       this.root!.add(tile);
       s.tweens.add({ targets: tile, alpha: 1, scale: 1, duration: 280, delay: i * 110, ease: "Back.easeOut" });

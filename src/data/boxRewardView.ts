@@ -9,11 +9,11 @@ import { ITEM_CATALOG_MAP } from "./items.ts";
 import type { Rarity } from "./schema.ts";
 
 export interface BoxRewardEntry {
-  kind: "crystals" | "material" | "item";
+  kind: "gold" | "material" | "item";
   name: string;
   count: number;
   color: string;       // hex string for the tile tint / border
-  iconKey?: string;    // texture key (item__<id>) when one applies
+  iconKey?: string;    // texture key (icon__gold / material__<id> / item__<id>)
 }
 
 const RARITY_HEX: Record<Rarity, string> = {
@@ -22,11 +22,11 @@ const RARITY_HEX: Record<Rarity, string> = {
 
 export function boxRewardEntries(reward: BoxReward): BoxRewardEntry[] {
   const entries: BoxRewardEntry[] = [
-    { kind: "crystals", name: "Crystals", count: reward.crystals, color: "#7ec8ff" },
+    { kind: "gold", name: "Gold", count: reward.crystals, color: "#ffcf4d", iconKey: "icon__gold" },
   ];
   for (const [mid, n] of Object.entries(reward.materials)) {
     if (!n) continue;
-    entries.push({ kind: "material", name: MATERIALS_MAP.get(mid)?.name ?? mid, count: n, color: "#a5d6a7" });
+    entries.push({ kind: "material", name: MATERIALS_MAP.get(mid)?.name ?? mid, count: n, color: "#a5d6a7", iconKey: `material__${mid}` });
   }
   if (reward.item) {
     const def = ITEM_CATALOG_MAP.get(reward.item.defId);

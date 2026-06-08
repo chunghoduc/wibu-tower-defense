@@ -6,17 +6,19 @@ import { ITEM_CATALOG } from "../src/data/items.ts";
 const baseReward = { opened: true as const, crystals: 80, materials: {}, item: null };
 
 describe("boxRewardEntries", () => {
-  it("always leads with a crystals entry carrying the rolled amount", () => {
+  it("always leads with a gold entry carrying the rolled amount + gold icon", () => {
     const entries = boxRewardEntries({ ...baseReward, crystals: 120 });
-    expect(entries[0].kind).toBe("crystals");
+    expect(entries[0].kind).toBe("gold");
     expect(entries[0].count).toBe(120);
+    expect(entries[0].iconKey).toBe("icon__gold");
   });
 
-  it("emits one entry per material, resolving its display name", () => {
+  it("emits one entry per material, resolving its display name + icon key", () => {
     const entries = boxRewardEntries({ ...baseReward, materials: { [BLESS_JEWEL]: 2 } });
     const mat = entries.find((e) => e.kind === "material")!;
     expect(mat.count).toBe(2);
     expect(mat.name).toBe("Jewel of Bless");
+    expect(mat.iconKey).toBe(`material__${BLESS_JEWEL}`);
   });
 
   it("emits an item entry with the item's name + icon key when an item drops", () => {

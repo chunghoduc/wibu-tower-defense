@@ -24,8 +24,7 @@ import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { stageThemeForStage } from "../data/chapters.ts";
 import { stageBgKey } from "../data/uiManifest.ts";
 import { crispText } from "./ui.ts";
-import { MATERIALS_MAP } from "../data/materials.ts";
-import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
+import { showRewardPanel } from "./rewardPanel.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
 import { activeSkillDetail } from "../data/skillDescribe.ts";
 import { upgradeSummary } from "../core/towerUpgrade.ts";
@@ -153,7 +152,7 @@ export class BattleScene extends Phaser.Scene {
     const bcx = this.battleW / 2;
     this.uiGfx = this.add.graphics().setDepth(8);
     this.hud = crispText(this, 10, 8, "", { fontSize: "15px", color: "#ffffff", wordWrap: { width: this.battleW - 120 } }).setDepth(10);
-    this.banner = crispText(this, bcx, 230, "", { fontSize: "44px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
+    this.banner = crispText(this, bcx, 188, "", { fontSize: "40px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
     this.info = crispText(this, 10, this.scale.height - 16, "", { fontSize: "12px", color: "#dbe6ee", wordWrap: { width: this.battleW - 20 } }).setDepth(10);
     this.hudLevelText = crispText(this, 36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
     this.hudSkillText = crispText(this, 58, 117, "", { fontSize: "10px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
@@ -690,26 +689,9 @@ export class BattleScene extends Phaser.Scene {
     );
 
     if (result) {
-      const lines = [`+${result.goldAwarded} 💎 crystals`];
-      if (result.isFirstClear) lines.push("★ First clear bonus!");
-      if (result.itemDropped) lines.push(`📦 Item: ${result.itemDropped.defId}`);
-      if (result.skillDropped) lines.push(`⚡ Skill: ${result.skillDropped}`);
-      if (result.characterDropped) lines.push(`✨ New character: ${result.characterDropped}`);
-      if (result.jewelDropped) lines.push(`🔷 Jewel: ${JEWEL_CATALOG_MAP.get(result.jewelDropped.defId)?.name ?? result.jewelDropped.defId}`);
-      for (const [id, n] of Object.entries(result.materialsDropped ?? {})) {
-        lines.push(`💠 ${MATERIALS_MAP.get(id)?.name ?? id} ×${n}`);
-      }
-
-      const overlay = crispText(this, this.battleW / 2, 300, lines.join("\n"), {
-          fontSize: "16px",
-          color: "#ffffff",
-          backgroundColor: "#1a2a3a",
-          align: "center",
-        })
-        .setOrigin(0.5)
-        .setPadding(16, 10, 16, 10)
-        .setDepth(25);
-      this.ui.add(overlay);
+      // Icon tiles with hover detail (gold/diamonds/gear/jewels/skills/etc.).
+      const panel = showRewardPanel(this, result, this.battleW / 2, 262);
+      this.ui.add(panel);
     }
   }
 
