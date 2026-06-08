@@ -734,7 +734,36 @@ export class BattleScene extends Phaser.Scene {
       this.sfx.coin();
     } else if (ev.type === "killReward") {
       this.killSaveDirty = true;   // XP/loot already in the save; flush debounced
+      // F17 loot fanfare: a high-tier boss chest gets an escalated cue.
+      if (ev.box) {
+        const tier = Number(ev.box.match(/t(\d)$/)?.[1] ?? 1);
+        if (tier >= 4) { this.sfx.coin(); this.cameras.main.flash(180, 255, 230, 150); }
+        this.floatWorldText(ev.at.x, ev.at.y, tier >= 4 ? "✦ RARE CHEST!" : "Chest!", tier >= 4 ? "#ffd24d" : "#cfe0f5", tier >= 4 ? 16 : 12);
+      }
+    } else if (ev.type === "combo") {
+      // F13: escalating kill-streak text, hotter as the streak climbs.
+      const hot = ev.mult >= 2.4 ? "#ff5a3c" : ev.mult >= 1.7 ? "#ffae3c" : "#ffe07a";
+      this.floatWorldText(ev.at.x, ev.at.y, `${ev.count}x  ·  ×${ev.mult.toFixed(1)}`, hot, 12 + Math.min(10, ev.count / 3));
+    } else if (ev.type === "perfect") {
+      // F14: brief center banner + sting for a flawless wave.
+      this.flashBanner(`PERFECT WAVE!  +${ev.bonus}🪙`, "#9fe0b0");
+      this.sfx.coin();
     }
+  }
+
+  /** Floating, rising, fading text at a WORLD position (combo/loot fanfare). */
+  private floatWorldText(wx: number, wy: number, msg: string, color: string, size: number): void {
+    const t = crispText(this, wx, wy, msg, { fontSize: `${Math.round(size)}px`, color, fontStyle: "bold", stroke: "#1a1206", strokeThickness: 3 })
+      .setOrigin(0.5).setDepth(14);
+    this.world.add(t);
+    this.tweens.add({ targets: t, y: wy - 28, alpha: 0, scale: 1.25, duration: 760, ease: "Sine.easeOut", onComplete: () => t.destroy() });
+  }
+
+  /** Briefly flash a message on the big center banner, then clear it. */
+  private flashBanner(msg: string, color: string): void {
+    this.banner.setText(msg).setColor(color).setAlpha(1).setScale(0.7);
+    this.tweens.add({ targets: this.banner, scale: 1, duration: 220, ease: "Back.easeOut" });
+    this.time.delayedCall(1100, () => this.tweens.add({ targets: this.banner, alpha: 0, duration: 350, onComplete: () => this.banner.setText("") }));
   }
 
   /** Tower sprite nearest a position (towers are static, so this is exact). */
