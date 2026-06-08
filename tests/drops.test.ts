@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { processStageClear, CRYSTAL_REWARD } from "../src/core/drops.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
-import { boxIdForTier } from "../src/data/materials.ts";
+import { boxIdForTier, OBLIVION_ORB } from "../src/data/materials.ts";
 import { boxTierForStage } from "../src/data/stage.ts";
 
 describe("processStageClear", () => {
@@ -56,6 +56,18 @@ describe("processStageClear", () => {
     }
     expect(boxes).toBeLessThan(N * 0.3); // dramatically lower than 100%
     expect(boxes).toBeGreaterThan(0);    // but still occasionally drops
+  });
+
+  it("drops the Oblivion Orb rarely (>0 but well under 10% across many clears)", () => {
+    const N = 600;
+    let orbs = 0;
+    for (let seed = 0; seed < N; seed++) {
+      const save = createFreshSave();
+      const r = processStageClear(save, "stage-3", "Normal", new Rng(seed));
+      if (r.materialsDropped[OBLIVION_ORB]) orbs++;
+    }
+    expect(orbs).toBeGreaterThan(0);        // it is obtainable
+    expect(orbs).toBeLessThan(N * 0.1);     // but a rare drop
   });
 
   it("may drop an item over 100 runs", () => {

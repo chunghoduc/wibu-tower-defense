@@ -11,7 +11,7 @@ import { renderItemTooltip } from "./itemTooltip.ts";
 import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type Rarity } from "../data/schema.ts";
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
-import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
+import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName, type MaterialKind } from "../data/materials.ts";
 import { enhanceChance, jewelForLevel, enhanceBonus, MAX_ENHANCE } from "../core/enhance.ts";
 import { crispText } from "./ui.ts";
 import { BoxOpenOverlay } from "./boxOpenOverlay.ts";
@@ -175,7 +175,7 @@ export class HeroScene extends Phaser.Scene {
     }
 
     if (this.filter === "items") this.refreshItems(save);
-    else this.refreshMaterials(save, this.filter === "boxes" ? "box" : "jewel");
+    else this.refreshMaterials(save, this.filter === "boxes" ? ["box"] : ["jewel", "consumable"]);
   }
 
   private gridPos(i: number): { x: number; y: number } | null {
@@ -196,18 +196,19 @@ export class HeroScene extends Phaser.Scene {
     });
   }
 
-  private refreshMaterials(save: ReturnType<SaveManager["getSave"]>, kind: "jewel" | "box"): void {
-    const mats = MATERIALS.filter((m) => m.kind === kind);
+  private refreshMaterials(save: ReturnType<SaveManager["getSave"]>, kinds: MaterialKind[]): void {
+    const isBox = kinds.includes("box");
+    const mats = MATERIALS.filter((m) => kinds.includes(m.kind));
     let i = 0;
     for (const m of mats) {
       const count = save.materials[m.id] ?? 0;
       if (count <= 0) continue;
       const p = this.gridPos(i++);
-      if (p) this.tiles.add(this.makeMaterialTile(m.id, count, p.x, p.y, kind === "box"));
+      if (p) this.tiles.add(this.makeMaterialTile(m.id, count, p.x, p.y, isBox));
     }
     if (i === 0) {
       this.tiles.add(this.add.text(this.invRect.x + 16, this.invRect.y + 16,
-        kind === "box" ? "No chests yet — beat a stage boss to earn one." : "No jewels yet — clear stages to find them.",
+        isBox ? "No chests yet — beat a stage boss to earn one." : "No materials yet — clear stages to find them.",
         { fontSize: "12px", color: "#7c8aa0" }));
     }
   }

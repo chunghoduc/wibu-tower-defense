@@ -5,7 +5,7 @@ import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection } from "./collection.ts";
 import { Rng } from "./rng.ts";
-import { BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, boxIdForTier } from "../data/materials.ts";
+import { BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, OBLIVION_ORB, boxIdForTier } from "../data/materials.ts";
 import { boxTierForStage } from "../data/stage.ts";
 import type { HeroSave, ItemInstanceSave, JewelInstanceSave } from "./save.ts";
 
@@ -35,6 +35,7 @@ export interface DropResult {
 const BLESS_DROP_CHANCE = 0.5;   // a clear usually yields a Bless jewel
 const SOUL_DROP_CHANCE = 0.15;   // Soul jewels are rarer (for high enhances)
 const SCROLL_DROP_CHANCE = 0.05; // Summoning Scrolls are a rare boss drop
+const ORB_DROP_CHANCE = 0.02;    // Oblivion Orbs (passive-tree respec) are very rare
 
 /**
  * Roll a dropped chest's rarity tier (1..5) around the stage's `base`: usually
@@ -120,6 +121,8 @@ export function processStageClear(
   }
   // Rare Summoning Scroll — only the stage boss drops it.
   if (rng.next() < SCROLL_DROP_CHANCE + diffBonus * 0.5) giveMat(SUMMON_SCROLL, 1);
+  // Very rare Oblivion Orb — a full passive-tree respec consumable.
+  if (rng.next() < ORB_DROP_CHANCE + diffBonus * 0.25) giveMat(OBLIVION_ORB, 1);
 
   return { crystalsAwarded, itemDropped, skillDropped, characterDropped, jewelDropped, isFirstClear, materialsDropped };
 }

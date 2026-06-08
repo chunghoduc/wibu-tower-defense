@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import { SaveManager } from "../src/core/saveManager.ts";
 import { LocalSaveProvider, CURRENT_SAVE_VERSION } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
+import { OBLIVION_ORB } from "../src/data/materials.ts";
 
 const store: Record<string, string> = {};
 const mockStorage = {
@@ -90,6 +91,30 @@ describe("SaveManager", () => {
       expect(refunded).toBe(3);
       expect(manager.getSave().hero.skillPoints).toBe(before + 3);
       expect(manager.getSave().hero.unlockedNodes).toEqual([]);
+    });
+
+    it("respecWithOrb consumes one Oblivion Orb and refunds the whole tree", () => {
+      allocateChain(manager);
+      manager.addMaterial(OBLIVION_ORB, 2);
+      const before = manager.getSave().hero.skillPoints;
+      expect(manager.respecWithOrb()).toBe(3);
+      expect(manager.getSave().hero.skillPoints).toBe(before + 3);
+      expect(manager.getSave().hero.unlockedNodes).toEqual([]);
+      expect(manager.getMaterial(OBLIVION_ORB)).toBe(1); // one orb spent
+    });
+
+    it("respecWithOrb returns -1 and changes nothing without an orb", () => {
+      allocateChain(manager);
+      const before = manager.getSave().hero.skillPoints;
+      expect(manager.respecWithOrb()).toBe(-1);
+      expect(manager.getSave().hero.skillPoints).toBe(before);
+      expect(manager.getSave().hero.unlockedNodes).toContain("grid-start");
+    });
+
+    it("respecWithOrb does not waste an orb when nothing is allocated", () => {
+      manager.addMaterial(OBLIVION_ORB, 1);
+      expect(manager.respecWithOrb()).toBe(0);
+      expect(manager.getMaterial(OBLIVION_ORB)).toBe(1); // orb kept
     });
   });
 

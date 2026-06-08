@@ -4,7 +4,7 @@ import { performMultiSummon, performSummon, type SummonResult } from "./gacha.ts
 import { awardHeroXp } from "./hero.ts";
 import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
 import { ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, sellItem, type PurchaseResult } from "./shop.ts";
-import { SUMMON_SCROLL } from "../data/materials.ts";
+import { SUMMON_SCROLL, OBLIVION_ORB } from "../data/materials.ts";
 import type { ShopStockEntry } from "./save.ts";
 import { attemptEnhance, type EnhanceResult } from "./enhance.ts";
 import { openBox, type BoxReward } from "./boxes.ts";
@@ -150,6 +150,21 @@ export class SaveManager {
     hero.skillPoints += refunded;
     hero.unlockedNodes = [];
     this.persist();
+    return refunded;
+  }
+
+  /**
+   * Spend one Oblivion Orb (a rare loot drop) to refund the entire passive tree.
+   * Returns the points refunded, -1 if the player owns no orb (nothing changes),
+   * or 0 if nothing was allocated (the orb is kept, not wasted).
+   */
+  respecWithOrb(): number {
+    if ((this.save.materials[OBLIVION_ORB] ?? 0) <= 0) return -1;
+    const refunded = this.resetPassiveTree();
+    if (refunded > 0) {
+      this.save.materials[OBLIVION_ORB] -= 1;
+      this.persist();
+    }
     return refunded;
   }
 

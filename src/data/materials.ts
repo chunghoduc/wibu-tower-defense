@@ -6,8 +6,9 @@
 export const BLESS_JEWEL = "bless-jewel";
 export const SOUL_JEWEL = "soul-jewel";
 export const SUMMON_SCROLL = "summon-scroll";
+export const OBLIVION_ORB = "oblivion-orb";
 
-export type MaterialKind = "jewel" | "box" | "scroll";
+export type MaterialKind = "jewel" | "box" | "scroll" | "consumable";
 
 export interface MaterialDef {
   id: string;
@@ -34,6 +35,10 @@ export const MATERIALS: MaterialDef[] = [
   {
     id: SUMMON_SCROLL, name: "Summoning Scroll", kind: "scroll", icon: "scroll",
     description: "A rare scroll dropped by bosses. Use it in the Summon Hall for one free summon.",
+  },
+  {
+    id: OBLIVION_ORB, name: "Oblivion Orb", kind: "consumable", icon: "oblivion",
+    description: "A rare orb that unwinds the mind. Use it in the Passive Tree to refund every spent skill point.",
   },
 ];
 

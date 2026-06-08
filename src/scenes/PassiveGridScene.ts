@@ -7,6 +7,7 @@ import { drawNodeIcon } from "./passiveGridGlyphs.ts";
 import { formatStatBonuses } from "./passiveGridFormat.ts";
 import { JewelOverlay } from "./jewelOverlay.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
+import { OBLIVION_ORB } from "../data/materials.ts";
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 const MIN_X = 4;
@@ -363,13 +364,14 @@ export class PassiveGridScene extends Phaser.Scene {
   }
 
   private tryResetAll(): void {
+    if (this.mgr.getMaterial(OBLIVION_ORB) <= 0) return; // gated on owning an orb
     if (!this.resetArmed) {
       this.resetArmed = true;
-      this.resetBtn.setText("Confirm reset?").setBackgroundColor("#922b21");
+      this.resetBtn.setText("Confirm — spend 1 Orb?").setBackgroundColor("#922b21");
       return;
     }
     this.disarmReset();
-    this.mgr.resetPassiveTree();
+    this.mgr.respecWithOrb(); // consumes one orb + refunds the whole tree
     this.selectedNode = null;
     this.redraw();
   }
@@ -412,9 +414,16 @@ export class PassiveGridScene extends Phaser.Scene {
   ): void {
     this.panelPoints.setText(`Skill points: ${skillPoints}`);
 
-    // "Reset all" is offered whenever any point has been spent.
+    // "Reset all" is offered whenever any point has been spent, but it now costs
+    // a rare looted Oblivion Orb. The button shows your orb stock and greys out
+    // when you have none.
     this.resetBtn.setVisible(unlockedSet.size > 0);
     if (unlockedSet.size === 0) this.disarmReset();
+    if (!this.resetArmed) {
+      const orbs = this.mgr.getMaterial(OBLIVION_ORB);
+      this.resetBtn.setText(orbs > 0 ? `Reset all  (Orb ×${orbs})` : "Reset all — need Oblivion Orb");
+      this.resetBtn.setAlpha(orbs > 0 ? 1 : 0.45);
+    }
 
     if (!this.selectedNode) {
       this.panelName.setText("Select a node");
