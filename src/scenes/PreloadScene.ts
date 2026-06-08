@@ -11,6 +11,7 @@ import { SKILL_ICON_IDS } from "../data/skillIconManifest.ts";
 import { JEWEL_ICON_IDS } from "../data/jewelIconManifest.ts";
 import { BG_IMAGES, bgKey } from "../data/bgManifest.ts";
 import { UI_SVGS, UI_IMAGES } from "../data/uiManifest.ts";
+import { FX_IDS } from "../data/fxManifest.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -53,6 +54,8 @@ export class PreloadScene extends Phaser.Scene {
     }
     // Inventory paper-doll mannequin (equipment slots map onto its body).
     this.load.image("herodoll__base", "assets/ui/hero-doll/hero-base.png");
+    // Additive-blend VFX textures (box-open burst/glow/sparkle).
+    for (const id of FX_IDS) this.load.image(`fx__${id}`, `assets/sprites/fx/${id}.png`);
   }
 
   create(): void {

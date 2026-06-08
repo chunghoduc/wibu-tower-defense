@@ -1,0 +1,42 @@
+/**
+ * Turn a rolled BoxReward into a flat, render-ready list of reward entries for
+ * the box-open reveal card. Pure (no Phaser) so it can be unit-tested; the
+ * overlay just iterates the entries and draws a tile per one.
+ */
+import type { BoxReward } from "../core/boxes.ts";
+import { MATERIALS_MAP } from "./materials.ts";
+import { ITEM_CATALOG_MAP } from "./items.ts";
+import type { Rarity } from "./schema.ts";
+
+export interface BoxRewardEntry {
+  kind: "crystals" | "material" | "item";
+  name: string;
+  count: number;
+  color: string;       // hex string for the tile tint / border
+  iconKey?: string;    // texture key (item__<id>) when one applies
+}
+
+const RARITY_HEX: Record<Rarity, string> = {
+  Common: "#9e9e9e", Magic: "#2196f3", Rare: "#9c27b0", Legendary: "#ff9800", Unique: "#f44336",
+};
+
+export function boxRewardEntries(reward: BoxReward): BoxRewardEntry[] {
+  const entries: BoxRewardEntry[] = [
+    { kind: "crystals", name: "Crystals", count: reward.crystals, color: "#7ec8ff" },
+  ];
+  for (const [mid, n] of Object.entries(reward.materials)) {
+    if (!n) continue;
+    entries.push({ kind: "material", name: MATERIALS_MAP.get(mid)?.name ?? mid, count: n, color: "#a5d6a7" });
+  }
+  if (reward.item) {
+    const def = ITEM_CATALOG_MAP.get(reward.item.defId);
+    entries.push({
+      kind: "item",
+      name: def?.name ?? "Item",
+      count: 1,
+      color: def ? RARITY_HEX[def.rarity] : "#ffd34d",
+      iconKey: `item__${reward.item.defId}`,
+    });
+  }
+  return entries;
+}

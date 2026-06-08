@@ -14,6 +14,7 @@ import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { enhanceChance, jewelForLevel, enhanceBonus, MAX_ENHANCE } from "../core/enhance.ts";
 import { crispText } from "./ui.ts";
+import { BoxOpenOverlay } from "./boxOpenOverlay.ts";
 
 type InvFilter = "items" | "materials" | "boxes";
 
@@ -42,6 +43,7 @@ export class HeroScene extends Phaser.Scene {
   private filterTabs: Phaser.GameObjects.Text[] = [];
   private dialog!: Phaser.GameObjects.Container;   // enhance modal
   private didDrag = false;
+  private boxOverlay?: BoxOpenOverlay;
 
   constructor() { super("HeroScene"); }
 
@@ -51,6 +53,7 @@ export class HeroScene extends Phaser.Scene {
     this.slotZones.clear(); this.slotPos.clear();
     this.filterTabs = [];          // reset on scene re-entry
     this.didDrag = false;
+    this.boxOverlay = undefined;   // stale across scene re-entry (Phaser reuses instances)
     this.input.dragDistanceThreshold = 8; // small moves = click (enhance), not drag
     const W = this.scale.width;
 
@@ -282,13 +285,13 @@ export class HeroScene extends Phaser.Scene {
   }
 
   private openBoxAction(boxId: string): void {
+    if (this.boxOverlay?.isOpen()) return;        // an open sequence is already playing
     const reward = this.mgr.openBox(boxId);
     if (!reward.opened) return;
-    const parts = [`+${reward.crystals}💎`];
-    for (const [mid, n] of Object.entries(reward.materials)) parts.push(`${MATERIALS_MAP.get(mid)?.name ?? mid} ×${n}`);
-    if (reward.item) parts.push(`📦 ${ITEM_CATALOG_MAP.get(reward.item.defId)?.name ?? "item"}`);
-    this.showToast(`Opened: ${parts.join("  ·  ")}`);
-    this.refresh();
+    // Anime-style reveal: the chest bursts open and shows its loot. Inventory
+    // counts refresh when the overlay is dismissed (onClose).
+    this.boxOverlay ??= new BoxOpenOverlay(this, () => this.refresh());
+    this.boxOverlay.play(boxId, reward);
   }
 
   /** The MU-style enhance dialog for an item (T13). */
