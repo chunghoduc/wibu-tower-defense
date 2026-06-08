@@ -114,11 +114,11 @@ describe("BattleState outcomes", () => {
 
   it("awards bounty gold to the player on each kill", () => {
     const { stage, catalog } = world(enemy({ bounty: 10 }), turret(), oneWave(5), 50, 0);
-    const b = new BattleState(stage, catalog, { hero: inertHero });
+    const b = new BattleState(stage, catalog, { hero: inertHero, eliteChance: 0 });
     b.placeTower("turret", 0);
     runUntilDone(b);
     expect(b.outcome).toBe("won");
-    expect(b.gold).toBe(50); // 5 kills * 10 bounty
+    expect(b.gold).toBe(50); // 5 kills * 10 bounty (elites disabled for determinism)
   });
 });
 

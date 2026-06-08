@@ -3,6 +3,8 @@ import type { Rng } from "./rng.ts";
 import type { HeroSave, ItemInstanceSave } from "./save.ts";
 import { awardHeroXp } from "./hero.ts";
 import { rollItemDrop } from "./itemDrop.ts";
+import { rollEliteBoxTier } from "./elite.ts";
+import { boxIdForTier } from "../data/materials.ts";
 
 // Per-kill drops persist immediately (the hero keeps XP/loot even if the stage
 // is abandoned), so the chances are deliberately small — bulk loot still comes
@@ -22,11 +24,14 @@ export function killXpFor(def: EnemyDef, difficulty: Difficulty): number {
 export interface KillReward {
   xp: number;
   itemDropped: ItemInstanceSave | null;
+  /** Box material id granted by an elite kill (T17), else null. */
+  boxDropped: string | null;
 }
 
 /**
  * Award the XP + (chance) item drop for a single enemy kill straight into the
  * save. The caller persists. Returns what was granted for floating-text FX.
+ * An `elite` kill additionally drops a guaranteed weighted-rarity loot box.
  */
 export function processEnemyKill(
   save: HeroSave,
@@ -34,6 +39,7 @@ export function processEnemyKill(
   difficulty: Difficulty,
   itemLevel: number,
   rng: Rng,
+  elite = false,
 ): KillReward {
   const xp = killXpFor(def, difficulty);
   awardHeroXp(save, xp);
@@ -41,5 +47,13 @@ export function processEnemyKill(
   const chance = boss ? BOSS_ITEM_DROP_CHANCE : KILL_ITEM_DROP_CHANCE;
   // Only bosses can drop Legendary/Unique; regular enemies are capped at Rare.
   const itemDropped = rng.next() < chance ? rollItemDrop(save, itemLevel, rng, boss) : null;
-  return { xp, itemDropped };
+
+  // Elites guarantee a loot box; its rarity is weighted toward Common (T17).
+  let boxDropped: string | null = null;
+  if (elite) {
+    boxDropped = boxIdForTier(rollEliteBoxTier(rng));
+    save.materials[boxDropped] = (save.materials[boxDropped] ?? 0) + 1;
+  }
+
+  return { xp, itemDropped, boxDropped };
 }

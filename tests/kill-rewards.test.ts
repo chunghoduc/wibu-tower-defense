@@ -21,6 +21,21 @@ describe("kill rewards persist per kill", () => {
     if (boss !== grunt) expect(killXpFor(boss, "Normal")).toBeGreaterThan(killXpFor(grunt, "Normal"));
   });
 
+  it("an elite kill always drops exactly one loot box into materials", () => {
+    const save = createFreshSave();
+    const r = processEnemyKill(save, grunt, "Normal", 30, new Rng(11), true);
+    expect(r.boxDropped).toMatch(/^boss-box-t[1-5]$/);
+    expect(save.materials[r.boxDropped!]).toBe(1);
+  });
+
+  it("a non-elite kill never drops a box", () => {
+    const save = createFreshSave();
+    for (let seed = 0; seed < 50; seed++) {
+      const r = processEnemyKill(save, grunt, "Normal", 30, new Rng(seed));
+      expect(r.boxDropped).toBeNull();
+    }
+  });
+
   it("occasionally drops an item into the inventory over many kills", () => {
     const save = createFreshSave();
     let drops = 0;

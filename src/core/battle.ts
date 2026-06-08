@@ -38,6 +38,7 @@ import { effectiveBehavior } from "./towerUpgrade.ts";
 import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
+import { ELITE_SPAWN_CHANCE, ELITE_BOUNTY_MULT, applyEliteBoost } from "./elite.ts";
 import type { HeroSave } from "./save.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
 import { processEnemyKill } from "./killRewards.ts";
@@ -63,14 +64,14 @@ function segDist(p: Vec2, a: Vec2, b: Vec2): number {
 export type FxEvent =
   | { type: "attack"; uid: number; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero"; style: string }
   | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
-  | { type: "death"; at: Vec2; boss: boolean; bounty: number }
+  | { type: "death"; at: Vec2; boss: boolean; elite: boolean; bounty: number }
   | { type: "enemyAttack"; uid: number; at: Vec2; targetAt: Vec2; target: "hero" | "tower" }
   | { type: "cast"; uid: number; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
   | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
   | { type: "loot"; at: Vec2; gold: number }
-  | { type: "killReward"; at: Vec2; xp: number; item: boolean };
+  | { type: "killReward"; at: Vec2; xp: number; item: boolean; box: string | null };
 
 /** Debug context threaded into applyDamage so the combat logger can print the
  * full per-hit formula (only built when logging is on). */
@@ -127,6 +128,8 @@ export interface EnemyRuntime {
   bossSummonTimer: number;
   bossDisableTimer: number;
   enraged: boolean;
+  /** Elite (T17): a promoted normal enemy — boosted stats, bigger, guaranteed box drop. */
+  elite: boolean;
   /** Boss skill mana (T16); fills over time + on taking damage, spent on cast. */
   mana: number;
 }
@@ -177,6 +180,8 @@ export interface BattleOptions {
   hero: HeroConfig;
   difficulty?: Difficulty;
   heroSave?: HeroSave;
+  /** Override the per-spawn elite chance (defaults to ELITE_SPAWN_CHANCE). */
+  eliteChance?: number;
 }
 
 interface Catalogs {
@@ -229,6 +234,8 @@ export class BattleState {
   private petGoldPerSec = 0;
   private petGoldCarry = 0;
   private _heroSave: HeroSave | undefined;
+  /** Per-spawn elite-promotion chance (T17); overridable for tuning/tests. */
+  private readonly eliteChance: number;
 
   private schedule: ScheduledSpawn[] = [];
   private schedulePtr = 0;
@@ -244,6 +251,7 @@ export class BattleState {
     this.cat = catalogs;
     this.rng = new Rng(opts.seed ?? 1);
     this.difficulty = opts.difficulty ?? "Normal";
+    this.eliteChance = opts.eliteChance ?? ELITE_SPAWN_CHANCE;
     this.totalPathLen = pathLength(stage.path);
     this.castlePos = stage.path[stage.path.length - 1];
     this.castleHp = stage.castleHp;
@@ -497,11 +505,15 @@ export class BattleState {
     const def = this.cat.enemies.get(req.enemyId);
     if (!def) return;
     const scale = DIFFICULTY_SCALING[this.difficulty];
-    const stats: Stats = {
+    let stats: Stats = {
       ...def.baseStats,
       maxHp: def.baseStats.maxHp * scale.hpMult,
       atk: def.baseStats.atk * scale.atkMult,
     };
+    // Elite promotion (T17): a small chance any non-boss enemy becomes a
+    // dramatically tougher elite that guarantees a loot box on death.
+    const elite = def.archetype !== "Boss" && this.eliteChance > 0 && this.rng.next() < this.eliteChance;
+    if (elite) stats = applyEliteBoost(stats);
     const flying = def.flying;
     const airStart =
       req.airStart ??
@@ -536,6 +548,7 @@ export class BattleState {
       bossSummonTimer: def.boss?.summon?.interval ?? 0,
       bossDisableTimer: def.boss?.towerDisable?.interval ?? 0,
       enraged: false,
+      elite,
       mana: 0,
     });
   }
@@ -1118,15 +1131,16 @@ export class BattleState {
     if (!e.alive) return;
     e.alive = false;
     const scale = DIFFICULTY_SCALING[this.difficulty];
-    const reward = Math.round(e.def.bounty * scale.bountyMult * (1 + this.hero.stats.goldFind));
+    const eliteBonus = e.elite ? ELITE_BOUNTY_MULT : 1;
+    const reward = Math.round(e.def.bounty * scale.bountyMult * eliteBonus * (1 + this.hero.stats.goldFind));
     this.gold += reward;
     const boss = e.def.archetype === "Boss";
-    this.emit({ type: "death", at: { x: e.pos.x, y: e.pos.y }, boss, bounty: e.def.bounty });
+    this.emit({ type: "death", at: { x: e.pos.x, y: e.pos.y }, boss, elite: e.elite, bounty: e.def.bounty });
     this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, gold: reward });
     // Per-kill XP + loot persist immediately (kept even if the stage is abandoned).
     if (this._heroSave) {
-      const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng);
-      this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, xp: kr.xp, item: kr.itemDropped !== null });
+      const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng, e.elite);
+      this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, xp: kr.xp, item: kr.itemDropped !== null, box: kr.boxDropped });
       const today = new Date().toISOString().slice(0, 10);
       incrementQuestKey(this._heroSave, boss ? "kill_bosses" : "kill_enemies", 1, today);
     }

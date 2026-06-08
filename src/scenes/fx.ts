@@ -10,6 +10,8 @@ import type { DamageType, Vec2 } from "../data/schema.ts";
 import { makeCrisp } from "./ui.ts";
 import { skillStyleFor } from "../data/attackStyle.ts";
 import { SkillVfx } from "./skillVfx.ts";
+import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
+import { tierOfBox } from "../core/boxes.ts";
 
 const DMG_COLOR: Record<DamageType, number> = {
   Physical: 0xe9eef7,
@@ -73,13 +75,13 @@ export class FxLayer {
         this.bolt(e.from, e.to, 0x9fe6ff);
         break;
       case "death":
-        this.deathBurst(e.at, e.boss);
+        this.deathBurst(e.at, e.boss, e.elite);
         break;
       case "loot":
         this.coinPop(e.at, e.gold);
         break;
       case "killReward":
-        this.xpPop(e.at, e.xp, e.item);
+        this.xpPop(e.at, e.xp, e.item, e.box);
         break;
       case "enemyAttack":
         this.lunge(e.at, e.targetAt);
@@ -90,8 +92,8 @@ export class FxLayer {
     }
   }
 
-  /** Floating "+N XP" on a kill, plus a gold "Loot!" tag when an item dropped. */
-  private xpPop(at: Vec2, xp: number, item: boolean): void {
+  /** Floating "+N XP" on a kill, plus a gold "Loot!" tag and an elite box tag. */
+  private xpPop(at: Vec2, xp: number, item: boolean, box: string | null = null): void {
     const label = makeCrisp(this.fac.text(at.x, at.y, `+${xp} XP`, {
       fontFamily: '"Trebuchet MS", system-ui, sans-serif', fontSize: "11px", color: "#cdebff", fontStyle: "bold", stroke: "#0a1420", strokeThickness: 3,
     }).setOrigin(0.5).setDepth(this.depth + 4));
@@ -101,6 +103,15 @@ export class FxLayer {
         fontFamily: '"Trebuchet MS", system-ui, sans-serif', fontSize: "11px", color: "#ffe07a", fontStyle: "bold", stroke: "#2a1c05", strokeThickness: 3,
       }).setOrigin(0.5).setDepth(this.depth + 5));
       this.scene.tweens.add({ targets: tag, y: at.y - 42, alpha: 0, duration: 1000, ease: "Quad.easeOut", onComplete: () => tag.destroy() });
+    }
+    if (box) {
+      // Elite box drop — show the chest's rarity name in its rarity colour.
+      const tier = tierOfBox(box);
+      const hex = "#" + (BOX_RARITY_COLOR[tier] ?? 0xffffff).toString(16).padStart(6, "0");
+      const tag = makeCrisp(this.fac.text(at.x, at.y - (item ? 26 : 13), `📦 ${boxRarityName(tier)} Box!`, {
+        fontFamily: '"Trebuchet MS", system-ui, sans-serif', fontSize: "12px", color: hex, fontStyle: "bold", stroke: "#1a1207", strokeThickness: 4,
+      }).setOrigin(0.5).setDepth(this.depth + 6));
+      this.scene.tweens.add({ targets: tag, y: tag.y - 40, alpha: 0, duration: 1300, ease: "Quad.easeOut", onComplete: () => tag.destroy() });
     }
   }
 
@@ -269,16 +280,18 @@ export class FxLayer {
     this.scene.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
   }
 
-  private deathBurst(at: Vec2, boss: boolean): void {
-    const color = boss ? 0xff5a5a : 0xffd27a;
-    const n = boss ? 14 : 8;
+  private deathBurst(at: Vec2, boss: boolean, elite = false): void {
+    // Elites burst like a mini-boss, tinted gold to match their aura.
+    const big = boss || elite;
+    const color = boss ? 0xff5a5a : elite ? 0xffd34d : 0xffd27a;
+    const n = big ? 14 : 8;
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n;
-      const d = boss ? 30 : 18;
-      const p = this.fac.circle(at.x, at.y, boss ? 4 : 3, color).setDepth(this.depth + 1);
-      this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * d, y: at.y + Math.sin(a) * d, alpha: 0, scale: 0.2, duration: boss ? 480 : 320, ease: "Quad.easeOut", onComplete: () => p.destroy() });
+      const d = big ? 30 : 18;
+      const p = this.fac.circle(at.x, at.y, big ? 4 : 3, color).setDepth(this.depth + 1);
+      this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * d, y: at.y + Math.sin(a) * d, alpha: 0, scale: 0.2, duration: big ? 480 : 320, ease: "Quad.easeOut", onComplete: () => p.destroy() });
     }
-    const flash = this.fac.circle(at.x, at.y, boss ? 22 : 12, 0xffffff, 0.85).setDepth(this.depth + 1);
+    const flash = this.fac.circle(at.x, at.y, big ? 22 : 12, 0xffffff, 0.85).setDepth(this.depth + 1);
     this.scene.tweens.add({ targets: flash, scale: 1.8, alpha: 0, duration: 260, onComplete: () => flash.destroy() });
   }
 

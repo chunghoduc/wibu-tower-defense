@@ -15,6 +15,7 @@ import { loadCatalog, type Catalog } from "../data/catalog.ts";
 import { defaultHeroStats, STAGE_1, WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
 import type { CharacterDef, Difficulty, ItemSlot, StageDef, Vec2 } from "../data/schema.ts";
 import { dist } from "../core/path.ts";
+import { ELITE_SIZE_MULT } from "../core/elite.ts";
 import { totalXpForLevel } from "../core/hero.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { Rng } from "../core/rng.ts";
@@ -876,7 +877,9 @@ export class BattleScene extends Phaser.Scene {
     for (const e of this.battle.enemies) {
       const boss = e.def.archetype === "Boss";
       const key = `${boss ? "boss" : "enemy"}__${e.def.id}`;
-      const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, boss ? 62 : 30);
+      // Elites render 150% bigger so the player can spot them at a glance (T17).
+      const displayH = (boss ? 62 : 30) * (e.elite ? ELITE_SIZE_MULT : 1);
+      const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, displayH);
       if (s) {
         seenE.add(e.uid);
         s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1);
@@ -1000,9 +1003,17 @@ export class BattleScene extends Phaser.Scene {
 
   private drawEnemy(g: Phaser.GameObjects.Graphics, e: EnemyRuntime): void {
     const boss = e.def.archetype === "Boss";
-    const r = boss ? 16 : e.flying ? 8 : 10;
+    const r = (boss ? 16 : e.flying ? 8 : 10) * (e.elite ? ELITE_SIZE_MULT : 1);
     const alpha = e.stealth ? 0.4 : 1;
     const base = e.enraged ? 0xff5252 : e.flying ? 0xce93d8 : boss ? 0xb71c1c : 0xe57373;
+    // Elite aura (T17): a pulsing gold double-ring so elites read instantly.
+    if (e.elite) {
+      const pulse = 0.5 + 0.5 * Math.sin(this.time.now * 0.006 + e.uid);
+      const ar = r + 6 + pulse * 4;
+      g.fillStyle(0xffd34d, 0.12 + pulse * 0.08).fillCircle(e.pos.x, e.pos.y, ar);
+      g.lineStyle(2, 0xffe082, 0.85).strokeCircle(e.pos.x, e.pos.y, ar);
+      g.lineStyle(1, 0xfff3c4, 0.5).strokeCircle(e.pos.x, e.pos.y, r + 3);
+    }
     if (!this.enemySprites.has(e.uid)) g.fillStyle(base, alpha).fillCircle(e.pos.x, e.pos.y, r);
     else if (e.enraged) g.lineStyle(2, 0xff5252, 0.8).strokeCircle(e.pos.x, e.pos.y, r + 4);
     if (e.stunTimer > 0) g.lineStyle(2, 0xfff176, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
@@ -1017,7 +1028,7 @@ export class BattleScene extends Phaser.Scene {
         this.drawDashedRing(g, e.pos.x, e.pos.y, r + 5, 0x80deea, 0.8);
       }
     }
-    const w = boss ? 40 : 20;
+    const w = boss ? 40 : e.elite ? 30 : 20;
     const top = e.pos.y - r - 7;
     g.fillStyle(0x000000, 0.6).fillRect(e.pos.x - w / 2, top, w, 4);
     g.fillStyle(0x66bb6a, 1).fillRect(
