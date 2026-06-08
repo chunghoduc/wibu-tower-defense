@@ -1,7 +1,8 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
+import { type MetaSave, defaultMeta, backfillMeta } from "./meta.ts";
 
-export const CURRENT_SAVE_VERSION = 9;
+export const CURRENT_SAVE_VERSION = 10;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -147,6 +148,8 @@ export interface HeroSave {
   shop: ShopSave;
   /** Daily quest state — progress, claims, and all-done bonus. */
   quests: QuestsSave;
+  /** Addictive-features meta block (streak, mastery, banner, endless, …) — v10. */
+  meta: MetaSave;
   lastSavedAt: number;
 }
 
@@ -178,6 +181,7 @@ export function createFreshSave(): HeroSave {
     settings: defaultSettings(),
     shop: { stock: [], refreshesToday: 0, refreshDate: "" },
     quests: { date: "", progress: {}, claimed: [], allClaimed: false },
+    meta: defaultMeta(),
     lastSavedAt: 0,
   };
 }
@@ -215,6 +219,10 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     // Free-summon timer: existing players start with one free summon ready.
     save = { ...save, currency: { ...save.currency, freeSummonReadyAt: 0 }, version: 9 };
   }
+  if ((save.version ?? 0) < 10) {
+    // Addictive-features suite: stub in the meta block (all features start empty).
+    save = { ...save, meta: defaultMeta(), version: 10 };
+  }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the
   // versioned hops above and would crash on first access. Ensure every required
@@ -236,6 +244,8 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   save.quests.progress ??= {};
   save.quests.claimed ??= [];
   save.quests.allClaimed ??= false;
+  // Meta block (v10): backfill every sub-object so a partial save never crashes.
+  save.meta = backfillMeta(save.meta);
   // Hero active skills: migrate the old single equip slot to the multi-slot list
   // and grant the weapon-free starter skills so every hero has usable actives.
   if (save.hero) {

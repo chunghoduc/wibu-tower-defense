@@ -7,6 +7,9 @@ export const BLESS_JEWEL = "bless-jewel";
 export const SOUL_JEWEL = "soul-jewel";
 export const SUMMON_SCROLL = "summon-scroll";
 export const OBLIVION_ORB = "oblivion-orb";
+/** F7 Awakening — the top-end sink material. Earned from streak/bounty/endless,
+ *  not stage drops, so it stays an aspirational late-game currency. */
+export const AWAKENING_CRYSTAL = "awakening-crystal";
 
 export type MaterialKind = "jewel" | "box" | "scroll" | "consumable";
 
@@ -39,6 +42,10 @@ export const MATERIALS: MaterialDef[] = [
   {
     id: OBLIVION_ORB, name: "Oblivion Orb", kind: "consumable", icon: "oblivion",
     description: "A rare orb that unwinds a single memory. Spend it in the Passive Tree to forget one allocated skill and refund its point.",
+  },
+  {
+    id: AWAKENING_CRYSTAL, name: "Awakening Crystal", kind: "consumable", icon: "awaken",
+    description: "A radiant crystal of pure potential. Spend it in the Collection to Awaken a 5★ tower beyond its limits.",
   },
 ];
 
