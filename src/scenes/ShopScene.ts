@@ -175,7 +175,7 @@ export class ShopScene extends Phaser.Scene {
       this.grid.add(icon);
     }
     if ((inst.enhanceLevel ?? 0) > 0) this.grid.add(crispText(this, x + w - 4, y + 3, `+${inst.enhanceLevel}`, { fontSize: "9px", color: "#ffe07a", fontStyle: "bold" }).setOrigin(1, 0));
-    this.grid.add(crispText(this, x + w / 2, y + h - 16, isEquipped ? "equipped" : `💎 +${sell}`, { fontSize: "11px", color: isEquipped ? "#6b7689" : "#8be06a", fontStyle: "bold" }).setOrigin(0.5));
+    this.grid.add(crispText(this, x + w / 2, y + h - 16, isEquipped ? "equipped" : `🪙 +${sell}`, { fontSize: "11px", color: isEquipped ? "#6b7689" : "#8be06a", fontStyle: "bold" }).setOrigin(0.5));
 
     const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
     hoverGlowRect(this, z, this.grid, x, y, w, h, { color: col });

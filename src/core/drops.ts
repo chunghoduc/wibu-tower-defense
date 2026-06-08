@@ -8,6 +8,7 @@ import { Rng } from "./rng.ts";
 import { BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, OBLIVION_ORB, boxIdForTier } from "../data/materials.ts";
 import { boxTierForStage, stageNumber } from "../data/stage.ts";
 import type { HeroSave, ItemInstanceSave, JewelInstanceSave } from "./save.ts";
+import { incrementQuestKey } from "./questTracker.ts";
 
 /** Gold awarded per difficulty on stage clear (primary progression currency). */
 export const GOLD_REWARD: Record<Difficulty, number> = {
@@ -71,6 +72,10 @@ export function processStageClear(
   }
   const isFirstClear = !save.progress.stageClearMap[stageId][difficulty];
   save.progress.stageClearMap[stageId][difficulty] = true;
+
+  const today = new Date().toISOString().slice(0, 10);
+  incrementQuestKey(save, "clear_stages", 1, today);
+  if (difficulty !== "Normal") incrementQuestKey(save, "clear_hard", 1, today);
 
   // Gold — primary currency from stage clears.
   const goldAwarded = GOLD_REWARD[difficulty] + (isFirstClear ? FIRST_CLEAR_GOLD_BONUS : 0);

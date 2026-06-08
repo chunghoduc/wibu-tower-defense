@@ -42,6 +42,7 @@ import type { HeroSave } from "./save.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
 import { processEnemyKill } from "./killRewards.ts";
 import { itemLevelForStage } from "./itemDrop.ts";
+import { incrementQuestKey } from "./questTracker.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -356,7 +357,10 @@ export class BattleState {
       battleLevel: 0,
       goldSpent: def.cost,
     });
-    if (this._heroSave) this._heroSave.progress.totalTowersPlaced += 1;
+    if (this._heroSave) {
+      this._heroSave.progress.totalTowersPlaced += 1;
+      incrementQuestKey(this._heroSave, "place_towers", 1, new Date().toISOString().slice(0, 10));
+    }
   }
 
   /** Gold cost to upgrade a tower one battle level (escalates), or 0 if maxed/missing. */
@@ -408,6 +412,9 @@ export class BattleState {
     t.behavior = effectiveBehavior(t.def, t.battleLevel);
     t.hp = t.stats.maxHp * hpFrac;
     t.mana = t.stats.maxMana * manaFrac;
+    if (this._heroSave) {
+      incrementQuestKey(this._heroSave, "upgrade_towers", 1, new Date().toISOString().slice(0, 10));
+    }
     return true;
   }
 
@@ -1120,6 +1127,8 @@ export class BattleState {
     if (this._heroSave) {
       const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng);
       this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, xp: kr.xp, item: kr.itemDropped !== null });
+      const today = new Date().toISOString().slice(0, 10);
+      incrementQuestKey(this._heroSave, boss ? "kill_bosses" : "kill_enemies", 1, today);
     }
     const split = e.def.special?.splitInto;
     if (split) {

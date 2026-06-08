@@ -1,7 +1,7 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 
-export const CURRENT_SAVE_VERSION = 7;
+export const CURRENT_SAVE_VERSION = 8;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -75,6 +75,18 @@ export interface InventorySave {
   equipped: Partial<Record<ItemSlot, string>>;
 }
 
+/** Daily quest tracking — resets at midnight each day. */
+export interface QuestsSave {
+  /** YYYY-MM-DD of the current quest day; "" means not yet initialised. */
+  date: string;
+  /** questId → progress count (capped at the quest's target). */
+  progress: Record<string, number>;
+  /** questIds whose reward has been collected. */
+  claimed: string[];
+  /** true once the 50-diamond all-quests-complete bonus has been claimed. */
+  allClaimed: boolean;
+}
+
 /** Player-configurable audio/game settings (T9). */
 export interface GameSettings {
   /** Master audio volume, 0..1. */
@@ -121,6 +133,8 @@ export interface HeroSave {
   settings: GameSettings;
   /** Rotating shop stock (persisted so purchases stay sold). */
   shop: ShopSave;
+  /** Daily quest state — progress, claims, and all-done bonus. */
+  quests: QuestsSave;
   lastSavedAt: number;
 }
 
@@ -151,6 +165,7 @@ export function createFreshSave(): HeroSave {
     materials: {},
     settings: defaultSettings(),
     shop: { stock: [], refreshesToday: 0, refreshDate: "" },
+    quests: { date: "", progress: {}, claimed: [], allClaimed: false },
     lastSavedAt: 0,
   };
 }
@@ -180,6 +195,10 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     const legacyCrystals = (save.currency as unknown as { crystals?: number }).crystals ?? 0;
     save = { ...save, currency: { gold: legacyCrystals, diamonds: 0, pityCount: save.currency?.pityCount ?? 0, lastDailyLoginDate: save.currency?.lastDailyLoginDate ?? "", pityInsuranceActive: save.currency?.pityInsuranceActive ?? false }, version: 7 };
   }
+  if ((save.version ?? 0) < 8) {
+    // Daily quest system: stub in empty quest state.
+    save = { ...save, quests: { date: "", progress: {}, claimed: [], allClaimed: false }, version: 8 };
+  }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the
   // versioned hops above and would crash on first access. Ensure every required
@@ -196,6 +215,10 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   save.shop ??= { stock: [], refreshesToday: 0, refreshDate: "" };
   save.shop.refreshesToday ??= 0;
   save.shop.refreshDate ??= "";
+  save.quests ??= { date: "", progress: {}, claimed: [], allClaimed: false };
+  save.quests.progress ??= {};
+  save.quests.claimed ??= [];
+  save.quests.allClaimed ??= false;
   // Hero active skills: migrate the old single equip slot to the multi-slot list
   // and grant the weapon-free starter skills so every hero has usable actives.
   if (save.hero) {

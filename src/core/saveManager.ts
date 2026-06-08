@@ -12,6 +12,7 @@ import type { ItemSlot } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
 import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } from "./save.ts";
+import { rolloverQuests } from "./questTracker.ts";
 import { SINGLE_PULL_COST } from "./gacha.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 import { addTowerToCollection, upgradeTowerStar, type StarUpResult } from "./collection.ts";
@@ -336,6 +337,7 @@ export class SaveManager {
   }
 
   grantDailyLogin(todayIso: string): number {
+    rolloverQuests(this.save, todayIso);
     if (this.save.currency.lastDailyLoginDate === todayIso) return 0;
     this.save.currency.lastDailyLoginDate = todayIso;
     this.save.currency.gold += DAILY_LOGIN_GOLD;

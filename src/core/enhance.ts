@@ -13,6 +13,7 @@
 import type { Stats } from "../data/schema.ts";
 import type { HeroSave } from "./save.ts";
 import type { Rng } from "./rng.ts";
+import { incrementQuestKey } from "./questTracker.ts";
 import { BLESS_JEWEL, SOUL_JEWEL } from "../data/materials.ts";
 
 // Re-export the jewel ids so consumers can import from one place.
@@ -80,5 +81,6 @@ export function attemptEnhance(save: HeroSave, instanceId: string, rng: Rng): En
     const drop = 1 + Math.floor(rng.next() * FAIL_DROP_MAX); // 1..5
     inst.enhanceLevel = Math.max(0, level - drop);
   }
+  incrementQuestKey(save, "enhance_items", 1, new Date().toISOString().slice(0, 10));
   return { ok: true, success, jewel, from, to: inst.enhanceLevel };
 }
