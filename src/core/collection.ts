@@ -80,9 +80,9 @@ export function upgradeTowerStar(save: HeroSave, towerId: string): StarUpResult 
   const cost = starUpCost(entry.stars, towerRarity(towerId))!;
   const copies = entry.copies ?? 0;
   if (copies < cost.copies) return { success: false, message: `Need ${cost.copies - copies} more copies` };
-  if (save.currency.crystals < cost.crystals) return { success: false, message: `Need ${cost.crystals} 💎` };
+  if (save.currency.gold < cost.crystals) return { success: false, message: `Need ${cost.crystals} 💎` };
   entry.copies = copies - cost.copies;
-  save.currency.crystals -= cost.crystals;
+  save.currency.gold -= cost.crystals;
   entry.stars += 1;
   return { success: true, message: `Ascended to ${entry.stars}★` };
 }

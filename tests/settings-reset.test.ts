@@ -28,7 +28,7 @@ describe("settings + reset", () => {
   it("resetProgress wipes progress but keeps audio settings", () => {
     const mgr = new SaveManager(new MemProvider());
     mgr.setSettings({ volume: 0.2 });
-    mgr.getSave().currency.crystals = 99999;
+    mgr.getSave().currency.gold = 99999;
     mgr.getSave().hero.level = 50;
     mgr.resetProgress();
     expect(mgr.getSave().hero.level).toBe(1);            // fresh

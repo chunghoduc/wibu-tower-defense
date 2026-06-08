@@ -19,8 +19,10 @@ import { canForgetNode, PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import type { JewelInstanceSave } from "./save.ts";
 
-const DAILY_LOGIN_CRYSTALS = 10;
-const STARTER_CRYSTALS = SINGLE_PULL_COST * 50; // enough for at least 50 summons
+const DAILY_LOGIN_GOLD = 50;
+const DAILY_LOGIN_DIAMONDS = 5;
+const STARTER_DIAMONDS = SINGLE_PULL_COST * 10; // 10 summons of diamonds to start
+const STARTER_GOLD = 2000; // enough to enhance a few items
 
 /** A common-rarity character per role, granted to new players so they can play immediately. */
 const STARTER_SQUAD = [
@@ -51,7 +53,8 @@ export class SaveManager {
    * can place towers and play immediately (placement is ownership-gated). */
   private static freshWithStarters(): HeroSave {
     const save = createFreshSave();
-    save.currency.crystals = STARTER_CRYSTALS;
+    save.currency.gold = STARTER_GOLD;
+    save.currency.diamonds = STARTER_DIAMONDS;
     for (const id of STARTER_SQUAD) addTowerToCollection(save, id);
     // Every hero starts with two weapon-free active skills (one Physical, one Magic).
     for (const id of STARTER_SKILL_IDS) save.hero.obtainedSkills.push({ skillId: id, level: 1, useXp: 0 });
@@ -325,7 +328,7 @@ export class SaveManager {
   useSummonScroll(rng: Rng = new Rng((Math.random() * 1e9) | 0)): SummonResult | null {
     if ((this.save.materials[SUMMON_SCROLL] ?? 0) <= 0) return null;
     this.save.materials[SUMMON_SCROLL] -= 1;
-    this.save.currency.crystals += SINGLE_PULL_COST; // pre-credit so the pull nets free
+    this.save.currency.diamonds += SINGLE_PULL_COST; // pre-credit so the pull nets free
     const result = performSummon(this.save, rng);
     checkAndGrantAchievements(this.save);
     this.persist();
@@ -335,9 +338,10 @@ export class SaveManager {
   grantDailyLogin(todayIso: string): number {
     if (this.save.currency.lastDailyLoginDate === todayIso) return 0;
     this.save.currency.lastDailyLoginDate = todayIso;
-    this.save.currency.crystals += DAILY_LOGIN_CRYSTALS;
+    this.save.currency.gold += DAILY_LOGIN_GOLD;
+    this.save.currency.diamonds += DAILY_LOGIN_DIAMONDS;
     this.persist();
-    return DAILY_LOGIN_CRYSTALS;
+    return DAILY_LOGIN_GOLD;
   }
 
   private persist(): void {

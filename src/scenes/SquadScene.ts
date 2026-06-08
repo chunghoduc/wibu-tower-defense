@@ -311,7 +311,7 @@ export class SquadScene extends Phaser.Scene {
       if (def) {
         const e = save.collection[def.id];
         const entry = { stars: e?.stars ?? 0, copies: e?.copies ?? 0 };
-        renderCharInfo(this, this.panel, PANEL_X + 12, bodyY, PANEL_W - 24, def, entry, save.currency.crystals, () => {
+        renderCharInfo(this, this.panel, PANEL_X + 12, bodyY, PANEL_W - 24, def, entry, save.currency.gold, () => {
           const r = this.mgr.upgradeTowerStar(def.id);
           this.flashMsg(r.message, r.success);
           this.redraw();

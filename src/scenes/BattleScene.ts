@@ -689,7 +689,7 @@ export class BattleScene extends Phaser.Scene {
     );
 
     if (result) {
-      const lines = [`+${result.crystalsAwarded} 💎 crystals`];
+      const lines = [`+${result.goldAwarded} 💎 crystals`];
       if (result.isFirstClear) lines.push("★ First clear bonus!");
       if (result.itemDropped) lines.push(`📦 Item: ${result.itemDropped.defId}`);
       if (result.skillDropped) lines.push(`⚡ Skill: ${result.skillDropped}`);

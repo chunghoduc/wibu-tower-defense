@@ -28,7 +28,7 @@ export interface SummonResult {
 
 export function canAffordSummon(save: HeroSave, count = 1): boolean {
   const cost = count === 1 ? SINGLE_PULL_COST : MULTI_PULL_COST;
-  return save.currency.crystals >= cost;
+  return save.currency.diamonds >= cost;
 }
 
 /**
@@ -84,7 +84,7 @@ function drawLegendaryPlus(rng: Rng): Rarity {
 }
 
 export function performSummon(save: HeroSave, rng: Rng): SummonResult {
-  save.currency.crystals -= SINGLE_PULL_COST;
+  save.currency.diamonds -= SINGLE_PULL_COST;
 
   let rarity: Rarity;
   if (save.currency.pityInsuranceActive) {
@@ -109,10 +109,10 @@ export function performSummon(save: HeroSave, rng: Rng): SummonResult {
 
 export function performMultiSummon(save: HeroSave, rng: Rng, count: number): SummonResult[] {
   const totalCost = count === 10 ? MULTI_PULL_COST : SINGLE_PULL_COST * count;
-  save.currency.crystals -= totalCost;
+  save.currency.diamonds -= totalCost;
   const results: SummonResult[] = [];
   for (let i = 0; i < count; i++) {
-    save.currency.crystals += SINGLE_PULL_COST; // credit so performSummon's deduction nets to 0
+    save.currency.diamonds += SINGLE_PULL_COST; // credit so performSummon's deduction nets to 0
     results.push(performSummon(save, rng));
   }
   return results;

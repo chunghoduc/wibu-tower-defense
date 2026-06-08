@@ -28,9 +28,9 @@ describe("SaveManager", () => {
   it("afterBattle awards crystals and persists", () => {
     const result = manager.afterBattle("stage-1", "won", "Normal", new Rng(1));
     expect(result).not.toBeNull();
-    expect(result!.crystalsAwarded).toBeGreaterThan(0);
+    expect(result!.goldAwarded).toBeGreaterThan(0);
     const reloaded = new SaveManager(new LocalSaveProvider(mockStorage as unknown as Storage));
-    expect(reloaded.getSave().currency.crystals).toBeGreaterThan(0);
+    expect(reloaded.getSave().currency.gold).toBeGreaterThan(0);
   });
 
   it("afterBattle returns null on loss", () => {
@@ -38,16 +38,16 @@ describe("SaveManager", () => {
   });
 
   it("afterSummon with 10 returns 10 results", () => {
-    manager.getSave().currency.crystals = 1600;
+    manager.getSave().currency.diamonds = 1600;
     manager["persist"]();
     const results = manager.afterSummon(10, new Rng(42));
     expect(results).toHaveLength(10);
   });
 
   it("grantDailyLogin gives crystals once per day", () => {
-    expect(manager.grantDailyLogin("2026-06-06")).toBe(10);
+    expect(manager.grantDailyLogin("2026-06-06")).toBe(50);
     expect(manager.grantDailyLogin("2026-06-06")).toBe(0);
-    expect(manager.grantDailyLogin("2026-06-07")).toBe(10);
+    expect(manager.grantDailyLogin("2026-06-07")).toBe(50);
   });
 
   describe("respec (forget / reset passive points)", () => {

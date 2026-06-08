@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { processStageClear, CRYSTAL_REWARD } from "../src/core/drops.ts";
+import { processStageClear, GOLD_REWARD } from "../src/core/drops.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
 import { boxIdForTier, OBLIVION_ORB } from "../src/data/materials.ts";
@@ -9,8 +9,8 @@ describe("processStageClear", () => {
   it("awards crystals on win", () => {
     const save = createFreshSave();
     const result = processStageClear(save, "stage-1", "Normal", new Rng(1));
-    expect(result.crystalsAwarded).toBeGreaterThanOrEqual(CRYSTAL_REWARD.Normal);
-    expect(save.currency.crystals).toBe(result.crystalsAwarded);
+    expect(result.goldAwarded).toBeGreaterThanOrEqual(GOLD_REWARD.Normal);
+    expect(save.currency.gold).toBe(result.goldAwarded);
   });
 
   it("awards first-clear bonus once", () => {
@@ -19,7 +19,7 @@ describe("processStageClear", () => {
     expect(first.isFirstClear).toBe(true);
     const second = processStageClear(save, "stage-1", "Normal", new Rng(2));
     expect(second.isFirstClear).toBe(false);
-    expect(second.crystalsAwarded).toBe(CRYSTAL_REWARD.Normal);
+    expect(second.goldAwarded).toBe(GOLD_REWARD.Normal);
   });
 
   it("records stage clear in progress", () => {
@@ -36,7 +36,7 @@ describe("processStageClear", () => {
     processStageClear(saveH, "s", "Hard", new Rng(1));
     const n = processStageClear(saveN, "s", "Normal", new Rng(99));
     const h = processStageClear(saveH, "s", "Hard", new Rng(99));
-    expect(h.crystalsAwarded).toBeGreaterThan(n.crystalsAwarded);
+    expect(h.goldAwarded).toBeGreaterThan(n.goldAwarded);
   });
 
   it("boss box is guaranteed on first clear, then drops dramatically", () => {

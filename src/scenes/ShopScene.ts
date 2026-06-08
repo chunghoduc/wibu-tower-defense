@@ -80,7 +80,7 @@ export class ShopScene extends Phaser.Scene {
     this.grid.removeAll(true);
     this.tooltip?.setVisible(false);
     const save = this.mgr.getSave();
-    this.crystalText.setText(`💎 ${save.currency.crystals}`);
+    this.crystalText.setText(`🪙 ${save.currency.gold}  💎 ${save.currency.diamonds}`);
     this.tabBuy.setBackgroundColor(this.mode === "buy" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "buy" ? 1 : 0.7);
     this.tabSell.setBackgroundColor(this.mode === "sell" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "sell" ? 1 : 0.7);
     this.refreshBtn.setVisible(this.mode === "buy").setText(this.refreshLabel());
@@ -107,7 +107,9 @@ export class ShopScene extends Phaser.Scene {
     const isScroll = slot.kind === "scroll";
     const def = slot.item ? ITEM_CATALOG_MAP.get(slot.item.defId) : undefined;
     const col = isScroll ? SCROLL_GOLD : (def ? RARITY_INT[def.rarity] : 0x888888);
-    const afford = save.currency.crystals >= slot.cost;
+    const isDiamondSlot = isScroll || def?.rarity === "Legendary" || def?.rarity === "Unique";
+    const afford = isDiamondSlot ? save.currency.diamonds >= slot.cost : save.currency.gold >= slot.cost;
+    const priceEmoji = isDiamondSlot ? "💎" : "🪙";
     const name = isScroll ? "Summoning Scroll" : (def?.name ?? "Item");
 
     const g = this.add.graphics();
@@ -124,7 +126,7 @@ export class ShopScene extends Phaser.Scene {
       this.grid.add(icon);
     }
     this.grid.add(crispText(this, x + w / 2, y + h - 50, isScroll ? "Rare Consumable" : `${def?.rarity} ${def?.slot}`, { fontSize: "10px", color: "#9fb0c4" }).setOrigin(0.5));
-    this.grid.add(crispText(this, x + w / 2, y + h - 32, `💎 ${slot.cost}`, { fontSize: "15px", color: afford ? "#ffe07a" : "#ff7a7a", fontStyle: "bold" }).setOrigin(0.5));
+    this.grid.add(crispText(this, x + w / 2, y + h - 32, `${priceEmoji} ${slot.cost}`, { fontSize: "15px", color: afford ? "#ffe07a" : "#ff7a7a", fontStyle: "bold" }).setOrigin(0.5));
 
     const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
     hoverGlowRect(this, z, this.grid, x, y, w, h, { radius: 8, color: isScroll ? SCROLL_GOLD : col });

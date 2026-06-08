@@ -8,7 +8,7 @@ describe("HeroSave v3", () => {
 
   it("createFreshSave has currency with 0 crystals", () => {
     const save = createFreshSave();
-    expect(save.currency.crystals).toBe(0);
+    expect(save.currency.gold).toBe(0);
     expect(save.currency.pityCount).toBe(0);
     expect(save.currency.lastDailyLoginDate).toBe("");
   });
@@ -31,7 +31,7 @@ describe("HeroSave v3", () => {
     const migrated = loadAndMigrate(v1);
     expect(migrated.version).toBe(CURRENT_SAVE_VERSION);
     expect(migrated.collection).toEqual({});
-    expect(migrated.currency.crystals).toBe(0);
+    expect(migrated.currency.gold).toBe(0);
     expect(migrated.progress.totalTowersPlaced).toBe(0);
   });
 
@@ -47,6 +47,6 @@ describe("HeroSave v3", () => {
     const migrated = loadAndMigrate(v2);
     expect(migrated.version).toBe(CURRENT_SAVE_VERSION);
     expect(migrated.collection["zoran-thricedraw"].stars).toBe(3);
-    expect(migrated.currency.crystals).toBe(0);
+    expect(migrated.currency.gold).toBe(0);
   });
 });

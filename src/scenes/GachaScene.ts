@@ -94,13 +94,13 @@ export class GachaScene extends Phaser.Scene {
 
   private refreshUI(): void {
     const s = this.mgr.getSave();
-    this.crystalText.setText(`💎 ${s.currency.crystals} Crystals`);
+    this.crystalText.setText(`💎 ${s.currency.diamonds} Diamonds`);
     this.pityText.setText(
       `Pity: ${s.currency.pityCount} / ${HARD_PITY}` +
         (s.currency.pityInsuranceActive ? "  ⚡ Insurance active" : ""),
     );
-    this.pull1Btn.setAlpha(s.currency.crystals >= SINGLE_PULL_COST ? 1 : 0.4);
-    this.pull10Btn.setAlpha(s.currency.crystals >= MULTI_PULL_COST ? 1 : 0.4);
+    this.pull1Btn.setAlpha(s.currency.diamonds >= SINGLE_PULL_COST ? 1 : 0.4);
+    this.pull10Btn.setAlpha(s.currency.diamonds >= MULTI_PULL_COST ? 1 : 0.4);
     const scrolls = s.materials["summon-scroll"] ?? 0;
     this.scrollBtn.setText(`📜 Use Scroll — free pull  (×${scrolls})`).setAlpha(scrolls > 0 ? 1 : 0.4);
   }
@@ -115,7 +115,7 @@ export class GachaScene extends Phaser.Scene {
   private doPull(count: 1 | 10): void {
     const s = this.mgr.getSave();
     const needed = count === 1 ? SINGLE_PULL_COST : MULTI_PULL_COST;
-    if (s.currency.crystals < needed) return;
+    if (s.currency.diamonds < needed) return;
 
     const results = this.mgr.afterSummon(count, new Rng(Date.now()));
     this.showResults(results);

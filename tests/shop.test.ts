@@ -27,7 +27,7 @@ describe("shop stock", () => {
   it("gives free daily refreshes, then charges +20 each, resetting daily", () => {
     const save = createFreshSave();
     ensureShopStock(save, new Rng(4));
-    save.currency.crystals = 1000;
+    save.currency.gold = 1000;
     const day = "2026-06-07";
 
     // First SHOP_FREE_REFRESHES rerolls are free.
@@ -35,15 +35,15 @@ describe("shop stock", () => {
     for (let i = 0; i < SHOP_FREE_REFRESHES; i++) {
       expect(refreshShop(save, new Rng(i), day).success).toBe(true);
     }
-    expect(save.currency.crystals).toBe(1000); // nothing spent yet
+    expect(save.currency.gold).toBe(1000); // nothing spent yet
 
     // Then the cost accumulates by SHOP_REFRESH_STEP each time (20, 40, 60, …).
     expect(shopRefreshCost(save, day)).toBe(SHOP_REFRESH_STEP);
     expect(refreshShop(save, new Rng(20), day).success).toBe(true);
-    expect(save.currency.crystals).toBe(1000 - SHOP_REFRESH_STEP);
+    expect(save.currency.gold).toBe(1000 - SHOP_REFRESH_STEP);
     expect(shopRefreshCost(save, day)).toBe(SHOP_REFRESH_STEP * 2);
     refreshShop(save, new Rng(21), day);
-    expect(save.currency.crystals).toBe(1000 - SHOP_REFRESH_STEP * 3); // 20 + 40
+    expect(save.currency.gold).toBe(1000 - SHOP_REFRESH_STEP * 3); // 20 + 40
 
     // A new day resets the allowance back to free.
     expect(shopRefreshCost(save, "2026-06-08")).toBe(0);
@@ -53,7 +53,7 @@ describe("shop stock", () => {
     const save = createFreshSave();
     ensureShopStock(save, new Rng(4));
     const day = "2026-06-07";
-    save.currency.crystals = 0;
+    save.currency.gold = 0;
     save.shop.refreshesToday = SHOP_FREE_REFRESHES; // already used the free ones
     save.shop.refreshDate = day;
     expect(refreshShop(save, new Rng(5), day).success).toBe(false);
@@ -74,19 +74,19 @@ describe("buy + sell", () => {
     save.shop.stock = generateShopStock(save, new Rng(7)).map((s, i) => i === 0
       ? { slotId: "s0", kind: "item" as const, cost: 100, item: toItemInstanceSave(rollItem(ITEM_CATALOG[0], 5, 1)) }
       : s);
-    save.currency.crystals = 100;
+    save.currency.gold = 100;
     const before = save.inventory.items.length;
     const r = buyShopSlot(save, "s0");
     expect(r.success).toBe(true);
     expect(save.inventory.items.length).toBe(before + 1);
     expect(save.shop.stock.find((s) => s.slotId === "s0")).toBeUndefined();
-    expect(save.currency.crystals).toBe(0);
+    expect(save.currency.gold).toBe(0);
   });
 
   it("buying a scroll slot grants a summon scroll", () => {
     const save = createFreshSave();
     save.shop.stock = [{ slotId: "sc", kind: "scroll", cost: 50 }];
-    save.currency.crystals = 50;
+    save.currency.diamonds = 50; // scrolls cost diamonds
     buyShopSlot(save, "sc");
     expect(save.materials[SUMMON_SCROLL]).toBe(1);
   });
@@ -95,11 +95,11 @@ describe("buy + sell", () => {
     const save = createFreshSave();
     const inst = toItemInstanceSave(rollItem(ITEM_CATALOG[0], 5, 2));
     save.inventory.items.push(inst);
-    save.currency.crystals = 0;
+    save.currency.gold = 0;
     const r = sellItem(save, inst.id);
     expect(r.success).toBe(true);
     expect(r.refund).toBeGreaterThan(0);
-    expect(save.currency.crystals).toBe(r.refund);
+    expect(save.currency.gold).toBe(r.refund);
     expect(save.inventory.items.find((i) => i.id === inst.id)).toBeUndefined();
 
     // equipped item can't be sold

@@ -57,7 +57,7 @@ export function openBox(save: HeroSave, boxId: string, rng: Rng): BoxReward {
   };
 
   const crystals = Math.round(cfg.crystals * (0.8 + rng.next() * 0.4));
-  save.currency.crystals += crystals;
+  save.currency.gold += crystals;
   give(BLESS_JEWEL, cfg.bless);
   if (rng.next() < cfg.soulChance) give(SOUL_JEWEL, 1);
 

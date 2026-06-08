@@ -1,12 +1,15 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 
-export const CURRENT_SAVE_VERSION = 6;
+export const CURRENT_SAVE_VERSION = 7;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
 export interface CurrencySave {
-  crystals: number;
+  /** Everyday currency — stage rewards, enemy drops, shop purchases, enhancements. */
+  gold: number;
+  /** Premium currency — small stage/boss rewards, used for summons and high-rarity shop. */
+  diamonds: number;
   pityCount: number;
   lastDailyLoginDate: string;
   /** When true, the next pull draws from the 95% Legendary / 5% Unique insurance pool. */
@@ -142,7 +145,7 @@ export function createFreshSave(): HeroSave {
       equipped: {},
     },
     collection: {},
-    currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
+    currency: { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     squad: [],
     materials: {},
@@ -158,7 +161,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   if ((save.version ?? 0) < 2) save = { ...save, collection: {}, version: 2 };
   if ((save.version ?? 0) < 3) save = {
     ...save,
-    currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
+    currency: { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     version: 3,
   };
@@ -172,6 +175,11 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     // Skill jewels: add the owned-jewel inventory + socket map.
     save = { ...save, hero: { ...save.hero, jewels: save.hero?.jewels ?? [], socketedJewels: save.hero?.socketedJewels ?? {} }, version: 6 };
   }
+  if ((save.version ?? 0) < 7) {
+    // Currency redesign: crystals → gold (everyday), add diamonds (premium).
+    const legacyCrystals = (save.currency as unknown as { crystals?: number }).crystals ?? 0;
+    save = { ...save, currency: { gold: legacyCrystals, diamonds: 0, pityCount: save.currency?.pityCount ?? 0, lastDailyLoginDate: save.currency?.lastDailyLoginDate ?? "", pityInsuranceActive: save.currency?.pityInsuranceActive ?? false }, version: 7 };
+  }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the
   // versioned hops above and would crash on first access. Ensure every required
@@ -180,7 +188,9 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   for (const id in save.collection) { const e = save.collection[id]; if (e) e.copies ??= 0; }
   save.squad ??= [];
   save.materials ??= {};
-  save.currency ??= { crystals: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false };
+  save.currency ??= { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false };
+  (save.currency as unknown as Record<string, unknown>).gold ??= 0;
+  (save.currency as unknown as Record<string, unknown>).diamonds ??= 0;
   save.progress ??= { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 };
   save.settings = { ...defaultSettings(), ...(save.settings ?? {}) };
   save.shop ??= { stock: [], refreshesToday: 0, refreshDate: "" };

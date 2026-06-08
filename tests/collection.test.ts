@@ -64,29 +64,29 @@ describe("star ascension", () => {
     const save = createFreshSave();
     addTowerToCollection(save, "t");
     save.collection["t"].copies = 1;
-    save.currency.crystals = 9999;
-    const before = save.currency.crystals;
+    save.currency.gold = 9999;
+    const before = save.currency.gold;
     const r = upgradeTowerStar(save, "t");
     expect(r.success).toBe(true);
     expect(getTowerStars(save, "t")).toBe(2);
     expect(getTowerCopies(save, "t")).toBe(0);
-    expect(save.currency.crystals).toBeLessThan(before);
+    expect(save.currency.gold).toBeLessThan(before);
   });
 
   it("fails without enough copies or crystals", () => {
     const save = createFreshSave();
     addTowerToCollection(save, "t");
-    save.currency.crystals = 9999;
+    save.currency.gold = 9999;
     expect(upgradeTowerStar(save, "t").success).toBe(false); // 0 copies
     save.collection["t"].copies = 1;
-    save.currency.crystals = 0;
+    save.currency.gold = 0;
     expect(upgradeTowerStar(save, "t").success).toBe(false); // no crystals
   });
 
   it("can be fully ascended to 5★, then dupes are ignored and cost is null", () => {
     const save = createFreshSave();
     addTowerToCollection(save, "t");
-    save.currency.crystals = 1_000_000;
+    save.currency.gold = 1_000_000;
     save.collection["t"].copies = 1 + 3 + 7 + 15; // exactly enough for four upgrades
     for (let s = 1; s < MAX_STARS; s++) expect(upgradeTowerStar(save, "t").success).toBe(true);
     expect(getTowerStars(save, "t")).toBe(MAX_STARS);

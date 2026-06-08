@@ -27,12 +27,12 @@ describe("T15 — boss loot boxes", () => {
     const save = createFreshSave();
     const boxId = boxIdForTier(3);
     save.materials[boxId] = 1;
-    const crystals0 = save.currency.crystals;
+    const crystals0 = save.currency.gold;
     const r = openBox(save, boxId, new Rng(7));
     expect(r.opened).toBe(true);
     expect(save.materials[boxId]).toBe(0);
     expect(r.crystals).toBeGreaterThan(0);
-    expect(save.currency.crystals).toBe(crystals0 + r.crystals);
+    expect(save.currency.gold).toBe(crystals0 + r.crystals);
     expect((r.materials["bless-jewel"] ?? 0)).toBeGreaterThanOrEqual(1);
   });
 
@@ -40,7 +40,7 @@ describe("T15 — boss loot boxes", () => {
     const save = createFreshSave();
     const r = openBox(save, boxIdForTier(1), new Rng(1));
     expect(r.opened).toBe(false);
-    expect(save.currency.crystals).toBe(0);
+    expect(save.currency.gold).toBe(0);
   });
 
   it("higher tiers grant more crystals on average", () => {
