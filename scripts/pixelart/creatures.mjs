@@ -42,6 +42,46 @@ export const ENEMY_SPECS = {
 
 function eyes(cv, cx, ey, col) { set(cv, cx - 2, ey, col); set(cv, cx + 2, ey, col); set(cv, cx - 2, ey - 1, shade(col, 1.6)); set(cv, cx + 2, ey - 1, shade(col, 1.6)); }
 
+// Blend a hex toward another hex by t (0..1) — used for the hurt red flash.
+function mix(a, b, t) {
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const m = (sh) => Math.round((((pa >> sh) & 255) * (1 - t)) + (((pb >> sh) & 255) * t));
+  return "#" + ((1 << 24) | (m(16) << 16) | (m(8) << 8) | m(0)).toString(16).slice(1);
+}
+
+// Re-pose a finished creature canvas: bob/lunge/recoil so the same art reads as
+// a 6-frame loop. `dx`,`dy` translate the whole body; `lean` shears the top
+// rows horizontally (feet stay planted); `tint` reddens for the hurt flash.
+function pose(src, { dx = 0, dy = 0, lean = 0, tint = 0 } = {}) {
+  const S = src.w, out = canvas(S, S), hurt = "#ff5a5a";
+  for (let y = 0; y < S; y++) {
+    const sh = Math.round(lean * (S - 1 - y) / (S - 1)); // more shift up top
+    for (let x = 0; x < S; x++) {
+      const c = src.d[y * S + x];
+      if (!c) continue;
+      set(out, x + dx + sh, y + dy, tint ? mix(c, hurt, tint) : c);
+    }
+  }
+  return out;
+}
+
+// The six-frame enemy loop: idle, two walk bobs, a wind-up + strike, and a hurt
+// recoil. Mirrors the design team's [idle,walk1,walk2,atk1,atk2,hurt] layout so
+// procedurally-added enemies animate identically to the hand-drawn roster.
+const ENEMY_POSES = [
+  { name: "idle", t: {} },
+  { name: "walk1", t: { dy: -1, lean: 1 } },
+  { name: "walk2", t: { dy: 1, lean: -1 } },
+  { name: "atk1", t: { dy: -1, lean: -2 } },
+  { name: "atk2", t: { dx: 2, lean: 3 } },
+  { name: "hurt", t: { dx: -2, dy: 1, tint: 0.5 } },
+];
+
+export function composeEnemyFrames(spec) {
+  const base = composeEnemy(spec);
+  return { names: ENEMY_POSES.map((p) => p.name), frames: ENEMY_POSES.map((p) => pose(base, p.t)) };
+}
+
 export function composeEnemy(spec) {
   const S = spec.size, cv = canvas(S, S), cx = Math.floor(S / 2);
   const t = spec.type;

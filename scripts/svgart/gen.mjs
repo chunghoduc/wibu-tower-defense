@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { pixFrame } from "./pixrig.mjs";
 import { poseSetFor } from "./poses.mjs";
 import { CHARACTERS, HERO, BOSSES } from "../pixelart/specs.mjs";
-import { composeEnemy, ENEMY_SPECS } from "../pixelart/creatures.mjs";
+import { composeEnemyFrames, ENEMY_SPECS } from "../pixelart/creatures.mjs";
 import { ITEM_SPECS, composeItem, VFX_SPECS, composeVfx } from "../pixelart/items.mjs";
 import { TOWERS } from "../../src/data/towers.ts";
 import { encodePng } from "../../src/art/pngEncoder.ts";
@@ -48,6 +48,26 @@ function saveAnim(kind, id, spec, role, cell = CELL) {
   console.log(kind, id, N, "frames");
 }
 
+// Pack a creature's 6 procedural pose frames into one horizontal strip so
+// procedurally-added enemies match the design team's [idle,walk1,walk2,atk1,
+// atk2,hurt] sheet layout. Each frame canvas is S×S (spec.size).
+function saveEnemyAnim(id, spec) {
+  const { names, frames } = composeEnemyFrames(spec);
+  const S = frames[0].w, N = frames.length;
+  const stripCells = new Array(S * N * S).fill(null);
+  frames.forEach((cv, fi) => {
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+      const v = cv.d[y * S + x]; if (v) stripCells[y * (S * N) + (fi * S + x)] = v;
+    }
+  });
+  const { rgba, W, H } = hexRGBA(stripCells, S * N, S, SCALE);
+  const dir = `${GAME}/enemy`; mkdirSync(dir, { recursive: true });
+  writeFileSync(`${dir}/${id}.png`, encodePng(rgba, W, H));
+  writeFileSync(`${dir}/${id}.json`, JSON.stringify({ frameWidth: S * SCALE, frameHeight: S * SCALE, frames: N, names }));
+  built.push({ kind: "enemy", id });
+  console.log("enemy", id, N, "frames");
+}
+
 function saveStatic(kind, id, cv) {
   const { rgba, W, H } = hexRGBA(cv.d, cv.w, cv.h, SCALE);
   const dir = `${GAME}/${kind}`; mkdirSync(dir, { recursive: true });
@@ -70,7 +90,7 @@ const idsArg = arg("ids");
 const idFilter = idsArg ? new Set(idsArg.split(",")) : null;
 if (!only || only === "enemy")
   for (const [id, s] of Object.entries(ENEMY_SPECS))
-    if (!BOSS_IDS.has(id) && (!idFilter || idFilter.has(id))) saveStatic("enemy", id, composeEnemy(s));
+    if (!BOSS_IDS.has(id) && (!idFilter || idFilter.has(id))) saveEnemyAnim(id, s);
 if (!only || only === "boss")
   for (const [id, spec] of Object.entries(BOSSES)) saveAnim("boss", id, spec, "damage", BOSS_CELL);
 if (!only || only === "item") for (const [id, spec] of Object.entries(ITEM_SPECS)) saveStatic("item", id, composeItem(spec));
