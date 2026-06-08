@@ -270,7 +270,11 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
       case "Tome": // raise and charge-pulse to cast
         this.scene.tweens.add({ targets: w, y: ry - 10, scaleX: this.weaponScale * 1.18, scaleY: this.weaponScale * 1.18, duration: 120, ease: "Sine.easeOut", onComplete: back });
         break;
-      default: // Sword / Fist / Any — wind-up then swing arc
+      case "Fist": // quick straight jab — punch forward and snap back
+        this.scene.tweens.add({ targets: w, x: rx + 12 * side, duration: 55, ease: "Quint.easeIn",
+          onComplete: () => this.scene.tweens.add({ targets: w, x: rx, duration: 90, ease: "Back.easeOut" }) });
+        break;
+      default: // Sword / Any — wind-up then swing arc
         this.scene.tweens.add({ targets: w, x: rx - 6 * side, y: ry - 6, angle: ra - 50 * side, duration: 80, ease: "Sine.easeIn",
           onComplete: () => this.scene.tweens.add({ targets: w, x: rx + 8 * side, y: ry + 6, angle: ra + 45 * side, duration: 60, ease: "Quint.easeOut", onComplete: back }) });
     }

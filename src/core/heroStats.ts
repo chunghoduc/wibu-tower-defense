@@ -10,9 +10,10 @@
  * passive/jewel scalar mods added as increased%, and `more` (Unique jewels +
  * keystones) applied multiplicatively.
  */
-import type { PassiveNodeDef, Stats } from "../data/schema.ts";
+import type { PassiveNodeDef, Stats, WeaponType } from "../data/schema.ts";
 import { PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { heroRangeForWeapon } from "../data/weaponRange.ts";
 import type { HeroSave } from "./save.ts";
 import { collectPassiveMore, heroStatPipeline } from "./stats.ts";
 import { buildAffixStats } from "./affixStats.ts";
@@ -23,6 +24,8 @@ export interface ResolvedHeroStats {
   stats: Stats;
   /** Gold/sec from an equipped pet's utility (0 when none), surfaced for the battle. */
   petGoldPerSec: number;
+  /** Equipped weapon family (null = unarmed) — drives attack style & reach. */
+  weaponType: WeaponType | null;
 }
 
 export function resolveHeroBattleStats(save: HeroSave, base: Stats): ResolvedHeroStats {
@@ -33,6 +36,7 @@ export function resolveHeroBattleStats(save: HeroSave, base: Stats): ResolvedHer
   // Item base stats (each scaled by its enhance level) add flat.
   const itemStats: Partial<Stats>[] = [];
   let petGoldPerSec = 0;
+  let weaponType: WeaponType | null = null;
   for (const [slot, instanceId] of Object.entries(save.inventory.equipped)) {
     if (!instanceId) continue;
     const instance = save.inventory.items.find((it) => it.id === instanceId);
@@ -41,7 +45,12 @@ export function resolveHeroBattleStats(save: HeroSave, base: Stats): ResolvedHer
     if (!def) continue;
     itemStats.push(scaleStatsByEnhance(instance.rolledStats as Partial<Stats>, instance.enhanceLevel ?? 0));
     if (slot === "Pet" && def.petUtility?.goldPerSec) petGoldPerSec = def.petUtility.goldPerSec;
+    if (slot === "Weapon") weaponType = def.weaponType ?? null;
   }
+
+  // The equipped weapon family sets the hero's BASE reach (unarmed = boxing range);
+  // `% range` affixes then scale on top of it through the pipeline below.
+  base = { ...base, range: heroRangeForWeapon(weaponType) };
 
   // Jewels in allocated sockets empower the hero exactly like passive nodes.
   const jewelBags = socketedJewelBags(save);
@@ -63,5 +72,5 @@ export function resolveHeroBattleStats(save: HeroSave, base: Stats): ResolvedHer
     affix.flat,
     keystoneMore,
   );
-  return { stats, petGoldPerSec };
+  return { stats, petGoldPerSec, weaponType };
 }

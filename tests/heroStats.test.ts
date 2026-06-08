@@ -3,6 +3,7 @@ import { resolveHeroBattleStats } from "../src/core/heroStats.ts";
 import { addHeroShare, HERO_TOWER_SHARE } from "../src/core/stats.ts";
 import { createFreshSave, type HeroSave, type ItemInstanceSave } from "../src/core/save.ts";
 import { makeStats, type RolledAffix } from "../src/data/schema.ts";
+import { WEAPON_RANGE } from "../src/data/weaponRange.ts";
 
 /** A clean base for exact hand-computation (makeStats fills the rest with defaults). */
 const BASE = makeStats({ atk: 100, maxHp: 1000, critRate: 0 });
@@ -82,6 +83,30 @@ describe("resolveHeroBattleStats — items + passives + jewels add up to hero st
   it("reports a pet's gold/sec utility", () => {
     const s = withItem("Pet", inst({ id: "p", defId: "coin-sprite" }));
     expect(resolveHeroBattleStats(s, BASE).petGoldPerSec).toBeGreaterThan(0);
+  });
+
+  it("the equipped weapon family sets the hero's reach & is reported", () => {
+    // Unarmed → boxing (Fist) range.
+    const bare = resolveHeroBattleStats(createFreshSave(), BASE);
+    expect(bare.weaponType).toBeNull();
+    expect(bare.stats.range).toBeCloseTo(WEAPON_RANGE.Fist, 5);
+
+    // Sword → short melee reach.
+    const sword = resolveHeroBattleStats(withItem("Weapon", inst({ id: "w", defId: "iron-sword" })), BASE);
+    expect(sword.weaponType).toBe("Sword");
+    expect(sword.stats.range).toBeCloseTo(WEAPON_RANGE.Sword, 5);
+
+    // Gun → long ranged reach.
+    const gun = resolveHeroBattleStats(withItem("Weapon", inst({ id: "w", defId: "thunder-cannon" })), BASE);
+    expect(gun.weaponType).toBe("Gun");
+    expect(gun.stats.range).toBeCloseTo(WEAPON_RANGE.Gun, 5);
+  });
+
+  it("a `% range` affix scales on top of the weapon-family base reach", () => {
+    // Elven Bow base reach 240, +20% range affix → 288.
+    const affixes: RolledAffix[] = [{ type: "range", value: 0.20 }];
+    const s = withItem("Weapon", inst({ id: "w", defId: "elven-bow", rolledAffixes: affixes }));
+    expect(resolveHeroBattleStats(s, BASE).stats.range).toBeCloseTo(WEAPON_RANGE.Bow * 1.20, 4);
   });
 });
 

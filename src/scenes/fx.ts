@@ -150,6 +150,8 @@ export class FxLayer {
       case "lightning": this.bolt(from, to, 0x9fe6ff); this.spark(to, 0x9fe6ff); return;
       case "slash": this.slash(to, crit ? 0xffe07a : dmgColor); return;
       case "hex": this.slash(to, 0xb085f5); return;
+      case "punch": this.punch(from, to, crit ? 0xffe07a : dmgColor); return;
+      case "gunshot": this.gunshot(from, to, crit ? 0xfff2a8 : 0xffe39a); return;
       case "arrow": this.arrow(from, to, 0xe8d9a0); return;
       case "fireball": this.orb(from, to, 0xff6a2a, 5.5, 0xffd24d, "round"); return;
       case "iceball": this.orb(from, to, 0x6fc6ff, 5, 0xe1f5ff, "diamond"); return;
@@ -161,6 +163,39 @@ export class FxLayer {
         if (ranged) this.projectile(from, to, dmgColor, role);
         else this.slash(to, crit ? 0xffe07a : dmgColor);
     }
+  }
+
+  /** A bare-fisted punch — a short knuckle streak that drives into the target
+   *  with a sharp impact pop. Melee: no flying projectile, the hit lands at `to`. */
+  private punch(from: Vec2, to: Vec2, color: number): void {
+    const ang = Math.atan2(to.y - from.y, to.x - from.x);
+    // The jab starts most of the way to the target and snaps the final stretch in.
+    const sx = to.x - Math.cos(ang) * 22, sy = to.y - Math.sin(ang) * 22;
+    const fist = this.fac.rectangle(sx, sy, 9, 5, color).setRotation(ang).setOrigin(0, 0.5).setDepth(this.depth);
+    this.scene.tweens.add({
+      targets: fist, x: to.x, y: to.y, duration: 70, ease: "Quint.easeIn",
+      onComplete: () => {
+        fist.destroy();
+        const pop = this.fac.circle(to.x, to.y, 5, color, 0.9).setDepth(this.depth + 1);
+        this.scene.tweens.add({ targets: pop, scale: 2.2, alpha: 0, duration: 170, ease: "Quad.easeOut", onComplete: () => pop.destroy() });
+        this.spark(to, color);
+      },
+    });
+  }
+
+  /** A gunshot — a fast, dead-straight bullet tracer with a muzzle flash at the
+   *  barrel and a bright spark on impact. Snappier than the lobbed arrow/orb. */
+  private gunshot(from: Vec2, to: Vec2, color: number): void {
+    const ang = Math.atan2(to.y - from.y, to.x - from.x);
+    const mx = from.x + Math.cos(ang) * 10, my = from.y + Math.sin(ang) * 10;
+    const flash = this.fac.circle(mx, my, 4, 0xfff4c2, 0.95).setDepth(this.depth + 1);
+    this.scene.tweens.add({ targets: flash, scale: 0.2, alpha: 0, duration: 90, onComplete: () => flash.destroy() });
+    const tracer = this.fac.rectangle(mx, my, 16, 2, color).setRotation(ang).setOrigin(0, 0.5).setDepth(this.depth);
+    const dur = Math.min(140, 30 + Phaser.Math.Distance.BetweenPoints(from as Phaser.Types.Math.Vector2Like, to as Phaser.Types.Math.Vector2Like) * 0.5);
+    this.scene.tweens.add({
+      targets: tracer, x: to.x, y: to.y, duration: dur, ease: "Quad.easeIn",
+      onComplete: () => { this.spark(to, color); tracer.destroy(); },
+    });
   }
 
   /** An arrow — a thin streak that flies to the target and sticks briefly. */

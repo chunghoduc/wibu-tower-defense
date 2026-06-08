@@ -35,10 +35,20 @@ describe("T6 — per-character attack styles", () => {
     for (const t of TOWERS) expect(known.has(attackStyleFor(t)), t.id).toBe(true);
   });
 
-  it("hero style follows damage type / range", () => {
-    expect(heroAttackStyle("Magic", 200)).toBe("arcane");
-    expect(heroAttackStyle("Physical", 200)).toBe("arrow");
-    expect(heroAttackStyle("Physical", 90)).toBe("slash");
+  it("hero attack style is driven by the equipped weapon family", () => {
+    expect(heroAttackStyle("Fist", "Physical", 90)).toBe("punch");
+    expect(heroAttackStyle(null, "Physical", 90)).toBe("punch");   // unarmed → boxing
+    expect(heroAttackStyle("Sword", "Physical", 115)).toBe("slash");
+    expect(heroAttackStyle("Bow", "Physical", 240)).toBe("arrow");
+    expect(heroAttackStyle("Gun", "Physical", 260)).toBe("gunshot");
+    expect(heroAttackStyle("Staff", "Magic", 210)).toBe("arcane");
+    expect(heroAttackStyle("Tome", "Magic", 195)).toBe("arcane");
+  });
+
+  it("the `Any` weapon family falls back to the damage-type / range heuristic", () => {
+    expect(heroAttackStyle("Any", "Magic", 200)).toBe("arcane");
+    expect(heroAttackStyle("Any", "Physical", 200)).toBe("arrow");
+    expect(heroAttackStyle("Any", "Physical", 90)).toBe("slash");
   });
 
   it("derives active-skill visual styles from skill ids (T7)", () => {

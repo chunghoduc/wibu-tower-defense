@@ -5,11 +5,11 @@
  * units arc lightning, brawlers slash, cannons lob shells, etc. — without hand-
  * tagging all 32 characters. The renderer (fx.ts) draws each style differently.
  */
-import type { CharacterDef } from "./schema.ts";
+import type { CharacterDef, WeaponType } from "./schema.ts";
 
 export type AttackStyle =
   | "arrow" | "fireball" | "iceball" | "lightning" | "arcane"
-  | "cannon" | "poison" | "holy" | "slash" | "hex";
+  | "cannon" | "poison" | "holy" | "slash" | "hex" | "punch" | "gunshot";
 
 const RANGED_MELEE = 120;
 const has = (s: string, ...keys: string[]) => keys.some((k) => s.includes(k));
@@ -49,10 +49,27 @@ export function attackStyleFor(def: CharacterDef): AttackStyle {
   return def.baseStats.range >= RANGED_MELEE ? "arrow" : "slash";
 }
 
-/** A simple hero attack style from its damage type + range. */
-export function heroAttackStyle(damageType: string, range: number): AttackStyle {
-  if (damageType === "Magic") return "arcane";
-  return range >= RANGED_MELEE ? "arrow" : "slash";
+/**
+ * The hero's basic-attack style — driven entirely by the equipped weapon family so
+ * the attack reads as what the hero is holding: bare fists box, swords slash, bows
+ * loose arrows, guns fire bullets, staves/tomes cast magic bolts. `Any` (or an
+ * unrecognised family) falls back to the old damage-type/range heuristic.
+ */
+export function heroAttackStyle(
+  weaponType: WeaponType | null, damageType: string, range: number,
+): AttackStyle {
+  switch (weaponType) {
+    case "Fist": return "punch";
+    case "Sword": return "slash";
+    case "Bow": return "arrow";
+    case "Gun": return "gunshot";
+    case "Staff":
+    case "Tome": return "arcane";
+    case null: return "punch"; // unarmed — boxing
+    default:
+      if (damageType === "Magic") return "arcane";
+      return range >= RANGED_MELEE ? "arrow" : "slash";
+  }
 }
 
 export type SkillStyle = "fire" | "ice" | "lightning" | "heal" | "slash" | "poison" | "arcane";

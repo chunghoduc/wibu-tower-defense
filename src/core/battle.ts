@@ -27,6 +27,7 @@ import {
   type TowerBehavior,
   type BossSkill,
   type Vec2,
+  type WeaponType,
 } from "../data/schema.ts";
 import { mitigatedDamage, mitigationBreakdown, critMultiplier, clamp01, type DamagePacket } from "./damage.ts";
 import { combatLogOn, emitDamageLog } from "./combatLog.ts";
@@ -187,6 +188,8 @@ export interface TowerRuntime {
 export interface HeroRuntime {
   stats: Stats;
   damageType: DamageType;
+  /** Equipped weapon family (null = unarmed/boxing) — drives attack style & reach. */
+  weaponType: WeaponType | null;
   pos: Vec2;
   moveTarget: Vec2;
   hp: number;
@@ -330,6 +333,7 @@ export class BattleState {
     this.hero = {
       stats: opts.hero.stats,
       damageType: opts.hero.damageType ?? "Physical",
+      weaponType: null,
       pos: { ...opts.hero.startPos },
       moveTarget: { ...opts.hero.startPos },
       hp: opts.hero.stats.maxHp,
@@ -342,12 +346,13 @@ export class BattleState {
       // Items + passive tree + jewels + level all fold into the hero's stats here
       // (and flow on to towers via the 60% share). Resolution lives in one tested
       // place — resolveHeroBattleStats — so the math stays auditable.
-      const { stats: resolvedStats, petGoldPerSec } = resolveHeroBattleStats(opts.heroSave, opts.hero.stats);
+      const { stats: resolvedStats, petGoldPerSec, weaponType } = resolveHeroBattleStats(opts.heroSave, opts.hero.stats);
       if (petGoldPerSec > 0) this.petGoldPerSec = petGoldPerSec;
 
       this.hero = {
         stats: resolvedStats,
         damageType: opts.hero.damageType ?? "Physical",
+        weaponType,
         pos: { ...opts.hero.startPos },
         moveTarget: { ...opts.hero.startPos },
         hp: resolvedStats.maxHp,
@@ -1124,7 +1129,7 @@ export class BattleState {
     const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
     if (!target) return;
 
-    this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1, heroAttackStyle(h.damageType, h.stats.range));
+    this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1, heroAttackStyle(h.weaponType, h.damageType, h.stats.range));
     if (h.stats.maxMana > 0 && h.mana >= h.stats.maxMana) {
       this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero", -1);
       h.mana = 0;
