@@ -3,7 +3,8 @@ import { SUMMON_SCROLL } from "../data/materials.ts";
 import type { HeroSave } from "./save.ts";
 
 const ALL_QUEST_IDS = DAILY_QUESTS.map((q) => q.id);
-const ALL_BONUS_DIAMONDS = 50;
+/** Diamonds awarded for completing (and claiming) every daily quest. */
+export const ALL_BONUS_DIAMONDS = 50;
 
 /**
  * Reset progress/claims if the date has changed (midnight rollover).
@@ -20,6 +21,24 @@ export function rolloverQuests(save: HeroSave, today: string): void {
 /** Current progress count for a quest (0 if not yet started). */
 export function getQuestProgress(save: HeroSave, questId: string): number {
   return save.quests.progress[questId] ?? 0;
+}
+
+/** True when a quest is complete but its reward has not been claimed yet. */
+export function isQuestClaimable(save: HeroSave, questId: string): boolean {
+  const def = DAILY_QUESTS_MAP.get(questId);
+  if (!def) return false;
+  return (save.quests.progress[questId] ?? 0) >= def.target && !save.quests.claimed.includes(questId);
+}
+
+/**
+ * How many rewards the player can collect right now: one per completed-but-
+ * unclaimed quest, plus one for the all-complete bonus if it's ready. Drives
+ * the main-menu notification badge.
+ */
+export function claimableQuestCount(save: HeroSave): number {
+  let n = ALL_QUEST_IDS.filter((id) => isQuestClaimable(save, id)).length;
+  if (!save.quests.allClaimed && ALL_QUEST_IDS.every((id) => save.quests.claimed.includes(id))) n += 1;
+  return n;
 }
 
 /**

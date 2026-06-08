@@ -10,6 +10,7 @@ import { HeroScene } from "./scenes/HeroScene.ts";
 import { SquadScene } from "./scenes/SquadScene.ts";
 import { SettingsScene } from "./scenes/SettingsScene.ts";
 import { SkillsScene } from "./scenes/SkillsScene.ts";
+import { QuestScene } from "./scenes/QuestScene.ts";
 import { PreloadScene } from "./scenes/PreloadScene.ts";
 import { GAME_HEIGHT, GAME_WIDTH, STAGES } from "./data/stage.ts";
 import { SaveManager } from "./core/saveManager.ts";
@@ -42,7 +43,7 @@ const game = new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [PreloadScene, MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene, ShopScene, PassiveGridScene, HeroScene, SquadScene, SettingsScene, SkillsScene],
+  scene: [PreloadScene, MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene, ShopScene, PassiveGridScene, HeroScene, SquadScene, SettingsScene, SkillsScene, QuestScene],
 });
 
 game.registry.set("saveManager", saveManager);

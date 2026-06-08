@@ -5,6 +5,7 @@ import { dressHero } from "./dressHero.ts";
 import { bgKey } from "../data/bgManifest.ts";
 import { crispText } from "./ui.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
+import { claimableQuestCount } from "../core/questTracker.ts";
 
 /** A menu destination: an icon-glyph button placed on the left/right/bottom edge. */
 interface MenuItem {
@@ -18,6 +19,7 @@ const MENU_ITEMS: MenuItem[] = [
   { key: "battle", label: "Battle", scene: "StageSelectScene", side: "left" },
   { key: "summon", label: "Summon", scene: "GachaScene", side: "left" },
   { key: "collection", label: "Codex", scene: "CollectionScene", side: "left" },
+  { key: "quests", label: "Quests", scene: "QuestScene", side: "left" },
   { key: "inventory", label: "Inventory", scene: "HeroScene", side: "right" },
   { key: "squad", label: "Squad", scene: "SquadScene", side: "right" },
   { key: "passive", label: "Passives", scene: "PassiveGridScene", side: "right" },
@@ -29,13 +31,18 @@ const MENU_ITEMS: MenuItem[] = [
 const BTN = 58; // icon button size
 
 export class MainMenuScene extends Phaser.Scene {
+  private badges: Record<string, number> = {};
+
   constructor() {
     super("MainMenuScene");
   }
 
   create(): void {
     const mgr: SaveManager = this.registry.get("saveManager");
+    const today = new Date().toISOString().slice(0, 10);
+    mgr.refreshQuests(today); // midnight rollover before we read claimable counts
     const save = mgr.getSave();
+    this.badges = { quests: claimableQuestCount(save) };
     const W = this.scale.width, H = this.scale.height;
     fadeIn(this);
 
@@ -146,6 +153,17 @@ export class MainMenuScene extends Phaser.Scene {
     }
     c.add(crispText(this, 0, BTN / 2 - 6, item.label, { fontSize: "10px", color: "#ffe9c0", fontStyle: "bold", stroke: "#1a1206", strokeThickness: 3 }).setOrigin(0.5));
 
+    // Red notification badge (e.g. claimable quest count) on the top-right corner.
+    const badge = this.badges[item.key] ?? 0;
+    if (badge > 0) {
+      const bx = BTN / 2 - 8, by = -BTN / 2 + 8;
+      const bg = this.add.graphics();
+      bg.fillStyle(0xe6312b, 1).fillCircle(bx, by, 10);
+      bg.lineStyle(1.5, 0xffd9c0, 0.9).strokeCircle(bx, by, 10);
+      c.add(bg);
+      c.add(crispText(this, bx, by, `${badge}`, { fontSize: "11px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5));
+    }
+
     const z = this.add.zone(0, 0, BTN, BTN).setInteractive({ useHandCursor: true });
     c.add(z);
     z.on("pointerover", () => this.tweens.add({ targets: c, scale: 1.12, duration: 130, ease: "Back.easeOut" }));
@@ -180,6 +198,11 @@ function drawMenuGlyph(g: Phaser.GameObjects.Graphics, key: string, x: number, y
       g.fillStyle(0x101826, 1).fillRect(x - s * 0.15, y - s * 0.2, s * 0.3, s * 0.8); break;
     case "squad": // three figures
       for (const ox of [-s * 0.7, 0, s * 0.7]) { g.fillStyle(ox === 0 ? W : A, 1).fillCircle(x + ox, y - s * 0.4, s * 0.28); g.fillRect(x + ox - s * 0.26, y - s * 0.1, s * 0.52, s * 0.7); } break;
+    case "quests": // scroll with a checkmark
+      g.fillStyle(0xf2e2b8, 1).fillRoundedRect(x - s * 0.7, y - s * 0.9, s * 1.4, s * 1.8, 3);
+      g.lineStyle(1.5, 0xb89a5e, 1).strokeRoundedRect(x - s * 0.7, y - s * 0.9, s * 1.4, s * 1.8, 3);
+      for (let i = -1; i <= 1; i++) g.lineStyle(1.4, 0x9a7d4a, 1).lineBetween(x - s * 0.45, y + i * s * 0.4, x + s * 0.45, y + i * s * 0.4);
+      g.lineStyle(2.6, 0x3fae5a, 1).beginPath(); g.moveTo(x - s * 0.35, y + s * 0.05); g.lineTo(x - s * 0.05, y + s * 0.4); g.lineTo(x + s * 0.5, y - s * 0.45); g.strokePath(); break;
     case "settings": // gear
       g.lineStyle(3.4, 0xd6dded, 1).strokeCircle(x, y, s * 0.55);
       for (let i = 0; i < 8; i++) { const a = (Math.PI / 4) * i; g.lineBetween(x + Math.cos(a) * s * 0.55, y + Math.sin(a) * s * 0.55, x + Math.cos(a) * s, y + Math.sin(a) * s); } break;

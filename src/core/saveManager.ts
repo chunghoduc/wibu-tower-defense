@@ -12,7 +12,7 @@ import type { ItemSlot } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
 import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } from "./save.ts";
-import { rolloverQuests } from "./questTracker.ts";
+import { rolloverQuests, claimQuestReward, claimAllBonus } from "./questTracker.ts";
 import { SINGLE_PULL_COST, MULTI_PULL_COST, FREE_SUMMON_INTERVAL_MS } from "./gacha.ts";
 import { STARTER_SKILL_IDS } from "../data/skills.ts";
 import { addTowerToCollection, upgradeTowerStar, type StarUpResult } from "./collection.ts";
@@ -374,6 +374,27 @@ export class SaveManager {
     checkAndGrantAchievements(this.save);
     this.persist();
     return result;
+  }
+
+  /** Roll daily quests over to `todayIso` if the date changed, then persist. */
+  refreshQuests(todayIso: string): void {
+    if (this.save.quests.date === todayIso) return;
+    rolloverQuests(this.save, todayIso);
+    this.persist();
+  }
+
+  /** Claim one completed quest's reward. Returns true on success (then persists). */
+  claimQuest(questId: string): boolean {
+    const ok = claimQuestReward(this.save, questId);
+    if (ok) this.persist();
+    return ok;
+  }
+
+  /** Claim the all-quests-complete bonus. Returns true on success (then persists). */
+  claimQuestBonus(): boolean {
+    const ok = claimAllBonus(this.save);
+    if (ok) this.persist();
+    return ok;
   }
 
   grantDailyLogin(todayIso: string): number {
