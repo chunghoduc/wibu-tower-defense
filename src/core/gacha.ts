@@ -3,6 +3,8 @@ import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection, isTowerMaxStar } from "./collection.ts";
 import { Rng } from "./rng.ts";
 import type { HeroSave } from "./save.ts";
+import { incrementBountyEvent } from "./bounties.ts";
+import { isoWeekKey } from "./meta.ts";
 
 export const SINGLE_PULL_COST = 160;
 export const MULTI_PULL_COST = 1440;
@@ -100,6 +102,9 @@ export function performSummon(save: HeroSave, rng: Rng): SummonResult {
   const characterId = drawCharacter(save, rarity, rng);
   const isNew = !(characterId in save.collection);
   addTowerToCollection(save, characterId);
+  // F3 weekly bounty + F10 spark both tick once per pull.
+  incrementBountyEvent(save, "summon", 1, isoWeekKey(new Date()));
+  save.meta.banner.sparks += 1;
   const newStars = save.collection[characterId].stars;
   if (rarity === "Legendary" || rarity === "Unique") {
     save.currency.pityCount = 0;

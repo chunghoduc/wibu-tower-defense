@@ -14,6 +14,8 @@ import type { Stats } from "../data/schema.ts";
 import type { HeroSave } from "./save.ts";
 import type { Rng } from "./rng.ts";
 import { incrementQuestKey } from "./questTracker.ts";
+import { incrementBountyEvent } from "./bounties.ts";
+import { isoWeekKey } from "./meta.ts";
 import { BLESS_JEWEL, SOUL_JEWEL } from "../data/materials.ts";
 
 // Re-export the jewel ids so consumers can import from one place.
@@ -82,5 +84,6 @@ export function attemptEnhance(save: HeroSave, instanceId: string, rng: Rng): En
     inst.enhanceLevel = Math.max(0, level - drop);
   }
   incrementQuestKey(save, "enhance_items", 1, new Date().toISOString().slice(0, 10));
+  incrementBountyEvent(save, "enhance", 1, isoWeekKey(new Date()));
   return { ok: true, success, jewel, from, to: inst.enhanceLevel };
 }

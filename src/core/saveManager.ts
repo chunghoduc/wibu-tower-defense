@@ -19,6 +19,12 @@ import { addTowerToCollection, upgradeTowerStar, type StarUpResult } from "./col
 import { canForgetNode, PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import type { JewelInstanceSave } from "./save.ts";
+import { claimStreak, streakClaimable, type StreakClaim } from "./streak.ts";
+import { spin, freeSpinAvailable, PAID_SPIN_COST, type SpinResult } from "./spin.ts";
+import { rolloverBounties, claimBounty } from "./bounties.ts";
+import { ensureChallenge, claimChallengeClear } from "./challenge.ts";
+import type { ChallengeModifierDef } from "../data/challengeModifiers.ts";
+import type { Reward } from "./rewards.ts";
 
 const DAILY_LOGIN_GOLD = 50;
 const DAILY_LOGIN_DIAMONDS = 5;
@@ -401,6 +407,63 @@ export class SaveManager {
     const ok = claimAllBonus(this.save);
     if (ok) this.persist();
     return ok;
+  }
+
+  // ── F1 Login streak ───────────────────────────────────────────────────────
+  /** Claim today's streak reward (advances/continues/resets the chain). Null if
+   *  already claimed today. */
+  claimStreak(todayIso: string): StreakClaim | null {
+    const claim = claimStreak(this.save, todayIso);
+    if (claim) this.persist();
+    return claim;
+  }
+  streakClaimable(todayIso: string): boolean { return streakClaimable(this.save, todayIso); }
+
+  // ── F4 Lucky spin ─────────────────────────────────────────────────────────
+  freeSpinAvailable(todayIso: string): boolean { return freeSpinAvailable(this.save, todayIso); }
+  /** Spin the daily free wheel. Null if today's free spin is already used. */
+  spinFree(todayIso: string, rng: Rng = new Rng((Math.random() * 1e9) | 0)): SpinResult | null {
+    if (!freeSpinAvailable(this.save, todayIso)) return null;
+    const r = spin(this.save, todayIso, rng, true);
+    this.persist();
+    return r;
+  }
+  /** Spin a paid wheel (costs PAID_SPIN_COST diamonds). Null if too poor. */
+  spinPaid(todayIso: string, rng: Rng = new Rng((Math.random() * 1e9) | 0)): SpinResult | null {
+    if (this.save.currency.diamonds < PAID_SPIN_COST) return null;
+    this.save.currency.diamonds -= PAID_SPIN_COST;
+    const r = spin(this.save, todayIso, rng, false);
+    this.persist();
+    return r;
+  }
+
+  // ── F3 Weekly bounties ────────────────────────────────────────────────────
+  /** Roll bounties to the current ISO week if needed, then persist. */
+  refreshBounties(weekKey: string): void {
+    if (this.save.meta.bounties.weekKey === weekKey) return;
+    rolloverBounties(this.save, weekKey);
+    this.persist();
+  }
+  /** Claim one completed weekly bounty. */
+  claimBounty(bountyId: string): boolean {
+    const ok = claimBounty(this.save, bountyId);
+    if (ok) this.persist();
+    return ok;
+  }
+
+  // ── F5 Daily challenge ────────────────────────────────────────────────────
+  /** Ensure today's challenge modifier is rolled; returns it. Persists on change. */
+  ensureChallenge(todayIso: string): ChallengeModifierDef {
+    const before = this.save.meta.challenge.dayKey;
+    const def = ensureChallenge(this.save, todayIso);
+    if (before !== todayIso) this.persist();
+    return def;
+  }
+  /** Claim the daily-challenge clear bonus. Null if already claimed today. */
+  claimChallengeClear(todayIso: string): Reward | null {
+    const r = claimChallengeClear(this.save, todayIso);
+    if (r) this.persist();
+    return r;
   }
 
   grantDailyLogin(todayIso: string): number {

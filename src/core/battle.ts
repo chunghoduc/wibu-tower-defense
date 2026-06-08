@@ -47,6 +47,9 @@ import { isTowerOwned, getTowerStars } from "./collection.ts";
 import { processEnemyKill } from "./killRewards.ts";
 import { itemLevelForStage, chapterLevelRange } from "./itemDrop.ts";
 import { incrementQuestKey } from "./questTracker.ts";
+import { incrementBountyEvent } from "./bounties.ts";
+import { isoWeekKey } from "./meta.ts";
+import { recordKill } from "./bestiary.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -1247,6 +1250,8 @@ export class BattleState {
       this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, xp: kr.xp, item: kr.itemDropped !== null, box: kr.boxDropped });
       const today = new Date().toISOString().slice(0, 10);
       incrementQuestKey(this._heroSave, boss ? "kill_bosses" : "kill_enemies", 1, today);
+      incrementBountyEvent(this._heroSave, "kill", 1, isoWeekKey(new Date()));
+      recordKill(this._heroSave, e.def.archetype); // F9 bestiary + F16 lifetime kills
     }
     const split = e.def.special?.splitInto;
     if (split) {

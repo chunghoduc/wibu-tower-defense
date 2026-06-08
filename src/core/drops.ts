@@ -9,6 +9,8 @@ import { BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, OBLIVION_ORB, boxIdForTier } fr
 import { boxTierForStage, stageNumber } from "../data/stage.ts";
 import type { HeroSave, ItemInstanceSave, JewelInstanceSave } from "./save.ts";
 import { incrementQuestKey } from "./questTracker.ts";
+import { incrementBountyEvent } from "./bounties.ts";
+import { isoWeekKey } from "./meta.ts";
 
 /** Gold awarded per difficulty on stage clear (primary progression currency). */
 export const GOLD_REWARD: Record<Difficulty, number> = {
@@ -76,6 +78,8 @@ export function processStageClear(
   const today = new Date().toISOString().slice(0, 10);
   incrementQuestKey(save, "clear_stages", 1, today);
   if (difficulty !== "Normal") incrementQuestKey(save, "clear_hard", 1, today);
+  incrementBountyEvent(save, "clear", 1, isoWeekKey(new Date()));
+  save.meta.profile.lifetimeClears += 1; // F16 profile lifetime tally
 
   // Gold — primary currency from stage clears.
   const goldAwarded = GOLD_REWARD[difficulty] + (isFirstClear ? FIRST_CLEAR_GOLD_BONUS : 0);
