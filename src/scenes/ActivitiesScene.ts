@@ -17,6 +17,11 @@ import { isBountyClaimable, getBountyProgress } from "../core/bounties.ts";
 import { MILESTONES } from "../data/milestones.ts";
 import { metricValue, claimedTier, nextClaimableTier } from "../core/milestones.ts";
 import { isoWeekKey } from "../core/meta.ts";
+import { challengeForDay } from "../core/challenge.ts";
+import { endlessEnemyMul } from "../core/endless.ts";
+import { STAGES } from "../data/stage.ts";
+import type { BattleMode } from "./BattleScene.ts";
+import type { Difficulty } from "../data/schema.ts";
 
 const W = 960;
 const PANEL_X = 24, PANEL_W = W - 48;
@@ -63,6 +68,7 @@ export class ActivitiesScene extends Phaser.Scene {
     y = this.drawStreak(y);
     y = this.drawSpin(y);
     y = this.drawExpedition(y);
+    y = this.drawTrials(y);
     y = this.drawBounties(y);
     y = this.drawMilestones(y);
     this.contentH = y + 20;
@@ -166,6 +172,73 @@ export class ActivitiesScene extends Phaser.Scene {
       });
     }
     return y + h + 12;
+  }
+
+  /** Highest-index stage the player has cleared on any difficulty (null if none). */
+  private latestClearedStage(): { id: string; idx: number } | null {
+    const save = this.mgr.getSave();
+    let best: { id: string; idx: number } | null = null;
+    STAGES.forEach((st, i) => {
+      const rec = save.progress.stageClearMap[st.id];
+      if (rec && (rec.Normal || rec.Hard || rec.Nightmare)) best = { id: st.id, idx: i };
+    });
+    return best;
+  }
+
+  private launch(stageId: string, difficulty: Difficulty, mode: BattleMode): void {
+    const stage = STAGES.find((s) => s.id === stageId);
+    if (!stage) return;
+    this.registry.set("selectedStage", stage);
+    this.registry.set("selectedDifficulty", difficulty);
+    this.registry.set("battleMode", mode);
+    fadeToScene(this, "BattleScene");
+  }
+
+  private drawTrials(y: number): number {
+    const save = this.mgr.getSave();
+    const today = new Date().toISOString().slice(0, 10);
+    const cleared = this.latestClearedStage();
+    this.layer.add(crispText(this, PANEL_X + 4, y, "Trials", { fontSize: "15px", color: "#ffd56a", fontStyle: "bold" }));
+    y += 24;
+
+    // F5 Daily Challenge.
+    const ch = challengeForDay(today);
+    const chDone = save.meta.challenge.dayKey === today && save.meta.challenge.cleared;
+    {
+      const h = 56;
+      this.panel(y, h, 0x2c3a4f, !chDone);
+      this.layer.add(crispText(this, PANEL_X + 14, y + 8, `⚡ Daily Challenge — ${ch.name}`, { fontSize: "14px", color: chDone ? "#8fc7a0" : "#ffe9b0", fontStyle: "bold" }));
+      this.layer.add(crispText(this, PANEL_X + 14, y + 28, `${ch.description}  →  ${rewardLabel(ch.reward)}`, { fontSize: "11px", color: "#aab8cc", wordWrap: { width: PANEL_W - 130 } }));
+      const stageId = cleared?.id ?? STAGES[0].id;
+      this.button(PANEL_X + PANEL_W - 14, y + h / 2, chDone ? "Cleared" : "Play", "#9a6a1f", !chDone,
+        () => this.launch(stageId, "Hard", { kind: "challenge", challenge: ch.effects }));
+      y += h + 8;
+    }
+
+    // F11 Endless Survival (needs a cleared stage).
+    {
+      const h = 56;
+      const best = cleared ? this.mgr.bestEndlessWave(cleared.id) : 0;
+      this.panel(y, h, 0x2c3a4f);
+      this.layer.add(crispText(this, PANEL_X + 14, y + 8, "🌊 Endless Survival", { fontSize: "14px", color: "#ffe9b0", fontStyle: "bold" }));
+      this.layer.add(crispText(this, PANEL_X + 14, y + 28, cleared ? `Survive escalating waves. Best wave: ${best}.` : "Clear a stage first to unlock.", { fontSize: "11px", color: "#aab8cc" }));
+      this.button(PANEL_X + PANEL_W - 14, y + h / 2, "Play", "#3a6a9a", !!cleared,
+        () => cleared && this.launch(cleared.id, "Nightmare", { kind: "endless", endlessMul: endlessEnemyMul(best + 1) }));
+      y += h + 8;
+    }
+
+    // F12 Boss Rush (weekly).
+    {
+      const h = 56;
+      const tier = this.mgr.bestBossRushTier();
+      this.panel(y, h, 0x2c3a4f);
+      this.layer.add(crispText(this, PANEL_X + 14, y + 8, "👹 Boss Rush — Weekly", { fontSize: "14px", color: "#ffe9b0", fontStyle: "bold" }));
+      this.layer.add(crispText(this, PANEL_X + 14, y + 28, cleared ? `Push as deep as you can. Best tier this week: ${tier}.` : "Clear a stage first to unlock.", { fontSize: "11px", color: "#aab8cc" }));
+      this.button(PANEL_X + PANEL_W - 14, y + h / 2, "Play", "#8a3a3a", !!cleared,
+        () => cleared && this.launch(cleared.id, "Nightmare", { kind: "bossrush", endlessMul: 1.5 }));
+      y += h + 8;
+    }
+    return y + 6;
   }
 
   private drawBounties(y: number): number {

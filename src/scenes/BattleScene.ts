@@ -36,6 +36,17 @@ import { ITEM_SLOTS, type Rarity } from "../data/schema.ts";
 import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
 import type { FxEvent } from "../core/battle.ts";
+import { rewardLabel } from "../core/rewards.ts";
+import { isoWeekKey } from "../core/meta.ts";
+import { boxIdForTier } from "../data/materials.ts";
+import type { ChallengeEffects } from "../data/challengeModifiers.ts";
+
+/** A special battle mode launched from the Activities hub (else a normal stage). */
+export interface BattleMode {
+  kind: "normal" | "challenge" | "endless" | "bossrush";
+  challenge?: ChallengeEffects;
+  endlessMul?: number;
+}
 import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 import { BattleCameraController } from "./battleCamera.ts";
 
@@ -50,6 +61,7 @@ export class BattleScene extends Phaser.Scene {
   private battle!: BattleState;
   private stage!: StageDef;
   private difficulty!: Difficulty;
+  private battleMode: BattleMode = { kind: "normal" };
   private buildOrder: CharacterDef[] = [];
   private saveManager!: SaveManager;
 
@@ -124,6 +136,10 @@ export class BattleScene extends Phaser.Scene {
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
     this.stage = (this.registry.get("selectedStage") as StageDef | undefined) ?? STAGE_1;
     this.difficulty = (this.registry.get("selectedDifficulty") as Difficulty | undefined) ?? "Normal";
+    // Optional special mode (F5 challenge / F11 endless / F12 boss rush) from the
+    // Activities hub; cleared after reading so it doesn't leak into the next battle.
+    this.battleMode = (this.registry.get("battleMode") as BattleMode | undefined) ?? { kind: "normal" };
+    this.registry.set("battleMode", undefined);
 
     this.catalog = loadCatalog();
     this.buildOrder = buildSquad(save, this.catalog);
@@ -137,6 +153,8 @@ export class BattleScene extends Phaser.Scene {
         damageType: "Physical",
       },
       heroSave: save,
+      challenge: this.battleMode.challenge,
+      endlessMul: this.battleMode.endlessMul,
     });
 
     // Two display layers: the battlefield (rendered by a zoomed-out camera) and
@@ -697,8 +715,28 @@ export class BattleScene extends Phaser.Scene {
       ? this.saveManager.afterBattle(this.stage.id, "won", this.battle.difficulty, new Rng(Date.now()))
       : null;
 
+    // Special-mode payouts layered on top of the normal stage rewards.
+    let modeNote = "";
+    const wavesReached = Math.max(0, this.battle.waveIndex + 1);
+    if (this.battleMode.kind === "challenge" && outcome === "won") {
+      const r = this.saveManager.claimChallengeClear(new Date().toISOString().slice(0, 10));
+      if (r) modeNote = `Daily Challenge cleared! ${rewardLabel(r)}`;
+    } else if (this.battleMode.kind === "endless") {
+      const pb = this.saveManager.recordEndlessWave(this.stage.id, wavesReached);
+      modeNote = `Endless: reached wave ${wavesReached}${pb ? " — new best!" : ""}`;
+    } else if (this.battleMode.kind === "bossrush") {
+      const r = this.saveManager.recordBossRushTier(isoWeekKey(new Date()), wavesReached);
+      modeNote = `Boss Rush: tier ${wavesReached}${rewardLabel(r) ? ` · ${rewardLabel(r)}` : ""}`;
+    }
+    // F14 flawless victory → a bonus boss chest.
+    if (outcome === "won" && this.battleMode.kind === "normal" && this.battle.wasFlawless()) {
+      this.saveManager.addMaterial(boxIdForTier(3), 1);
+      modeNote = "Flawless! +1 Rare Boss Chest";
+    }
+
     const summary = buildLootSummary(outcome, this.battle.battleLoot, clear);
     this.ui.add(showBattleLootPanel(this, summary, this.battleW / 2, 182));
+    if (modeNote) this.ui.add(crispText(this, this.battleW / 2, 150, modeNote, { fontSize: "14px", color: "#ffe07a", fontStyle: "bold", stroke: "#1a1206", strokeThickness: 4 }).setOrigin(0.5).setDepth(40));
   }
 
   /** Render one sim FX event, and trigger sprite animations (attack swing, hit flash). */
