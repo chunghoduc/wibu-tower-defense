@@ -73,7 +73,9 @@ export function processStageClear(
 
   let itemDropped: ItemInstanceSave | null = null;
   if (rng.next() < ITEM_DROP_CHANCE) {
-    itemDropped = rollItemDrop(save, itemLevel, rng);
+    // Clearing a stage means defeating its boss — this reward can roll the
+    // boss-only high tiers (Legendary/Unique), unlike per-enemy kill drops.
+    itemDropped = rollItemDrop(save, itemLevel, rng, true);
   }
 
   let skillDropped: string | null = null;

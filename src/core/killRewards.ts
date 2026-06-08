@@ -37,7 +37,9 @@ export function processEnemyKill(
 ): KillReward {
   const xp = killXpFor(def, difficulty);
   awardHeroXp(save, xp);
-  const chance = def.archetype === "Boss" ? BOSS_ITEM_DROP_CHANCE : KILL_ITEM_DROP_CHANCE;
-  const itemDropped = rng.next() < chance ? rollItemDrop(save, itemLevel, rng) : null;
+  const boss = def.archetype === "Boss";
+  const chance = boss ? BOSS_ITEM_DROP_CHANCE : KILL_ITEM_DROP_CHANCE;
+  // Only bosses can drop Legendary/Unique; regular enemies are capped at Rare.
+  const itemDropped = rng.next() < chance ? rollItemDrop(save, itemLevel, rng, boss) : null;
   return { xp, itemDropped };
 }
