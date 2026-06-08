@@ -6,7 +6,7 @@
 // primary affix / purple extra affix; quality: green better / red worse), and a
 // legend + required-level footer.
 import Phaser from "phaser";
-import { crispText } from "./ui.ts";
+import { panelText } from "./ui.ts";
 import { itemStatRows, SOURCE_COLOR, QUALITY_COLOR } from "../data/itemDisplay.ts";
 import type { ItemDef, Rarity } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
@@ -26,53 +26,60 @@ export function renderItemTooltip(
   c.removeAll(true);
   const rows = itemStatRows(inst, def);
 
-  const w = 234, headerH = 36, rowH = 13, footerH = 26;
+  // Vertical rhythm: each value below is the rendered line height (font + stroke),
+  // not the bare font size — small fonts with an outline render noticeably taller,
+  // so undersized row heights used to make every line overlap the next.
+  const w = 250, padX = 10, headerH = 46, rowH = 17, footerH = inst.apex ? 50 : 32;
   const h = headerH + rows.length * rowH + footerH;
   const tx = Phaser.Math.Clamp(x + 30, 0, scene.scale.width - w);
   const ty = Phaser.Math.Clamp(y - 10, 0, 540 - h);
   const g = scene.add.graphics();
-  g.fillStyle(0x10141c, 0.97).fillRoundedRect(tx, ty, w, h, 6);
-  g.lineStyle(1.5, RARITY_INT[def.rarity], 1).strokeRoundedRect(tx, ty, w, h, 6);
+  g.fillStyle(0x10141c, 0.98).fillRoundedRect(tx, ty, w, h, 7);
+  g.lineStyle(2, RARITY_INT[def.rarity], 1).strokeRoundedRect(tx, ty, w, h, 7);
+  // Header divider so the name block reads apart from the stats.
+  g.lineStyle(1, 0x2a3650, 0.9).lineBetween(tx + padX, ty + headerH - 5, tx + w - padX, ty + headerH - 5);
   c.add(g);
 
   // Header: name (rarity colour) + rarity/slot/enhance line.
   const enh = inst.enhanceLevel ? `  +${inst.enhanceLevel}` : "";
-  c.add(crispText(scene, tx + 8, ty + 6, def.name, { fontSize: "11px", color: RARITY_HEX[def.rarity], fontStyle: "bold" }));
-  c.add(crispText(scene, tx + 8, ty + 21, `${def.rarity} ${def.slot}${def.weaponType ? ` (${def.weaponType})` : ""}${enh}`, { fontSize: "9px", color: "#9fb0c4" }));
+  c.add(panelText(scene, tx + padX, ty + 8, def.name, { fontSize: "14px", color: RARITY_HEX[def.rarity], fontStyle: "bold", wordWrap: { width: w - padX * 2 } }));
+  c.add(panelText(scene, tx + padX, ty + 27, `${def.rarity} ${def.slot}${def.weaponType ? ` (${def.weaponType})` : ""}${enh}`, { fontSize: "11px", color: "#aebfd4" }));
 
   // Stat rows. Source colour marks where the stat comes from; value colour marks
   // roll quality. Base stats: label + right-aligned value (+ enhance bonus).
   // Affixes: a full sentence with the value tinted inline.
   let ry = ty + headerH;
   for (const r of rows) {
-    const vstyle = { fontSize: "9px", color: QUALITY_COLOR[r.quality], fontStyle: "bold" };
+    const vstyle = { fontSize: "11px", color: QUALITY_COLOR[r.quality], fontStyle: "bold" };
     if (r.source === "base") {
-      c.add(crispText(scene, tx + 10, ry, r.before, { fontSize: "9px", color: SOURCE_COLOR.base }));
+      c.add(panelText(scene, tx + padX, ry, r.before, { fontSize: "11px", color: SOURCE_COLOR.base }));
       if (r.bonus) {
-        const bt = crispText(scene, tx + w - 8, ry, r.bonus, { fontSize: "9px", color: "#7fdfff", fontStyle: "bold" }).setOrigin(1, 0);
+        const bt = panelText(scene, tx + w - padX, ry, r.bonus, { fontSize: "11px", color: "#7fdfff", fontStyle: "bold" }).setOrigin(1, 0);
         c.add(bt);
-        c.add(crispText(scene, tx + w - 10 - bt.width, ry, r.value, vstyle).setOrigin(1, 0));
+        c.add(panelText(scene, tx + w - padX - 4 - bt.width, ry, r.value, vstyle).setOrigin(1, 0));
       } else {
-        c.add(crispText(scene, tx + w - 8, ry, r.value, vstyle).setOrigin(1, 0));
+        c.add(panelText(scene, tx + w - padX, ry, r.value, vstyle).setOrigin(1, 0));
       }
     } else {
-      const sc = { fontSize: "9px", color: SOURCE_COLOR[r.source] };
-      let cx = tx + 10;
-      const b = crispText(scene, cx, ry, r.before, sc); c.add(b); cx += b.width;
-      const v = crispText(scene, cx, ry, r.value, vstyle); c.add(v); cx += v.width;
-      c.add(crispText(scene, cx, ry, r.after, sc));
+      const sc = { fontSize: "11px", color: SOURCE_COLOR[r.source] };
+      let cx = tx + padX;
+      const b = panelText(scene, cx, ry, r.before, sc); c.add(b); cx += b.width;
+      const v = panelText(scene, cx, ry, r.value, vstyle); c.add(v); cx += v.width;
+      c.add(panelText(scene, cx, ry, r.after, sc));
     }
     ry += rowH;
   }
 
-  // Footer: a small colour legend + required level.
-  c.add(crispText(scene, tx + 8, ry + 4, "Stat", { fontSize: "8px", color: SOURCE_COLOR.base }));
-  c.add(crispText(scene, tx + 34, ry + 4, "Primary", { fontSize: "8px", color: SOURCE_COLOR.primary }));
-  c.add(crispText(scene, tx + 78, ry + 4, "Extra", { fontSize: "8px", color: SOURCE_COLOR.affix }));
+  // Footer: a small colour legend + required level, separated by a divider.
+  const fy = ry + 6;
+  g.lineStyle(1, 0x2a3650, 0.9).lineBetween(tx + padX, fy - 4, tx + w - padX, fy - 4);
+  c.add(panelText(scene, tx + padX, fy, "Base", { fontSize: "10px", color: SOURCE_COLOR.base }));
+  c.add(panelText(scene, tx + padX + 38, fy, "Primary", { fontSize: "10px", color: SOURCE_COLOR.primary }));
+  c.add(panelText(scene, tx + padX + 92, fy, "Extra", { fontSize: "10px", color: SOURCE_COLOR.affix }));
   const reqLv = inst.requiredLevel ?? def.requiredLevel;
-  c.add(crispText(scene, tx + w - 8, ry + 4, `Req.Lv ${reqLv}`, { fontSize: "8px", color: inst.apex ? "#ffd24a" : "#7c8aa0" }).setOrigin(1, 0));
+  c.add(panelText(scene, tx + w - padX, fy, `Req.Lv ${reqLv}`, { fontSize: "10px", color: inst.apex ? "#ffd24a" : "#8a99af" }).setOrigin(1, 0));
   if (inst.apex) {
-    c.add(crispText(scene, tx + 110, ry + 4, "✦ APEX +25%", { fontSize: "8px", color: "#ffd24a", fontStyle: "bold" }));
+    c.add(panelText(scene, tx + padX, fy + 15, "✦ APEX  +25% stats", { fontSize: "10px", color: "#ffd24a", fontStyle: "bold" }));
   }
   c.setVisible(true);
 }

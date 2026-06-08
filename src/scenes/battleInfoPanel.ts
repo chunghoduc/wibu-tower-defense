@@ -7,7 +7,7 @@
  * Presentational only — the scene passes a view model + callbacks.
  */
 import Phaser from "phaser";
-import { crispText } from "./ui.ts";
+import { crispText, panelText } from "./ui.ts";
 
 export interface StatRow { key: string; value: string; }
 export interface PanelItem { iconKey: string | null; name: string; plus: number; rarityColor: number; }
@@ -94,7 +94,7 @@ export class BattleInfoPanel {
     // Hover tooltip (shared).
     this.tip = scene.add.container(0, 0).setDepth(60).setVisible(false);
     this.tipBg = scene.add.graphics();
-    this.tipText = crispText(scene, 0, 0, "", { fontSize: "13px", color: "#f3f7fd", lineSpacing: 3 });
+    this.tipText = panelText(scene, 0, 0, "", { fontSize: "13px", color: "#f3f7fd", lineSpacing: 4 });
     this.tip.add([this.tipBg, this.tipText]);
 
     // Toggle tab on the panel's left edge.

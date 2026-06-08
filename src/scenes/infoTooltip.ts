@@ -6,7 +6,7 @@
 // an optional subtitle line and a wrapped body. Pure presentation: clears the
 // given container, builds the card near (x, y) clamped on-screen, and shows it.
 import Phaser from "phaser";
-import { crispText } from "./ui.ts";
+import { panelText } from "./ui.ts";
 
 export interface InfoTooltipData {
   title: string;
@@ -20,8 +20,8 @@ export interface InfoTooltipData {
   borderColor?: number;
 }
 
-const PAD = 8;
-const W = 214;
+const PAD = 10;
+const W = 224;
 
 /** Render a titled info card into `c` near (x, y) and show it. */
 export function renderInfoTooltip(
@@ -39,18 +39,18 @@ export function renderInfoTooltip(
   const lines: { t: Phaser.GameObjects.Text; dy: number }[] = [];
   let cy = PAD;
 
-  const title = crispText(scene, 0, 0, data.title, {
-    fontSize: "12px", color: data.titleColor ?? "#ffe9b0", fontStyle: "bold", wordWrap: { width: innerW },
+  const title = panelText(scene, 0, 0, data.title, {
+    fontSize: "14px", color: data.titleColor ?? "#ffe9b0", fontStyle: "bold", wordWrap: { width: innerW },
   });
-  lines.push({ t: title, dy: cy }); cy += title.height + 2;
+  lines.push({ t: title, dy: cy }); cy += title.height + 3;
 
   if (data.subtitle) {
-    const sub = crispText(scene, 0, 0, data.subtitle, { fontSize: "9px", color: "#9fb0c4" });
-    lines.push({ t: sub, dy: cy }); cy += sub.height + 4;
+    const sub = panelText(scene, 0, 0, data.subtitle, { fontSize: "11px", color: "#aebfd4" });
+    lines.push({ t: sub, dy: cy }); cy += sub.height + 5;
   }
   if (data.body) {
-    const body = crispText(scene, 0, 0, data.body, {
-      fontSize: "9px", color: "#cdd6e6", wordWrap: { width: innerW }, lineSpacing: 2,
+    const body = panelText(scene, 0, 0, data.body, {
+      fontSize: "11px", color: "#cdd6e6", wordWrap: { width: innerW }, lineSpacing: 3,
     });
     lines.push({ t: body, dy: cy }); cy += body.height;
   }

@@ -61,6 +61,24 @@ export function crispText(
   return t;
 }
 
+/**
+ * Text for an opaque dark panel or tooltip. The panel itself supplies contrast,
+ * so the heavy battlefield outline (`strokeThickness: 3`) is the WRONG choice
+ * here — at tooltip sizes (10–14px) that thick halo fattens every glyph, smears
+ * the anti-aliasing, and makes adjacent lines' outlines collide into an
+ * unreadable blur. Drop to a hairline 1px stroke (still helps colour text pop
+ * against the panel) for crisp, legible small text. Callers may still override.
+ */
+export function panelText(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  text: string | string[],
+  style: Phaser.Types.GameObjects.Text.TextStyle = {},
+): Phaser.GameObjects.Text {
+  return crispText(scene, x, y, text, { strokeThickness: 1, ...style });
+}
+
 /** Upgrade an already-created Text in place (for code paths that build the Text
  *  themselves). Safe to call once after creation. */
 export function makeCrisp(t: Phaser.GameObjects.Text): Phaser.GameObjects.Text {

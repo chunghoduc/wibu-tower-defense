@@ -13,7 +13,7 @@ import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName, type MaterialKind } from "../data/materials.ts";
 import { enhanceChance, jewelForLevel, enhanceBonus, MAX_ENHANCE } from "../core/enhance.ts";
-import { crispText } from "./ui.ts";
+import { crispText, panelText } from "./ui.ts";
 import { BoxOpenOverlay } from "./boxOpenOverlay.ts";
 
 type InvFilter = "items" | "materials" | "boxes";
@@ -355,14 +355,18 @@ export class HeroScene extends Phaser.Scene {
 
   private showTextTooltip(title: string, desc: string, x: number, y: number): void {
     this.tooltip.removeAll(true);
-    const w = 180, h = 44;
+    const w = 200, padX = 10;
+    // Measure the wrapped body so the card grows to fit instead of clipping it.
+    const titleT = panelText(this, 0, 0, title, { fontSize: "13px", color: "#cfe6ff", fontStyle: "bold", wordWrap: { width: w - padX * 2 } });
+    const descT = desc ? panelText(this, 0, 0, desc, { fontSize: "11px", color: "#cdd9ea", wordWrap: { width: w - padX * 2 }, lineSpacing: 3 }) : null;
+    const h = 12 + titleT.height + (descT ? descT.height + 4 : 0);
     const tx = Phaser.Math.Clamp(x + 30, 0, this.scale.width - w), ty = Phaser.Math.Clamp(y - 10, 0, 540 - h);
     const g = this.add.graphics();
-    g.fillStyle(0x10141c, 0.97).fillRoundedRect(tx, ty, w, h, 6);
+    g.fillStyle(0x10141c, 0.98).fillRoundedRect(tx, ty, w, h, 6);
     g.lineStyle(1.5, 0x7ec8ff, 1).strokeRoundedRect(tx, ty, w, h, 6);
     this.tooltip.add(g);
-    this.tooltip.add(crispText(this, tx + 8, ty + 6, title, { fontSize: "11px", color: "#cfe6ff", fontStyle: "bold" }));
-    this.tooltip.add(crispText(this, tx + 8, ty + 22, desc, { fontSize: "9px", color: "#cdd9ea", wordWrap: { width: w - 16 } }));
+    titleT.setPosition(tx + padX, ty + 7); this.tooltip.add(titleT);
+    if (descT) { descT.setPosition(tx + padX, ty + 9 + titleT.height); this.tooltip.add(descT); }
     this.tooltip.setVisible(true);
   }
 
