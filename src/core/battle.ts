@@ -20,7 +20,6 @@ import {
   type DamageType,
   type Difficulty,
   type EnemyDef,
-  type PassiveNodeDef,
   type StageDef,
   type Stats,
   type TargetType,
@@ -33,20 +32,16 @@ import { combatLogOn, emitDamageLog } from "./combatLog.ts";
 import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { Rng } from "./rng.ts";
-import { addHeroShare, collectPassiveMore, heroStatPipeline, towerStatPipeline } from "./stats.ts";
-import { socketedJewelBags } from "./jewelStats.ts";
+import { addHeroShare, towerStatPipeline } from "./stats.ts";
+import { resolveHeroBattleStats } from "./heroStats.ts";
 import { effectiveBehavior } from "./towerUpgrade.ts";
-import { scaleStatsByEnhance } from "./enhance.ts";
 import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
-import { PASSIVE_NODES_MAP } from "../data/passiveGrid.ts";
-import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
 import type { HeroSave } from "./save.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
 import { processEnemyKill } from "./killRewards.ts";
 import { itemLevelForStage } from "./itemDrop.ts";
-import { buildAffixStats } from "./affixStats.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -264,48 +259,11 @@ export class BattleState {
     };
 
     if (opts.heroSave) {
-      const save = opts.heroSave;
-      const unlockedNodes = save.hero.unlockedNodes
-        .map((id) => PASSIVE_NODES_MAP.get(id))
-        .filter((n): n is PassiveNodeDef => n !== undefined);
-
-      const itemStats: Partial<Stats>[] = [];
-
-      for (const [slot, instanceId] of Object.entries(save.inventory.equipped)) {
-        if (!instanceId) continue;
-        const instance = save.inventory.items.find((it) => it.id === instanceId);
-        if (!instance) continue;
-        const def = ITEM_CATALOG_MAP.get(instance.defId);
-        if (!def) continue;
-        itemStats.push(scaleStatsByEnhance(instance.rolledStats as Partial<Stats>, instance.enhanceLevel ?? 0));
-        if (slot === "Pet" && def.petUtility?.goldPerSec) {
-          this.petGoldPerSec = def.petUtility.goldPerSec;
-        }
-      }
-
-      // Jewels socketed in allocated jewel-socket nodes empower the hero just like
-      // passive nodes (and reach towers via the 60% share). Un-allocated sockets
-      // contribute nothing.
-      const jewelBags = socketedJewelBags(save);
-
-      // More% multipliers from every allocated node that declares one (keystones
-      // and the prestige gates alike — not gated on type, or a notable's more% is lost),
-      // plus any Unique jewels' more% bags.
-      const keystoneMore = collectPassiveMore([...unlockedNodes, ...jewelBags]);
-
-      // Item affixes (primary + rolled): flat contributions go straight in;
-      // increased% contributions ride in as synthetic increased-only nodes.
-      const affix = buildAffixStats(save);
-      const affixNodes = affix.increased.map((increased) => ({ flat: {}, increased, more: undefined }));
-
-      const resolvedStats = heroStatPipeline(
-        opts.hero.stats,
-        save.hero.level,
-        [...unlockedNodes, ...affixNodes, ...jewelBags],
-        itemStats,
-        affix.flat,
-        keystoneMore,
-      );
+      // Items + passive tree + jewels + level all fold into the hero's stats here
+      // (and flow on to towers via the 60% share). Resolution lives in one tested
+      // place — resolveHeroBattleStats — so the math stays auditable.
+      const { stats: resolvedStats, petGoldPerSec } = resolveHeroBattleStats(opts.heroSave, opts.hero.stats);
+      if (petGoldPerSec > 0) this.petGoldPerSec = petGoldPerSec;
 
       this.hero = {
         stats: resolvedStats,
