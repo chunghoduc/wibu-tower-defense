@@ -118,7 +118,9 @@ describe("BattleState outcomes", () => {
     b.placeTower("turret", 0);
     runUntilDone(b);
     expect(b.outcome).toBe("won");
-    expect(b.gold).toBe(50); // 5 kills * 10 bounty (elites disabled for determinism)
+    // ≥ 5 kills * 10 bounty; combo (F13) + perfect-wave (F14) bonuses add on top
+    // (their exact math is covered in tests/combo-perfect.test.ts).
+    expect(b.gold).toBeGreaterThanOrEqual(50);
   });
 });
 

@@ -53,6 +53,7 @@ import { recordKill, bestiaryDamageMul } from "./bestiary.ts";
 import { addMasteryXp, getMasteryLevel, masteryStatMul, MASTERY_XP_PER_KILL } from "./mastery.ts";
 import { getAwakening, awakeningStatMul } from "./awakening.ts";
 import { squadSynergyMul } from "../data/synergies.ts";
+import type { ChallengeEffects } from "../data/challengeModifiers.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -80,7 +81,11 @@ export type FxEvent =
   | { type: "chain"; from: Vec2; to: Vec2 }
   | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
   | { type: "loot"; at: Vec2; gold: number }
-  | { type: "killReward"; at: Vec2; xp: number; item: boolean; box: string | null };
+  | { type: "killReward"; at: Vec2; xp: number; item: boolean; box: string | null }
+  // F13 combo: rapid-kill streak feedback. `mult` is the current gold multiplier.
+  | { type: "combo"; at: Vec2; count: number; mult: number }
+  // F14 perfect wave: a wave cleared with zero leaks. `bonus` is the bonus gold.
+  | { type: "perfect"; waveIndex: number; bonus: number };
 
 /** Debug context threaded into applyDamage so the combat logger can print the
  * full per-hit formula (only built when logging is on). */
@@ -97,6 +102,14 @@ export const HERO_BLOCK_RANGE = 28;
 export const SPLASH_RADIUS = 60;
 /** Pause between waves once the current wave is fully cleared. */
 export const INTER_WAVE_DELAY = 3;
+/** F13 combo: seconds a streak survives without a kill before it resets. */
+export const COMBO_DECAY = 2.5;
+/** F13 combo: gold multiplier caps at this value (×3 at full streak). */
+export const COMBO_MAX_MULT = 3;
+/** F13 combo: kills needed to reach the max multiplier. */
+export const COMBO_KILLS_FOR_MAX = 20;
+/** F14 perfect wave: bonus gold = this fraction of the gold earned that wave. */
+export const PERFECT_WAVE_BONUS_FRAC = 0.25;
 /** Free-placement: towers can't be placed within this distance of the lane. */
 export const LANE_CLEARANCE = 30;
 /** Free-placement: minimum spacing between two towers. */
@@ -195,6 +208,10 @@ export interface BattleOptions {
   heroSave?: HeroSave;
   /** Override the per-BATTLE elite chance (defaults to ELITE_BATTLE_CHANCE); 0 disables elites. */
   eliteChance?: number;
+  /** F5 daily-challenge modifiers (enemy stat tilts + tower-cost discount). */
+  challenge?: ChallengeEffects;
+  /** F11 endless: enemy stat multiplier applied on top of difficulty (per-wave ramp). */
+  endlessMul?: number;
 }
 
 interface Catalogs {
@@ -274,6 +291,19 @@ export class BattleState {
   private readonly deployedTowerIds = new Set<string>();
   /** F8: team stat multipliers from the chosen squad's active synergies. */
   private synergyMul: { atkMul: number; hpMul: number; attackSpeedMul: number } = { atkMul: 1, hpMul: 1, attackSpeedMul: 1 };
+  /** F13 combo: consecutive-kill streak + decay timer (seconds). */
+  private combo = 0;
+  private comboTimer = 0;
+  /** F14 perfect wave: did any enemy leak to the castle during the active wave? */
+  private waveLeaked = false;
+  /** F14: did ANY enemy leak across the whole stage (drives the flawless-victory bonus)? */
+  private anyLeak = false;
+  /** F14: gold earned from kills during the active wave (for the perfect-wave bonus). */
+  private waveGold = 0;
+  /** F5 daily-challenge modifiers in effect this battle (empty = none). */
+  private readonly challenge: ChallengeEffects;
+  /** F11 endless enemy stat multiplier (1 = off). */
+  private readonly endlessMul: number;
 
   constructor(stage: StageDef, catalogs: Catalogs, opts: BattleOptions) {
     this.stage = stage;
@@ -291,6 +321,8 @@ export class BattleState {
     } else {
       this.eliteTargetIndex = -1;
     }
+    this.challenge = opts.challenge ?? {};
+    this.endlessMul = opts.endlessMul ?? 1;
     this.totalPathLen = pathLength(stage.path);
     this.castlePos = stage.path[stage.path.length - 1];
     this.castleHp = stage.castleHp;
@@ -346,13 +378,18 @@ export class BattleState {
     this.hero.moveTarget = { ...target };
   }
 
+  /** Effective placement cost for a character (F5 challenge discount applies). */
+  towerCost(def: CharacterDef): number {
+    return Math.max(0, Math.round(def.cost * (this.challenge.towerCostMul ?? 1)));
+  }
+
   placeTower(characterId: string, slotIndex: number): boolean {
     if (this.outcome !== "ongoing") return false;
     const def = this.cat.characters.get(characterId);
     if (!def) return false;
     if (slotIndex < 0 || slotIndex >= this.stage.towerSlots.length) return false;
     if (this.towers.some((t) => t.slotIndex === slotIndex && t.alive)) return false;
-    if (this.gold < def.cost) return false;
+    if (this.gold < this.towerCost(def)) return false;
     // With heroSave: only allow placement of owned towers
     if (this._heroSave && !isTowerOwned(this._heroSave, characterId)) return false;
 
@@ -381,7 +418,7 @@ export class BattleState {
     if (this.outcome !== "ongoing") return false;
     const def = this.cat.characters.get(characterId);
     if (!def) return false;
-    if (this.gold < def.cost) return false;
+    if (this.gold < this.towerCost(def)) return false;
     if (this._heroSave && !isTowerOwned(this._heroSave, characterId)) return false;
     if (!this.canPlaceAt(pos)) return false;
     this.spawnTower(characterId, def, { x: pos.x, y: pos.y }, -1);
@@ -389,7 +426,8 @@ export class BattleState {
   }
 
   private spawnTower(characterId: string, def: CharacterDef, pos: Vec2, slotIndex: number): void {
-    this.gold -= def.cost;
+    const cost = this.towerCost(def);
+    this.gold -= cost;
     const towerLevel = this._heroSave?.hero.level ?? 1;
     const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
     // The hero commands their towers: 60% of the hero's resolved stats flow onto
@@ -423,7 +461,7 @@ export class BattleState {
       baseLevel: towerLevel,
       stars: towerStars,
       battleLevel: 0,
-      goldSpent: def.cost,
+      goldSpent: cost,
     });
     if (this._heroSave) {
       this._heroSave.progress.totalTowersPlaced += 1;
@@ -510,6 +548,12 @@ export class BattleState {
     this.fx.length = 0; // fresh visual events for this tick
     this.time += dt;
 
+    // F13: decay the kill streak; a lull resets the combo multiplier.
+    if (this.combo > 0) {
+      this.comboTimer -= dt;
+      if (this.comboTimer <= 0) this.combo = 0;
+    }
+
     this.updateWaves(dt);
     this.recomputeEnemyAuras(dt);
     this.recomputeTowerBuffs();
@@ -547,12 +591,32 @@ export class BattleState {
     if (fullySpawned && this.enemies.length === 0) {
       this.waveActive = false;
       this.interWaveTimer = INTER_WAVE_DELAY;
+      // F14: wave cleared — if nothing leaked, pay a perfect-wave bonus.
+      if (!this.waveLeaked) {
+        const bonus = Math.round(this.waveGold * PERFECT_WAVE_BONUS_FRAC);
+        if (bonus > 0) this.gold += bonus;
+        this.emit({ type: "perfect", waveIndex: this.waveIndex, bonus });
+      }
       if (this.waveIndex + 1 >= this.stage.waves.length) this.allWavesStarted = true;
     }
   }
 
+  /** F13 current gold multiplier from the kill streak (1 → COMBO_MAX_MULT). */
+  comboMult(): number {
+    if (this.combo <= 1) return 1;
+    const t = Math.min(1, (this.combo - 1) / (COMBO_KILLS_FOR_MAX - 1));
+    return 1 + (COMBO_MAX_MULT - 1) * t;
+  }
+  /** F13 current combo count (for the battle HUD). */
+  getCombo(): number { return this.combo; }
+  /** F14 flawless victory: won the stage with zero leaks (drives a bonus chest). */
+  wasFlawless(): boolean { return this.outcome === "won" && !this.anyLeak; }
+
   private startNextWave(): void {
     this.waveIndex++;
+    // F14: a fresh wave starts flawless; track its kill gold for the bonus.
+    this.waveLeaked = false;
+    this.waveGold = 0;
     const wave = this.stage.waves[this.waveIndex];
     const schedule: ScheduledSpawn[] = [];
     for (const group of wave.spawns) {
@@ -585,10 +649,17 @@ export class BattleState {
     const def = this.cat.enemies.get(req.enemyId);
     if (!def) return;
     const scale = DIFFICULTY_SCALING[this.difficulty];
+    // F5 challenge tilts + F11 endless ramp layer on top of difficulty scaling.
+    const ch = this.challenge;
+    const hpMul = (ch.enemyHpMul ?? 1) * this.endlessMul;
+    const atkMul = this.endlessMul;
     let stats: Stats = {
       ...def.baseStats,
-      maxHp: def.baseStats.maxHp * scale.hpMult,
-      atk: def.baseStats.atk * scale.atkMult,
+      maxHp: def.baseStats.maxHp * scale.hpMult * hpMul,
+      atk: def.baseStats.atk * scale.atkMult * atkMul,
+      armor: def.baseStats.armor * (ch.enemyArmorMul ?? 1),
+      magicResist: def.baseStats.magicResist * (ch.enemyArmorMul ?? 1),
+      moveSpeed: def.baseStats.moveSpeed * (ch.enemySpeedMul ?? 1),
     };
     // Elite promotion (T17, reworked): at most ONE elite per battle, fixed to a
     // pre-rolled eligible wave-spawn index. Summons/splits are never elite.
@@ -867,6 +938,12 @@ export class BattleState {
   private reachCastle(e: EnemyRuntime): void {
     this.castleHp -= e.def.castleDamage;
     e.alive = false;
+    // F14: a leak voids this wave's (and the stage's) flawless bonus.
+    this.waveLeaked = true;
+    this.anyLeak = true;
+    // A leak also breaks the kill streak.
+    this.combo = 0;
+    this.comboTimer = 0;
   }
 
   private dealDamageToHero(attacker: EnemyRuntime): void {
@@ -1272,11 +1349,17 @@ export class BattleState {
     e.alive = false;
     const scale = DIFFICULTY_SCALING[this.difficulty];
     const eliteBonus = e.elite ? ELITE_BOUNTY_MULT : 1;
-    const reward = Math.round(e.def.bounty * scale.bountyMult * eliteBonus * (1 + this.hero.stats.goldFind));
+    const baseReward = e.def.bounty * scale.bountyMult * eliteBonus * (1 + this.hero.stats.goldFind);
+    // F13 combo: a rapid kill-streak multiplies gold (×1 → ×3) and resets its decay.
+    this.combo += 1;
+    this.comboTimer = COMBO_DECAY;
+    const reward = Math.round(baseReward * this.comboMult());
     this.gold += reward;
+    this.waveGold += reward;
     const boss = e.def.archetype === "Boss";
     this.emit({ type: "death", at: { x: e.pos.x, y: e.pos.y }, boss, elite: e.elite, bounty: e.def.bounty });
     this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, gold: reward });
+    if (this.combo >= 3) this.emit({ type: "combo", at: { x: e.pos.x, y: e.pos.y - 22 }, count: this.combo, mult: this.comboMult() });
     // Per-kill XP + loot persist immediately (kept even if the stage is abandoned).
     if (this._heroSave) {
       const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng, e.elite, chapterLevelRange(this.stage.id));
