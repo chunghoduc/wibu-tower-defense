@@ -22,7 +22,27 @@ function makeInventory(overrides: Partial<InventorySave> = {}): InventorySave {
 describe("resolveHeroLayers", () => {
   it("returns all-null config when nothing is equipped", () => {
     const result = resolveHeroLayers(makeInventory());
-    expect(result).toEqual({ weaponKey: null, weaponType: null, wingKey: null, petKey: null });
+    expect(result).toEqual({
+      weaponKey: null, weaponType: null, wingKey: null, petKey: null,
+      helmetKey: null, bodyKey: null, glovesKey: null, bootsKey: null,
+    });
+  });
+
+  it("returns icon keys for worn armour (helmet, body, gloves, boots)", () => {
+    const inv = makeInventory({
+      items: [
+        makeItem("h", "leather-cap"),
+        makeItem("b", "cloth-robe"),
+        makeItem("g", "worn-gloves"),
+        makeItem("t", "worn-boots"),
+      ],
+      equipped: { Helmet: "h", BodyArmor: "b", Gloves: "g", Boots: "t" },
+    });
+    const result = resolveHeroLayers(inv);
+    expect(result.helmetKey).toBe("item__leather-cap");
+    expect(result.bodyKey).toBe("item__cloth-robe");
+    expect(result.glovesKey).toBe("item__worn-gloves");
+    expect(result.bootsKey).toBe("item__worn-boots");
   });
 
   it("returns weapon texture key and family when a weapon is equipped", () => {

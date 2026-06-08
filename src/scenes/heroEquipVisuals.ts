@@ -9,6 +9,11 @@ export interface HeroLayerConfig {
   weaponType: WeaponType | null;
   wingKey: string | null;
   petKey: string | null;
+  /** Worn-armour icon keys, body-anchored on the battle hero (null when bare). */
+  helmetKey: string | null;
+  bodyKey: string | null;
+  glovesKey: string | null;
+  bootsKey: string | null;
 }
 
 export function resolveHeroLayers(inventory: InventorySave): HeroLayerConfig {
@@ -18,7 +23,17 @@ export function resolveHeroLayers(inventory: InventorySave): HeroLayerConfig {
     weaponType: weapon?.weaponType ?? null,
     wingKey:   _resolveWing(inventory),
     petKey:    _resolvePet(inventory),
+    helmetKey: _slotIcon(inventory, "Helmet"),
+    bodyKey:   _slotIcon(inventory, "BodyArmor"),
+    glovesKey: _slotIcon(inventory, "Gloves"),
+    bootsKey:  _slotIcon(inventory, "Boots"),
   };
+}
+
+/** `item__<id>` icon key for the item in a slot, or null when nothing is equipped. */
+function _slotIcon(inventory: InventorySave, slot: ItemSlot): string | null {
+  const def = _instanceDef(inventory, slot);
+  return def ? `item__${def.id}` : null;
 }
 
 function _instanceDef(inventory: InventorySave, slot: ItemSlot) {
