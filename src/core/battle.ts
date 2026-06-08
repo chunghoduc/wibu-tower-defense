@@ -40,6 +40,7 @@ import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
 import { ELITE_SPAWN_CHANCE, ELITE_BOUNTY_MULT, applyEliteBoost } from "./elite.ts";
 import type { HeroSave } from "./save.ts";
+import type { BattleLoot } from "../data/rewardTiles.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
 import { processEnemyKill } from "./killRewards.ts";
 import { itemLevelForStage } from "./itemDrop.ts";
@@ -226,6 +227,10 @@ export class BattleState {
   time = 0;
   outcome: Outcome = "ongoing";
   waveIndex = -1;
+
+  /** Loot gathered DURING the battle (item/box drops + XP from kills). Persists
+   *  immediately on each kill, so it is kept — and shown — even on a loss. */
+  readonly battleLoot: BattleLoot = { items: [], boxes: {}, xp: 0 };
 
   private readonly cat: Catalogs;
   private readonly rng: Rng;
@@ -1140,6 +1145,10 @@ export class BattleState {
     // Per-kill XP + loot persist immediately (kept even if the stage is abandoned).
     if (this._heroSave) {
       const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng, e.elite);
+      // Tally it so the post-battle screen can show everything looted this run.
+      this.battleLoot.xp += kr.xp;
+      if (kr.itemDropped) this.battleLoot.items.push(kr.itemDropped);
+      if (kr.boxDropped) this.battleLoot.boxes[kr.boxDropped] = (this.battleLoot.boxes[kr.boxDropped] ?? 0) + 1;
       this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, xp: kr.xp, item: kr.itemDropped !== null, box: kr.boxDropped });
       const today = new Date().toISOString().slice(0, 10);
       incrementQuestKey(this._heroSave, boss ? "kill_bosses" : "kill_enemies", 1, today);

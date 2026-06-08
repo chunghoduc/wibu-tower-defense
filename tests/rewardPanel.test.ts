@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { rewardTileSpecs } from "../src/data/rewardTiles.ts";
+import { rewardTileSpecs, battleLootTiles, buildLootSummary } from "../src/data/rewardTiles.ts";
 import type { DropResult } from "../src/core/drops.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 import { JEWEL_CATALOG } from "../src/data/jewels.ts";
+import { boxIdForTier } from "../src/data/materials.ts";
+
+function mkItem(defId: string, id = "x") {
+  return { id, defId, acquiredLevel: 1, rolledStats: {}, rolledPrimaryAffix: 0, rolledAffixes: [], enhanceLevel: 0 };
+}
 
 const base: DropResult = {
   goldAwarded: 0, diamondsAwarded: 0, itemDropped: null, skillDropped: null,
@@ -60,5 +65,61 @@ describe("rewardTileSpecs", () => {
     expect(tiles.map((t) => t.iconKey)).toEqual([
       "icon__gold", "icon__gem", `item__${def.id}`, "material__bless-jewel",
     ]);
+  });
+});
+
+describe("battleLootTiles", () => {
+  const summary = {
+    outcome: "won" as const, isFirstClear: false, xp: 0, gold: 0, diamonds: 0,
+    items: [], jewels: [], skills: [], characters: [], materials: {},
+  };
+
+  it("renders an XP tile (emoji fallback, +amount label) when xp > 0", () => {
+    const tiles = battleLootTiles({ ...summary, xp: 1500 });
+    expect(tiles).toHaveLength(1);
+    expect(tiles[0].iconKey).toBe("icon__xp");
+    expect(tiles[0].label).toBe("+1500");
+  });
+
+  it("renders one tile per dropped item", () => {
+    const a = ITEM_CATALOG[0], b = ITEM_CATALOG[1];
+    const tiles = battleLootTiles({ ...summary, items: [mkItem(a.id, "1"), mkItem(b.id, "2")] });
+    expect(tiles.map((t) => t.iconKey)).toEqual([`item__${a.id}`, `item__${b.id}`]);
+  });
+
+  it("renders a loot box with its box__ texture (not material__)", () => {
+    const boxId = boxIdForTier(3);
+    const tiles = battleLootTiles({ ...summary, materials: { [boxId]: 2 } });
+    expect(tiles[0].iconKey).toBe(`box__${boxId}`);
+    expect(tiles[0].label).toBe("×2");
+  });
+});
+
+describe("buildLootSummary", () => {
+  const drop: DropResult = {
+    goldAwarded: 300, diamondsAwarded: 0, itemDropped: mkItem(ITEM_CATALOG[0].id, "clear"),
+    skillDropped: null, characterDropped: null, jewelDropped: null, isFirstClear: true,
+    materialsDropped: { [boxIdForTier(5)]: 1 },
+  };
+  const eliteBox = boxIdForTier(1);
+
+  it("on a win, merges in-battle loot with the stage-clear drop", () => {
+    const s = buildLootSummary("won", { items: [mkItem(ITEM_CATALOG[1].id, "kill")], boxes: { [eliteBox]: 2 }, xp: 800 }, drop);
+    expect(s.gold).toBe(300);
+    expect(s.xp).toBe(800);
+    expect(s.items).toHaveLength(2); // one kill drop + one stage-clear item
+    expect(s.materials[eliteBox]).toBe(2);
+    expect(s.materials[boxIdForTier(5)]).toBe(1);
+    expect(s.isFirstClear).toBe(true);
+  });
+
+  it("on a loss, keeps in-battle loot but awards no gold/clear drops", () => {
+    const s = buildLootSummary("lost", { items: [mkItem(ITEM_CATALOG[0].id, "kill")], boxes: { [eliteBox]: 1 }, xp: 200 }, null);
+    expect(s.gold).toBe(0);
+    expect(s.items).toHaveLength(1);
+    expect(s.materials[eliteBox]).toBe(1);
+    expect(s.xp).toBe(200);
+    const tiles = battleLootTiles(s);
+    expect(tiles.some((t) => t.iconKey === `box__${eliteBox}`)).toBe(true);
   });
 });

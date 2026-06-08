@@ -24,7 +24,8 @@ import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { stageThemeForStage } from "../data/chapters.ts";
 import { stageBgKey } from "../data/uiManifest.ts";
 import { crispText } from "./ui.ts";
-import { showRewardPanel } from "./rewardPanel.ts";
+import { showBattleLootPanel } from "./rewardPanel.ts";
+import { buildLootSummary } from "../data/rewardTiles.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
 import { activeSkillDetail } from "../data/skillDescribe.ts";
 import { upgradeSummary } from "../core/towerUpgrade.ts";
@@ -71,6 +72,7 @@ export class BattleScene extends Phaser.Scene {
 
   private _victoryProcessed = false;
   private _defeatPlayed = false;
+  private _rewardsShown = false;
   private _menuBtn: Phaser.GameObjects.Text | null = null;
   private killSaveDirty = false;   // kill XP/loot pending a debounced flush
   private lastKillFlush = 0;
@@ -106,6 +108,7 @@ export class BattleScene extends Phaser.Scene {
 
     this._victoryProcessed = false;
     this._defeatPlayed = false;
+    this._rewardsShown = false;
     this._menuBtn = null;
     this.towerSprites.clear();
     this.enemySprites.clear();
@@ -656,10 +659,11 @@ export class BattleScene extends Phaser.Scene {
     if (b.outcome === "won") {
       this.banner.setText("VICTORY").setColor("#a5d6a7");
       if (!this._victoryProcessed) this.sfx.win();
-      this.processVictory();
+      this.showBattleRewards("won");
     } else if (b.outcome === "lost") {
       this.banner.setText("DEFEAT").setColor("#ef9a9a");
       if (!this._defeatPlayed) { this._defeatPlayed = true; this.sfx.lose(); }
+      this.showBattleRewards("lost");
     }
 
     if (b.outcome !== "ongoing" && !this._menuBtn) {
@@ -677,22 +681,24 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private processVictory(): void {
-    if (this._victoryProcessed) return;
+  /**
+   * Show the post-battle loot screen (win OR loss). It merges loot gathered
+   * during the run (item/box drops + XP from kills, kept even on a loss) with
+   * the stage-clear rewards (won only), rendering every reward as an icon tile
+   * with hover detail. Runs once per battle.
+   */
+  private showBattleRewards(outcome: "won" | "lost"): void {
+    if (this._rewardsShown) return;
+    this._rewardsShown = true;
     this._victoryProcessed = true;
 
-    const result = this.saveManager.afterBattle(
-      this.stage.id,
-      "won",
-      this.battle.difficulty,
-      new Rng(Date.now()),
-    );
+    // afterBattle persists the stage-clear rewards and returns them (won only).
+    const clear = outcome === "won"
+      ? this.saveManager.afterBattle(this.stage.id, "won", this.battle.difficulty, new Rng(Date.now()))
+      : null;
 
-    if (result) {
-      // Icon tiles with hover detail (gold/diamonds/gear/jewels/skills/etc.).
-      const panel = showRewardPanel(this, result, this.battleW / 2, 262);
-      this.ui.add(panel);
-    }
+    const summary = buildLootSummary(outcome, this.battle.battleLoot, clear);
+    this.ui.add(showBattleLootPanel(this, summary, this.battleW / 2, 262));
   }
 
   /** Render one sim FX event, and trigger sprite animations (attack swing, hit flash). */
