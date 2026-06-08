@@ -40,13 +40,14 @@ export function processEnemyKill(
   itemLevel: number,
   rng: Rng,
   elite = false,
+  band?: [number, number],
 ): KillReward {
   const xp = killXpFor(def, difficulty);
   awardHeroXp(save, xp);
   const boss = def.archetype === "Boss";
   const chance = boss ? BOSS_ITEM_DROP_CHANCE : KILL_ITEM_DROP_CHANCE;
   // Only bosses can drop Legendary/Unique; regular enemies are capped at Rare.
-  const itemDropped = rng.next() < chance ? rollItemDrop(save, itemLevel, rng, boss) : null;
+  const itemDropped = rng.next() < chance ? rollItemDrop(save, itemLevel, rng, boss, band) : null;
 
   // Elites guarantee a loot box; its rarity is weighted toward Common (T17).
   let boxDropped: string | null = null;

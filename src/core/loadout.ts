@@ -5,7 +5,7 @@
  * these with persistence, and BattleState reads the resulting equipped maps
  * through its hero stat pipeline.
  */
-import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { ITEM_CATALOG_MAP, instanceReqLevel } from "../data/items.ts";
 import { ACTIVE_SKILLS_MAP, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { equipSlotsFor, type ItemSlot, type WeaponType } from "../data/schema.ts";
 import type { HeroSave } from "./save.ts";
@@ -20,7 +20,7 @@ export function equipItem(save: HeroSave, instanceId: string, targetSlot?: ItemS
   if (!inst) return false;
   const def = ITEM_CATALOG_MAP.get(inst.defId);
   if (!def) return false;
-  if (save.hero.level < def.requiredLevel) return false;
+  if (save.hero.level < instanceReqLevel(inst, def)) return false;
   // A ring fits either ring slot: honour an explicit target (drop onto Ring1/Ring2),
   // otherwise fill the first empty fitting slot (else replace the first).
   const candidates = equipSlotsFor(def.slot);

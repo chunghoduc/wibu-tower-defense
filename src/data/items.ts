@@ -269,31 +269,59 @@ export const ITEM_CATALOG_MAP = new Map<string, ItemDef>(
   ITEM_CATALOG.map((i) => [i.id, i])
 );
 
-export function rollItem(def: ItemDef, heroLevel: number, seed: number): ItemInstance {
+/** Hard cap on an item's rolled required level. Items at the cap are Apex. */
+export const MAX_ITEM_REQ_LEVEL = 90;
+export const APEX_REQ_LEVEL = 90;
+/** Apex (level-90) special effect: +25% to every rolled stat, primary & affix. */
+export const APEX_STAT_MULT = 1.25;
+
+/** The effective required level for a copy — its rolled value, or the def floor
+ *  for legacy instances that predate per-instance required levels. */
+export function instanceReqLevel(inst: { requiredLevel?: number }, def: ItemDef): number {
+  return inst.requiredLevel ?? def.requiredLevel;
+}
+
+/**
+ * Roll a concrete copy of `def`. `reqLevel` is the desired required level for
+ * this copy — it is clamped to [def floor, 90]. Base (scalar) stats scale with
+ * the resulting required level, so the SAME named item is stronger when it drops
+ * at a higher required level. A copy that lands at level 90 gains the Apex
+ * effect: every rolled stat/affix gets an extra +25%.
+ */
+export function rollItem(def: ItemDef, heroLevel: number, seed: number, reqLevel?: number): ItemInstance {
   const rng = new Rng(seed);
+
+  const required = Math.min(
+    MAX_ITEM_REQ_LEVEL,
+    Math.max(def.requiredLevel, Math.round(reqLevel ?? def.requiredLevel)),
+  );
+  const apex = required >= APEX_REQ_LEVEL;
+  const apexMult = apex ? APEX_STAT_MULT : 1;
 
   const rolledStats: Partial<Stats> = {};
   for (const [k, v] of Object.entries(def.baseStats) as [keyof Stats, number][]) {
     if (v === undefined) continue;
     // Fractional stats (crit, pen, %) DON'T scale with item level — only scalar
     // stats (atk/hp) do — so a high-level item can't balloon a crit base.
-    const effective = FRACTIONAL_STAT_KEYS.has(k) ? v : v * (1 + 0.08 * def.requiredLevel);
-    rolledStats[k] = effective * (0.9 + rng.next() * 0.2);
+    const effective = FRACTIONAL_STAT_KEYS.has(k) ? v : v * (1 + 0.08 * required);
+    rolledStats[k] = effective * (0.9 + rng.next() * 0.2) * apexMult;
   }
 
-  const rolledPrimaryAffix = def.primaryAffix.baseValue * (0.9 + rng.next() * 0.2);
+  const rolledPrimaryAffix = def.primaryAffix.baseValue * (0.9 + rng.next() * 0.2) * apexMult;
 
   const affixCount = AFFIX_COUNT[def.rarity] ?? 0;
   const shuffled = [...def.affixPool].sort(() => rng.next() - 0.5);
   const rolledAffixes: RolledAffix[] = shuffled.slice(0, affixCount).map((type) => {
     const [lo, hi] = AFFIX_RANGE[type] ?? DEFAULT_AFFIX_RANGE;
-    return { type, value: lo + rng.next() * (hi - lo) };
+    return { type, value: (lo + rng.next() * (hi - lo)) * apexMult };
   });
 
   return {
     id: `item-${def.id}-${seed}`,
     defId: def.id,
     acquiredLevel: heroLevel,
+    requiredLevel: required,
+    ...(apex ? { apex: true } : {}),
     rolledStats,
     rolledPrimaryAffix,
     rolledAffixes,

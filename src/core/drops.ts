@@ -1,5 +1,5 @@
 import type { Difficulty } from "../data/schema.ts";
-import { rollItemDrop, itemLevelForStage } from "./itemDrop.ts";
+import { rollItemDrop, itemLevelForStage, chapterLevelRange } from "./itemDrop.ts";
 import { rollJewelDrop } from "./jewelDrop.ts";
 import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
@@ -87,10 +87,11 @@ export function processStageClear(
   save.currency.diamonds += diamondsAwarded;
 
   const itemLevel = itemLevelForStage(stageId);
+  const band = chapterLevelRange(stageId);
 
   let itemDropped: ItemInstanceSave | null = null;
   if (rng.next() < ITEM_DROP_CHANCE) {
-    itemDropped = rollItemDrop(save, itemLevel, rng, true);
+    itemDropped = rollItemDrop(save, itemLevel, rng, true, band);
   }
 
   let skillDropped: string | null = null;

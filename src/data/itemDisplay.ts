@@ -12,6 +12,7 @@
 import type { ItemDef, Stats } from "./schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { enhanceBonus } from "../core/enhance.ts";
+import { instanceReqLevel, APEX_STAT_MULT } from "../data/items.ts";
 
 export type StatSource = "base" | "primary" | "affix";
 export type Quality = "base" | "better" | "worse";
@@ -129,7 +130,11 @@ function affixRow(type: string, v: number, source: StatSource, q: Quality): Item
 
 export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[] {
   const rows: ItemStatRow[] = [];
-  const lvlScale = 1 + 0.08 * def.requiredLevel; // matches rollItem's base-stat scaling
+  // Match rollItem's scaling so the quality baseline is fair: base stats scale
+  // with the COPY's required level, and an Apex copy's expected values include
+  // the +25% Apex bonus.
+  const apexMult = inst.apex ? APEX_STAT_MULT : 1;
+  const lvlScale = (1 + 0.08 * instanceReqLevel(inst, def)) * apexMult;
 
   // Base / primary stats (white): label + value. When enhanced, the item's base
   // stats are multiplied by the enhance bonus (this is what battle applies), so
@@ -146,13 +151,13 @@ export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[
     rows.push(row);
   }
 
-  // Primary affix (blue): full sentence.
+  // Primary affix (blue): full sentence. Apex copies expect +25% here too.
   rows.push(affixRow(def.primaryAffix.type, inst.rolledPrimaryAffix, "primary",
-    quality(inst.rolledPrimaryAffix, def.primaryAffix.baseValue)));
+    quality(inst.rolledPrimaryAffix, def.primaryAffix.baseValue * apexMult)));
 
   // Additional affixes (purple): full sentences.
   for (const a of inst.rolledAffixes) {
-    rows.push(affixRow(a.type, a.value, "affix", quality(a.value, AFFIX_ROLL_MID)));
+    rows.push(affixRow(a.type, a.value, "affix", quality(a.value, AFFIX_ROLL_MID * apexMult)));
   }
   return rows;
 }

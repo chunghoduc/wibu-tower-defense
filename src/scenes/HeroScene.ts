@@ -152,7 +152,7 @@ export class HeroScene extends Phaser.Scene {
     } else {
       const slot = zone.getData("slot") as ItemSlot;
       if (def && equipSlotsFor(def.slot).includes(slot)) {
-        if (!this.mgr.equipItem(instId, slot)) this.showToast(`Requires level ${def.requiredLevel}`);
+        if (!this.mgr.equipItem(instId, slot)) this.showToast(`Requires level ${inst?.requiredLevel ?? def.requiredLevel}`);
       } else if (def) {
         this.showToast(`${def.name} doesn't fit ${SLOT_LABEL[slot]}`);
       }

@@ -331,7 +331,16 @@ export interface RolledAffix {
 export interface ItemInstance {
   id: string;               // uuid generated at drop
   defId: string;            // points to ItemDef.id
-  acquiredLevel: number;    // requiredLevel at time of acquisition
+  acquiredLevel: number;    // hero level at time of acquisition
+  /**
+   * Rolled required level for THIS copy (>= the def's floor, <= 90). The same
+   * named item can drop at different required levels; its base stats scale with
+   * this value, so a higher-level copy is strictly stronger. Optional for
+   * backward compat — fall back to def.requiredLevel when absent.
+   */
+  requiredLevel?: number;
+  /** Set when requiredLevel hit the cap (90): the item carries the Apex effect. */
+  apex?: boolean;
   rolledStats: Partial<Stats>;
   rolledPrimaryAffix: number;
   rolledAffixes: RolledAffix[];

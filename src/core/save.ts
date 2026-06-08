@@ -44,6 +44,11 @@ export interface ItemInstanceSave {
   id: string;
   defId: string;
   acquiredLevel: number;
+  /** Rolled required level for this copy (>= def floor, <= 90). Optional for
+   *  backward compat — fall back to the def's requiredLevel when absent. */
+  requiredLevel?: number;
+  /** True when this copy rolled the level-90 Apex effect. */
+  apex?: boolean;
   rolledStats: Record<string, number>;
   rolledPrimaryAffix: number;
   rolledAffixes: RolledAffix[];

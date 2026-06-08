@@ -9,7 +9,8 @@
  */
 import type { HeroSave, ItemInstanceSave } from "./save.ts";
 import type { Rng } from "./rng.ts";
-import { ITEM_CATALOG, rollItem } from "../data/items.ts";
+import { ITEM_CATALOG, rollItem, MAX_ITEM_REQ_LEVEL } from "../data/items.ts";
+import { toItemInstanceSave } from "./itemDrop.ts";
 import { BLESS_JEWEL, SOUL_JEWEL, MATERIALS_MAP } from "../data/materials.ts";
 
 interface TierConfig {
@@ -63,15 +64,19 @@ export function openBox(save: HeroSave, boxId: string, rng: Rng): BoxReward {
 
   let item: ItemInstanceSave | null = null;
   if (rng.next() < cfg.itemChance) {
-    const eligible = ITEM_CATALOG.filter((d) => d.requiredLevel <= cfg.itemLevel);
+    // Box items roll a required level around the hero's level (±30%), capped at
+    // 90 — so chests track the player's progression, and a high-level hero can
+    // pull a level-90 Apex piece.
+    const heroLevel = Math.max(1, save.hero.level);
+    const reqLevel = Math.min(
+      MAX_ITEM_REQ_LEVEL,
+      Math.max(1, Math.round(heroLevel * (0.7 + rng.next() * 0.6))),
+    );
+    const eligible = ITEM_CATALOG.filter((d) => d.requiredLevel <= reqLevel);
     if (eligible.length > 0) {
       const def = eligible[Math.floor(rng.next() * eligible.length)];
-      const inst = rollItem(def, cfg.itemLevel, Math.floor(rng.next() * 999983));
-      item = {
-        id: inst.id, defId: inst.defId, acquiredLevel: inst.acquiredLevel,
-        rolledStats: Object.fromEntries(Object.entries(inst.rolledStats).filter(([, v]) => v !== undefined).map(([k, v]) => [k, v as number])),
-        rolledPrimaryAffix: inst.rolledPrimaryAffix, rolledAffixes: inst.rolledAffixes, enhanceLevel: 0,
-      };
+      const inst = rollItem(def, reqLevel, Math.floor(rng.next() * 999983), reqLevel);
+      item = toItemInstanceSave(inst);
       save.inventory.items.push(item);
     }
   }

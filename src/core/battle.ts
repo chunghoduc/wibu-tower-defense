@@ -45,7 +45,7 @@ import type { HeroSave } from "./save.ts";
 import type { BattleLoot } from "../data/rewardTiles.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
 import { processEnemyKill } from "./killRewards.ts";
-import { itemLevelForStage } from "./itemDrop.ts";
+import { itemLevelForStage, chapterLevelRange } from "./itemDrop.ts";
 import { incrementQuestKey } from "./questTracker.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
@@ -1239,7 +1239,7 @@ export class BattleState {
     this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, gold: reward });
     // Per-kill XP + loot persist immediately (kept even if the stage is abandoned).
     if (this._heroSave) {
-      const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng, e.elite);
+      const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng, e.elite, chapterLevelRange(this.stage.id));
       // Tally it so the post-battle screen can show everything looted this run.
       this.battleLoot.xp += kr.xp;
       if (kr.itemDropped) this.battleLoot.items.push(kr.itemDropped);

@@ -69,6 +69,10 @@ export function renderItemTooltip(
   c.add(crispText(scene, tx + 8, ry + 4, "Stat", { fontSize: "8px", color: SOURCE_COLOR.base }));
   c.add(crispText(scene, tx + 34, ry + 4, "Primary", { fontSize: "8px", color: SOURCE_COLOR.primary }));
   c.add(crispText(scene, tx + 78, ry + 4, "Extra", { fontSize: "8px", color: SOURCE_COLOR.affix }));
-  c.add(crispText(scene, tx + w - 8, ry + 4, `Req.Lv ${def.requiredLevel}`, { fontSize: "8px", color: "#7c8aa0" }).setOrigin(1, 0));
+  const reqLv = inst.requiredLevel ?? def.requiredLevel;
+  c.add(crispText(scene, tx + w - 8, ry + 4, `Req.Lv ${reqLv}`, { fontSize: "8px", color: inst.apex ? "#ffd24a" : "#7c8aa0" }).setOrigin(1, 0));
+  if (inst.apex) {
+    c.add(crispText(scene, tx + 110, ry + 4, "✦ APEX +25%", { fontSize: "8px", color: "#ffd24a", fontStyle: "bold" }));
+  }
   c.setVisible(true);
 }
