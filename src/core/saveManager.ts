@@ -30,7 +30,7 @@ import { claimableMilestoneCount, nextClaimableTier, claimMilestone, unlockedTit
 import { powerRating, profileSummary, setTitle } from "./profile.ts";
 import { claimStreak, streakClaimable, type StreakClaim } from "./streak.ts";
 import { spin, freeSpinAvailable, PAID_SPIN_COST, type SpinResult } from "./spin.ts";
-import { rolloverBounties, claimBounty } from "./bounties.ts";
+import { rolloverBounties, claimBounty, claimableBountyCount } from "./bounties.ts";
 import { ensureChallenge, claimChallengeClear } from "./challenge.ts";
 import type { ChallengeModifierDef } from "../data/challengeModifiers.ts";
 import type { Reward } from "./rewards.ts";
@@ -466,6 +466,19 @@ export class SaveManager {
 
   // ── F15 Milestones ──────────────────────────────────────────────────────────
   claimableMilestoneCount(): number { return claimableMilestoneCount(this.save); }
+
+  /** Total "ready to collect" badge count for the Activities hub (streak + free
+   *  spin + claimable bounties + claimable milestones + collectable expedition). */
+  activityBadgeCount(nowMs = Date.now()): number {
+    const today = new Date(nowMs).toISOString().slice(0, 10);
+    let n = 0;
+    if (streakClaimable(this.save, today)) n++;
+    if (freeSpinAvailable(this.save, today)) n++;
+    n += claimableBountyCount(this.save);
+    n += claimableMilestoneCount(this.save);
+    if (expeditionActive(this.save) && expeditionPendingGold(this.save, nowMs) > 0) n++;
+    return n;
+  }
   nextClaimableTier(milestoneId: string): number { return nextClaimableTier(this.save, milestoneId); }
   /** Claim the next available milestone tier. Returns the reward or null. */
   claimMilestone(milestoneId: string): Reward | null {

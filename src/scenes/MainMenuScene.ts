@@ -20,6 +20,7 @@ const MENU_ITEMS: MenuItem[] = [
   { key: "summon", label: "Summon", scene: "GachaScene", side: "left" },
   { key: "collection", label: "Codex", scene: "CollectionScene", side: "left" },
   { key: "quests", label: "Quests", scene: "QuestScene", side: "left" },
+  { key: "activities", label: "Activities", scene: "ActivitiesScene", side: "left" },
   { key: "inventory", label: "Inventory", scene: "HeroScene", side: "right" },
   { key: "squad", label: "Squad", scene: "SquadScene", side: "right" },
   { key: "passive", label: "Passives", scene: "PassiveGridScene", side: "right" },
@@ -42,7 +43,7 @@ export class MainMenuScene extends Phaser.Scene {
     const today = new Date().toISOString().slice(0, 10);
     mgr.refreshQuests(today); // midnight rollover before we read claimable counts
     const save = mgr.getSave();
-    this.badges = { quests: claimableQuestCount(save) };
+    this.badges = { quests: claimableQuestCount(save), activities: mgr.activityBadgeCount() };
     const W = this.scale.width, H = this.scale.height;
     fadeIn(this);
 
@@ -203,6 +204,11 @@ function drawMenuGlyph(g: Phaser.GameObjects.Graphics, key: string, x: number, y
       g.lineStyle(1.5, 0xb89a5e, 1).strokeRoundedRect(x - s * 0.7, y - s * 0.9, s * 1.4, s * 1.8, 3);
       for (let i = -1; i <= 1; i++) g.lineStyle(1.4, 0x9a7d4a, 1).lineBetween(x - s * 0.45, y + i * s * 0.4, x + s * 0.45, y + i * s * 0.4);
       g.lineStyle(2.6, 0x3fae5a, 1).beginPath(); g.moveTo(x - s * 0.35, y + s * 0.05); g.lineTo(x - s * 0.05, y + s * 0.4); g.lineTo(x + s * 0.5, y - s * 0.45); g.strokePath(); break;
+    case "activities": // calendar/star burst
+      g.fillStyle(0xf2e2b8, 1).fillRoundedRect(x - s * 0.8, y - s * 0.7, s * 1.6, s * 1.4, 3);
+      g.lineStyle(1.4, 0xb89a5e, 1).strokeRoundedRect(x - s * 0.8, y - s * 0.7, s * 1.6, s * 1.4, 3);
+      g.fillStyle(W, 1).fillPoints(star4(x, y, s * 0.5, s * 0.2), true);
+      g.lineStyle(1.4, 0x9a7d4a, 1).lineBetween(x - s * 0.8, y - s * 0.35, x + s * 0.8, y - s * 0.35); break;
     case "settings": // gear
       g.lineStyle(3.4, 0xd6dded, 1).strokeCircle(x, y, s * 0.55);
       for (let i = 0; i < 8; i++) { const a = (Math.PI / 4) * i; g.lineBetween(x + Math.cos(a) * s * 0.55, y + Math.sin(a) * s * 0.55, x + Math.cos(a) * s, y + Math.sin(a) * s); } break;
