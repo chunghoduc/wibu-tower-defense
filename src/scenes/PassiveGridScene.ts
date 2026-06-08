@@ -8,6 +8,7 @@ import { formatStatBonuses } from "./passiveGridFormat.ts";
 import { JewelOverlay } from "./jewelOverlay.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import { OBLIVION_ORB } from "../data/materials.ts";
+import { RESPEC_DIAMOND_COST } from "../core/saveManager.ts";
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 const MIN_X = 4;
@@ -135,7 +136,7 @@ export class PassiveGridScene extends Phaser.Scene {
     // Forget the selected (already-unlocked) node, refunding its point. Shares the
     // unlock button's slot — the two are mutually exclusive per node.
     this.forgetBtn = this.add
-      .text(PANEL_X + PANEL_W / 2, 310, "Forget  (+1 pt)", {
+      .text(PANEL_X + PANEL_W / 2, 310, "Forget", {
         fontSize: "16px", color: "#ffffff", backgroundColor: "#7b241c",
       })
       .setOrigin(0.5)
@@ -364,14 +365,14 @@ export class PassiveGridScene extends Phaser.Scene {
   }
 
   private tryResetAll(): void {
-    if (this.mgr.getMaterial(OBLIVION_ORB) <= 0) return; // gated on owning an orb
+    if (this.mgr.getSave().currency.diamonds < RESPEC_DIAMOND_COST) return; // can't afford
     if (!this.resetArmed) {
       this.resetArmed = true;
-      this.resetBtn.setText("Confirm — spend 1 Orb?").setBackgroundColor("#922b21");
+      this.resetBtn.setText(`Confirm — spend ${RESPEC_DIAMOND_COST}💎?`).setBackgroundColor("#922b21");
       return;
     }
     this.disarmReset();
-    this.mgr.respecWithOrb(); // consumes one orb + refunds the whole tree
+    this.mgr.respecWithDiamonds(); // spends RESPEC_DIAMOND_COST diamonds + refunds the whole tree
     this.selectedNode = null;
     this.redraw();
   }
@@ -414,15 +415,14 @@ export class PassiveGridScene extends Phaser.Scene {
   ): void {
     this.panelPoints.setText(`Skill points: ${skillPoints}`);
 
-    // "Reset all" is offered whenever any point has been spent, but it now costs
-    // a rare looted Oblivion Orb. The button shows your orb stock and greys out
-    // when you have none.
+    // "Reset all" is offered whenever any point has been spent; it costs a flat
+    // RESPEC_DIAMOND_COST diamonds. The button greys out when you can't afford it.
     this.resetBtn.setVisible(unlockedSet.size > 0);
     if (unlockedSet.size === 0) this.disarmReset();
     if (!this.resetArmed) {
-      const orbs = this.mgr.getMaterial(OBLIVION_ORB);
-      this.resetBtn.setText(orbs > 0 ? `Reset all  (Orb ×${orbs})` : "Reset all — need Oblivion Orb");
-      this.resetBtn.setAlpha(orbs > 0 ? 1 : 0.45);
+      const afford = this.mgr.getSave().currency.diamonds >= RESPEC_DIAMOND_COST;
+      this.resetBtn.setText(afford ? `Reset all  (${RESPEC_DIAMOND_COST}💎)` : `Reset all — need ${RESPEC_DIAMOND_COST}💎`);
+      this.resetBtn.setAlpha(afford ? 1 : 0.45);
     }
 
     if (!this.selectedNode) {
@@ -461,11 +461,14 @@ export class PassiveGridScene extends Phaser.Scene {
     this.unlockBtn.setVisible(!isUnlocked && (isReachable || levelLocked));
     this.unlockBtn.setAlpha(canUnlock ? 1 : 0.4);
 
-    // Forget is offered for any unlocked NON-jewel node; it's only actionable
-    // (full alpha) when removing it won't orphan the rest of the tree. Jewel
-    // sockets show socket/remove instead to keep the panel uncluttered.
-    const forgettable = isUnlocked && !isJewel && canForgetNode([...unlockedSet], node.id);
+    // Forget is offered for any unlocked NON-jewel node, but consumes one looted
+    // Oblivion Orb — so it's only actionable (full alpha) when you own an orb AND
+    // removing the node won't orphan the rest of the tree. The label shows your
+    // orb stock, or prompts to find one. Jewel sockets show socket/remove instead.
+    const orbs = this.mgr.getMaterial(OBLIVION_ORB);
+    const forgettable = isUnlocked && !isJewel && orbs > 0 && canForgetNode([...unlockedSet], node.id);
     this.forgetBtn.setVisible(isUnlocked && !isJewel);
+    this.forgetBtn.setText(orbs > 0 ? `Forget  (Orb ×${orbs})` : "Forget — need Oblivion Orb");
     this.forgetBtn.setAlpha(forgettable ? 1 : 0.4);
 
     // Jewel-socket actions, only once the socket node itself is allocated.

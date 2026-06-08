@@ -22,6 +22,8 @@ import type { JewelInstanceSave } from "./save.ts";
 
 const DAILY_LOGIN_GOLD = 50;
 const DAILY_LOGIN_DIAMONDS = 5;
+/** Diamonds to wipe the whole passive tree at once (the "reset all" button). */
+export const RESPEC_DIAMOND_COST = 500;
 const STARTER_DIAMONDS = SINGLE_PULL_COST * 10; // 10 summons of diamonds to start
 const STARTER_GOLD = 2000; // enough to enhance a few items
 
@@ -129,15 +131,19 @@ export class SaveManager {
   }
 
   /**
-   * Forget one unlocked passive node, refunding its skill point. Returns false
-   * if the node isn't unlocked or if removing it would orphan the rest of the
-   * tree (only safely-removable nodes can be refunded — see canForgetNode).
+   * Forget one unlocked passive node, refunding its skill point. Consumes one
+   * Oblivion Orb (a rare loot drop) — without an orb the action is unavailable.
+   * Returns false if the player owns no orb, the node isn't unlocked, or removing
+   * it would orphan the rest of the tree (only safely-removable nodes can be
+   * refunded — see canForgetNode). No orb is spent on a rejected forget.
    */
   forgetPassiveNode(nodeId: string): boolean {
     const hero = this.save.hero;
+    if ((this.save.materials[OBLIVION_ORB] ?? 0) <= 0) return false;
     if (!canForgetNode(hero.unlockedNodes, nodeId)) return false;
     hero.unlockedNodes = hero.unlockedNodes.filter((id) => id !== nodeId);
     hero.skillPoints += 1;
+    this.save.materials[OBLIVION_ORB] -= 1;
     this.persist();
     return true;
   }
@@ -158,15 +164,15 @@ export class SaveManager {
   }
 
   /**
-   * Spend one Oblivion Orb (a rare loot drop) to refund the entire passive tree.
-   * Returns the points refunded, -1 if the player owns no orb (nothing changes),
-   * or 0 if nothing was allocated (the orb is kept, not wasted).
+   * Spend RESPEC_DIAMOND_COST diamonds to refund the entire passive tree at once.
+   * Returns the points refunded, -1 if the player can't afford it (nothing
+   * changes), or 0 if nothing was allocated (no diamonds are charged).
    */
-  respecWithOrb(): number {
-    if ((this.save.materials[OBLIVION_ORB] ?? 0) <= 0) return -1;
+  respecWithDiamonds(): number {
+    if (this.save.currency.diamonds < RESPEC_DIAMOND_COST) return -1;
     const refunded = this.resetPassiveTree();
     if (refunded > 0) {
-      this.save.materials[OBLIVION_ORB] -= 1;
+      this.save.currency.diamonds -= RESPEC_DIAMOND_COST;
       this.persist();
     }
     return refunded;

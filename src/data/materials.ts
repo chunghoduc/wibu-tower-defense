@@ -38,7 +38,7 @@ export const MATERIALS: MaterialDef[] = [
   },
   {
     id: OBLIVION_ORB, name: "Oblivion Orb", kind: "consumable", icon: "oblivion",
-    description: "A rare orb that unwinds the mind. Use it in the Passive Tree to refund every spent skill point.",
+    description: "A rare orb that unwinds a single memory. Spend it in the Passive Tree to forget one allocated skill and refund its point.",
   },
 ];
 

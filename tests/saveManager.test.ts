@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { SaveManager } from "../src/core/saveManager.ts";
+import { SaveManager, RESPEC_DIAMOND_COST } from "../src/core/saveManager.ts";
 import { LocalSaveProvider, CURRENT_SAVE_VERSION } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
 import { OBLIVION_ORB } from "../src/data/materials.ts";
@@ -119,25 +119,38 @@ describe("SaveManager", () => {
       expect(m.unlockPassiveNode("brawler-p2")).toBe(true);
     };
 
-    it("forgetPassiveNode refunds a point and removes a forgettable leaf", () => {
+    it("forgetPassiveNode spends one Oblivion Orb, refunds a point and removes a forgettable leaf", () => {
       allocateChain(manager);
+      manager.addMaterial(OBLIVION_ORB, 2);
       const before = manager.getSave().hero.skillPoints;
       expect(manager.forgetPassiveNode("brawler-p2")).toBe(true);
       expect(manager.getSave().hero.skillPoints).toBe(before + 1);
       expect(manager.getSave().hero.unlockedNodes).not.toContain("brawler-p2");
       expect(manager.getSave().hero.unlockedNodes).toContain("brawler-p1");
+      expect(manager.getMaterial(OBLIVION_ORB)).toBe(1); // one orb spent
     });
 
-    it("forgetPassiveNode refuses to orphan the tree (interior node) and changes nothing", () => {
+    it("forgetPassiveNode refuses without an Oblivion Orb and changes nothing", () => {
       allocateChain(manager);
+      const before = manager.getSave().hero.skillPoints;
+      expect(manager.forgetPassiveNode("brawler-p2")).toBe(false);
+      expect(manager.getSave().hero.skillPoints).toBe(before);
+      expect(manager.getSave().hero.unlockedNodes).toContain("brawler-p2");
+    });
+
+    it("forgetPassiveNode refuses to orphan the tree (interior node) and keeps the orb", () => {
+      allocateChain(manager);
+      manager.addMaterial(OBLIVION_ORB, 1);
       const before = manager.getSave().hero.skillPoints;
       expect(manager.forgetPassiveNode("brawler-p1")).toBe(false);
       expect(manager.getSave().hero.skillPoints).toBe(before);
       expect(manager.getSave().hero.unlockedNodes).toContain("brawler-p1");
+      expect(manager.getMaterial(OBLIVION_ORB)).toBe(1); // no orb wasted on a rejected forget
     });
 
     it("forgetPassiveNode persists the refund across reloads", () => {
       allocateChain(manager);
+      manager.addMaterial(OBLIVION_ORB, 1);
       manager.forgetPassiveNode("brawler-p2");
       const reloaded = new SaveManager(new LocalSaveProvider(mockStorage as unknown as Storage));
       expect(reloaded.getSave().hero.unlockedNodes).not.toContain("brawler-p2");
@@ -152,28 +165,29 @@ describe("SaveManager", () => {
       expect(manager.getSave().hero.unlockedNodes).toEqual([]);
     });
 
-    it("respecWithOrb consumes one Oblivion Orb and refunds the whole tree", () => {
+    it("respecWithDiamonds spends RESPEC_DIAMOND_COST and refunds the whole tree", () => {
       allocateChain(manager);
-      manager.addMaterial(OBLIVION_ORB, 2);
+      manager.getSave().currency.diamonds = RESPEC_DIAMOND_COST + 100;
       const before = manager.getSave().hero.skillPoints;
-      expect(manager.respecWithOrb()).toBe(3);
+      expect(manager.respecWithDiamonds()).toBe(3);
       expect(manager.getSave().hero.skillPoints).toBe(before + 3);
       expect(manager.getSave().hero.unlockedNodes).toEqual([]);
-      expect(manager.getMaterial(OBLIVION_ORB)).toBe(1); // one orb spent
+      expect(manager.getSave().currency.diamonds).toBe(100); // cost deducted
     });
 
-    it("respecWithOrb returns -1 and changes nothing without an orb", () => {
+    it("respecWithDiamonds returns -1 and changes nothing when too poor", () => {
       allocateChain(manager);
+      manager.getSave().currency.diamonds = RESPEC_DIAMOND_COST - 1;
       const before = manager.getSave().hero.skillPoints;
-      expect(manager.respecWithOrb()).toBe(-1);
+      expect(manager.respecWithDiamonds()).toBe(-1);
       expect(manager.getSave().hero.skillPoints).toBe(before);
       expect(manager.getSave().hero.unlockedNodes).toContain("grid-start");
     });
 
-    it("respecWithOrb does not waste an orb when nothing is allocated", () => {
-      manager.addMaterial(OBLIVION_ORB, 1);
-      expect(manager.respecWithOrb()).toBe(0);
-      expect(manager.getMaterial(OBLIVION_ORB)).toBe(1); // orb kept
+    it("respecWithDiamonds does not charge when nothing is allocated", () => {
+      manager.getSave().currency.diamonds = RESPEC_DIAMOND_COST;
+      expect(manager.respecWithDiamonds()).toBe(0);
+      expect(manager.getSave().currency.diamonds).toBe(RESPEC_DIAMOND_COST); // diamonds kept
     });
   });
 
