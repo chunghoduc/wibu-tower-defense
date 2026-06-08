@@ -25,7 +25,7 @@ const RARITY_INT: Record<Rarity, number> = {
 };
 const SLOT_LABEL: Record<ItemSlot, string> = {
   Weapon: "Weapon", Helmet: "Helmet", BodyArmor: "Body", Gloves: "Gloves", Boots: "Boots",
-  Amulet: "Amulet", Ring1: "Ring I", Ring2: "Ring II", Pet: "Pet", Wing: "Wing",
+  Amulet: "Amulet", Ring1: "Ring", Ring2: "Ring", Pet: "Pet", Wing: "Wing",
 };
 
 const TILE = 52;
