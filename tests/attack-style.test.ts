@@ -20,12 +20,14 @@ describe("T6 — per-character attack styles", () => {
     expect(style("akagan-ashen")).toBe("fireball");        // molten magma
   });
 
-  it("physical melee damage towers read as a melee swing, not a projectile", () => {
+  it("physical damage towers read as a swing or a mundane shot, never an elemental bolt", () => {
     const melee = new Set(["slash", "flurry", "punch", "smash", "hex"]);
+    // A physical loose/shot: an arrow (bow/crossbow) or a gun's cannon report.
+    const physicalRanged = new Set(["arrow", "cannon"]);
     for (const t of TOWERS.filter((x) => x.role === "damage" && x.damageType === "Physical")) {
       const s = attackStyleFor(t);
-      // Either a ranged loose (arrow) or one of the melee swing styles.
-      expect(s === "arrow" || melee.has(s), `${t.id} → ${s}`).toBe(true);
+      // Never an elemental projectile (fireball/iceball/lightning/poison/arcane).
+      expect(physicalRanged.has(s) || melee.has(s), `${t.id} → ${s}`).toBe(true);
     }
   });
 

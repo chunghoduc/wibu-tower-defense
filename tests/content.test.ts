@@ -5,9 +5,10 @@ import { RARITIES, TOWER_ROLES, type EnemyArchetype } from "../src/data/schema.t
 const cat = loadCatalog();
 
 describe("character roster", () => {
-  it("has 30-40 characters", () => {
+  it("has a roster in the expected size band", () => {
+    // 37 launch towers + 16 weapon-family fillers (bow/crossbow/gun/tome/…).
     expect(cat.characters.size).toBeGreaterThanOrEqual(30);
-    expect(cat.characters.size).toBeLessThanOrEqual(40);
+    expect(cat.characters.size).toBeLessThanOrEqual(60);
   });
 
   it("covers all tower roles", () => {

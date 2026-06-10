@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { TOWERS } from "../src/data/towers.ts";
+import { TOWERS_C } from "../src/data/towersC.ts";
 import { attackStyleFor, isMeleeStyle } from "../src/data/attackStyle.ts";
-import { deriveDamageType } from "../src/data/weaponFamily.ts";
+import { deriveDamageType, FAMILY, type WeaponFamily } from "../src/data/weaponFamily.ts";
 
 /** Pre-rework damage types — frozen snapshot guarding against silent drift. */
 const EXPECTED_DAMAGE: Record<string, "Physical" | "Magic"> = {
@@ -57,6 +58,24 @@ describe("weapon migration parity", () => {
     for (const id of Object.keys(EXPECTED_DAMAGE)) {
       const t = TOWERS.find((x) => x.id === id)!;
       expect(isMeleeStyle(attackStyleFor(t)), `${id} → ${attackStyleFor(t)}`).toBe(EXPECTED_MELEE.has(id));
+    }
+  });
+});
+
+describe("weapon-family coverage", () => {
+  const present = new Set(TOWERS.map((t) => t.meta!.weapon.family));
+  it("every previously-empty ranged/magic family now has a tower", () => {
+    for (const fam of ["bow", "crossbow", "gun", "tome", "scepter", "wand", "orb"] as WeaponFamily[]) {
+      expect(present.has(fam), `no tower uses family ${fam}`).toBe(true);
+    }
+  });
+  it("the new family-filling towers reach roughly their family band", () => {
+    // Range is an identity stat — a few launch towers deliberately sit off-band
+    // (e.g. an arm-cannon brawler that fights up close), so this guards only the
+    // batch-C fillers, which exist precisely to read as true ranged/casters.
+    for (const t of TOWERS_C) {
+      const band = FAMILY[t.meta!.weapon.family].range;
+      expect(Math.abs(t.baseStats.range - band) <= 60, `${t.id} range ${t.baseStats.range} vs band ${band}`).toBe(true);
     }
   });
 });

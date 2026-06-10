@@ -17,6 +17,7 @@
 import { makeStats, type CharacterDef } from "./schema.ts";
 import { t } from "./towerBuilder.ts";
 import { TOWERS_B } from "./towersB.ts";
+import { TOWERS_C } from "./towersC.ts";
 
 const TOWERS_A: CharacterDef[] = [
   // ============================ DAMAGE ============================
@@ -395,4 +396,4 @@ const TOWERS_A: CharacterDef[] = [
   }),
 ];
 
-export const TOWERS: CharacterDef[] = [...TOWERS_A, ...TOWERS_B];
+export const TOWERS: CharacterDef[] = [...TOWERS_A, ...TOWERS_B, ...TOWERS_C];
