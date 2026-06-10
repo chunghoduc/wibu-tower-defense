@@ -1,0 +1,217 @@
+/**
+ * Shared types, tuning constants, and pure helpers for the battle simulation.
+ * Split out of `battle.ts` so the BattleState class and its per-concern method
+ * modules (battleWaves/battleEnemies/battleTowers/battleDamage) can share one
+ * vocabulary without a circular dependency. All re-exported from `battle.ts`.
+ */
+import {
+  type CharacterDef,
+  type DamageType,
+  type Difficulty,
+  type EnemyDef,
+  type Immunity,
+  type Stats,
+  type TargetType,
+  type TowerBehavior,
+  type Vec2,
+  type WeaponType,
+} from "../data/schema.ts";
+import type { Dot } from "./effects.ts";
+import type { AuraMods } from "./enemyAuras.ts";
+import type { HeroSave } from "./save.ts";
+import type { TargetFilter } from "./targeting.ts";
+import type { ChallengeEffects } from "../data/challengeModifiers.ts";
+
+export type Outcome = "ongoing" | "won" | "lost";
+
+/** Distance from point p to segment a-b (for lane-clearance checks). */
+export function segDist(p: Vec2, a: Vec2, b: Vec2): number {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const l2 = dx * dx + dy * dy || 1;
+  let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
+/**
+ * Transient visual events emitted by the sim each tick for the renderer to
+ * animate (projectiles, swings, hits, deaths, casts, loot). `BattleState.fx`
+ * holds the current tick's events; it is cleared at the start of every tick.
+ */
+export type FxEvent =
+  | { type: "attack"; uid: number; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero"; style: string }
+  | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
+  | { type: "death"; at: Vec2; boss: boolean; elite: boolean; bounty: number }
+  | { type: "enemyAttack"; uid: number; at: Vec2; targetAt: Vec2; target: "hero" | "tower" }
+  | { type: "cast"; uid: number; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
+  | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
+  | { type: "chain"; from: Vec2; to: Vec2 }
+  | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
+  | { type: "loot"; at: Vec2; gold: number }
+  | { type: "killReward"; at: Vec2; xp: number; item: boolean; box: string | null }
+  // F13 combo: rapid-kill streak feedback. `mult` is the current gold multiplier.
+  | { type: "combo"; at: Vec2; count: number; mult: number }
+  // F14 perfect wave: a wave cleared with zero leaks. `bonus` is the bonus gold.
+  | { type: "perfect"; waveIndex: number; bonus: number };
+
+/** Debug context threaded into applyDamage so the combat logger can print the
+ * full per-hit formula (only built when logging is on). */
+export interface DmgCtx {
+  src: string;
+  kind: string;
+  rawFormula: string;
+  crit?: { rate: number; roll: number; hit: boolean; mult: number };
+}
+
+/** How close an enemy must be to the hero to be body-blocked into melee. */
+export const HERO_BLOCK_RANGE = 28;
+/** Default radius of splash / active-skill AoE bursts. */
+export const SPLASH_RADIUS = 60;
+/** Pause between waves once the current wave is fully cleared. */
+export const INTER_WAVE_DELAY = 3;
+/** F13 combo: seconds a streak survives without a kill before it resets. */
+export const COMBO_DECAY = 2.5;
+/** F13 combo: gold multiplier caps at this value (×3 at full streak). */
+export const COMBO_MAX_MULT = 3;
+/** F13 combo: kills needed to reach the max multiplier. */
+export const COMBO_KILLS_FOR_MAX = 20;
+/** F14 perfect wave: bonus gold = this fraction of the gold earned that wave. */
+export const PERFECT_WAVE_BONUS_FRAC = 0.25;
+/** Free-placement: towers can't be placed within this distance of the lane. */
+export const LANE_CLEARANCE = 30;
+/** Free-placement: minimum spacing between two towers. */
+export const MIN_TOWER_DIST = 34;
+/** Free-placement: keep towers this far inside the world edges. */
+export const PLACE_MARGIN = 14;
+/**
+ * Max in-battle upgrades a tower can buy. A freshly placed tower is ★1 (battleLevel
+ * 0, base power); two upgrades take it to ★2 and ★3 (battleLevel 2 = maxed). The
+ * player-facing star count is always battleLevel + 1.
+ */
+export const MAX_TOWER_UPGRADES = 2;
+/** Boss skill mana gained per second (T16); a boss casts roughly every manaCost/this seconds. */
+export const BOSS_MANA_REGEN = 14;
+/** Fraction of a tower's invested gold refunded on sell. */
+export const TOWER_SELL_REFUND = 0.6;
+
+export interface EnemyRuntime {
+  uid: number;
+  def: EnemyDef;
+  stats: Stats;
+  hp: number;
+  shield: number;
+  flying: boolean;
+  stealth: boolean;
+  /** A stealthed enemy is revealed (and tower-targetable) while in hero range (T9). */
+  revealed: boolean;
+  distanceAlong: number;
+  airProgress: number;
+  airStart: Vec2;
+  pos: Vec2;
+  threat: number;
+  alive: boolean;
+  attackCd: number;
+  // Status effects.
+  slowPct: number;
+  slowTimer: number;
+  stunTimer: number;
+  dots: Dot[];
+  // Special / boss timers.
+  summonTimer: number;
+  bossSummonTimer: number;
+  bossDisableTimer: number;
+  enraged: boolean;
+  /** Elite (T17): a promoted normal enemy — boosted stats, bigger, guaranteed box drop. */
+  elite: boolean;
+  /** Elite-only damage-type immunity (Physical or Magic); null for normal enemies. */
+  eliteImmunity: Immunity | null;
+  /** Transient support-aura buffs from nearby Heralds/Hexers (recomputed each tick). */
+  aura: AuraMods;
+  /** Boss skill mana (T16); fills over time + on taking damage, spent on cast. */
+  mana: number;
+}
+
+export interface TowerRuntime {
+  uid: number;
+  def: CharacterDef;
+  stats: Stats;
+  slotIndex: number;
+  pos: Vec2;
+  hp: number;
+  mana: number;
+  attackCd: number;
+  alive: boolean;
+  buffAtkPct: number;
+  buffAsPct: number;
+  disabledTimer: number;
+  /** Role behavior scaled for the current battleLevel (T12); never the shared def. */
+  behavior: TowerBehavior;
+  /** Per-tower scaling inputs so in-battle upgrades can recompute stats. */
+  baseLevel: number;
+  stars: number;
+  /** In-battle upgrade levels purchased with gold (0..MAX_TOWER_UPGRADES). */
+  battleLevel: number;
+  /** Total gold sunk into this tower (cost + upgrades), for sell refund. */
+  goldSpent: number;
+}
+
+export interface HeroRuntime {
+  stats: Stats;
+  damageType: DamageType;
+  /** Equipped weapon family (null = unarmed/boxing) — drives attack style & reach. */
+  weaponType: WeaponType | null;
+  pos: Vec2;
+  moveTarget: Vec2;
+  hp: number;
+  mana: number;
+  attackCd: number;
+  alive: boolean;
+}
+
+export interface HeroConfig {
+  stats: Stats;
+  startPos: Vec2;
+  damageType?: DamageType;
+}
+
+export interface BattleOptions {
+  seed?: number;
+  hero: HeroConfig;
+  difficulty?: Difficulty;
+  heroSave?: HeroSave;
+  /** Override the per-BATTLE elite chance (defaults to ELITE_BATTLE_CHANCE); 0 disables elites. */
+  eliteChance?: number;
+  /** F5 daily-challenge modifiers (enemy stat tilts + tower-cost discount). */
+  challenge?: ChallengeEffects;
+  /** F11 endless: enemy stat multiplier applied on top of difficulty (per-wave ramp). */
+  endlessMul?: number;
+}
+
+export interface Catalogs {
+  enemies: Map<string, EnemyDef>;
+  characters: Map<string, CharacterDef>;
+}
+
+export interface ScheduledSpawn {
+  at: number;
+  enemyId: string;
+}
+
+export interface SpawnRequest {
+  enemyId: string;
+  distanceAlong?: number;
+  airProgress?: number;
+  airStart?: Vec2;
+  /** True for scheduled wave spawns (eligible for elite promotion); false for summons/splits. */
+  fromWave?: boolean;
+}
+
+export function targetFilter(target: TargetType): TargetFilter {
+  return {
+    canHitGround: target === "Ground" || target === "Both",
+    canHitAir: target === "Air" || target === "Both",
+    seeStealth: false,
+  };
+}
+
+export const HERO_FILTER: TargetFilter = { canHitGround: true, canHitAir: true, seeStealth: true };

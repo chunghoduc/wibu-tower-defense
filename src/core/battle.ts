@@ -13,242 +13,57 @@
  * - Boss mechanics: enrage, summon, tower-disable.
  * - Difficulty scaling (Normal/Hard/Nightmare) applied to enemy stats & bounty.
  * - Status effects (slow, stun, DoT) with tenacity, and omnivamp sustain.
+ *
+ * The class is large, so its simulation methods are split by concern into
+ * sibling modules (battleWaves / battleEnemies / battleTowers / battleDamage)
+ * and merged onto the prototype below via declaration merging. Shared mutable
+ * state stays on this class; the merged methods read it through `this`. Fields
+ * those modules touch are public-but-internal — not part of the external API.
  */
 import {
-  DIFFICULTY_SCALING,
   type CharacterDef,
-  type DamageType,
   type Difficulty,
-  type EnemyDef,
-  type Immunity,
   type StageDef,
-  type Stats,
-  type TargetType,
-  type TowerBehavior,
-  type BossSkill,
   type Vec2,
-  type WeaponType,
 } from "../data/schema.ts";
-import { mitigatedDamage, mitigationBreakdown, critMultiplier, clamp01, type DamagePacket } from "./damage.ts";
-import { combatLogOn, emitDamageLog } from "./combatLog.ts";
-import { absorbWithShield, ccDuration, slowedSpeed, type Dot } from "./effects.ts";
-import { dist, lerp, pathLength, pointAtDistance } from "./path.ts";
+import { dist, lerp, pathLength } from "./path.ts";
 import { Rng } from "./rng.ts";
 import { addHeroShare, towerStatPipeline } from "./stats.ts";
 import { resolveHeroBattleStats } from "./heroStats.ts";
 import { effectiveBehavior, battleLevelAtkMul } from "./towerUpgrade.ts";
-import { attackStyleFor, heroAttackStyle, isMeleeStyle } from "../data/attackStyle.ts";
-import { selectTarget, type TargetFilter } from "./targeting.ts";
+import { heroAttackStyle } from "../data/attackStyle.ts";
+import { selectTarget } from "./targeting.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
-import { ELITE_BATTLE_CHANCE, ELITE_BOUNTY_MULT, applyEliteBoost, rollEliteImmunity } from "./elite.ts";
-import { computeAuraMods, NEUTRAL_AURA, type AuraMods } from "./enemyAuras.ts";
+import { ELITE_BATTLE_CHANCE } from "./elite.ts";
 import type { HeroSave } from "./save.ts";
 import type { BattleLoot } from "../data/rewardTiles.ts";
 import { isTowerOwned, getTowerStars } from "./collection.ts";
-import { processEnemyKill } from "./killRewards.ts";
-import { itemLevelForStage, chapterLevelRange } from "./itemDrop.ts";
 import { incrementQuestKey } from "./questTracker.ts";
-import { incrementBountyEvent } from "./bounties.ts";
-import { isoWeekKey } from "./meta.ts";
-import { recordKill, bestiaryDamageMul } from "./bestiary.ts";
-import { addMasteryXp, getMasteryLevel, masteryStatMul, MASTERY_XP_PER_KILL } from "./mastery.ts";
+import { getMasteryLevel, masteryStatMul } from "./mastery.ts";
 import { getAwakening, awakeningStatMul } from "./awakening.ts";
 import { squadSynergyMul } from "../data/synergies.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
+import {
+  type Catalogs, type Outcome, type FxEvent,
+  type EnemyRuntime, type TowerRuntime, type HeroRuntime,
+  type BattleOptions, type ScheduledSpawn, type SpawnRequest,
+  segDist, HERO_FILTER,
+  INTER_WAVE_DELAY, COMBO_MAX_MULT, COMBO_KILLS_FOR_MAX,
+  LANE_CLEARANCE, MIN_TOWER_DIST, PLACE_MARGIN,
+  MAX_TOWER_UPGRADES, TOWER_SELL_REFUND,
+} from "./battleTypes.ts";
+import { waveMethods, type WaveMethods } from "./battleWaves.ts";
+import { enemyMethods, type EnemyMethods } from "./battleEnemies.ts";
+import { towerMethods, type TowerMethods } from "./battleTowers.ts";
+import { damageMethods, type DamageMethods } from "./battleDamage.ts";
 
-export type Outcome = "ongoing" | "won" | "lost";
+// Re-export the shared vocabulary so existing `import { ... } from "./battle.ts"`
+// callsites (EnemyRuntime, TowerRuntime, FxEvent, BattleOptions, the tuning
+// constants, …) keep working unchanged.
+export * from "./battleTypes.ts";
 
-/** Distance from point p to segment a-b (for lane-clearance checks). */
-function segDist(p: Vec2, a: Vec2, b: Vec2): number {
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const l2 = dx * dx + dy * dy || 1;
-  let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
-  t = Math.max(0, Math.min(1, t));
-  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
-}
-
-/**
- * Transient visual events emitted by the sim each tick for the renderer to
- * animate (projectiles, swings, hits, deaths, casts, loot). `BattleState.fx`
- * holds the current tick's events; it is cleared at the start of every tick.
- */
-export type FxEvent =
-  | { type: "attack"; uid: number; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero"; style: string }
-  | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
-  | { type: "death"; at: Vec2; boss: boolean; elite: boolean; bounty: number }
-  | { type: "enemyAttack"; uid: number; at: Vec2; targetAt: Vec2; target: "hero" | "tower" }
-  | { type: "cast"; uid: number; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
-  | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
-  | { type: "chain"; from: Vec2; to: Vec2 }
-  | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
-  | { type: "loot"; at: Vec2; gold: number }
-  | { type: "killReward"; at: Vec2; xp: number; item: boolean; box: string | null }
-  // F13 combo: rapid-kill streak feedback. `mult` is the current gold multiplier.
-  | { type: "combo"; at: Vec2; count: number; mult: number }
-  // F14 perfect wave: a wave cleared with zero leaks. `bonus` is the bonus gold.
-  | { type: "perfect"; waveIndex: number; bonus: number };
-
-/** Debug context threaded into applyDamage so the combat logger can print the
- * full per-hit formula (only built when logging is on). */
-interface DmgCtx {
-  src: string;
-  kind: string;
-  rawFormula: string;
-  crit?: { rate: number; roll: number; hit: boolean; mult: number };
-}
-
-/** How close an enemy must be to the hero to be body-blocked into melee. */
-export const HERO_BLOCK_RANGE = 28;
-/** Default radius of splash / active-skill AoE bursts. */
-export const SPLASH_RADIUS = 60;
-/** Pause between waves once the current wave is fully cleared. */
-export const INTER_WAVE_DELAY = 3;
-/** F13 combo: seconds a streak survives without a kill before it resets. */
-export const COMBO_DECAY = 2.5;
-/** F13 combo: gold multiplier caps at this value (×3 at full streak). */
-export const COMBO_MAX_MULT = 3;
-/** F13 combo: kills needed to reach the max multiplier. */
-export const COMBO_KILLS_FOR_MAX = 20;
-/** F14 perfect wave: bonus gold = this fraction of the gold earned that wave. */
-export const PERFECT_WAVE_BONUS_FRAC = 0.25;
-/** Free-placement: towers can't be placed within this distance of the lane. */
-export const LANE_CLEARANCE = 30;
-/** Free-placement: minimum spacing between two towers. */
-export const MIN_TOWER_DIST = 34;
-/** Free-placement: keep towers this far inside the world edges. */
-export const PLACE_MARGIN = 14;
-/**
- * Max in-battle upgrades a tower can buy. A freshly placed tower is ★1 (battleLevel
- * 0, base power); two upgrades take it to ★2 and ★3 (battleLevel 2 = maxed). The
- * player-facing star count is always battleLevel + 1.
- */
-export const MAX_TOWER_UPGRADES = 2;
-/** Boss skill mana gained per second (T16); a boss casts roughly every manaCost/this seconds. */
-const BOSS_MANA_REGEN = 14;
-/** Fraction of a tower's invested gold refunded on sell. */
-export const TOWER_SELL_REFUND = 0.6;
-
-export interface EnemyRuntime {
-  uid: number;
-  def: EnemyDef;
-  stats: Stats;
-  hp: number;
-  shield: number;
-  flying: boolean;
-  stealth: boolean;
-  /** A stealthed enemy is revealed (and tower-targetable) while in hero range (T9). */
-  revealed: boolean;
-  distanceAlong: number;
-  airProgress: number;
-  airStart: Vec2;
-  pos: Vec2;
-  threat: number;
-  alive: boolean;
-  attackCd: number;
-  // Status effects.
-  slowPct: number;
-  slowTimer: number;
-  stunTimer: number;
-  dots: Dot[];
-  // Special / boss timers.
-  summonTimer: number;
-  bossSummonTimer: number;
-  bossDisableTimer: number;
-  enraged: boolean;
-  /** Elite (T17): a promoted normal enemy — boosted stats, bigger, guaranteed box drop. */
-  elite: boolean;
-  /** Elite-only damage-type immunity (Physical or Magic); null for normal enemies. */
-  eliteImmunity: Immunity | null;
-  /** Transient support-aura buffs from nearby Heralds/Hexers (recomputed each tick). */
-  aura: AuraMods;
-  /** Boss skill mana (T16); fills over time + on taking damage, spent on cast. */
-  mana: number;
-}
-
-export interface TowerRuntime {
-  uid: number;
-  def: CharacterDef;
-  stats: Stats;
-  slotIndex: number;
-  pos: Vec2;
-  hp: number;
-  mana: number;
-  attackCd: number;
-  alive: boolean;
-  buffAtkPct: number;
-  buffAsPct: number;
-  disabledTimer: number;
-  /** Role behavior scaled for the current battleLevel (T12); never the shared def. */
-  behavior: TowerBehavior;
-  /** Per-tower scaling inputs so in-battle upgrades can recompute stats. */
-  baseLevel: number;
-  stars: number;
-  /** In-battle upgrade levels purchased with gold (0..MAX_TOWER_UPGRADES). */
-  battleLevel: number;
-  /** Total gold sunk into this tower (cost + upgrades), for sell refund. */
-  goldSpent: number;
-}
-
-export interface HeroRuntime {
-  stats: Stats;
-  damageType: DamageType;
-  /** Equipped weapon family (null = unarmed/boxing) — drives attack style & reach. */
-  weaponType: WeaponType | null;
-  pos: Vec2;
-  moveTarget: Vec2;
-  hp: number;
-  mana: number;
-  attackCd: number;
-  alive: boolean;
-}
-
-export interface HeroConfig {
-  stats: Stats;
-  startPos: Vec2;
-  damageType?: DamageType;
-}
-
-export interface BattleOptions {
-  seed?: number;
-  hero: HeroConfig;
-  difficulty?: Difficulty;
-  heroSave?: HeroSave;
-  /** Override the per-BATTLE elite chance (defaults to ELITE_BATTLE_CHANCE); 0 disables elites. */
-  eliteChance?: number;
-  /** F5 daily-challenge modifiers (enemy stat tilts + tower-cost discount). */
-  challenge?: ChallengeEffects;
-  /** F11 endless: enemy stat multiplier applied on top of difficulty (per-wave ramp). */
-  endlessMul?: number;
-}
-
-interface Catalogs {
-  enemies: Map<string, EnemyDef>;
-  characters: Map<string, CharacterDef>;
-}
-
-interface ScheduledSpawn {
-  at: number;
-  enemyId: string;
-}
-
-interface SpawnRequest {
-  enemyId: string;
-  distanceAlong?: number;
-  airProgress?: number;
-  airStart?: Vec2;
-  /** True for scheduled wave spawns (eligible for elite promotion); false for summons/splits. */
-  fromWave?: boolean;
-}
-
-function targetFilter(target: TargetType): TargetFilter {
-  return {
-    canHitGround: target === "Ground" || target === "Both",
-    canHitAir: target === "Air" || target === "Both",
-    seeStealth: false,
-  };
-}
-
-const HERO_FILTER: TargetFilter = { canHitGround: true, canHitAir: true, seeStealth: true };
+/** The simulation methods split into sibling modules are merged in below. */
+export interface BattleState extends WaveMethods, EnemyMethods, TowerMethods, DamageMethods {}
 
 export class BattleState {
   readonly stage: StageDef;
@@ -270,47 +85,48 @@ export class BattleState {
    *  immediately on each kill, so it is kept — and shown — even on a loss. */
   readonly battleLoot: BattleLoot = { items: [], boxes: {}, xp: 0 };
 
-  private readonly cat: Catalogs;
-  private readonly rng: Rng;
-  private readonly totalPathLen: number;
+  // ---- Internal state (public for the merged method modules; not external API) ----
+  /** @internal */ readonly cat: Catalogs;
+  /** @internal */ readonly rng: Rng;
+  /** @internal */ readonly totalPathLen: number;
 
   private petGoldPerSec = 0;
   private petGoldCarry = 0;
-  private _heroSave: HeroSave | undefined;
-  /** True if THIS battle is fated to contain exactly one elite (rolled once at start). */
-  private readonly eliteThisBattle: boolean;
-  /** Which eligible wave-spawn index (0-based) becomes that elite, or -1 for none. */
-  private readonly eliteTargetIndex: number;
-  /** Count of eligible (non-boss) wave spawns seen so far — drives elite targeting. */
-  private eligibleSpawnSeen = 0;
-  /** Set once the battle's single elite has been spawned. */
-  private eliteSpawned = false;
+  /** @internal */ _heroSave: HeroSave | undefined;
+  /** @internal True if THIS battle is fated to contain exactly one elite (rolled once at start). */
+  readonly eliteThisBattle: boolean;
+  /** @internal Which eligible wave-spawn index (0-based) becomes that elite, or -1 for none. */
+  readonly eliteTargetIndex: number;
+  /** @internal Count of eligible (non-boss) wave spawns seen so far — drives elite targeting. */
+  eligibleSpawnSeen = 0;
+  /** @internal Set once the battle's single elite has been spawned. */
+  eliteSpawned = false;
 
-  private schedule: ScheduledSpawn[] = [];
-  private schedulePtr = 0;
-  private waveActive = false;
-  private interWaveTimer = INTER_WAVE_DELAY;
-  private allWavesStarted = false;
-  private nextUid = 1;
-  /** Mid-tick spawn queue (summons/splits) flushed after all updates. */
-  private pending: SpawnRequest[] = [];
-  /** F6: distinct tower defIds fielded this battle — each earns mastery XP per kill. */
-  private readonly deployedTowerIds = new Set<string>();
+  /** @internal */ schedule: ScheduledSpawn[] = [];
+  /** @internal */ schedulePtr = 0;
+  /** @internal */ waveActive = false;
+  /** @internal */ interWaveTimer = INTER_WAVE_DELAY;
+  /** @internal */ allWavesStarted = false;
+  /** @internal */ nextUid = 1;
+  /** @internal Mid-tick spawn queue (summons/splits) flushed after all updates. */
+  pending: SpawnRequest[] = [];
+  /** @internal F6: distinct tower defIds fielded this battle — each earns mastery XP per kill. */
+  readonly deployedTowerIds = new Set<string>();
   /** F8: team stat multipliers from the chosen squad's active synergies. */
   private synergyMul: { atkMul: number; hpMul: number; attackSpeedMul: number } = { atkMul: 1, hpMul: 1, attackSpeedMul: 1 };
-  /** F13 combo: consecutive-kill streak + decay timer (seconds). */
-  private combo = 0;
-  private comboTimer = 0;
-  /** F14 perfect wave: did any enemy leak to the castle during the active wave? */
-  private waveLeaked = false;
-  /** F14: did ANY enemy leak across the whole stage (drives the flawless-victory bonus)? */
-  private anyLeak = false;
-  /** F14: gold earned from kills during the active wave (for the perfect-wave bonus). */
-  private waveGold = 0;
-  /** F5 daily-challenge modifiers in effect this battle (empty = none). */
-  private readonly challenge: ChallengeEffects;
-  /** F11 endless enemy stat multiplier (1 = off). */
-  private readonly endlessMul: number;
+  /** @internal F13 combo: consecutive-kill streak + decay timer (seconds). */
+  combo = 0;
+  /** @internal */ comboTimer = 0;
+  /** @internal F14 perfect wave: did any enemy leak to the castle during the active wave? */
+  waveLeaked = false;
+  /** @internal F14: did ANY enemy leak across the whole stage (drives the flawless-victory bonus)? */
+  anyLeak = false;
+  /** @internal F14: gold earned from kills during the active wave (for the perfect-wave bonus). */
+  waveGold = 0;
+  /** @internal F5 daily-challenge modifiers in effect this battle (empty = none). */
+  readonly challenge: ChallengeEffects;
+  /** @internal F11 endless enemy stat multiplier (1 = off). */
+  readonly endlessMul: number;
 
   constructor(stage: StageDef, catalogs: Catalogs, opts: BattleOptions) {
     this.stage = stage;
@@ -597,41 +413,6 @@ export class BattleState {
     this.checkOutcome();
   }
 
-  // ---- Waves -------------------------------------------------------------
-
-  private updateWaves(dt: number): void {
-    if (!this.waveActive) {
-      if (this.waveIndex + 1 >= this.stage.waves.length) {
-        this.allWavesStarted = true;
-        return;
-      }
-      this.interWaveTimer -= dt;
-      if (this.interWaveTimer <= 0) this.startNextWave();
-      return;
-    }
-
-    while (
-      this.schedulePtr < this.schedule.length &&
-      this.schedule[this.schedulePtr].at <= this.time
-    ) {
-      this.spawnEnemy({ enemyId: this.schedule[this.schedulePtr].enemyId, fromWave: true });
-      this.schedulePtr++;
-    }
-
-    const fullySpawned = this.schedulePtr >= this.schedule.length;
-    if (fullySpawned && this.enemies.length === 0) {
-      this.waveActive = false;
-      this.interWaveTimer = INTER_WAVE_DELAY;
-      // F14: wave cleared — if nothing leaked, pay a perfect-wave bonus.
-      if (!this.waveLeaked) {
-        const bonus = Math.round(this.waveGold * PERFECT_WAVE_BONUS_FRAC);
-        if (bonus > 0) this.gold += bonus;
-        this.emit({ type: "perfect", waveIndex: this.waveIndex, bonus });
-      }
-      if (this.waveIndex + 1 >= this.stage.waves.length) this.allWavesStarted = true;
-    }
-  }
-
   /** F13 current gold multiplier from the kill streak (1 → COMBO_MAX_MULT). */
   comboMult(): number {
     if (this.combo <= 1) return 1;
@@ -643,494 +424,7 @@ export class BattleState {
   /** F14 flawless victory: won the stage with zero leaks (drives a bonus chest). */
   wasFlawless(): boolean { return this.outcome === "won" && !this.anyLeak; }
 
-  private startNextWave(): void {
-    this.waveIndex++;
-    // F14: a fresh wave starts flawless; track its kill gold for the bonus.
-    this.waveLeaked = false;
-    this.waveGold = 0;
-    const wave = this.stage.waves[this.waveIndex];
-    const schedule: ScheduledSpawn[] = [];
-    for (const group of wave.spawns) {
-      for (let i = 0; i < group.count; i++) {
-        schedule.push({
-          at: this.time + group.delay + i * group.interval,
-          enemyId: group.enemyId,
-        });
-      }
-    }
-    schedule.sort((a, b) => a.at - b.at);
-    this.schedule = schedule;
-    this.schedulePtr = 0;
-    this.waveActive = true;
-  }
-
-  /** Total non-boss enemies scheduled across all waves — the elite-target pool. */
-  private countEligibleWaveSpawns(stage: StageDef, cat: Catalogs): number {
-    let n = 0;
-    for (const wave of stage.waves) {
-      for (const group of wave.spawns) {
-        const d = cat.enemies.get(group.enemyId);
-        if (d && d.archetype !== "Boss") n += group.count;
-      }
-    }
-    return n;
-  }
-
-  private spawnEnemy(req: SpawnRequest): void {
-    const def = this.cat.enemies.get(req.enemyId);
-    if (!def) return;
-    const scale = DIFFICULTY_SCALING[this.difficulty];
-    // F5 challenge tilts + F11 endless ramp layer on top of difficulty scaling.
-    const ch = this.challenge;
-    const hpMul = (ch.enemyHpMul ?? 1) * this.endlessMul;
-    const atkMul = this.endlessMul;
-    let stats: Stats = {
-      ...def.baseStats,
-      maxHp: def.baseStats.maxHp * scale.hpMult * hpMul,
-      atk: def.baseStats.atk * scale.atkMult * atkMul,
-      armor: def.baseStats.armor * (ch.enemyArmorMul ?? 1),
-      magicResist: def.baseStats.magicResist * (ch.enemyArmorMul ?? 1),
-      moveSpeed: def.baseStats.moveSpeed * (ch.enemySpeedMul ?? 1),
-    };
-    // Elite promotion (T17, reworked): at most ONE elite per battle, fixed to a
-    // pre-rolled eligible wave-spawn index. Summons/splits are never elite.
-    let elite = false;
-    if (req.fromWave && def.archetype !== "Boss") {
-      if (this.eliteThisBattle && !this.eliteSpawned && this.eligibleSpawnSeen === this.eliteTargetIndex) {
-        elite = true;
-        this.eliteSpawned = true;
-      }
-      this.eligibleSpawnSeen++;
-    }
-    // Elites gain a damage-type immunity (Physical or Magic) and a flat 50%
-    // reduction — but only grant the immunity if the base has none, so we never
-    // make a unit that only True damage can hurt.
-    let eliteImmunity: Immunity | null = null;
-    if (elite) {
-      stats = applyEliteBoost(stats);
-      if (def.immunity === null) eliteImmunity = rollEliteImmunity(this.rng);
-    }
-    const flying = def.flying;
-    const airStart =
-      req.airStart ??
-      (this.stage.airSpawns.length > 0
-        ? this.stage.airSpawns[this.nextUid % this.stage.airSpawns.length]
-        : this.stage.path[0]);
-    const distanceAlong = req.distanceAlong ?? 0;
-    const airProgress = req.airProgress ?? 0;
-    const pos = flying ? lerp(airStart, this.castlePos, airProgress) : pointAtDistance(this.stage.path, distanceAlong);
-
-    this.enemies.push({
-      uid: this.nextUid++,
-      def,
-      stats,
-      hp: stats.maxHp,
-      shield: (def.special?.shieldHp ?? 0) * scale.hpMult,
-      flying,
-      stealth: def.special?.stealth ?? false,
-      revealed: !(def.special?.stealth ?? false),
-      distanceAlong,
-      airProgress,
-      airStart,
-      pos,
-      threat: 0,
-      alive: true,
-      attackCd: 0,
-      slowPct: 0,
-      slowTimer: 0,
-      stunTimer: 0,
-      dots: [],
-      summonTimer: def.special?.summon?.interval ?? 0,
-      bossSummonTimer: def.boss?.summon?.interval ?? 0,
-      bossDisableTimer: def.boss?.towerDisable?.interval ?? 0,
-      enraged: false,
-      elite,
-      eliteImmunity,
-      aura: { moveMult: 1, drAdd: 0, armorAdd: 0, magicResistAdd: 0 },
-      mana: 0,
-    });
-  }
-
-  // ---- Enemies -----------------------------------------------------------
-
-  private updateEnemies(dt: number): void {
-    for (const e of this.enemies) {
-      if (!e.alive) continue;
-
-      this.tickEnemyStatus(e, dt);
-      if (!e.alive) continue;
-
-      if (e.stats.hpRegen > 0) e.hp = Math.min(e.stats.maxHp, e.hp + e.stats.hpRegen * dt);
-      if (e.def.special?.healAura) this.applyHealAura(e, dt);
-      if (e.def.boss) this.updateBoss(e, dt);
-      if (e.def.special?.summon) {
-        e.summonTimer -= dt;
-        if (e.summonTimer <= 0) {
-          this.queueSummon(e, e.def.special.summon.enemyId, e.def.special.summon.count);
-          e.summonTimer = e.def.special.summon.interval;
-        }
-      }
-
-      if (e.stunTimer > 0) {
-        this.updateEnemyThreat(e);
-        continue;
-      }
-
-      const action = this.chooseEnemyAction(e);
-      if (action.kind === "hero") {
-        this.enemyAttack(e, dt, () => this.dealDamageToHero(e));
-      } else if (action.kind === "tower") {
-        const tower = action.tower;
-        this.enemyAttack(e, dt, () => this.dealDamageToTower(e, tower));
-      } else {
-        this.advanceEnemy(e, dt);
-      }
-      this.updateEnemyThreat(e);
-    }
-  }
-
-  private tickEnemyStatus(e: EnemyRuntime, dt: number): void {
-    if (e.slowTimer > 0) {
-      e.slowTimer -= dt;
-      if (e.slowTimer <= 0) e.slowPct = 0;
-    }
-    if (e.stunTimer > 0) e.stunTimer -= dt;
-
-    if (e.dots.length > 0) {
-      const survivors: Dot[] = [];
-      for (const d of e.dots) {
-        const active = Math.min(dt, d.remaining);
-        if (active > 0) {
-          const ctx = this.dmgCtx("dot", "dot", `dot ${d.dps}/s ×${active.toFixed(2)}s`);
-          this.applyDamage(e, d.type, d.dps * active, d.armorPen, d.magicPen, false, false, ctx);
-        }
-        const left = d.remaining - dt;
-        if (left > 0 && e.alive) survivors.push({ ...d, remaining: left });
-      }
-      e.dots = survivors;
-    }
-  }
-
-  private chooseEnemyAction(
-    e: EnemyRuntime,
-  ): { kind: "hero" } | { kind: "tower"; tower: TowerRuntime } | { kind: "move" } {
-    if (this.hero.alive && !e.flying && dist(e.pos, this.hero.pos) <= HERO_BLOCK_RANGE) {
-      return { kind: "hero" };
-    }
-    const atk = e.def.special?.attacksTowers;
-    if (atk) {
-      let best: TowerRuntime | null = null;
-      for (const t of this.towers) {
-        if (t.alive && dist(e.pos, t.pos) <= atk.range) {
-          if (!best || dist(e.pos, t.pos) < dist(e.pos, best.pos)) best = t;
-        }
-      }
-      if (best) return { kind: "tower", tower: best };
-    }
-    return { kind: "move" };
-  }
-
-  private enemyAttack(e: EnemyRuntime, dt: number, hit: () => void): void {
-    e.attackCd -= dt;
-    if (e.attackCd <= 0 && e.stats.attackSpeed > 0) {
-      hit();
-      e.attackCd = 1 / e.stats.attackSpeed;
-    }
-  }
-
-  /** Refresh every enemy's transient support-aura buffs and apply aura healing. */
-  private recomputeEnemyAuras(dt: number): void {
-    const results = computeAuraMods(this.enemies);
-    for (const e of this.enemies) {
-      if (!e.alive) continue;
-      const r = results.get(e.uid);
-      if (r) {
-        e.aura = r.mods;
-        if (r.healPerSec > 0) e.hp = Math.min(e.stats.maxHp, e.hp + r.healPerSec * dt);
-      } else if (e.aura !== NEUTRAL_AURA) {
-        e.aura = NEUTRAL_AURA;
-      }
-    }
-  }
-
-  /** Enemy defence stats with current support-aura bonuses folded in (for mitigation). */
-  private effDefStats(e: EnemyRuntime): Stats {
-    const a = e.aura;
-    if (a.armorAdd === 0 && a.magicResistAdd === 0 && a.drAdd === 0) return e.stats;
-    return {
-      ...e.stats,
-      armor: e.stats.armor + a.armorAdd,
-      magicResist: e.stats.magicResist + a.magicResistAdd,
-      damageReduction: 1 - (1 - clamp01(e.stats.damageReduction)) * (1 - clamp01(a.drAdd)),
-    };
-  }
-
-  private applyHealAura(healer: EnemyRuntime, dt: number): void {
-    const aura = healer.def.special!.healAura!;
-    for (const o of this.enemies) {
-      if (!o.alive || o === healer) continue;
-      if (dist(healer.pos, o.pos) <= aura.radius) o.hp = Math.min(o.stats.maxHp, o.hp + aura.hps * dt);
-    }
-  }
-
-  private updateBoss(e: EnemyRuntime, dt: number): void {
-    const b = e.def.boss!;
-    if (b.enrage && !e.enraged && e.hp / e.stats.maxHp <= b.enrage.belowHpPct) e.enraged = true;
-    if (b.summon) {
-      e.bossSummonTimer -= dt;
-      if (e.bossSummonTimer <= 0) {
-        this.queueSummon(e, b.summon.enemyId, b.summon.count);
-        e.bossSummonTimer = b.summon.interval;
-      }
-    }
-    if (b.towerDisable) {
-      e.bossDisableTimer -= dt;
-      if (e.bossDisableTimer <= 0) {
-        for (const t of this.towers) {
-          if (t.alive && dist(e.pos, t.pos) <= b.towerDisable.radius) {
-            t.disabledTimer = Math.max(t.disabledTimer, b.towerDisable.duration);
-          }
-        }
-        e.bossDisableTimer = b.towerDisable.interval;
-      }
-    }
-    // Boss active skill — mana fills over time, cast when full (T16).
-    if (b.skill) {
-      e.mana += BOSS_MANA_REGEN * dt;
-      if (e.mana >= b.skill.manaCost) { this.castBossSkill(e, b.skill); e.mana = 0; }
-    }
-  }
-
-  /** Apply a boss's active skill and emit its cast FX. */
-  private castBossSkill(e: EnemyRuntime, skill: BossSkill): void {
-    const R = skill.radius ?? 150;
-    this.emit({ type: "bossCast", uid: e.uid, at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name });
-    switch (skill.type) {
-      case "quake": {
-        // Disable towers in radius and hammer the hero if caught inside.
-        for (const t of this.towers) {
-          if (t.alive && dist(e.pos, t.pos) <= R) t.disabledTimer = Math.max(t.disabledTimer, 2);
-        }
-        if (this.hero.alive && dist(e.pos, this.hero.pos) <= R) {
-          const dmg = (skill.power ?? 0.12) * this.hero.stats.maxHp;
-          this.hero.hp = Math.max(0, this.hero.hp - dmg);
-        }
-        break;
-      }
-      case "rally": {
-        const heal = skill.power ?? 0.15;
-        for (const o of this.enemies) {
-          if (o.alive && dist(e.pos, o.pos) <= R) o.hp = Math.min(o.stats.maxHp, o.hp + heal * o.stats.maxHp);
-        }
-        break;
-      }
-      case "barrier": {
-        const sh = skill.power ?? 0.25;
-        for (const o of this.enemies) {
-          if (o.alive && dist(e.pos, o.pos) <= R) o.shield = Math.max(o.shield, sh * o.stats.maxHp);
-        }
-        break;
-      }
-      case "summon-surge":
-        this.queueSummon(e, skill.summonId ?? "imp", Math.round(skill.power ?? 3));
-        break;
-    }
-  }
-
-  private enemySpeed(e: EnemyRuntime): number {
-    const base = slowedSpeed(e.stats.moveSpeed, e.slowPct) * e.aura.moveMult;
-    return e.enraged && e.def.boss?.enrage ? base * e.def.boss.enrage.speedMult : base;
-  }
-
-  private enemyAtk(e: EnemyRuntime): number {
-    return e.enraged && e.def.boss?.enrage ? e.stats.atk * e.def.boss.enrage.atkMult : e.stats.atk;
-  }
-
-  private advanceEnemy(e: EnemyRuntime, dt: number): void {
-    const step = this.enemySpeed(e) * dt;
-    if (e.flying) {
-      const lineLen = Math.max(1e-6, dist(e.airStart, this.castlePos));
-      e.airProgress += step / lineLen;
-      if (e.airProgress >= 1) return this.reachCastle(e);
-      e.pos = lerp(e.airStart, this.castlePos, e.airProgress);
-    } else {
-      e.distanceAlong += step;
-      if (e.distanceAlong >= this.totalPathLen) return this.reachCastle(e);
-      e.pos = pointAtDistance(this.stage.path, e.distanceAlong);
-    }
-  }
-
-  private updateEnemyThreat(e: EnemyRuntime): void {
-    e.threat = e.flying
-      ? Math.min(1, e.airProgress)
-      : Math.min(1, this.totalPathLen === 0 ? 1 : e.distanceAlong / this.totalPathLen);
-  }
-
-  private reachCastle(e: EnemyRuntime): void {
-    this.castleHp -= e.def.castleDamage;
-    e.alive = false;
-    // F14: a leak voids this wave's (and the stage's) flawless bonus.
-    this.waveLeaked = true;
-    this.anyLeak = true;
-    // A leak also breaks the kill streak.
-    this.combo = 0;
-    this.comboTimer = 0;
-  }
-
-  private dealDamageToHero(attacker: EnemyRuntime): void {
-    const packet: DamagePacket = {
-      amount: this.enemyAtk(attacker),
-      type: attacker.def.damageType,
-      armorPen: attacker.stats.armorPen,
-      magicPen: attacker.stats.magicPen,
-    };
-    this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: this.hero.pos.x, y: this.hero.pos.y }, target: "hero" });
-    this.hero.hp -= mitigatedDamage(packet, this.hero.stats);
-    this.logEnemyHit(attacker, "hero", packet, this.hero.stats, this.hero.hp);
-    if (this.hero.hp <= 0) this.hero.alive = false;
-  }
-
-  /** Log an enemy's hit on the hero/a tower (these don't run through applyDamage). */
-  private logEnemyHit(attacker: EnemyRuntime, targetLabel: string, packet: DamagePacket, defender: Stats, hpAfter: number): void {
-    if (!combatLogOn()) return;
-    const b = mitigationBreakdown(packet, defender);
-    emitDamageLog({
-      src: `enemy:${attacker.uid}`, target: targetLabel, kind: "enemy-atk", type: packet.type,
-      raw: Math.max(0, packet.amount), rawFormula: `atk ${packet.amount.toFixed(1)}`,
-      defRating: b.defRating, pen: packet.type === "Physical" ? packet.armorPen : packet.type === "Magic" ? packet.magicPen : 0,
-      effRating: b.effRating, mitigationFrac: b.mitigationFrac, afterMitig: b.afterMitig,
-      damageReduction: b.damageReduction, afterDR: b.final, shieldAbsorbed: 0, hpDamage: b.final,
-      targetHpAfter: Math.max(0, hpAfter), targetHpMax: defender.maxHp,
-    });
-  }
-
-  private dealDamageToTower(attacker: EnemyRuntime, tower: TowerRuntime): void {
-    const packet: DamagePacket = {
-      amount: this.enemyAtk(attacker),
-      type: attacker.def.damageType,
-      armorPen: attacker.stats.armorPen,
-      magicPen: attacker.stats.magicPen,
-    };
-    this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: tower.pos.x, y: tower.pos.y }, target: "tower" });
-    tower.hp -= mitigatedDamage(packet, tower.stats);
-    this.logEnemyHit(attacker, `tower:${tower.uid}`, packet, tower.stats, tower.hp);
-    if (tower.hp <= 0) tower.alive = false;
-  }
-
-  private queueSummon(parent: EnemyRuntime, enemyId: string, count: number): void {
-    for (let i = 0; i < count; i++) {
-      this.pending.push(
-        parent.flying
-          ? { enemyId, airProgress: parent.airProgress, airStart: parent.airStart }
-          : { enemyId, distanceAlong: parent.distanceAlong },
-      );
-    }
-  }
-
-  private flushPending(): void {
-    if (this.pending.length === 0) return;
-    const reqs = this.pending;
-    this.pending = [];
-    for (const r of reqs) this.spawnEnemy(r);
-  }
-
-  // ---- Towers ------------------------------------------------------------
-
-  private recomputeTowerBuffs(): void {
-    for (const t of this.towers) {
-      t.buffAtkPct = 0;
-      t.buffAsPct = 0;
-    }
-    for (const s of this.towers) {
-      const aura = s.behavior?.buffAura;
-      if (!s.alive || s.disabledTimer > 0 || s.def.role !== "support" || !aura) continue;
-      for (const t of this.towers) {
-        if (!t.alive || t === s) continue;
-        if (dist(s.pos, t.pos) <= aura.radius) {
-          t.buffAtkPct += aura.atkPct ?? 0;
-          t.buffAsPct += aura.attackSpeedPct ?? 0;
-        }
-      }
-    }
-    // Hexer support enemies slow nearby towers (a negative attack-speed buff).
-    for (const s of this.enemies) {
-      const a = s.def.special?.supportAura;
-      if (!s.alive || !a?.towerAttackSpeedMult) continue;
-      for (const t of this.towers) {
-        if (t.alive && dist(s.pos, t.pos) <= a.radius) t.buffAsPct += a.towerAttackSpeedMult - 1;
-      }
-    }
-  }
-
-  /** A stealthed enemy is revealed while inside the hero's range; towers may then
-   *  target it (if it is also in the tower's range). The hero always sees them. */
-  private updateStealthReveal(): void {
-    const h = this.hero;
-    const r2 = h.stats.range * h.stats.range;
-    for (const e of this.enemies) {
-      if (!e.stealth) { e.revealed = true; continue; }
-      e.revealed = h.alive && (e.pos.x - h.pos.x) ** 2 + (e.pos.y - h.pos.y) ** 2 <= r2;
-    }
-  }
-
-  private updateTowers(dt: number): void {
-    for (const t of this.towers) {
-      if (!t.alive) continue;
-      if (t.disabledTimer > 0) {
-        t.disabledTimer -= dt;
-        continue;
-      }
-
-      if (t.stats.maxMana > 0) t.mana = Math.min(t.stats.maxMana, t.mana + t.stats.manaRegen * dt);
-
-      const effAs = t.stats.attackSpeed * (1 + t.buffAsPct);
-      t.attackCd -= dt;
-      if (t.attackCd > 0 || effAs <= 0) continue;
-
-      const target = selectTarget(t.pos, t.stats.range, this.enemies, targetFilter(t.def.target));
-      if (!target) continue;
-
-      const effAtk = t.stats.atk * (1 + t.buffAtkPct);
-      const style = attackStyleFor(t.def);
-      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role, t.uid, style);
-      this.applyRoleEffect(t, effAtk, target);
-      // Melee swings cleave: every strike also hits all other enemies within the
-      // tower's (short) reach for the same damage — short range, wide arc.
-      if (isMeleeStyle(style)) this.applyCleave(t.stats, t.def.damageType, effAtk, t.pos, target);
-
-      if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
-        // Skills may deal True damage (the only path to True).
-        const activeType = t.behavior?.activeType ?? t.def.damageType;
-        this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
-        t.mana = 0;
-      }
-      t.attackCd = 1 / effAs;
-    }
-  }
-
-  /** Apply a tower's role-specific on-hit effect (splash/chain/dot/debuff). */
-  private applyRoleEffect(t: TowerRuntime, effAtk: number, target: EnemyRuntime): void {
-    const bhv = t.behavior;
-    switch (t.def.role) {
-      case "splash":
-        this.applySplash(t.stats, t.def.damageType, effAtk, target.pos, target, bhv?.splashRadius ?? SPLASH_RADIUS);
-        break;
-      case "chain":
-        this.applyChain(t, effAtk, target, bhv?.chainTargets ?? 2, bhv?.chainFalloff ?? 0.6);
-        break;
-      case "dot":
-        if (bhv?.dot) {
-          this.addDot(target, bhv.dot.damageType ?? t.def.damageType, bhv.dot.dps, bhv.dot.duration, t.stats);
-        }
-        break;
-      case "debuff":
-        if (bhv?.slow) this.applySlow(target, bhv.slow.pct, bhv.slow.duration);
-        if (bhv?.stun) this.applyStun(target, bhv.stun.duration, bhv.stun.chance);
-        break;
-      default:
-        break;
-    }
-  }
+  // ---- Hero --------------------------------------------------------------
 
   private updateHero(dt: number): void {
     if (this.petGoldPerSec > 0) {
@@ -1167,294 +461,7 @@ export class BattleState {
     h.attackCd = 1 / h.stats.attackSpeed;
   }
 
-  // ---- Damage application ------------------------------------------------
-
-  /** Append a transient visual event (bounded so a stalled renderer can't grow it). */
-  private emit(e: FxEvent): void {
-    if (this.fx.length < 256) this.fx.push(e);
-  }
-
-  /** One single-target attack with crit + mana credit + omnivamp. */
-  private performAttack(
-    unit: { stats: Stats; mana: number; hp: number },
-    fromPos: Vec2,
-    rawAtk: number,
-    damageType: DamageType,
-    target: EnemyRuntime,
-    source: "tower" | "hero",
-    role: string,
-    srcUid: number,
-    style: string,
-  ): void {
-    const wasAlive = target.alive;
-    const { hit: didCrit, roll: critRoll } = this.rng.rollChance(unit.stats.critRate);
-    const critMult = critMultiplier(unit.stats.critDamage, target.stats.critDefense);
-    const raw = didCrit ? rawAtk * critMult : rawAtk;
-    this.emit({
-      type: "attack",
-      uid: srcUid,
-      from: { x: fromPos.x, y: fromPos.y },
-      to: { x: target.pos.x, y: target.pos.y },
-      ranged: dist(fromPos, target.pos) > 44,
-      damageType,
-      crit: didCrit,
-      role,
-      source,
-      style,
-    });
-    const ctx = this.dmgCtx(`${source}:${srcUid}`, "basic", `atk ${rawAtk.toFixed(1)}`,
-      combatLogOn() ? { rate: unit.stats.critRate, roll: critRoll, hit: didCrit, mult: critMult } : undefined);
-    const dealt = this.applyDamage(target, damageType, raw, unit.stats.armorPen, unit.stats.magicPen, false, true, ctx);
-
-    if (unit.stats.maxMana > 0) {
-      unit.mana = Math.min(unit.stats.maxMana, unit.mana + unit.stats.manaOnHit);
-      if (wasAlive && !target.alive) {
-        unit.mana = Math.min(unit.stats.maxMana, unit.mana + unit.stats.manaOnKill);
-      }
-    }
-    if (unit.stats.omnivamp > 0 && dealt > 0) {
-      unit.hp = Math.min(unit.stats.maxHp, unit.hp + dealt * unit.stats.omnivamp);
-    }
-  }
-
-  /**
-   * Apply raw damage of a type to an enemy: honour the single-immunity rule,
-   * mitigate by armor/resist, absorb with shield, reduce HP, resolve death.
-   * Returns the total damage applied (for omnivamp).
-   */
-  private applyDamage(
-    target: EnemyRuntime,
-    damageType: DamageType,
-    rawAmount: number,
-    armorPen: number,
-    magicPen: number,
-    isAoE: boolean,
-    emitHit = true,
-    dbg?: DmgCtx,
-  ): number {
-    if (!target.alive) return 0;
-    if (this.isImmune(target, damageType, isAoE)) return 0;
-    // F9 bestiary: permanent +% damage vs an archetype the player has mastered.
-    if (this._heroSave) rawAmount *= bestiaryDamageMul(this._heroSave, target.def.archetype);
-    const defStats = this.effDefStats(target);
-    const packet: DamagePacket = { amount: rawAmount, type: damageType, armorPen, magicPen };
-    const incoming = mitigatedDamage(packet, defStats);
-    if (incoming <= 0) return 0;
-
-    if (emitHit) {
-      this.emit({ type: "hit", uid: target.uid, at: { x: target.pos.x, y: target.pos.y }, damageType, amount: incoming, aoe: isAoE });
-    }
-    const { shield, overflow } = absorbWithShield(target.shield, incoming);
-    target.shield = shield;
-    target.hp -= overflow;
-
-    if (dbg && combatLogOn()) {
-      const b = mitigationBreakdown(packet, defStats);
-      emitDamageLog({
-        src: dbg.src, target: `${target.def.id}#${target.uid}`, kind: dbg.kind, type: damageType,
-        raw: Math.max(0, rawAmount), rawFormula: dbg.rawFormula, crit: dbg.crit,
-        defRating: b.defRating, pen: damageType === "Physical" ? armorPen : damageType === "Magic" ? magicPen : 0,
-        effRating: b.effRating, mitigationFrac: b.mitigationFrac, afterMitig: b.afterMitig,
-        damageReduction: b.damageReduction, afterDR: b.final,
-        shieldAbsorbed: incoming - overflow, hpDamage: overflow,
-        targetHpAfter: Math.max(0, target.hp), targetHpMax: target.stats.maxHp,
-      });
-    }
-    if (target.hp <= 0) this.killEnemy(target);
-    return incoming;
-  }
-
-  /** Build a damage-log context only when logging is on (cheap no-op otherwise). */
-  private dmgCtx(src: string, kind: string, rawFormula: string, crit?: DmgCtx["crit"]): DmgCtx | undefined {
-    return combatLogOn() ? { src, kind, rawFormula, crit } : undefined;
-  }
-
-  private isImmune(target: EnemyRuntime, damageType: DamageType, isAoE: boolean): boolean {
-    const imm = target.def.immunity;
-    if (imm !== null) {
-      if (isAoE && imm === "AoE") return true;
-      if (imm === "Physical" && damageType === "Physical") return true;
-      if (imm === "Magic" && damageType === "Magic") return true;
-    }
-    // Elite-granted immunity (only ever Physical or Magic; never set when the
-    // base already has an immunity).
-    const ei = target.eliteImmunity;
-    if (ei === "Physical" && damageType === "Physical") return true;
-    if (ei === "Magic" && damageType === "Magic") return true;
-    return false;
-  }
-
-  /**
-   * Melee cleave: a melee tower's basic swing strikes every OTHER enemy within
-   * its reach (centered on the tower) for the SAME full damage as the primary
-   * hit. AoE-flagged, so it honours AoE immunity and armor/resist mitigation —
-   * the short-range tradeoff for clearing whole clusters at once.
-   */
-  private applyCleave(
-    attacker: Stats,
-    damageType: DamageType,
-    effAtk: number,
-    center: Vec2,
-    primary: EnemyRuntime,
-  ): void {
-    const radius = attacker.range;
-    if (radius <= 0) return;
-    const ctx = this.dmgCtx("cleave", "cleave", `cleave atk ${effAtk.toFixed(1)}`);
-    for (const e of this.enemies) {
-      if (!e.alive || e === primary) continue;
-      if (dist(e.pos, center) <= radius) {
-        this.applyDamage(e, damageType, effAtk, attacker.armorPen, attacker.magicPen, true, true, ctx);
-      }
-    }
-  }
-
-  private applySplash(
-    attacker: Stats,
-    damageType: DamageType,
-    effAtk: number,
-    center: Vec2,
-    primary: EnemyRuntime,
-    radius: number,
-  ): void {
-    this.emit({ type: "splash", at: { x: center.x, y: center.y }, radius, damageType });
-    const ctx = this.dmgCtx("splash", "splash", `splash atk ${effAtk.toFixed(1)}`);
-    for (const e of this.enemies) {
-      if (!e.alive || e === primary) continue;
-      if (dist(e.pos, center) <= radius) {
-        this.applyDamage(e, damageType, effAtk, attacker.armorPen, attacker.magicPen, true, true, ctx);
-      }
-    }
-  }
-
-  private applyChain(
-    t: TowerRuntime,
-    effAtk: number,
-    primary: EnemyRuntime,
-    bounces: number,
-    falloff: number,
-  ): void {
-    let from = primary;
-    let dmg = effAtk * falloff;
-    const hit = new Set<number>([primary.uid]);
-    for (let i = 0; i < bounces; i++) {
-      let next: EnemyRuntime | null = null;
-      for (const e of this.enemies) {
-        if (!e.alive || hit.has(e.uid)) continue;
-        if (dist(from.pos, e.pos) <= SPLASH_RADIUS * 1.5) {
-          if (!next || dist(from.pos, e.pos) < dist(from.pos, next.pos)) next = e;
-        }
-      }
-      if (!next) break;
-      this.emit({ type: "chain", from: { x: from.pos.x, y: from.pos.y }, to: { x: next.pos.x, y: next.pos.y } });
-      const ctx = this.dmgCtx(`tower:${t.uid}`, "chain", `chain bounce ${i + 1} dmg ${dmg.toFixed(1)} (×falloff ${falloff})`);
-      this.applyDamage(next, t.def.damageType, dmg, t.stats.armorPen, t.stats.magicPen, false, true, ctx);
-      hit.add(next.uid);
-      from = next;
-      dmg *= falloff;
-    }
-  }
-
-  private addDot(
-    target: EnemyRuntime,
-    type: DamageType,
-    dps: number,
-    duration: number,
-    attacker: Stats,
-  ): void {
-    target.dots.push({
-      dps,
-      remaining: duration,
-      type,
-      armorPen: attacker.armorPen,
-      magicPen: attacker.magicPen,
-    });
-  }
-
-  private applySlow(target: EnemyRuntime, pct: number, duration: number): void {
-    if (target.def.immunity === "CC") return;
-    target.slowPct = Math.max(target.slowPct, pct);
-    target.slowTimer = Math.max(target.slowTimer, ccDuration(duration, target.stats.tenacity));
-  }
-
-  private applyStun(target: EnemyRuntime, duration: number, chance: number): void {
-    if (target.def.immunity === "CC") return;
-    if (!this.rng.chance(chance)) return;
-    target.stunTimer = Math.max(target.stunTimer, ccDuration(duration, target.stats.tenacity));
-  }
-
-  private castActive(
-    attacker: Stats,
-    effAtk: number,
-    damageType: DamageType,
-    center: Vec2,
-    source: "tower" | "hero",
-    uid: number,
-    skillId?: string,
-    defenseScale?: { armor?: number; magicResist?: number; maxHp?: number },
-  ): void {
-    this.emit({ type: "cast", uid, at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
-    const sp = Math.max(1, attacker.skillPower);
-    let burst = effAtk * 2 * sp;
-    let detail = `atk ${effAtk.toFixed(1)} ×2 ×skillPower ${sp.toFixed(2)}`;
-    if (defenseScale) {
-      // tanker payoff: fold the caster's own defenses into the burst.
-      const defBonus = attacker.armor * (defenseScale.armor ?? 0)
-        + attacker.magicResist * (defenseScale.magicResist ?? 0)
-        + attacker.maxHp * (defenseScale.maxHp ?? 0);
-      burst += defBonus;
-      detail += ` + defense ${defBonus.toFixed(1)}`;
-    }
-    const ctx = this.dmgCtx(`${source}:${uid}`, "active", detail);
-    for (const e of this.enemies) {
-      if (!e.alive) continue;
-      if (dist(e.pos, center) <= SPLASH_RADIUS) {
-        this.applyDamage(e, damageType, burst, attacker.armorPen, attacker.magicPen, true, true, ctx);
-      }
-    }
-  }
-
-  private killEnemy(e: EnemyRuntime): void {
-    if (!e.alive) return;
-    e.alive = false;
-    const scale = DIFFICULTY_SCALING[this.difficulty];
-    const eliteBonus = e.elite ? ELITE_BOUNTY_MULT : 1;
-    const baseReward = e.def.bounty * scale.bountyMult * eliteBonus * (1 + this.hero.stats.goldFind);
-    // F13 combo: a rapid kill-streak multiplies gold (×1 → ×3) and resets its decay.
-    this.combo += 1;
-    this.comboTimer = COMBO_DECAY;
-    const reward = Math.round(baseReward * this.comboMult());
-    this.gold += reward;
-    this.waveGold += reward;
-    const boss = e.def.archetype === "Boss";
-    this.emit({ type: "death", at: { x: e.pos.x, y: e.pos.y }, boss, elite: e.elite, bounty: e.def.bounty });
-    this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, gold: reward });
-    if (this.combo >= 3) this.emit({ type: "combo", at: { x: e.pos.x, y: e.pos.y - 22 }, count: this.combo, mult: this.comboMult() });
-    // Per-kill XP + loot persist immediately (kept even if the stage is abandoned).
-    if (this._heroSave) {
-      const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng, e.elite, chapterLevelRange(this.stage.id));
-      // Tally it so the post-battle screen can show everything looted this run.
-      this.battleLoot.xp += kr.xp;
-      if (kr.itemDropped) this.battleLoot.items.push(kr.itemDropped);
-      if (kr.boxDropped) this.battleLoot.boxes[kr.boxDropped] = (this.battleLoot.boxes[kr.boxDropped] ?? 0) + 1;
-      this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, xp: kr.xp, item: kr.itemDropped !== null, box: kr.boxDropped });
-      const today = new Date().toISOString().slice(0, 10);
-      incrementQuestKey(this._heroSave, boss ? "kill_bosses" : "kill_enemies", 1, today);
-      incrementBountyEvent(this._heroSave, "kill", 1, isoWeekKey(new Date()));
-      recordKill(this._heroSave, e.def.archetype); // F9 bestiary + F16 lifetime kills
-      // F6: every tower fielded this battle earns mastery XP from the kill.
-      for (const id of this.deployedTowerIds) addMasteryXp(this._heroSave, id, MASTERY_XP_PER_KILL);
-    }
-    const split = e.def.special?.splitInto;
-    if (split) {
-      for (let i = 0; i < split.count; i++) {
-        this.pending.push(
-          e.flying
-            ? { enemyId: split.enemyId, airProgress: e.airProgress, airStart: e.airStart }
-            : { enemyId: split.enemyId, distanceAlong: e.distanceAlong },
-        );
-      }
-    }
-  }
+  // ---- Lifecycle ---------------------------------------------------------
 
   private cleanupDead(): void {
     for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -1475,3 +482,8 @@ export class BattleState {
     }
   }
 }
+
+// Merge the per-concern simulation methods onto the prototype. Their `this` is
+// typed as BattleState (see each module); the interface declaration above makes
+// them visible to TypeScript on the class.
+Object.assign(BattleState.prototype, waveMethods, enemyMethods, towerMethods, damageMethods);
