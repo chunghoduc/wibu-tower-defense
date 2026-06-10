@@ -9,6 +9,7 @@ import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { crispText } from "./ui.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { rewardLabel } from "../core/rewards.ts";
+import { rewardBurst, rewardEmojis } from "./rewardBurst.ts";
 import { nextStreakReward, streakClaimable, STREAK_CYCLE } from "../core/streak.ts";
 import { freeSpinAvailable, PAID_SPIN_COST } from "../core/spin.ts";
 import { expeditionActive, expeditionPendingGold } from "../core/expedition.ts";
@@ -129,7 +130,10 @@ export class ActivitiesScene extends Phaser.Scene {
     });
     this.button(PANEL_X + PANEL_W - 16, y + h / 2, ready ? "Claim" : "Claimed", "#1f8f43", ready, () => {
       const claim = this.mgr.claimStreak(today);
-      if (claim) { this.showToast(`Day ${claim.count}! ${rewardLabel(claim.reward)}`); this.redraw(); }
+      if (claim) {
+        this.celebrate(y + h / 2, ["🔥", ...rewardEmojis(claim.reward)], `Day ${claim.count}!`, 0xff8a3d);
+        this.showToast(`Day ${claim.count}! ${rewardLabel(claim.reward)}`); this.redraw();
+      }
     });
     return y + h + 12;
   }
@@ -145,7 +149,12 @@ export class ActivitiesScene extends Phaser.Scene {
     this.button(PANEL_X + PANEL_W - 16, y + h / 2, free ? "Free Spin" : `Spin (${PAID_SPIN_COST}💎)`, free ? "#1f8f43" : "#7a5a1a",
       free || save.currency.diamonds >= PAID_SPIN_COST, () => {
         const res = free ? this.mgr.spinFree(today) : this.mgr.spinPaid(today);
-        if (res) { this.showToast(`🎉 ${res.prize.label}${res.pityTriggered ? " (lucky!)" : ""}`); this.redraw(); }
+        if (res) {
+          const rare = res.prize.rare || res.pityTriggered;
+          this.celebrate(y + h / 2, ["🎉", "✨", ...rewardEmojis(res.prize.reward)], res.prize.label,
+            rare ? 0xff5bd0 : 0xffd24d);
+          this.showToast(`🎉 ${res.prize.label}${res.pityTriggered ? " (lucky!)" : ""}`); this.redraw();
+        }
       });
     return y + h + 12;
   }
@@ -163,7 +172,9 @@ export class ActivitiesScene extends Phaser.Scene {
     if (active) {
       this.button(PANEL_X + PANEL_W - 16, y + h / 2, "Collect", "#1f8f43", pending > 0, () => {
         const r = this.mgr.collectExpedition();
-        this.showToast(`Expedition: ${rewardLabel(r) || "nothing yet"}`); this.redraw();
+        const label = rewardLabel(r);
+        if (label) this.celebrate(y + h / 2, rewardEmojis(r), label, 0x7fd0ff);
+        this.showToast(`Expedition: ${label || "nothing yet"}`); this.redraw();
       });
     } else {
       this.button(PANEL_X + PANEL_W - 16, y + h / 2, "Dispatch", "#3a6a9a", Object.keys(save.collection).length > 0, () => {
@@ -255,7 +266,10 @@ export class ActivitiesScene extends Phaser.Scene {
       this.layer.add(crispText(this, PANEL_X + 14, y + 8, def.label, { fontSize: "14px", color: claimed ? "#8fc7a0" : "#ffe9b0", fontStyle: "bold" }));
       this.layer.add(crispText(this, PANEL_X + 14, y + 28, `${def.description}   (${Math.min(prog, def.target)}/${def.target})  →  ${rewardLabel(def.reward)}`, { fontSize: "11px", color: "#aab8cc" }));
       this.button(PANEL_X + PANEL_W - 14, y + h / 2, claimed ? "✓" : "Claim", "#1f8f43", claimable, () => {
-        if (this.mgr.claimBounty(def.id)) { this.showToast(`Bounty: ${rewardLabel(def.reward)}`); this.redraw(); }
+        if (this.mgr.claimBounty(def.id)) {
+          this.celebrate(y + h / 2, rewardEmojis(def.reward), rewardLabel(def.reward), 0x6fe08a);
+          this.showToast(`Bounty: ${rewardLabel(def.reward)}`); this.redraw();
+        }
       });
       y += h + 8;
     }
@@ -279,7 +293,10 @@ export class ActivitiesScene extends Phaser.Scene {
       this.layer.add(crispText(this, PANEL_X + 14, y + 28, goalTxt, { fontSize: "11px", color: "#aab8cc", wordWrap: { width: PANEL_W - 120 } }));
       this.button(PANEL_X + PANEL_W - 14, y + h / 2, maxed ? "✓" : "Claim", "#1f8f43", claimable, () => {
         const r = this.mgr.claimMilestone(def.id);
-        if (r) { this.showToast(`Milestone: ${rewardLabel(r)}`); this.redraw(); }
+        if (r) {
+          this.celebrate(y + h / 2, ["⭐", "✨", ...rewardEmojis(r)], rewardLabel(r), 0xffd24d);
+          this.showToast(`Milestone: ${rewardLabel(r)}`); this.redraw();
+        }
       });
       y += h + 8;
     }
@@ -287,7 +304,18 @@ export class ActivitiesScene extends Phaser.Scene {
   }
 
   private showToast(msg: string): void {
-    this.toast.setText(msg).setVisible(true);
+    this.toast.setText(msg).setVisible(true).setScale(0.7);
+    this.tweens.add({ targets: this.toast, scale: 1, duration: 220, ease: "Back.easeOut" });
     this.time.delayedCall(1800, () => this.toast.setVisible(false));
+  }
+
+  /**
+   * Fire the claim celebration next to a panel's claim button. `localCenterY` is
+   * the button's y in layer space; we add scrollY to reach screen space. The
+   * burst lives on the scene root, so the immediate redraw() that rebuilds the
+   * panel layer leaves it untouched.
+   */
+  private celebrate(localCenterY: number, emojis: string[], label: string, accent = 0xffd24d): void {
+    rewardBurst(this, PANEL_X + PANEL_W - 70, localCenterY + this.scrollY, { emojis, label, accent });
   }
 }
