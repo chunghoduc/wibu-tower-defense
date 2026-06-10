@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
 import {
   startExpedition, collectExpedition, expeditionPendingGold, expeditionActive,
-  expeditionGoldPerHour, EXPEDITION_CAP_MS, MAX_EXPEDITION_TOWERS,
+  expeditionGoldPerHour, expeditionGoldPerHourFor, expeditionCanCollect,
+  expeditionEligibleTowerIds, EXPEDITION_CAP_MS, MAX_EXPEDITION_TOWERS, MIN_COLLECT_MS,
 } from "../src/core/expedition.ts";
 import { Rng } from "../src/core/rng.ts";
 
@@ -53,5 +54,49 @@ describe("F2 idle expedition", () => {
     expect(expeditionActive(s)).toBe(true);
     // Immediately collecting again yields nothing (baseline was reset).
     expect(expeditionPendingGold(s, BASE + 3 * HOUR)).toBe(0);
+  });
+
+  it("cannot collect before the 15-minute minimum", () => {
+    const s = withTowers(1);
+    startExpedition(s, ["t0"], BASE);
+    expect(expeditionCanCollect(s, BASE + 10 * 60 * 1000)).toBe(false);
+    const gold0 = s.currency.gold;
+    const reward = collectExpedition(s, BASE + 10 * 60 * 1000, new Rng(1));
+    expect(reward).toEqual({});
+    expect(s.currency.gold).toBe(gold0); // nothing granted
+  });
+
+  it("can collect once the 15-minute minimum has elapsed", () => {
+    const s = withTowers(1);
+    startExpedition(s, ["t0"], BASE);
+    expect(expeditionCanCollect(s, BASE + MIN_COLLECT_MS)).toBe(true);
+    const reward = collectExpedition(s, BASE + MIN_COLLECT_MS, new Rng(1));
+    expect(reward.gold).toBeGreaterThan(0);
+  });
+
+  it("excludes active-squad towers from the dispatched party", () => {
+    const s = withTowers(3);
+    s.squad = ["t1"]; // t1 is in the battle squad → ineligible
+    startExpedition(s, ["t0", "t1", "t2"], BASE);
+    expect(s.meta.expedition.towerIds).toEqual(["t0", "t2"]);
+  });
+
+  it("eligible towers are owned and not in the squad", () => {
+    const s = withTowers(3);
+    s.squad = ["t0"];
+    expect(expeditionEligibleTowerIds(s).sort()).toEqual(["t1", "t2"]);
+  });
+
+  it("gold rate scales with rarity and stars", () => {
+    const s = createFreshSave();
+    s.collection["yamo-desert-bandit"] = { stars: 1, copies: 0 }; // Common
+    s.collection["karu-sunfist"] = { stars: 1, copies: 0 };       // Unique
+    const common = expeditionGoldPerHourFor(s, ["yamo-desert-bandit"]);
+    const unique = expeditionGoldPerHourFor(s, ["karu-sunfist"]);
+    expect(unique).toBeGreaterThan(common); // higher rarity → more gold
+
+    s.collection["yamo-desert-bandit"].stars = 5;
+    const common5 = expeditionGoldPerHourFor(s, ["yamo-desert-bandit"]);
+    expect(common5).toBeGreaterThan(common); // more stars → more gold
   });
 });
