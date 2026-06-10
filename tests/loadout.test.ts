@@ -107,14 +107,14 @@ describe("equipSkill", () => {
     expect(save.hero.equippedSkillIds).toHaveLength(0);
   });
 
-  it("holds at most two skills, bumping the oldest", () => {
+  it("holds at most one skill, the newest replacing the old", () => {
     const save = createFreshSave();
     const free = ACTIVE_SKILLS.filter((s) => !s.requiresWeapon).slice(0, 3);
     for (const s of free) save.hero.obtainedSkills.push({ skillId: s.id, level: 1, useXp: 0 });
     equipSkill(save, free[0].id);
-    equipSkill(save, free[1].id);
-    equipSkill(save, free[2].id); // bumps free[0]
-    expect(save.hero.equippedSkillIds).toEqual([free[1].id, free[2].id]);
+    equipSkill(save, free[1].id); // replaces free[0]
+    equipSkill(save, free[2].id); // replaces free[1]
+    expect(save.hero.equippedSkillIds).toEqual([free[2].id]);
   });
 });
 

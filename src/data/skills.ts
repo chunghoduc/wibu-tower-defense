@@ -59,4 +59,4 @@ export const ACTIVE_SKILLS_MAP = new Map<string, ActiveSkillDef>(
 export const STARTER_SKILL_IDS = ["valiant-strike", "spirit-bolt"] as const;
 
 /** How many active skills the hero can have equipped at once. */
-export const MAX_ACTIVE_SKILLS = 2;
+export const MAX_ACTIVE_SKILLS = 1;

@@ -1,5 +1,5 @@
 import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
-import { STARTER_SKILL_IDS } from "../data/skills.ts";
+import { STARTER_SKILL_IDS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { type MetaSave, defaultMeta, backfillMeta } from "./meta.ts";
 
 export const CURRENT_SAVE_VERSION = 10;
@@ -259,7 +259,12 @@ export function loadAndMigrate(raw: unknown): HeroSave {
         save.hero.obtainedSkills.push({ skillId: id, level: 1, useXp: 0 });
       }
     }
-    if (save.hero.equippedSkillIds.length === 0) save.hero.equippedSkillIds = [...STARTER_SKILL_IDS];
+    // Only one active skill may be equipped; seed the first starter, and clamp
+    // any save that migrated in from the old multi-slot era down to a single slot.
+    if (save.hero.equippedSkillIds.length === 0) save.hero.equippedSkillIds = [STARTER_SKILL_IDS[0]];
+    if (save.hero.equippedSkillIds.length > MAX_ACTIVE_SKILLS) {
+      save.hero.equippedSkillIds = save.hero.equippedSkillIds.slice(-MAX_ACTIVE_SKILLS);
+    }
   }
   save.version = CURRENT_SAVE_VERSION;
   return save;
