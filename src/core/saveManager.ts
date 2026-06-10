@@ -10,7 +10,7 @@ import {
   expeditionGoldPerHour, expeditionGoldPerHourFor, expeditionCanCollect,
   expeditionCollectReadyAt, expeditionEligibleTowerIds,
 } from "./expedition.ts";
-import { bestEndlessWave, recordEndlessWave } from "./endless.ts";
+import { bestEndlessWave, recordEndlessWave, claimEndlessRun } from "./endless.ts";
 import { rolloverBossRush, recordBossRushTier } from "./bossRush.ts";
 import { claimableMilestoneCount, nextClaimableTier, claimMilestone, unlockedTitles } from "./milestones.ts";
 import { powerRating, profileSummary, setTitle } from "./profile.ts";
@@ -134,6 +134,12 @@ export class SaveManager extends SaveManagerCore {
     const pb = recordEndlessWave(this.save, stageId, wave);
     this.persist();
     return pb;
+  }
+  /** Settle an endless run: grant rewards for newly-reached depth, record best. Persists. */
+  claimEndlessRun(stageId: string, wavesReached: number): { reward: Reward; isBest: boolean } {
+    const out = claimEndlessRun(this.save, stageId, wavesReached);
+    this.persist();
+    return out;
   }
 
   // ── F12 Boss rush (weekly) ──────────────────────────────────────────────────

@@ -149,6 +149,7 @@ export class BattleScene extends Phaser.Scene {
       heroSave: save,
       challenge: this.battleMode.challenge,
       endlessMul: this.battleMode.endlessMul,
+      endless: this.battleMode.kind === "endless",
     });
 
     // Two display layers: the battlefield (rendered by a zoomed-out camera) and

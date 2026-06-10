@@ -127,6 +127,8 @@ export class BattleState {
   readonly challenge: ChallengeEffects;
   /** @internal F11 endless enemy stat multiplier (1 = off). */
   readonly endlessMul: number;
+  /** @internal F11 endless survival: waves generate forever and scale per-wave; never "won". */
+  readonly endless: boolean;
 
   constructor(stage: StageDef, catalogs: Catalogs, opts: BattleOptions) {
     this.stage = stage;
@@ -146,6 +148,7 @@ export class BattleState {
     }
     this.challenge = opts.challenge ?? {};
     this.endlessMul = opts.endlessMul ?? 1;
+    this.endless = opts.endless ?? false;
     this.totalPathLen = pathLength(stage.path);
     this.castlePos = stage.path[stage.path.length - 1];
     this.castleHp = stage.castleHp;

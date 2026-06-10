@@ -20,7 +20,6 @@ import { MILESTONES } from "../data/milestones.ts";
 import { metricValue, claimedTier, nextClaimableTier } from "../core/milestones.ts";
 import { isoWeekKey } from "../core/meta.ts";
 import { challengeForDay } from "../core/challenge.ts";
-import { endlessEnemyMul } from "../core/endless.ts";
 import { STAGES } from "../data/stage.ts";
 import type { BattleMode } from "./BattleScene.ts";
 import type { Difficulty } from "../data/schema.ts";
@@ -262,9 +261,9 @@ export class ActivitiesScene extends Phaser.Scene {
       const best = cleared ? this.mgr.bestEndlessWave(cleared.id) : 0;
       this.panel(y, h, 0x2c3a4f);
       this.layer.add(crispText(this, PANEL_X + 14, y + 8, "🌊 Endless Survival", { fontSize: "14px", color: "#ffe9b0", fontStyle: "bold" }));
-      this.layer.add(crispText(this, PANEL_X + 14, y + 28, cleared ? `Survive escalating waves. Best wave: ${best}.` : "Clear a stage first to unlock.", { fontSize: "11px", color: "#aab8cc" }));
+      this.layer.add(crispText(this, PANEL_X + 14, y + 28, cleared ? `Waves never stop — a boss every 10. Best wave: ${best}.` : "Clear a stage first to unlock.", { fontSize: "11px", color: "#aab8cc" }));
       this.button(PANEL_X + PANEL_W - 14, y + h / 2, "Play", "#3a6a9a", !!cleared,
-        () => cleared && this.launch(cleared.id, "Nightmare", { kind: "endless", endlessMul: endlessEnemyMul(best + 1) }));
+        () => cleared && this.launch(cleared.id, "Nightmare", { kind: "endless" }));
       y += h + 8;
     }
 

@@ -205,6 +205,8 @@ export interface BattleOptions {
   challenge?: ChallengeEffects;
   /** F11 endless: enemy stat multiplier applied on top of difficulty (per-wave ramp). */
   endlessMul?: number;
+  /** F11 endless survival: generate waves forever, scaling per-wave; run ends only on loss. */
+  endless?: boolean;
 }
 
 export interface Catalogs {

@@ -341,8 +341,9 @@ export const inputMethods = {
       const r = this.saveManager.claimChallengeClear(new Date().toISOString().slice(0, 10));
       if (r) modeNote = `Daily Challenge cleared! ${rewardLabel(r)}`;
     } else if (this.battleMode.kind === "endless") {
-      const pb = this.saveManager.recordEndlessWave(this.stage.id, wavesReached);
-      modeNote = `Endless: reached wave ${wavesReached}${pb ? " — new best!" : ""}`;
+      const { reward, isBest } = this.saveManager.claimEndlessRun(this.stage.id, wavesReached);
+      const gained = rewardLabel(reward);
+      modeNote = `Endless: reached wave ${wavesReached}${isBest ? " — new best!" : ""}${gained ? ` · ${gained}` : ""}`;
     } else if (this.battleMode.kind === "bossrush") {
       const r = this.saveManager.recordBossRushTier(isoWeekKey(new Date()), wavesReached);
       modeNote = `Boss Rush: tier ${wavesReached}${rewardLabel(r) ? ` · ${rewardLabel(r)}` : ""}`;

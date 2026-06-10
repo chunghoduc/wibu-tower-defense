@@ -8,6 +8,7 @@ import { lerp, pointAtDistance } from "./path.ts";
 import { applyEliteBoost, rollEliteImmunity } from "./elite.ts";
 import { waveScaling } from "./waveScaling.ts";
 import { progressionScaling } from "./progressionScaling.ts";
+import { endlessWave, endlessEnemyMul } from "./endless.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type Catalogs, type ScheduledSpawn, type SpawnRequest,
@@ -17,7 +18,9 @@ import {
 export const waveMethods = {
   updateWaves(this: BattleState, dt: number): void {
     if (!this.waveActive) {
-      if (this.waveIndex + 1 >= this.stage.waves.length) {
+      // Endless never runs out of waves — it keeps generating them until the
+      // castle falls, so allWavesStarted (the "won" gate) is never tripped.
+      if (!this.endless && this.waveIndex + 1 >= this.stage.waves.length) {
         this.allWavesStarted = true;
         return;
       }
@@ -44,7 +47,7 @@ export const waveMethods = {
         if (bonus > 0) this.gold += bonus;
         this.emit({ type: "perfect", waveIndex: this.waveIndex, bonus });
       }
-      if (this.waveIndex + 1 >= this.stage.waves.length) this.allWavesStarted = true;
+      if (!this.endless && this.waveIndex + 1 >= this.stage.waves.length) this.allWavesStarted = true;
     }
   },
 
@@ -53,7 +56,8 @@ export const waveMethods = {
     // F14: a fresh wave starts flawless; track its kill gold for the bonus.
     this.waveLeaked = false;
     this.waveGold = 0;
-    const wave = this.stage.waves[this.waveIndex];
+    // Endless generates wave N on demand (1-based); normal stages read authored waves.
+    const wave = this.endless ? endlessWave(this.waveIndex + 1) : this.stage.waves[this.waveIndex];
     const schedule: ScheduledSpawn[] = [];
     for (const group of wave.spawns) {
       for (let i = 0; i < group.count; i++) {
@@ -92,15 +96,21 @@ export const waveMethods = {
     // last, so the back half of a stage is a real throughput test (not a victory
     // lap one tower can sweep). Bosses are exempt from the steep ramp — they
     // already carry the stage's difficulty spike via the escalating boss roster.
-    const ramp = waveScaling(this.waveIndex, this.stage.waves.length, isBoss);
+    // In endless the intra-stage ramp is meaningless (stage.waves.length no longer
+    // bounds the run); the compounding per-wave endless curve carries escalation
+    // instead, evaluated freshly each wave so strength grows without limit.
+    const ramp = this.endless
+      ? { hpMult: 1, atkMult: 1 }
+      : waveScaling(this.waveIndex, this.stage.waves.length, isBoss);
+    const endlessW = this.endless ? endlessEnemyMul(this.waveIndex + 1) : this.endlessMul;
     // Cross-stage/chapter long-game curve: the SAME enemy gets geometrically
     // tougher the deeper you are in the campaign (applies to bosses too).
     const prog = progressionScaling(stageNumber(this.stage.id));
     // Bosses scale harder than trash on the upper tiers (boss* multipliers).
     const bossHp = isBoss ? scale.bossHpMult : 1;
     const bossAtk = isBoss ? scale.bossAtkMult : 1;
-    const hpMul = (ch.enemyHpMul ?? 1) * this.endlessMul * ramp.hpMult * prog.hpMult;
-    const atkMul = this.endlessMul * ramp.atkMult * prog.atkMult;
+    const hpMul = (ch.enemyHpMul ?? 1) * endlessW * ramp.hpMult * prog.hpMult;
+    const atkMul = endlessW * ramp.atkMult * prog.atkMult;
     let stats: Stats = {
       ...def.baseStats,
       maxHp: def.baseStats.maxHp * scale.hpMult * bossHp * hpMul,
@@ -142,7 +152,7 @@ export const waveMethods = {
       def,
       stats,
       hp: stats.maxHp,
-      shield: (def.special?.shieldHp ?? 0) * scale.hpMult * ramp.hpMult * prog.hpMult,
+      shield: (def.special?.shieldHp ?? 0) * scale.hpMult * endlessW * ramp.hpMult * prog.hpMult,
       flying,
       stealth: def.special?.stealth ?? false,
       revealed: !(def.special?.stealth ?? false),
