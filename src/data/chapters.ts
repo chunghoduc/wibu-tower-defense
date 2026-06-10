@@ -71,6 +71,14 @@ const STAGE_BIOMES: Record<number, StageBiome> = {
   9: { terrainTint: 0xdfe6da, groundOverlay: 0x141d1c, block: ["stone", "jungle", "water"], decor: ["grass", "stone"] },
   // 10 — Wardens' Gate: dark teal fortress wood
   10: { terrainTint: 0xbfd8c8, groundOverlay: 0x10201a, block: ["jungle", "stone", "jungle"], decor: ["grass"] },
+  // 13 — Mirage Bazaar: glass dunes glinting in the heat
+  13: { terrainTint: 0xffe0b0, groundOverlay: 0x241d12, block: ["crystal", "stone", "sand"], decor: ["sand", "crystal"] },
+  // 15 — Gate of the Glass Throne: shattered crystal ramparts
+  15: { terrainTint: 0xffffff, groundOverlay: 0x201828, block: ["crystal", "stone", "crystal", "mountain"], decor: ["sand", "stone"] },
+  // 19 — Magma Reliquary: lava channels among black crystal
+  19: { terrainTint: 0xffffff, groundOverlay: 0x2a1410, block: ["lava", "crystal", "stone"], decor: ["crystal", "sand"] },
+  // 20 — Throne of Emberfall: the demon-king's furnace
+  20: { terrainTint: 0xffffff, groundOverlay: 0x2a1008, block: ["lava", "mountain", "lava", "stone"], decor: ["sand", "lava"] },
 };
 
 const STAGES_PER_CHAPTER = 5;

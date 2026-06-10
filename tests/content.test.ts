@@ -85,9 +85,15 @@ describe("enemy roster", () => {
   });
 });
 
-describe("chapter 1 stages", () => {
-  it("has 10 stages", () => {
-    expect(cat.stages.size).toBe(10);
+describe("campaign stages", () => {
+  it("has 20 stages across three chapters", () => {
+    expect(cat.stages.size).toBe(20);
+    const ch1 = [...cat.stages.keys()].filter((id) => id.startsWith("ch1-"));
+    const ch2 = [...cat.stages.keys()].filter((id) => id.startsWith("ch2-"));
+    const ch3 = [...cat.stages.keys()].filter((id) => id.startsWith("ch3-"));
+    expect(ch1.length).toBe(10);
+    expect(ch2.length).toBe(5);
+    expect(ch3.length).toBe(5);
   });
 
   it("every stage has multiple waves ending in a boss", () => {

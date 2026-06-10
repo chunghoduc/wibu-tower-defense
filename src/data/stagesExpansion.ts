@@ -1,0 +1,94 @@
+/**
+ * Campaign expansion — Chapter 2 "Sunscar Wastes" (desert, stages 11–15) and
+ * Chapter 3 "Emberfall" (volcanic, stages 16–20).
+ *
+ * Layouts + per-stage boss assignments live here to keep stage.ts focused (and
+ * under the 500-line cap). stage.ts concatenates EXPANSION_LAYOUTS onto the
+ * Chapter 1 layouts and BOSS_EXPANSION onto BOSS_BY_STAGE, so the stage build
+ * pipeline (continuous global numbering, wave builder, terrain, theming) is
+ * shared — these stages are tougher purely by their deeper global stage number,
+ * which the progression curve scales up. See campaign.ts for region lore.
+ *
+ * Coordinates are authored in the 960×540 logical space (scaled to the world by
+ * stage.ts). Paths enter at x=-20 and end at the castle (last waypoint).
+ */
+import type { Layout } from "./stage.ts";
+
+/** Chapter 2 (stages 11–15) + Chapter 3 (stages 16–20), in stage order. */
+export const EXPANSION_LAYOUTS: Layout[] = [
+  // ── Chapter 2 — Sunscar Wastes (desert) ──────────────────────────────────
+  {
+    name: "Glassflats Crossing",
+    path: [{ x: -20, y: 140 }, { x: 260, y: 140 }, { x: 260, y: 400 }, { x: 620, y: 400 }, { x: 620, y: 160 }, { x: 900, y: 160 }],
+    air: [{ x: -20, y: 420 }, { x: -20, y: 80 }],
+    slots: [{ x: 160, y: 80 }, { x: 360, y: 250 }, { x: 420, y: 330 }, { x: 500, y: 470 }, { x: 700, y: 300 }, { x: 760, y: 120 }, { x: 820, y: 260 }, { x: 440, y: 200 }],
+  },
+  {
+    name: "The Bonewalk",
+    path: [{ x: -20, y: 460 }, { x: 180, y: 460 }, { x: 180, y: 120 }, { x: 460, y: 120 }, { x: 460, y: 440 }, { x: 740, y: 440 }, { x: 740, y: 120 }, { x: 900, y: 120 }],
+    air: [{ x: -20, y: 120 }, { x: -20, y: 300 }],
+    slots: [{ x: 80, y: 300 }, { x: 300, y: 200 }, { x: 340, y: 360 }, { x: 560, y: 260 }, { x: 600, y: 360 }, { x: 640, y: 200 }, { x: 820, y: 300 }, { x: 280, y: 90 }],
+  },
+  {
+    name: "Mirage Bazaar",
+    path: [{ x: -20, y: 120 }, { x: 220, y: 120 }, { x: 220, y: 300 }, { x: 440, y: 300 }, { x: 440, y: 120 }, { x: 660, y: 120 }, { x: 660, y: 300 }, { x: 900, y: 300 }],
+    air: [{ x: -20, y: 300 }, { x: -20, y: 460 }],
+    slots: [{ x: 120, y: 220 }, { x: 330, y: 200 }, { x: 330, y: 400 }, { x: 550, y: 200 }, { x: 550, y: 400 }, { x: 770, y: 200 }, { x: 780, y: 420 }, { x: 120, y: 400 }],
+  },
+  {
+    name: "Sunscar Trench",
+    path: [{ x: -20, y: 80 }, { x: 820, y: 80 }, { x: 820, y: 460 }, { x: 160, y: 460 }, { x: 160, y: 260 }, { x: 560, y: 260 }, { x: 560, y: 360 }, { x: 900, y: 360 }],
+    air: [{ x: -20, y: 260 }, { x: -20, y: 460 }],
+    slots: [{ x: 360, y: 160 }, { x: 640, y: 160 }, { x: 740, y: 300 }, { x: 300, y: 360 }, { x: 300, y: 510 }, { x: 640, y: 420 }, { x: 440, y: 330 }, { x: 460, y: 460 }],
+  },
+  {
+    name: "Gate of the Glass Throne",
+    path: [{ x: -20, y: 260 }, { x: 200, y: 260 }, { x: 200, y: 90 }, { x: 760, y: 90 }, { x: 760, y: 460 }, { x: 420, y: 460 }, { x: 420, y: 300 }, { x: 560, y: 300 }, { x: 560, y: 540 }],
+    air: [{ x: -20, y: 90 }, { x: -20, y: 460 }],
+    slots: [{ x: 110, y: 180 }, { x: 340, y: 170 }, { x: 520, y: 170 }, { x: 680, y: 180 }, { x: 650, y: 360 }, { x: 300, y: 360 }, { x: 820, y: 300 }, { x: 480, y: 420 }],
+  },
+
+  // ── Chapter 3 — Emberfall (volcanic) ─────────────────────────────────────
+  {
+    name: "Cinderfall Descent",
+    path: [{ x: -20, y: 440 }, { x: 240, y: 440 }, { x: 240, y: 200 }, { x: 500, y: 200 }, { x: 500, y: 420 }, { x: 760, y: 420 }, { x: 760, y: 160 }, { x: 900, y: 160 }],
+    air: [{ x: -20, y: 160 }, { x: -20, y: 320 }],
+    slots: [{ x: 120, y: 300 }, { x: 360, y: 300 }, { x: 380, y: 140 }, { x: 620, y: 140 }, { x: 640, y: 300 }, { x: 840, y: 300 }, { x: 200, y: 330 }, { x: 600, y: 330 }],
+  },
+  {
+    name: "Forge Roads",
+    path: [{ x: -20, y: 300 }, { x: 320, y: 300 }, { x: 320, y: 100 }, { x: 600, y: 100 }, { x: 600, y: 440 }, { x: 900, y: 440 }],
+    air: [{ x: -20, y: 100 }, { x: -20, y: 440 }],
+    slots: [{ x: 160, y: 220 }, { x: 420, y: 180 }, { x: 480, y: 200 }, { x: 460, y: 360 }, { x: 740, y: 360 }, { x: 740, y: 510 }, { x: 220, y: 400 }, { x: 500, y: 260 }],
+  },
+  {
+    name: "Ashen Colonnade",
+    path: [{ x: -20, y: 110 }, { x: 840, y: 110 }, { x: 840, y: 290 }, { x: 120, y: 290 }, { x: 120, y: 470 }, { x: 900, y: 470 }],
+    air: [{ x: -20, y: 290 }, { x: -20, y: 470 }],
+    slots: [{ x: 300, y: 190 }, { x: 560, y: 190 }, { x: 740, y: 200 }, { x: 300, y: 380 }, { x: 560, y: 380 }, { x: 760, y: 390 }, { x: 200, y: 190 }, { x: 640, y: 200 }],
+  },
+  {
+    name: "Magma Reliquary",
+    path: [{ x: -20, y: 90 }, { x: 760, y: 90 }, { x: 760, y: 210 }, { x: 200, y: 210 }, { x: 200, y: 330 }, { x: 760, y: 330 }, { x: 760, y: 450 }, { x: 200, y: 450 }, { x: 200, y: 540 }],
+    air: [{ x: -20, y: 210 }, { x: -20, y: 330 }],
+    slots: [{ x: 360, y: 150 }, { x: 600, y: 150 }, { x: 460, y: 270 }, { x: 600, y: 390 }, { x: 360, y: 390 }, { x: 640, y: 270 }, { x: 320, y: 510 }, { x: 820, y: 270 }],
+  },
+  {
+    name: "Throne of Emberfall",
+    path: [{ x: -20, y: 80 }, { x: 200, y: 80 }, { x: 200, y: 460 }, { x: 420, y: 460 }, { x: 420, y: 140 }, { x: 640, y: 140 }, { x: 640, y: 460 }, { x: 820, y: 460 }, { x: 820, y: 200 }, { x: 480, y: 200 }, { x: 480, y: 540 }],
+    air: [{ x: -20, y: 460 }, { x: -20, y: 260 }],
+    slots: [{ x: 100, y: 260 }, { x: 310, y: 260 }, { x: 530, y: 300 }, { x: 730, y: 300 }, { x: 560, y: 420 }, { x: 350, y: 360 }, { x: 720, y: 150 }, { x: 300, y: 150 }],
+  },
+];
+
+/**
+ * Final boss for stages 11–20 (1-indexed continues from BOSS_BY_STAGE). Reuses
+ * the existing roster, ordered to escalate within each chapter and climax at the
+ * apex boss; the progression curve scales these into elite versions.
+ */
+export const BOSS_EXPANSION = [
+  // Chapter 2 — Sunscar Wastes (11–15)
+  "ryomen", "kura", "akai", "mukade", "overlord",
+  // Chapter 3 — Emberfall (16–20)
+  "zabro", "madarok", "mukade", "overlord", "meruon",
+];

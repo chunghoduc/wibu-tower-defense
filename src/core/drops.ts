@@ -21,6 +21,18 @@ export const GOLD_REWARD: Record<Difficulty, number> = {
 const FIRST_CLEAR_GOLD_BONUS = 200;
 
 /**
+ * Depth bonus: gold scales with the global stage number so deeper chapters pay
+ * strictly more (gold was previously flat per difficulty, so depth didn't pay).
+ * 0.06 ⇒ +6% per stage — stage 1 ×1.0, stage 10 ×1.54, stage 20 ×2.14.
+ */
+export const GOLD_DEPTH_PER_STAGE = 0.06;
+
+/** Multiplier applied to a stage-clear's gold for its depth (global stage no.). */
+export function goldDepthMultiplier(stageId: string): number {
+  return 1 + Math.max(0, stageNumber(stageId) - 1) * GOLD_DEPTH_PER_STAGE;
+}
+
+/**
  * Diamonds awarded per stage clear. Scales gently with stage number so later
  * stages are worth more; earlier stages are cheaper so new players accumulate
  * slowly — diamonds gate summons and high-rarity shop items, not progression.
@@ -81,8 +93,10 @@ export function processStageClear(
   incrementBountyEvent(save, "clear", 1, isoWeekKey(new Date()));
   save.meta.profile.lifetimeClears += 1; // F16 profile lifetime tally
 
-  // Gold — primary currency from stage clears.
-  const goldAwarded = GOLD_REWARD[difficulty] + (isFirstClear ? FIRST_CLEAR_GOLD_BONUS : 0);
+  // Gold — primary currency from stage clears. Scaled by stage depth so deeper
+  // chapters pay more (the base table is flat per difficulty).
+  const goldBase = GOLD_REWARD[difficulty] + (isFirstClear ? FIRST_CLEAR_GOLD_BONUS : 0);
+  const goldAwarded = Math.round(goldBase * goldDepthMultiplier(stageId));
   save.currency.gold += goldAwarded;
 
   // Diamonds — premium currency, scales with stage number so late-game earns more.
