@@ -28,12 +28,10 @@ export interface Stats {
   critDefense: number; // 0..1 fraction of an incoming crit's BONUS damage negated
   tenacity: number; // 0..1 reduction of crowd-control duration
 
-  // Resource (hero + towers)
-  maxMana: number;
-  manaRegen: number; // mana per second
-  manaOnHit: number;
-  manaOnKill: number;
-  manaCostReduction: number; // 0..1
+  // Resource (hero + towers) — mana is a fixed 0..100 charge bar (MANA_MAX); these
+  // only modify how fast it fills. manaOnHit is clamped to MANA_ON_HIT_CAP at use.
+  manaOnHit: number; // bonus mana per hit on top of the flat MANA_PER_HIT (capped)
+  manaOnKill: number; // bonus mana per kill
 
   // Sustain
   omnivamp: number; // 0..1 heal as fraction of damage dealt
@@ -61,11 +59,8 @@ export function defaultStats(): Stats {
     damageReduction: 0,
     critDefense: 0,
     tenacity: 0,
-    maxMana: 0,
-    manaRegen: 0,
     manaOnHit: 0,
     manaOnKill: 0,
-    manaCostReduction: 0,
     omnivamp: 0,
     moveSpeed: 0,
     goldFind: 0,
@@ -80,7 +75,7 @@ export function defaultStats(): Stats {
  */
 export const FRACTIONAL_STAT_KEYS = new Set<keyof Stats>([
   "critRate", "critDamage", "critDefense", "armorPen", "magicPen",
-  "damageReduction", "tenacity", "omnivamp", "goldFind", "skillPower", "manaCostReduction",
+  "damageReduction", "tenacity", "omnivamp", "goldFind", "skillPower",
 ]);
 
 /** Build a Stats from partial overrides on top of the zeroed baseline. */

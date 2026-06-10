@@ -29,8 +29,7 @@ export const TOWERS_C: CharacterDef[] = [
     active: "rapid-volley",
     baseStats: makeStats({
       atk: 14, attackSpeed: 1.3, range: 240, critRate: 0.1, critDamage: 1.5,
-      maxHp: 115, maxMana: 60, manaOnHit: 8, manaRegen: 1,
-    }),
+      maxHp: 115, manaOnHit: 8,     }),
   }),
   t({
     id: "lyran-ricochet",
@@ -51,8 +50,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { chainTargets: 4, chainFalloff: 0.7 },
     baseStats: makeStats({
       atk: 26, attackSpeed: 1.15, range: 235, critRate: 0.2, critDamage: 1.8,
-      maxHp: 200, maxMana: 75, manaOnHit: 13, manaRegen: 1,
-    }),
+      maxHp: 200, manaOnHit: 13,     }),
   }),
   t({
     id: "seren-skyfall",
@@ -73,8 +71,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { splashRadius: 96 },
     baseStats: makeStats({
       atk: 33, attackSpeed: 0.65, range: 240, critRate: 0.3, critDamage: 1.9,
-      armorPen: 0.35, maxHp: 245, maxMana: 88, manaOnHit: 15, manaRegen: 1,
-    }),
+      armorPen: 0.35, maxHp: 245, manaOnHit: 15,     }),
   }),
   // ===================== PHYSICAL RANGED — crossbow =====================
   t({
@@ -95,8 +92,7 @@ export const TOWERS_C: CharacterDef[] = [
     active: "siege-bolt",
     baseStats: makeStats({
       atk: 21, attackSpeed: 0.8, range: 230, critRate: 0.15, critDamage: 1.7,
-      armorPen: 0.45, maxHp: 165, maxMana: 70, manaOnHit: 11, manaRegen: 1,
-    }),
+      armorPen: 0.45, maxHp: 165, manaOnHit: 11,     }),
   }),
   t({
     id: "vesska-venombolt",
@@ -117,8 +113,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { dot: { dps: 16, duration: 4 } },
     baseStats: makeStats({
       atk: 14, attackSpeed: 1.0, range: 225, critRate: 0.18, critDamage: 1.7,
-      armorPen: 0.3, maxHp: 195, maxMana: 75, manaOnHit: 14, manaRegen: 1,
-    }),
+      armorPen: 0.3, maxHp: 195, manaOnHit: 14,     }),
   }),
   // ===================== PHYSICAL RANGED — gun =====================
   t({
@@ -139,8 +134,7 @@ export const TOWERS_C: CharacterDef[] = [
     active: "spin-shot",
     baseStats: makeStats({
       atk: 30, attackSpeed: 1.35, range: 260, critRate: 0.24, critDamage: 1.85,
-      armorPen: 0.3, omnivamp: 0.1, maxHp: 200, maxMana: 75, manaOnHit: 14, manaRegen: 1,
-    }),
+      armorPen: 0.3, omnivamp: 0.1, maxHp: 200, manaOnHit: 14,     }),
   }),
   t({
     id: "yael-boomshot",
@@ -161,8 +155,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { splashRadius: 96 },
     baseStats: makeStats({
       atk: 41, attackSpeed: 0.6, range: 255, critRate: 0.3, critDamage: 1.9,
-      maxHp: 240, maxMana: 88, manaOnHit: 15, manaRegen: 1,
-    }),
+      maxHp: 240, manaOnHit: 15,     }),
   }),
   t({
     id: "rivka-rebound",
@@ -183,8 +176,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { chainTargets: 6, chainFalloff: 0.8 },
     baseStats: makeStats({
       atk: 56, attackSpeed: 1.2, range: 260, critRate: 0.28, critDamage: 2.1,
-      armorPen: 0.4, omnivamp: 0.1, maxHp: 280, maxMana: 110, manaOnHit: 18, manaRegen: 2,
-    }),
+      armorPen: 0.4, omnivamp: 0.1, maxHp: 280, manaOnHit: 18,     }),
   }),
   // ===================== PHYSICAL RANGED — thrown =====================
   t({
@@ -206,8 +198,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { slow: { pct: 0.35, duration: 2.5 } },
     baseStats: makeStats({
       atk: 16, attackSpeed: 1.0, range: 200, critRate: 0.12, critDamage: 1.6,
-      maxHp: 160, maxMana: 70, manaOnHit: 11, manaRegen: 1,
-    }),
+      maxHp: 160, manaOnHit: 11,     }),
   }),
   // ===================== MAGIC IMPLEMENT — tome =====================
   t({
@@ -229,8 +220,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { dot: { dps: 12, duration: 4 } },
     baseStats: makeStats({
       atk: 12, attackSpeed: 1.0, range: 195, critRate: 0.1, critDamage: 1.6,
-      skillPower: 1.8, maxHp: 160, maxMana: 70, manaOnHit: 11, manaRegen: 1,
-    }),
+      skillPower: 1.8, maxHp: 160, manaOnHit: 11,     }),
   }),
   t({
     id: "verena-quillbane",
@@ -251,8 +241,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { slow: { pct: 0.4, duration: 2.5 }, stun: { duration: 0.8, chance: 0.25 } },
     baseStats: makeStats({
       atk: 14, attackSpeed: 0.9, range: 195, critRate: 0.12, critDamage: 1.6,
-      skillPower: 1.8, maxHp: 200, maxMana: 75, manaOnHit: 13, manaRegen: 1,
-    }),
+      skillPower: 1.8, maxHp: 200, manaOnHit: 13,     }),
   }),
   // ===================== MAGIC IMPLEMENT — scepter =====================
   t({
@@ -274,8 +263,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { buffAura: { radius: 170, atkPct: 0.2, attackSpeedPct: 0.12 } },
     baseStats: makeStats({
       atk: 12, attackSpeed: 0.7, range: 200, critRate: 0.1, critDamage: 1.5,
-      skillPower: 2.0, maxHp: 250, maxMana: 0, manaOnHit: 0, manaRegen: 0,
-    }),
+      skillPower: 2.0, maxHp: 250, manaOnHit: 0,     }),
   }),
   t({
     id: "sael-arcrod",
@@ -296,8 +284,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { chainTargets: 4, chainFalloff: 0.7 },
     baseStats: makeStats({
       atk: 25, attackSpeed: 1.0, range: 200, critRate: 0.15, critDamage: 1.7,
-      skillPower: 1.8, maxHp: 195, maxMana: 75, manaOnHit: 13, manaRegen: 1,
-    }),
+      skillPower: 1.8, maxHp: 195, manaOnHit: 13,     }),
   }),
   // ===================== MAGIC IMPLEMENT — wand =====================
   t({
@@ -319,8 +306,7 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { splashRadius: 55 },
     baseStats: makeStats({
       atk: 11, attackSpeed: 0.85, range: 185, critRate: 0.1, critDamage: 1.5,
-      skillPower: 1.6, maxHp: 120, maxMana: 60, manaOnHit: 8, manaRegen: 1,
-    }),
+      skillPower: 1.6, maxHp: 120, manaOnHit: 8,     }),
   }),
   t({
     id: "aldous-boltcaster",
@@ -340,8 +326,7 @@ export const TOWERS_C: CharacterDef[] = [
     active: "missile-salvo",
     baseStats: makeStats({
       atk: 42, attackSpeed: 1.1, range: 185, critRate: 0.32, critDamage: 1.95,
-      magicPen: 0.45, skillPower: 2.0, maxHp: 240, maxMana: 88, manaOnHit: 15, manaRegen: 1,
-    }),
+      magicPen: 0.45, skillPower: 2.0, maxHp: 240, manaOnHit: 15,     }),
   }),
   // ===================== MAGIC IMPLEMENT — orb =====================
   t({
@@ -363,7 +348,6 @@ export const TOWERS_C: CharacterDef[] = [
     behavior: { buffAura: { radius: 185, atkPct: 0.25, attackSpeedPct: 0.18 } },
     baseStats: makeStats({
       atk: 14, attackSpeed: 0.75, range: 190, critRate: 0.1, critDamage: 1.5,
-      skillPower: 2.2, maxHp: 270, maxMana: 0, manaOnHit: 0, manaRegen: 0,
-    }),
+      skillPower: 2.2, maxHp: 270, manaOnHit: 0,     }),
   }),
 ];

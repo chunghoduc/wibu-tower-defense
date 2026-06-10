@@ -4,7 +4,7 @@
  * merged onto the BattleScene prototype in `BattleScene.ts`; `this` is the scene.
  */
 import Phaser from "phaser";
-import type { EnemyRuntime, TowerRuntime } from "../core/battle.ts";
+import { type EnemyRuntime, type TowerRuntime, MANA_MAX } from "../core/battle.ts";
 import type { CharacterDef, ItemSlot } from "../data/schema.ts";
 import { ELITE_SIZE_MULT } from "../core/elite.ts";
 import { totalXpForLevel } from "../core/hero.ts";
@@ -24,10 +24,10 @@ export const renderMethods = {
     if (this.selectedTowerUid >= 0) {
       const t = this.battle.towers.find((x) => x.uid === this.selectedTowerUid && x.alive);
       if (!t) this.deselectTower();
-      else this.panel.tick({ hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.stats.maxMana, gold: this.battle.gold, upgradeCost: this.battle.upgradeCost(t.uid) });
+      else this.panel.tick({ hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.def.role !== "support" ? MANA_MAX : 0, gold: this.battle.gold, upgradeCost: this.battle.upgradeCost(t.uid) });
     } else {
       const h = this.battle.hero;
-      this.panel.tick({ hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: h.stats.maxMana, gold: this.battle.gold, upgradeCost: 0 });
+      this.panel.tick({ hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: MANA_MAX, gold: this.battle.gold, upgradeCost: 0 });
     }
 
     this.manageSprites();
@@ -88,9 +88,9 @@ export const renderMethods = {
       const r = this.battle.previewUpgradeRange(t.uid) ?? t.stats.range;
       g.lineStyle(1.5, color, 0.5).strokeCircle(t.pos.x, t.pos.y, r);
     }
-    if (t.stats.maxMana > 0) {
+    if (t.def.role !== "support") {
       g.fillStyle(0x42a5f5, 0.9);
-      g.fillRect(t.pos.x - 14, t.pos.y + 16, 28 * (t.mana / t.stats.maxMana), 3);
+      g.fillRect(t.pos.x - 14, t.pos.y + 16, 28 * (t.mana / MANA_MAX), 3);
     }
     if (t.hp < t.stats.maxHp) {
       g.fillStyle(0x000000, 0.6).fillRect(t.pos.x - 14, t.pos.y - 20, 28, 3);
@@ -261,7 +261,7 @@ export const renderMethods = {
     g.fillStyle(0x42a5f5, 1).fillRect(
       h.pos.x - 16,
       h.pos.y - 18,
-      32 * Phaser.Math.Clamp(h.mana / Math.max(1, h.stats.maxMana), 0, 1),
+      32 * Phaser.Math.Clamp(h.mana / MANA_MAX, 0, 1),
       3,
     );
   },

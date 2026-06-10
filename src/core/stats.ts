@@ -65,7 +65,6 @@ const HERO_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
   maxHp: 15,
   armor: 0.3,
   magicResist: 0.3,
-  maxMana: 1,
 };
 
 /** Level at which the neutral crit-chance growth reaches its cap. */
@@ -178,14 +177,16 @@ export const HERO_TOWER_SHARE = 0.6;
  * critDamage sits on a 1.5 base and skillPower on 1.0, so a hero with no crit-
  * damage/skill gear shares 0 of them rather than dumping +0.9 / +0.6 onto every
  * tower. Every other stat has a 0 baseline, so they share the plain `rate ×
- * heroStat`. moveSpeed is excluded — towers are static, so the hero's movement
- * must never bleed into them.
+ * heroStat`. moveSpeed AND range are excluded — both are positional: a tower is
+ * static, so neither the hero's movement nor the hero's weapon reach may bleed
+ * into it. (range is a tower's identity stat; letting a long-reach hero weapon
+ * add ~0.6×reach made towers fire far beyond their drawn range indicator.)
  */
 export function addHeroShare(towerStats: Stats, heroStats: Stats, rate = HERO_TOWER_SHARE): Stats {
   const baseline = defaultStats();
   const out = { ...towerStats };
   for (const k of Object.keys(out) as (keyof Stats)[]) {
-    if (k === "moveSpeed") continue;
+    if (k === "moveSpeed" || k === "range") continue;
     out[k] = out[k] + (heroStats[k] - baseline[k]) * rate;
   }
   return out;

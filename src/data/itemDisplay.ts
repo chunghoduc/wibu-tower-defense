@@ -46,8 +46,8 @@ const STAT_LABEL: Record<string, string> = {
   critDamage: "Crit Dmg", armor: "Armor", magicResist: "M.Resist", moveSpeed: "Move",
   hpRegen: "HP Regen", skillPower: "Skill Pwr", omnivamp: "Omnivamp", goldFind: "Gold",
   armorPen: "Armor Pen", magicPen: "Magic Pen", damageReduction: "Dmg Reduc",
-  critDefense: "Crit Def", tenacity: "Tenacity", maxMana: "Mana", manaRegen: "Mana Regen",
-  manaOnHit: "Mana/Hit", manaOnKill: "Mana/Kill", manaCostReduction: "Cost Reduc",
+  critDefense: "Crit Def", tenacity: "Tenacity",
+  manaOnHit: "Mana/Hit", manaOnKill: "Mana/Kill",
   physicalDamage: "Phys Dmg", magicDamage: "Magic Dmg",
 };
 
@@ -62,8 +62,6 @@ const AFFIX_PHRASE: Record<string, [string, string]> = {
   armor: ["+", " Armor"],
   magicResist: ["+", " Magic Resist"],
   hpRegen: ["+", " Health Regen"],
-  maxMana: ["+", " Max Mana"],
-  manaRegen: ["+", " Mana Regen"],
   manaOnHit: ["+", " Mana on Hit"],
   manaOnKill: ["+", " Mana on Kill"],
   moveSpeed: ["+", " Move Speed"],
@@ -75,7 +73,6 @@ const AFFIX_PHRASE: Record<string, [string, string]> = {
   damageReduction: ["Reduces damage taken by ", ""],
   critDefense: ["Reduces crit damage taken by ", ""],
   tenacity: ["Reduces crowd-control by ", ""],
-  manaCostReduction: ["Reduces skill cost by ", ""],
   physicalDamage: ["+", " Physical Damage"],
   magicDamage: ["+", " Magic Damage"],
 };
@@ -83,7 +80,7 @@ const AFFIX_PHRASE: Record<string, [string, string]> = {
 // Stat keys whose value is a small fraction shown as a percentage.
 const FRACTION = new Set<keyof Stats | string>([
   "critRate", "critDamage", "armorPen", "magicPen", "damageReduction", "critDefense",
-  "tenacity", "omnivamp", "goldFind", "skillPower", "manaCostReduction", "attackSpeed",
+  "tenacity", "omnivamp", "goldFind", "skillPower", "attackSpeed",
 ]);
 
 function label(key: string): string {

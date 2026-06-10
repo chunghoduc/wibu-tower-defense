@@ -39,8 +39,7 @@ const TOWERS_A: CharacterDef[] = [
     active: "spirit-ball",
     baseStats: makeStats({
       atk: 13, attackSpeed: 1.3, range: 90, critRate: 0.1, maxHp: 120,
-      maxMana: 60, manaOnHit: 8, manaRegen: 1,
-    }),
+      manaOnHit: 8,     }),
   }),
   t({
     id: "kazu-spirit-brawler",
@@ -60,8 +59,7 @@ const TOWERS_A: CharacterDef[] = [
     active: "dimensional-slash",
     baseStats: makeStats({
       atk: 22, attackSpeed: 1.1, range: 90, critRate: 0.15, maxHp: 170,
-      maxMana: 70, manaOnHit: 12, manaRegen: 1,
-    }),
+      manaOnHit: 12,     }),
   }),
   t({
     id: "zoran-thricedraw",
@@ -81,8 +79,7 @@ const TOWERS_A: CharacterDef[] = [
     active: "iaido-slash",
     baseStats: makeStats({
       atk: 30, attackSpeed: 1.1, range: 85, critRate: 0.25, critDamage: 1.9,
-      armorPen: 0.4, omnivamp: 0.1, maxHp: 210, maxMana: 70, manaOnHit: 14, manaRegen: 1,
-    }),
+      armorPen: 0.4, omnivamp: 0.1, maxHp: 210, manaOnHit: 14,     }),
   }),
   t({
     id: "prince-vael",
@@ -103,8 +100,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { activeType: "True" }, // ultimate pierces all defense
     baseStats: makeStats({
       atk: 44, attackSpeed: 1.4, range: 90, critRate: 0.35, critDamage: 2.0,
-      armorPen: 0.45, omnivamp: 0.12, maxHp: 260, maxMana: 85, manaOnHit: 13, manaRegen: 1,
-    }),
+      armorPen: 0.45, omnivamp: 0.12, maxHp: 260, manaOnHit: 13,     }),
   }),
   t({
     id: "karu-sunfist",
@@ -125,8 +121,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { activeType: "True" }, // signature beam ignores defense
     baseStats: makeStats({
       atk: 56, attackSpeed: 1.4, range: 160, critRate: 0.3, critDamage: 2.0,
-      magicPen: 0.4, skillPower: 1.8, maxHp: 280, maxMana: 100, manaOnHit: 16, manaRegen: 2,
-    }),
+      magicPen: 0.4, skillPower: 1.8, maxHp: 280, manaOnHit: 16,     }),
   }),
   t({
     id: "jugo-limitless",
@@ -147,8 +142,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { activeType: "True" },
     baseStats: makeStats({
       atk: 52, attackSpeed: 0.85, range: 165, critRate: 0.2, skillPower: 2.0,
-      magicPen: 0.5, maxHp: 220, maxMana: 100, manaOnHit: 18, manaRegen: 2,
-    }),
+      magicPen: 0.5, maxHp: 220, manaOnHit: 18,     }),
   }),
   t({
     id: "sota-caped-fist",
@@ -169,8 +163,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { activeType: "True" }, // one punch — nothing survives, nothing resists
     baseStats: makeStats({
       atk: 70, attackSpeed: 0.7, range: 100, critRate: 0.2, critDamage: 2.2,
-      maxHp: 300, maxMana: 100, manaOnHit: 20, manaRegen: 1,
-    }),
+      maxHp: 300, manaOnHit: 20,     }),
   }),
 
   // ============================ SPLASH ============================
@@ -192,8 +185,7 @@ const TOWERS_A: CharacterDef[] = [
     active: "frag-toss",
     behavior: { splashRadius: 55 },
     baseStats: makeStats({
-      atk: 16, attackSpeed: 0.7, range: 110, maxHp: 120, maxMana: 70, manaOnHit: 11, manaRegen: 1,
-    }),
+      atk: 16, attackSpeed: 0.7, range: 110, maxHp: 120, manaOnHit: 11,     }),
   }),
   t({
     id: "iron-bo-cannonarm",
@@ -214,8 +206,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { splashRadius: 72 },
     baseStats: makeStats({
       atk: 24, attackSpeed: 0.6, range: 120, armorPen: 0.3, maxHp: 170,
-      maxMana: 90, manaOnHit: 12, manaRegen: 1,
-    }),
+      manaOnHit: 12,     }),
   }),
   t({
     id: "kanae-petalfall",
@@ -236,8 +227,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { splashRadius: 86 },
     baseStats: makeStats({
       atk: 30, attackSpeed: 0.7, range: 150, magicPen: 0.25, skillPower: 1.3,
-      maxHp: 140, maxMana: 95, manaOnHit: 13, manaRegen: 2,
-    }),
+      maxHp: 140, manaOnHit: 13,     }),
   }),
   t({
     id: "akagan-ashen",
@@ -258,8 +248,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { splashRadius: 96 },
     baseStats: makeStats({
       atk: 42, attackSpeed: 0.65, range: 140, magicPen: 0.3, skillPower: 1.6,
-      maxHp: 220, maxMana: 100, manaOnHit: 14, manaRegen: 2,
-    }),
+      maxHp: 220, manaOnHit: 14,     }),
   }),
   t({
     id: "megu-explosion-sage",
@@ -280,8 +269,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { splashRadius: 120, activeType: "True" }, // the Explosion brooks no resistance
     baseStats: makeStats({
       atk: 38, attackSpeed: 0.5, range: 170, magicPen: 0.4, skillPower: 2.0,
-      maxHp: 150, maxMana: 120, manaOnHit: 18, manaRegen: 2,
-    }),
+      maxHp: 150, manaOnHit: 18,     }),
   }),
 
   // ============================ CHAIN ============================
@@ -303,8 +291,7 @@ const TOWERS_A: CharacterDef[] = [
     active: "double-skip",
     behavior: { chainTargets: 2, chainFalloff: 0.6 },
     baseStats: makeStats({
-      atk: 14, attackSpeed: 1.1, range: 125, maxHp: 100, maxMana: 60, manaOnHit: 10, manaRegen: 1,
-    }),
+      atk: 14, attackSpeed: 1.1, range: 125, maxHp: 100, manaOnHit: 10,     }),
   }),
   t({
     id: "zeni-spark",
@@ -325,8 +312,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { chainTargets: 3, chainFalloff: 0.7 },
     baseStats: makeStats({
       atk: 22, attackSpeed: 1.0, range: 140, magicPen: 0.25, skillPower: 1.3,
-      maxHp: 120, maxMana: 80, manaOnHit: 13, manaRegen: 2,
-    }),
+      maxHp: 120, manaOnHit: 13,     }),
   }),
   t({
     id: "hyo-frost-arc",
@@ -347,8 +333,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { chainTargets: 4, chainFalloff: 0.68 },
     baseStats: makeStats({
       atk: 28, attackSpeed: 0.9, range: 150, skillPower: 1.4, maxHp: 130,
-      maxMana: 85, manaOnHit: 14, manaRegen: 2,
-    }),
+      manaOnHit: 14,     }),
   }),
   t({
     id: "kilo-lightning-hand",
@@ -369,8 +354,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { chainTargets: 5, chainFalloff: 0.74 },
     baseStats: makeStats({
       atk: 38, attackSpeed: 1.3, range: 150, critRate: 0.25, magicPen: 0.35, skillPower: 1.5,
-      maxHp: 170, maxMana: 85, manaOnHit: 15, manaRegen: 2,
-    }),
+      maxHp: 170, manaOnHit: 15,     }),
   }),
   t({
     id: "sasu-stormblade",
@@ -391,8 +375,7 @@ const TOWERS_A: CharacterDef[] = [
     behavior: { chainTargets: 6, chainFalloff: 0.8, activeType: "True" }, // the descending lightning spares nothing
     baseStats: makeStats({
       atk: 46, attackSpeed: 1.2, range: 165, critRate: 0.3, critDamage: 1.9, magicPen: 0.4,
-      skillPower: 1.7, maxHp: 200, maxMana: 100, manaOnHit: 16, manaRegen: 2,
-    }),
+      skillPower: 1.7, maxHp: 200, manaOnHit: 16,     }),
   }),
 ];
 

@@ -6,7 +6,7 @@
  */
 import Phaser from "phaser";
 import type { Vec2 } from "../data/schema.ts";
-import type { TowerRuntime } from "../core/battle.ts";
+import { type TowerRuntime, MANA_MAX } from "../core/battle.ts";
 import { dist } from "../core/path.ts";
 import { Rng } from "../core/rng.ts";
 import { crispText } from "./ui.ts";
@@ -179,7 +179,7 @@ export const inputMethods = {
       .map((e) => ({ label: `⚡ ${e.def!.name}`, desc: e.def!.description, color: "#a8d8ff", iconKey: `skill__${e.id}` }));
     return {
       kind: "hero", name: "Hero", level: save.hero.level,
-      hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: h.stats.maxMana,
+      hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: MANA_MAX,
       stats: statRows(h.stats as unknown as Record<string, number>, HERO_STAT_KEYS),
       items, skills,
     };
@@ -194,7 +194,7 @@ export const inputMethods = {
     return {
       kind: "tower", uid: t.uid, name: t.def.name, iconKey: `tower__${t.def.id}`,
       stars: t.battleLevel + 1, // ★1 freshly placed → ★3 maxed
-      hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.stats.maxMana,
+      hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.def.role !== "support" ? MANA_MAX : 0,
       stats: statRows(t.stats as unknown as Record<string, number>, TOWER_STAT_KEYS),
       skills,
       upgradeCost: this.battle.upgradeCost(t.uid), sellValue: this.battle.sellValue(t.uid),

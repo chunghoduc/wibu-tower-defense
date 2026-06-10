@@ -35,9 +35,9 @@ const STAT_LABELS: Record<string, string> = {
   magicPen: "Magic Pen", skillPower: "Skill Power",
   maxHp: "Max HP", hpRegen: "HP Regen", armor: "Armor",
   magicResist: "Magic Resist", damageReduction: "Dmg Reduction",
-  tenacity: "Tenacity", maxMana: "Max Mana", manaRegen: "Mana Regen",
+  tenacity: "Tenacity",
   manaOnHit: "Mana/Hit", manaOnKill: "Mana/Kill",
-  manaCostReduction: "Mana Cost Red.", omnivamp: "Omnivamp",
+  omnivamp: "Omnivamp",
   moveSpeed: "Move Speed", goldFind: "Gold Find",
 };
 

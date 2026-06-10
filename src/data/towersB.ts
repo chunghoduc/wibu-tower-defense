@@ -22,8 +22,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "bramble",
     behavior: { dot: { dps: 7, duration: 3 } },
     baseStats: makeStats({
-      atk: 8, attackSpeed: 1.0, range: 110, maxHp: 120, maxMana: 55, manaOnHit: 9, manaRegen: 1,
-    }),
+      atk: 8, attackSpeed: 1.0, range: 110, maxHp: 120, manaOnHit: 9,     }),
   }),
   t({
     id: "kona-ember-fox",
@@ -44,8 +43,7 @@ export const TOWERS_B: CharacterDef[] = [
     behavior: { dot: { dps: 12, duration: 3.5 } },
     baseStats: makeStats({
       atk: 12, attackSpeed: 1.1, range: 135, skillPower: 1.2, maxHp: 110,
-      maxMana: 70, manaOnHit: 11, manaRegen: 2,
-    }),
+      manaOnHit: 11,     }),
   }),
   t({
     id: "shion-venom-priestess",
@@ -66,8 +64,7 @@ export const TOWERS_B: CharacterDef[] = [
     behavior: { dot: { dps: 16, duration: 4 } },
     baseStats: makeStats({
       atk: 14, attackSpeed: 1.0, range: 140, magicPen: 0.2, skillPower: 1.3,
-      maxHp: 120, maxMana: 80, manaOnHit: 12, manaRegen: 2,
-    }),
+      maxHp: 120, manaOnHit: 12,     }),
   }),
   t({
     id: "roan-flame-alchemist",
@@ -88,8 +85,7 @@ export const TOWERS_B: CharacterDef[] = [
     behavior: { dot: { dps: 24, duration: 4.5 } },
     baseStats: makeStats({
       atk: 18, attackSpeed: 1.0, range: 150, magicPen: 0.35, skillPower: 1.6,
-      maxHp: 150, maxMana: 90, manaOnHit: 13, manaRegen: 2,
-    }),
+      maxHp: 150, manaOnHit: 13,     }),
   }),
   t({
     id: "morren-plaguebearer",
@@ -110,8 +106,7 @@ export const TOWERS_B: CharacterDef[] = [
     behavior: { dot: { dps: 30, duration: 5, damageType: "True" } }, // the rot bypasses everything
     baseStats: makeStats({
       atk: 20, attackSpeed: 1.0, range: 155, skillPower: 1.8, maxHp: 170,
-      maxMana: 95, manaOnHit: 13, manaRegen: 2,
-    }),
+      manaOnHit: 13,     }),
   }),
 
   // ============================ DEBUFF ============================
@@ -133,8 +128,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "tar-pit",
     behavior: { slow: { pct: 0.28, duration: 2 } },
     baseStats: makeStats({
-      atk: 8, attackSpeed: 0.9, range: 125, maxHp: 110, maxMana: 65, manaOnHit: 10, manaRegen: 1,
-    }),
+      atk: 8, attackSpeed: 0.9, range: 125, maxHp: 110, manaOnHit: 10,     }),
   }),
   t({
     id: "shika-shadowbinder",
@@ -155,8 +149,7 @@ export const TOWERS_B: CharacterDef[] = [
     behavior: { stun: { duration: 0.8, chance: 0.3 }, slow: { pct: 0.2, duration: 1.5 } },
     baseStats: makeStats({
       atk: 12, attackSpeed: 0.9, range: 140, skillPower: 1.1, maxHp: 130,
-      maxMana: 80, manaOnHit: 12, manaRegen: 2,
-    }),
+      manaOnHit: 12,     }),
   }),
   t({
     id: "glace-ice-maker",
@@ -177,8 +170,7 @@ export const TOWERS_B: CharacterDef[] = [
     behavior: { slow: { pct: 0.38, duration: 2.3 } },
     baseStats: makeStats({
       atk: 16, attackSpeed: 1.0, range: 145, skillPower: 1.3, maxHp: 140,
-      maxMana: 80, manaOnHit: 12, manaRegen: 2,
-    }),
+      manaOnHit: 12,     }),
   }),
   t({
     id: "yuki-frostward-maiden",
@@ -199,8 +191,7 @@ export const TOWERS_B: CharacterDef[] = [
     behavior: { slow: { pct: 0.5, duration: 3 }, stun: { duration: 0.6, chance: 0.2 } },
     baseStats: makeStats({
       atk: 22, attackSpeed: 1.0, range: 150, skillPower: 1.5, maxHp: 160,
-      maxMana: 85, manaOnHit: 13, manaRegen: 2,
-    }),
+      manaOnHit: 13,     }),
   }),
   t({
     id: "garan-sandshackle",
@@ -225,8 +216,7 @@ export const TOWERS_B: CharacterDef[] = [
     },
     baseStats: makeStats({
       atk: 30, attackSpeed: 0.9, range: 140, armorPen: 0.3, skillPower: 1.5, maxHp: 240,
-      maxMana: 95, manaOnHit: 14, manaRegen: 1,
-    }),
+      manaOnHit: 14,     }),
   }),
 
   // ============================ SUPPORT ============================
@@ -247,7 +237,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["cheer"],
     active: "pep-talk",
     behavior: { buffAura: { radius: 120, atkPct: 0.08 } },
-    baseStats: makeStats({ atk: 4, attackSpeed: 0.7, range: 100, maxHp: 130, maxMana: 0 }),
+    baseStats: makeStats({ atk: 4, attackSpeed: 0.7, range: 100, maxHp: 130 }),
   }),
   t({
     id: "lyra-tempo",
@@ -266,7 +256,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["allegro"],
     active: "crescendo",
     behavior: { buffAura: { radius: 150, attackSpeedPct: 0.15 } },
-    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 125, maxHp: 140, maxMana: 0 }),
+    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 125, maxHp: 140 }),
   }),
   t({
     id: "orin-celestial-herald",
@@ -285,7 +275,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["blessing", "shun-shield"],
     active: "reject-fate",
     behavior: { buffAura: { radius: 150, atkPct: 0.12, attackSpeedPct: 0.08 } },
-    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 135, maxHp: 160, maxMana: 0 }),
+    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 135, maxHp: 160 }),
   }),
   t({
     id: "aldric-banner-bearer",
@@ -304,7 +294,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["rally", "vanguard", "last-charge"],
     active: "war-cry",
     behavior: { buffAura: { radius: 165, atkPct: 0.18, attackSpeedPct: 0.1 } },
-    baseStats: makeStats({ atk: 10, attackSpeed: 0.8, range: 135, maxHp: 220, maxMana: 0 }),
+    baseStats: makeStats({ atk: 10, attackSpeed: 0.8, range: 135, maxHp: 220 }),
   }),
   t({
     id: "senna-slug-sannin",
@@ -323,7 +313,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["hundred-healings", "monster-strength", "sannin-resolve"],
     active: "creation-rebirth",
     behavior: { buffAura: { radius: 185, atkPct: 0.25, attackSpeedPct: 0.18 } },
-    baseStats: makeStats({ atk: 16, attackSpeed: 0.8, range: 150, maxHp: 260, maxMana: 0 }),
+    baseStats: makeStats({ atk: 16, attackSpeed: 0.8, range: 150, maxHp: 260 }),
   }),
 
   // ============================ TANKER ============================

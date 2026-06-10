@@ -67,6 +67,16 @@ export interface DmgCtx {
 export const HERO_BLOCK_RANGE = 28;
 /** Default radius of splash / active-skill AoE bursts. */
 export const SPLASH_RADIUS = 60;
+/** Mana is a fixed charge bar: every caster fills the same 0..100 pool. */
+export const MANA_MAX = 100;
+/** Flat mana every caster gains per basic-attack hit (10% of the bar). */
+export const MANA_PER_HIT = 10;
+/** The `manaOnHit` bonus stat is clamped to this before it adds to the per-hit gain. */
+export const MANA_ON_HIT_CAP = 15;
+/** Total mana a unit gains per hit: the flat base plus its capped on-hit bonus (10..25). */
+export function manaGainOnHit(stats: Stats): number {
+  return MANA_PER_HIT + Math.min(MANA_ON_HIT_CAP, Math.max(0, stats.manaOnHit));
+}
 /** Pause between waves once the current wave is fully cleared. */
 export const INTER_WAVE_DELAY = 3;
 /** F13 combo: seconds a streak survives without a kill before it resets. */

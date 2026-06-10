@@ -50,7 +50,7 @@ import {
   segDist, HERO_FILTER,
   INTER_WAVE_DELAY, COMBO_MAX_MULT, COMBO_KILLS_FOR_MAX,
   LANE_CLEARANCE, MIN_TOWER_DIST, PLACE_MARGIN,
-  MAX_TOWER_UPGRADES, TOWER_SELL_REFUND,
+  MAX_TOWER_UPGRADES, TOWER_SELL_REFUND, MANA_MAX,
 } from "./battleTypes.ts";
 import { waveMethods, type WaveMethods } from "./battleWaves.ts";
 import { enemyMethods, type EnemyMethods } from "./battleEnemies.ts";
@@ -354,7 +354,6 @@ export class BattleState {
     t.goldSpent += cost;
     t.battleLevel += 1;
     const hpFrac = t.stats.maxHp > 0 ? t.hp / t.stats.maxHp : 1;
-    const manaFrac = t.stats.maxMana > 0 ? t.mana / t.stats.maxMana : 0;
     t.stats = addHeroShare(
       towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel),
       this.hero.stats,
@@ -371,7 +370,7 @@ export class BattleState {
     t.stats.atk *= battleLevelAtkMul(t.battleLevel);
     t.behavior = effectiveBehavior(t.def, t.battleLevel);
     t.hp = t.stats.maxHp * hpFrac;
-    t.mana = t.stats.maxMana * manaFrac;
+    // mana is a fixed 0..100 bar now — it carries over untouched across upgrades.
     if (this._heroSave) {
       incrementQuestKey(this._heroSave, "upgrade_towers", 1, new Date().toISOString().slice(0, 10));
     }
@@ -439,7 +438,6 @@ export class BattleState {
     if (!h.alive) return;
 
     if (h.stats.hpRegen > 0) h.hp = Math.min(h.stats.maxHp, h.hp + h.stats.hpRegen * dt);
-    if (h.stats.maxMana > 0) h.mana = Math.min(h.stats.maxMana, h.mana + h.stats.manaRegen * dt);
 
     const toTarget = dist(h.pos, h.moveTarget);
     if (toTarget > 1) {
@@ -454,7 +452,7 @@ export class BattleState {
     if (!target) return;
 
     this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1, heroAttackStyle(h.weaponType, h.damageType, h.stats.range));
-    if (h.stats.maxMana > 0 && h.mana >= h.stats.maxMana) {
+    if (h.mana >= MANA_MAX) {
       this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero", -1);
       h.mana = 0;
     }

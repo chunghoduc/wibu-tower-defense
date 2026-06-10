@@ -58,9 +58,10 @@ export function towerBaseline(role: TowerRole, rarity: Rarity): { core: Partial<
     atk: Math.round(b.atk * p),
     attackSpeed: r2(b.aspd * (1 + 0.04 * tier)),
     maxHp: Math.round(b.hp * (0.5 + 0.5 * p)),
-    maxMana: isSupport ? 0 : 55 + 12 * tier,       // supports are aura-only, never cast
-    manaOnHit: isSupport ? 0 : 7,
-    manaRegen: isSupport ? 0 : r2(1.4 + 0.3 * tier),
+    // Mana is a fixed 0..100 bar (see MANA_MAX). Supports are aura-only and never
+    // cast, so they gain no on-hit mana; everyone else fills faster by tier (capped
+    // at the +15 on-hit ceiling): Common 7 → Unique 15.
+    manaOnHit: isSupport ? 0 : Math.min(15, 7 + 2 * tier),
   };
   return { core, cost: round5(b.cost * p) };
 }
@@ -77,7 +78,7 @@ export function augmentTowerStats(role: TowerRole, rarity: Rarity, s: Stats): St
     damageReduction: s.damageReduction || r3(0.02 * tier),
     critDefense: s.critDefense || r3(0.03 * tier),
     tenacity: s.tenacity || r3(0.05 + 0.03 * tier),
-    manaOnKill: s.manaOnKill || (s.maxMana > 0 ? Math.max(2, Math.round(s.manaOnHit * 1.5)) : 0),
+    manaOnKill: s.manaOnKill || (role !== "support" ? Math.max(2, Math.round(s.manaOnHit * 1.5)) : 0),
   };
 }
 

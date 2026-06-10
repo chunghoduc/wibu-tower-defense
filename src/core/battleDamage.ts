@@ -20,7 +20,7 @@ import { addMasteryXp, MASTERY_XP_PER_KILL } from "./mastery.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type DmgCtx, type EnemyRuntime, type FxEvent, type TowerRuntime,
-  COMBO_DECAY, SPLASH_RADIUS,
+  COMBO_DECAY, SPLASH_RADIUS, MANA_MAX, manaGainOnHit,
 } from "./battleTypes.ts";
 
 export const damageMethods = {
@@ -62,10 +62,11 @@ export const damageMethods = {
       combatLogOn() ? { rate: unit.stats.critRate, roll: critRoll, hit: didCrit, mult: critMult } : undefined);
     const dealt = this.applyDamage(target, damageType, raw, unit.stats.armorPen, unit.stats.magicPen, false, true, ctx);
 
-    if (unit.stats.maxMana > 0) {
-      unit.mana = Math.min(unit.stats.maxMana, unit.mana + unit.stats.manaOnHit);
+    // Mana charges on every hit (support towers are aura-only and never cast).
+    if (role !== "support") {
+      unit.mana = Math.min(MANA_MAX, unit.mana + manaGainOnHit(unit.stats));
       if (wasAlive && !target.alive) {
-        unit.mana = Math.min(unit.stats.maxMana, unit.mana + unit.stats.manaOnKill);
+        unit.mana = Math.min(MANA_MAX, unit.mana + unit.stats.manaOnKill);
       }
     }
     if (unit.stats.omnivamp > 0 && dealt > 0) {

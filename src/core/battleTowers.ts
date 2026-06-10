@@ -7,7 +7,7 @@ import { dist } from "./path.ts";
 import { selectTarget } from "./targeting.ts";
 import { attackStyleFor, isMeleeStyle } from "../data/attackStyle.ts";
 import type { BattleState } from "./battle.ts";
-import { type EnemyRuntime, type TowerRuntime, targetFilter, SPLASH_RADIUS } from "./battleTypes.ts";
+import { type EnemyRuntime, type TowerRuntime, targetFilter, SPLASH_RADIUS, MANA_MAX } from "./battleTypes.ts";
 
 export const towerMethods = {
   recomputeTowerBuffs(this: BattleState): void {
@@ -55,8 +55,6 @@ export const towerMethods = {
         continue;
       }
 
-      if (t.stats.maxMana > 0) t.mana = Math.min(t.stats.maxMana, t.mana + t.stats.manaRegen * dt);
-
       const effAs = t.stats.attackSpeed * (1 + t.buffAsPct);
       t.attackCd -= dt;
       if (t.attackCd > 0 || effAs <= 0) continue;
@@ -72,7 +70,8 @@ export const towerMethods = {
       // tower's (short) reach for the same damage — short range, wide arc.
       if (isMeleeStyle(style)) this.applyCleave(t.stats, t.def.damageType, effAtk, t.pos, target);
 
-      if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
+      // Support towers are aura-only and never cast; everyone else casts at a full bar.
+      if (t.def.role !== "support" && t.mana >= MANA_MAX) {
         // Skills may deal True damage (the only path to True).
         const activeType = t.behavior?.activeType ?? t.def.damageType;
         this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
