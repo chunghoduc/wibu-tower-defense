@@ -65,7 +65,7 @@ describe("weapon migration parity", () => {
 describe("weapon-family coverage", () => {
   const present = new Set(TOWERS.map((t) => t.meta!.weapon.family));
   it("every previously-empty ranged/magic family now has a tower", () => {
-    for (const fam of ["bow", "crossbow", "gun", "tome", "scepter", "wand", "orb"] as WeaponFamily[]) {
+    for (const fam of ["bow", "crossbow", "gun", "thrown", "tome", "scepter", "wand", "orb"] as WeaponFamily[]) {
       expect(present.has(fam), `no tower uses family ${fam}`).toBe(true);
     }
   });
