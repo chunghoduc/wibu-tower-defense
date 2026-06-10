@@ -21,6 +21,7 @@ import { LocalSaveProvider } from "./core/save.ts";
 import { installLogger, log } from "./debug/logger.ts";
 import { setCombatLogSink } from "./core/combatLog.ts";
 import { setAudioVolume, setAudioMuted } from "./scenes/audio.ts";
+import { installMobileLandscape } from "./mobileLandscape.ts";
 
 installLogger();
 
@@ -50,6 +51,9 @@ const game = new Phaser.Game({
 });
 
 game.registry.set("saveManager", saveManager);
+
+// Mobile web: fullscreen + landscape on first gesture, rotate-prompt otherwise.
+installMobileLandscape(game);
 
 // Breadcrumb every scene create/shutdown — the trail that makes a later crash
 // diagnosable (e.g. the scene-re-entry class of bug). Scenes are instantiated by
