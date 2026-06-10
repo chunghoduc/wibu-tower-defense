@@ -28,11 +28,14 @@ jobs:
       - name: Tests
         run: npm test
 
+      # Auth via a GCP service-account key (the supported path; the old
+      # --token / FIREBASE_TOKEN flow is deprecated and being removed).
+      # Provision once with `firebase init hosting:github`, which creates the
+      # service account and stores its key as the secret below.
       - name: Deploy to live channel
-        run: >-
-          npx -y firebase-tools deploy --only hosting
-          --project wibu-tower-defense-d8b1c
-          --non-interactive
-          --token "$FIREBASE_TOKEN"
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WIBU_TOWER_DEFENSE_D8B1C }}
+          projectId: wibu-tower-defense-d8b1c
+          channelId: live

@@ -15,6 +15,7 @@ jobs:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: read
+      checks: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
@@ -32,41 +33,13 @@ jobs:
       - name: Tests
         run: npm test
 
+      # Deploy to a 7-day preview channel; the action posts/updates the
+      # preview URL as a PR comment automatically. Auth via the same GCP
+      # service-account secret as the live deploy (see deploy.yml).
       - name: Deploy preview channel
-        id: preview
-        run: |
-          url=$(npx -y firebase-tools hosting:channel:deploy "pr-${{ github.event.pull_request.number }}" \
-            --project wibu-tower-defense-d8b1c \
-            --expires 7d \
-            --no-authorized-domains \
-            --json \
-            --token "$FIREBASE_TOKEN" \
-            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const r=JSON.parse(s);const sites=r.result||{};const first=Object.values(sites)[0]||{};console.log(first.url||'')})")
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      - name: Comment preview URL on PR
-        uses: actions/github-script@v7
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          script: |
-            const url = '${{ steps.preview.outputs.url }}';
-            if (!url) return;
-            const body = `🔥 **Preview deploy ready**\n\n${url}\n\n_Expires in 7 days._`;
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const mine = comments.find(c => c.user.type === 'Bot' && c.body.includes('Preview deploy ready'));
-            if (mine) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner, repo: context.repo.repo,
-                comment_id: mine.id, body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner, repo: context.repo.repo,
-                issue_number: context.issue.number, body,
-              });
-            }
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_WIBU_TOWER_DEFENSE_D8B1C }}
+          projectId: wibu-tower-defense-d8b1c
+          expires: 7d
