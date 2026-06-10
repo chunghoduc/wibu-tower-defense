@@ -5,6 +5,8 @@ import { TOWERS } from "../data/towers.ts";
 import type { CharacterDef } from "../data/schema.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
+import { drawScrollbar } from "./scrollbar.ts";
+import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
 
 const RARITY_INT: Record<string, number> = {
   Common: 0x9e9e9e,
@@ -22,14 +24,25 @@ const RARITY_HEX: Record<string, string> = {
   Unique: "#f44336",
 };
 
-const COLS = 8;
-const CARD_W = 100;
-const CARD_H = 72;
-const GAP_X = 114;
-const GAP_Y = 88;
+// Avatar-forward grid: each card shows the tower's portrait (frame 0 of its
+// `tower__<id>` sheet). Owned cards are full colour; locked ones render as a
+// dark silhouette of the same art. Rows overflow the viewport and scroll.
+const COLS = 6;
+const CARD_W = 142;
+const CARD_H = 134;
+const GX = 10;
+const GY = 10;
+const X0 = (960 - (COLS * CARD_W + (COLS - 1) * GX)) / 2;
+const Y0 = 80;
+const BOTTOM = 530;
+const ROW_H = CARD_H + GY;
 
 export class CollectionScene extends Phaser.Scene {
   private detail: Phaser.GameObjects.Container | null = null;
+  private grid!: Phaser.GameObjects.Container;
+  private offset = 0;
+  private maxOffset = 0;
+  private drag!: DragScrollHandle;
 
   constructor() {
     super("CollectionScene");
@@ -37,6 +50,7 @@ export class CollectionScene extends Phaser.Scene {
 
   create(): void {
     this.detail = null;
+    this.offset = 0;
     fadeIn(this);
     const mgr: SaveManager = this.registry.get("saveManager");
     const save = mgr.getSave();
@@ -63,58 +77,104 @@ export class CollectionScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
-    const START_X = (W - (COLS - 1) * GAP_X - CARD_W) / 2 + CARD_W / 2;
-    const START_Y = 78;
+    this.grid = this.add.container(0, 0);
+
+    const visibleRows = Math.max(1, Math.floor((BOTTOM - Y0) / ROW_H));
+    const totalRows = Math.ceil(TOWERS.length / COLS);
+    this.maxOffset = Math.max(0, totalRows - visibleRows);
+
+    // Mouse wheel (desktop) scrolls one row per notch.
+    this.input.on("wheel", (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
+      if (this.detail || this.maxOffset <= 0) return;
+      const next = Phaser.Math.Clamp(this.offset + (dy > 0 ? 1 : -1), 0, this.maxOffset);
+      if (next !== this.offset) { this.offset = next; this.drawGrid(save); }
+    });
+
+    // Touch/drag scrolling (mobile). A moved gesture suppresses the card tap.
+    this.drag = attachDragScroll(this, {
+      rect: () => ({ x: X0, y: Y0, w: COLS * (CARD_W + GX), h: BOTTOM - Y0 }),
+      rowH: ROW_H,
+      maxOffset: () => this.maxOffset,
+      getOffset: () => this.offset,
+      setOffset: (n) => { this.offset = n; },
+      onChange: () => this.drawGrid(save),
+      enabled: () => !this.detail,
+    });
+
+    this.drawGrid(save);
+  }
+
+  /** Render only the rows currently inside the viewport window. */
+  private drawGrid(save: ReturnType<SaveManager["getSave"]>): void {
+    this.grid.removeAll(true);
+    const visibleRows = Math.max(1, Math.floor((BOTTOM - Y0) / ROW_H));
+    this.offset = Phaser.Math.Clamp(this.offset, 0, this.maxOffset);
+
+    for (let r = 0; r < visibleRows; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const idx = (this.offset + r) * COLS + c;
+        if (idx >= TOWERS.length) break;
+        this.drawCard(save, TOWERS[idx], X0 + c * (CARD_W + GX), Y0 + r * ROW_H);
+      }
+    }
+
+    drawScrollbar(this, this.grid, {
+      x: X0 + COLS * (CARD_W + GX) - GX + 2, y: Y0, h: visibleRows * ROW_H - GY,
+      total: Math.ceil(TOWERS.length / COLS), visible: visibleRows, offset: this.offset,
+    });
+  }
+
+  private drawCard(save: ReturnType<SaveManager["getSave"]>, tower: CharacterDef, x: number, y: number): void {
+    const isOwned = tower.id in save.collection;
+    const stars = getTowerStars(save, tower.id);
+    const colorInt = isOwned ? (RARITY_INT[tower.rarity] ?? 0x888888) : 0x37404e;
+    const hexColor = isOwned ? (RARITY_HEX[tower.rarity] ?? "#888888") : "#6b7689";
 
     const g = this.add.graphics();
+    g.fillStyle(0x0c111a, isOwned ? 1 : 0.85).fillRoundedRect(x, y, CARD_W, CARD_H, 8);
+    g.fillStyle(colorInt, isOwned ? 0.14 : 0.06).fillRoundedRect(x, y, CARD_W, CARD_H, 8);
+    g.lineStyle(1.5, colorInt, isOwned ? 1 : 0.5).strokeRoundedRect(x, y, CARD_W, CARD_H, 8);
+    this.grid.add(g);
 
-    TOWERS.forEach((tower, i) => {
-      const col = i % COLS;
-      const row = Math.floor(i / COLS);
-      const x = START_X + col * GAP_X;
-      const y = START_Y + row * GAP_Y;
-      const isOwned = tower.id in save.collection;
-      const stars = getTowerStars(save, tower.id);
-      const colorInt = isOwned ? (RARITY_INT[tower.rarity] ?? 0x888888) : 0x333333;
-      const hexColor = isOwned ? (RARITY_HEX[tower.rarity] ?? "#888888") : "#555555";
-      const alpha = isOwned ? 1.0 : 0.4;
+    // Avatar: frame 0 of the tower sheet, fit into the upper portrait area.
+    const avH = 82, avCX = x + CARD_W / 2, avCY = y + 8 + avH / 2;
+    const avKey = `tower__${tower.id}`;
+    if (this.textures.exists(avKey)) {
+      const img = this.add.image(avCX, avCY, avKey, 0).setOrigin(0.5);
+      img.setScale(Math.min((CARD_W - 16) / img.width, avH / img.height));
+      if (!isOwned) img.setTintFill(0x1d2532); // silhouette on WebGL
+      this.grid.add(img);
+    } else {
+      this.grid.add(this.add.text(avCX, avCY, isOwned ? "◈" : "?", { fontSize: "30px", color: hexColor }).setOrigin(0.5));
+    }
+    // Locked: darken the portrait (renderer-independent) and mark it unknown.
+    if (!isOwned) {
+      const veil = this.add.graphics();
+      veil.fillStyle(0x080b12, 0.6).fillRoundedRect(x + 8, y + 8, CARD_W - 16, avH, 6);
+      this.grid.add(veil);
+      this.grid.add(this.add.text(avCX, avCY, "?", { fontSize: "34px", color: "#7d889c", fontStyle: "bold" }).setOrigin(0.5));
+    }
 
-      g.fillStyle(colorInt, 0.12 * (isOwned ? 1 : 0.5));
-      g.fillRoundedRect(x - CARD_W / 2, y, CARD_W, CARD_H, 6);
-      g.lineStyle(1.5, colorInt, alpha);
-      g.strokeRoundedRect(x - CARD_W / 2, y, CARD_W, CARD_H, 6);
+    // Name.
+    this.grid.add(this.add.text(avCX, y + 96, isOwned ? tower.name : "??????", {
+      fontSize: "10px", color: hexColor, fontStyle: "bold",
+      wordWrap: { width: CARD_W - 10 }, align: "center",
+    }).setOrigin(0.5, 0));
 
-      this.add
-        .text(x, y + 7, tower.name, {
-          fontSize: "8px",
-          color: hexColor,
-          wordWrap: { width: CARD_W - 8 },
-          align: "center",
-        })
-        .setOrigin(0.5, 0);
+    // Footer: rarity (left) + stars (right).
+    this.grid.add(this.add.text(x + 8, y + CARD_H - 16, tower.rarity, {
+      fontSize: "9px", color: isOwned ? "#c4ccd8" : "#566073",
+    }).setOrigin(0, 0));
+    if (isOwned && stars > 0) {
+      this.grid.add(this.add.text(x + CARD_W - 8, y + CARD_H - 16, "★".repeat(stars), {
+        fontSize: "11px", color: "#ffd700",
+      }).setOrigin(1, 0));
+    }
 
-      this.add
-        .text(x, y + 38, tower.rarity, {
-          fontSize: "9px",
-          color: isOwned ? "#cccccc" : "#555555",
-        })
-        .setOrigin(0.5, 0);
-
-      if (isOwned && stars > 0) {
-        this.add
-          .text(x, y + 54, "★".repeat(stars), {
-            fontSize: "11px",
-            color: "#ffd700",
-          })
-          .setOrigin(0.5, 0);
-      }
-
-      // Click a card to open the character codex (metadata + skills).
-      this.add
-        .zone(x, y + CARD_H / 2, CARD_W, CARD_H)
-        .setInteractive({ useHandCursor: true })
-        .on("pointerdown", () => this.showDetail(tower, stars));
-    });
+    // Tap opens the codex — unless the gesture was a scroll drag.
+    const z = this.add.zone(x, y, CARD_W, CARD_H).setOrigin(0).setInteractive({ useHandCursor: true });
+    z.on("pointerup", () => { if (!this.drag.didScroll()) this.showDetail(tower, stars); });
+    this.grid.add(z);
   }
 
   /** Modal codex card: avatar, homage/outfit/weapon, lore, and skill icons. */
