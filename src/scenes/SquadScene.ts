@@ -25,6 +25,9 @@ const RARITY_INT: Record<Rarity, number> = {
   Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
 };
 const RARITY_ORDER: Record<Rarity, number> = { Common: 0, Magic: 1, Rare: 2, Legendary: 3, Unique: 4 };
+// Damage-type accent colours: a coloured frame around a skill chip tells the
+// player at a glance whether it deals Physical, Magic or True damage.
+const DMG_INT: Record<string, number> = { Physical: 0xff8a65, Magic: 0xb39ddb, True: 0xfff176 };
 const ROLE_LABEL: Record<TowerRole, string> = {
   damage: "Dmg", splash: "Splash", chain: "Chain", dot: "DoT", debuff: "Debuff", support: "Support", tanker: "Tank",
 };
@@ -242,9 +245,15 @@ export class SquadScene extends Phaser.Scene {
       const def = ACTIVE_SKILLS_MAP.get(entry.skillId);
       if (!def) return;
       const equipped = save.hero.equippedSkillIds.includes(entry.skillId);
-      const chip = crispText(this, 92 + idx * 104, 480, `${def.name}`, {
+      const chipX = 92 + idx * 104, chipY = 480;
+      const chip = crispText(this, chipX, chipY, `${def.name} L${entry.level}`, {
         fontSize: "10px", color: equipped ? "#fff" : RARITY_HEX[def.rarity], backgroundColor: equipped ? "#5a2a7a" : "#1a2230",
       }).setPadding(6, 3, 6, 3).setInteractive({ useHandCursor: true });
+      // Damage-type frame around the chip (Physical / Magic / True).
+      const frame = this.add.graphics();
+      frame.lineStyle(1.5, DMG_INT[def.damageType] ?? 0x9fb0c4, 1)
+        .strokeRoundedRect(chipX - 1, chipY - 1, chip.width + 2, chip.height + 2, 4);
+      this.dyn.add(frame);
       chip.on("pointerup", () => {
         if (this.didDrag) return;
         if (equipped) this.mgr.unequipSkill(entry.skillId); else this.mgr.equipSkill(entry.skillId);

@@ -1,4 +1,6 @@
 import type { HeroSave } from "./save.ts";
+import type { DamageType } from "../data/schema.ts";
+import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 
 /** Per-level XP cost of the original smooth curve (100 · L^1.8). */
 function baseLevelCost(level: number): number {
@@ -52,6 +54,32 @@ export function skillXpToLevel(skillLevel: number): number {
 
 export function skillEffectivePower(basePower: number, skillLevel: number): number {
   return basePower * (1 + 0.05 * skillLevel);
+}
+
+/** Power 100 == the legacy ×2 burst baseline (so `mult = effectivePower / 50`). */
+export const ACTIVE_POWER_ANCHOR = 50;
+
+/**
+ * Resolves the hero's *equipped* active skill into the burst it should actually
+ * deal: `burst = atk × mult × skillPower`.
+ *
+ * `mult` is the skill's effective power — its authored `basePower` scaled by the
+ * skill's level (the same "Power" number the Skills screen shows) — normalised so
+ * Power 100 equals the legacy flat ×2. This is what makes the cast reflect the
+ * skill the hero equipped: a higher-`basePower` skill, or a more-levelled one,
+ * hits harder, and the skill's own `damageType` applies (the only path to a
+ * True/Magic burst from a physical-weapon hero). Falls back to the legacy ×2 and
+ * the hero's weapon damage type when no skill is equipped or the id is unknown.
+ */
+export function heroActiveBurst(
+  save: HeroSave,
+): { skillId?: string; mult: number; damageType?: DamageType } {
+  const skillId = save.hero.equippedSkillIds[0];
+  const def = skillId ? ACTIVE_SKILLS_MAP.get(skillId) : undefined;
+  if (!def) return { skillId, mult: 2 };
+  const entry = save.hero.obtainedSkills.find((e) => e.skillId === skillId);
+  const power = skillEffectivePower(def.basePower, entry?.level ?? 0);
+  return { skillId, mult: power / ACTIVE_POWER_ANCHOR, damageType: def.damageType };
 }
 
 export function awardHeroXp(save: HeroSave, amount: number): void {

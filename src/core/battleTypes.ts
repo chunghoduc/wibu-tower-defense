@@ -180,6 +180,10 @@ export interface HeroRuntime {
   weaponType: WeaponType | null;
   /** The hero's single equipped active-skill id — drives the cast VFX signature. */
   equippedSkillId?: string;
+  /** Burst multiplier on atk for the equipped active (legacy ×2 when unset). */
+  activeMult?: number;
+  /** Damage type of the equipped active skill (falls back to weapon type). */
+  activeDamageType?: DamageType;
   pos: Vec2;
   moveTarget: Vec2;
   hp: number;

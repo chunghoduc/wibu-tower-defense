@@ -8,10 +8,10 @@
  * Chapter 1 layouts and BOSS_EXPANSION onto BOSS_BY_STAGE, so the stage build
  * pipeline (continuous global numbering, wave builder, terrain, theming) is
  * shared — these stages are tougher purely by their deeper global stage number,
- * which the progression curve scales up (each new chapter adds a felt "wall"
- * step, so Chapter 4 lands ~1.5× the enemy HP of Chapter 3, and Chapter 5 — the
- * final region — lands ~1.5× again over Chapter 4). See campaign.ts for region
- * lore.
+ * which the progression curve scales up. Each new chapter adds a felt "wall"
+ * step on top of the per-stage compounding, so every chapter's enemy HP lands
+ * ≈1.9× the previous chapter's (s15 ≈5.0× base, s20 ≈9.5×, s25 ≈18.1×, s30
+ * ≈34.6×). See campaign.ts for region lore and progressionScaling.ts for the curve.
  *
  * Coordinates are authored in the 960×540 logical space (scaled to the world by
  * stage.ts). Paths enter at x=-20 and end at the castle (last waypoint).

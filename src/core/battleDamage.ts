@@ -254,11 +254,12 @@ export const damageMethods = {
     uid: number,
     skillId?: string,
     defenseScale?: { armor?: number; magicResist?: number; maxHp?: number },
+    powerMult = 2,
   ): void {
     this.emit({ type: "cast", uid, at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
     const sp = Math.max(1, attacker.skillPower);
-    let burst = effAtk * 2 * sp;
-    let detail = `atk ${effAtk.toFixed(1)} ×2 ×skillPower ${sp.toFixed(2)}`;
+    let burst = effAtk * powerMult * sp;
+    let detail = `atk ${effAtk.toFixed(1)} ×${powerMult.toFixed(2)} ×skillPower ${sp.toFixed(2)}`;
     if (defenseScale) {
       // tanker payoff: fold the caster's own defenses into the burst.
       const defBonus = attacker.armor * (defenseScale.armor ?? 0)

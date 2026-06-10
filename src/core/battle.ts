@@ -30,6 +30,7 @@ import { dist, lerp, pathLength } from "./path.ts";
 import { Rng } from "./rng.ts";
 import { addHeroShare, towerStatPipeline } from "./stats.ts";
 import { resolveHeroBattleStats } from "./heroStats.ts";
+import { heroActiveBurst, awardSkillUseXp } from "./hero.ts";
 import { effectiveBehavior, battleLevelAtkMul } from "./towerUpgrade.ts";
 import { heroAttackStyle } from "../data/attackStyle.ts";
 import { selectTarget } from "./targeting.ts";
@@ -172,11 +173,14 @@ export class BattleState {
       const { stats: resolvedStats, petGoldPerSec, weaponType } = resolveHeroBattleStats(opts.heroSave, opts.hero.stats);
       if (petGoldPerSec > 0) this.petGoldPerSec = petGoldPerSec;
 
+      const active = heroActiveBurst(opts.heroSave);
       this.hero = {
         stats: resolvedStats,
         damageType: opts.hero.damageType ?? "Physical",
         weaponType,
-        equippedSkillId: opts.heroSave.hero.equippedSkillIds[0],
+        equippedSkillId: active.skillId,
+        activeMult: active.mult,
+        activeDamageType: active.damageType,
         pos: { ...opts.hero.startPos },
         moveTarget: { ...opts.hero.startPos },
         hp: resolvedStats.maxHp,
@@ -457,8 +461,16 @@ export class BattleState {
 
     this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1, heroAttackStyle(h.weaponType, h.damageType, h.stats.range));
     if (h.mana >= MANA_MAX) {
-      this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero", -1, h.equippedSkillId);
+      // The equipped active drives both the burst size (its levelled power) and
+      // the damage type — a True/Magic skill casts True/Magic even on a Physical
+      // weapon. Falls back to the legacy ×2 / weapon type when nothing is equipped.
+      this.castActive(h.stats, h.stats.atk, h.activeDamageType ?? h.damageType, target.pos, "hero", -1, h.equippedSkillId, undefined, h.activeMult ?? 2);
       h.mana = 0;
+      // Skill leveling (spec: +1 use-XP per cast, capped at the hero's level).
+      // Written straight into the live save like kill XP; the scene flushes after
+      // the battle. Without this the equipped skill never levels and its Power —
+      // which drives the burst size — is frozen at the level it dropped/started at.
+      if (this._heroSave && h.equippedSkillId) awardSkillUseXp(this._heroSave, h.equippedSkillId);
     }
     h.attackCd = 1 / h.stats.attackSpeed;
   }
