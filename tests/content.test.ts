@@ -86,14 +86,16 @@ describe("enemy roster", () => {
 });
 
 describe("campaign stages", () => {
-  it("has 20 stages across three chapters", () => {
-    expect(cat.stages.size).toBe(20);
+  it("has 25 stages across four chapters", () => {
+    expect(cat.stages.size).toBe(25);
     const ch1 = [...cat.stages.keys()].filter((id) => id.startsWith("ch1-"));
     const ch2 = [...cat.stages.keys()].filter((id) => id.startsWith("ch2-"));
     const ch3 = [...cat.stages.keys()].filter((id) => id.startsWith("ch3-"));
+    const ch4 = [...cat.stages.keys()].filter((id) => id.startsWith("ch4-"));
     expect(ch1.length).toBe(10);
     expect(ch2.length).toBe(5);
     expect(ch3.length).toBe(5);
+    expect(ch4.length).toBe(5);
   });
 
   it("every stage has multiple waves ending in a boss", () => {

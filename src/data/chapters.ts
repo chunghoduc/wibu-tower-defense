@@ -79,6 +79,10 @@ const STAGE_BIOMES: Record<number, StageBiome> = {
   19: { terrainTint: 0xffffff, groundOverlay: 0x2a1410, block: ["lava", "crystal", "stone"], decor: ["crystal", "sand"] },
   // 20 — Throne of Emberfall: the demon-king's furnace
   20: { terrainTint: 0xffffff, groundOverlay: 0x2a1008, block: ["lava", "mountain", "lava", "stone"], decor: ["sand", "lava"] },
+  // 23 — Sporebloom Hollow: luminous fungus glowing over the black water
+  23: { terrainTint: 0xb6f0c2, groundOverlay: 0x10220f, block: ["crystal", "jungle", "water"], decor: ["grass", "crystal"] },
+  // 25 — Heart of the Rot: the corruption's beating core
+  25: { terrainTint: 0xc0e0a0, groundOverlay: 0x141f14, block: ["water", "jungle", "crystal", "water"], decor: ["crystal", "grass"] },
 };
 
 const STAGES_PER_CHAPTER = 5;

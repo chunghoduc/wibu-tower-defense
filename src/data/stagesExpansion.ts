@@ -1,20 +1,26 @@
 /**
- * Campaign expansion — Chapter 2 "Sunscar Wastes" (desert, stages 11–15) and
- * Chapter 3 "Emberfall" (volcanic, stages 16–20).
+ * Campaign expansion — Chapter 2 "Sunscar Wastes" (desert, stages 11–15),
+ * Chapter 3 "Emberfall" (volcanic, stages 16–20), and Chapter 4 "Mire Hollow"
+ * (poison swamp, stages 21–25).
  *
  * Layouts + per-stage boss assignments live here to keep stage.ts focused (and
  * under the 500-line cap). stage.ts concatenates EXPANSION_LAYOUTS onto the
  * Chapter 1 layouts and BOSS_EXPANSION onto BOSS_BY_STAGE, so the stage build
  * pipeline (continuous global numbering, wave builder, terrain, theming) is
  * shared — these stages are tougher purely by their deeper global stage number,
- * which the progression curve scales up. See campaign.ts for region lore.
+ * which the progression curve scales up (each new chapter adds a felt "wall"
+ * step, so Chapter 4 lands ~1.5× the enemy HP of Chapter 3). See campaign.ts
+ * for region lore.
  *
  * Coordinates are authored in the 960×540 logical space (scaled to the world by
  * stage.ts). Paths enter at x=-20 and end at the castle (last waypoint).
  */
 import type { Layout } from "./stage.ts";
 
-/** Chapter 2 (stages 11–15) + Chapter 3 (stages 16–20), in stage order. */
+/**
+ * Chapter 2 (stages 11–15), Chapter 3 (16–20), and Chapter 4 (21–25), in stage
+ * order. Chapter 4's lanes coil longer and tighter — the meanest country yet.
+ */
 export const EXPANSION_LAYOUTS: Layout[] = [
   // ── Chapter 2 — Sunscar Wastes (desert) ──────────────────────────────────
   {
@@ -79,10 +85,42 @@ export const EXPANSION_LAYOUTS: Layout[] = [
     air: [{ x: -20, y: 460 }, { x: -20, y: 260 }],
     slots: [{ x: 100, y: 260 }, { x: 310, y: 260 }, { x: 530, y: 300 }, { x: 730, y: 300 }, { x: 560, y: 420 }, { x: 350, y: 360 }, { x: 720, y: 150 }, { x: 300, y: 150 }],
   },
+
+  // ── Chapter 4 — Mire Hollow (poison swamp) ───────────────────────────────
+  {
+    name: "Fenmouth Wade",
+    path: [{ x: -20, y: 180 }, { x: 240, y: 180 }, { x: 240, y: 420 }, { x: 560, y: 420 }, { x: 560, y: 160 }, { x: 900, y: 160 }],
+    air: [{ x: -20, y: 420 }, { x: -20, y: 80 }],
+    slots: [{ x: 140, y: 90 }, { x: 360, y: 260 }, { x: 420, y: 340 }, { x: 480, y: 480 }, { x: 700, y: 300 }, { x: 760, y: 120 }, { x: 820, y: 260 }, { x: 440, y: 200 }],
+  },
+  {
+    name: "The Sunken Dead",
+    path: [{ x: -20, y: 440 }, { x: 200, y: 440 }, { x: 200, y: 140 }, { x: 460, y: 140 }, { x: 460, y: 440 }, { x: 720, y: 440 }, { x: 720, y: 140 }, { x: 900, y: 140 }],
+    air: [{ x: -20, y: 140 }, { x: -20, y: 300 }],
+    slots: [{ x: 90, y: 300 }, { x: 320, y: 240 }, { x: 340, y: 360 }, { x: 580, y: 260 }, { x: 600, y: 360 }, { x: 660, y: 220 }, { x: 820, y: 300 }, { x: 300, y: 90 }],
+  },
+  {
+    name: "Sporebloom Hollow",
+    path: [{ x: -20, y: 120 }, { x: 220, y: 120 }, { x: 220, y: 320 }, { x: 440, y: 320 }, { x: 440, y: 120 }, { x: 660, y: 120 }, { x: 660, y: 340 }, { x: 900, y: 340 }],
+    air: [{ x: -20, y: 320 }, { x: -20, y: 460 }],
+    slots: [{ x: 120, y: 230 }, { x: 330, y: 210 }, { x: 330, y: 420 }, { x: 550, y: 220 }, { x: 560, y: 420 }, { x: 770, y: 220 }, { x: 780, y: 440 }, { x: 120, y: 420 }],
+  },
+  {
+    name: "The Miremother's Nest",
+    path: [{ x: -20, y: 300 }, { x: 120, y: 300 }, { x: 120, y: 120 }, { x: 840, y: 120 }, { x: 840, y: 460 }, { x: 300, y: 460 }, { x: 300, y: 300 }, { x: 640, y: 300 }, { x: 640, y: 400 }, { x: 900, y: 400 }],
+    air: [{ x: -20, y: 120 }, { x: -20, y: 460 }],
+    slots: [{ x: 220, y: 210 }, { x: 460, y: 200 }, { x: 640, y: 200 }, { x: 760, y: 260 }, { x: 420, y: 360 }, { x: 500, y: 420 }, { x: 760, y: 510 }, { x: 200, y: 400 }],
+  },
+  {
+    name: "Heart of the Rot",
+    path: [{ x: -20, y: 90 }, { x: 760, y: 90 }, { x: 760, y: 210 }, { x: 180, y: 210 }, { x: 180, y: 330 }, { x: 760, y: 330 }, { x: 760, y: 450 }, { x: 300, y: 450 }, { x: 300, y: 540 }],
+    air: [{ x: -20, y: 210 }, { x: -20, y: 330 }],
+    slots: [{ x: 360, y: 150 }, { x: 600, y: 150 }, { x: 460, y: 270 }, { x: 600, y: 390 }, { x: 360, y: 390 }, { x: 660, y: 270 }, { x: 840, y: 270 }, { x: 220, y: 450 }],
+  },
 ];
 
 /**
- * Final boss for stages 11–20 (1-indexed continues from BOSS_BY_STAGE). Reuses
+ * Final boss for stages 11–25 (1-indexed continues from BOSS_BY_STAGE). Reuses
  * the existing roster, ordered to escalate within each chapter and climax at the
  * apex boss; the progression curve scales these into elite versions.
  */
@@ -91,4 +129,6 @@ export const BOSS_EXPANSION = [
   "ryomen", "kura", "akai", "mukade", "overlord",
   // Chapter 3 — Emberfall (16–20)
   "zabro", "madarok", "mukade", "overlord", "meruon",
+  // Chapter 4 — Mire Hollow (21–25)
+  "akai", "ryomen", "mukade", "madarok", "meruon",
 ];

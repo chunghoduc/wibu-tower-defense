@@ -43,8 +43,8 @@ describe("boss roster", () => {
     expect(new Set(finals).size).toBe(10); // a distinct boss per stage in Ch.1
   });
 
-  it("the expansion chapters (stages 11-20) all resolve to a real boss", () => {
-    // Chapter 2/3 reuse the roster (elite-scaled by the progression curve), so
+  it("the expansion chapters (stages 11-25) all resolve to a real boss", () => {
+    // Chapter 2/3/4 reuse the roster (elite-scaled by the progression curve), so
     // bosses need not be distinct — but every authored stage must resolve to a
     // real boss, never the silent 'overlord' fallback.
     for (const stage of STAGES.filter((s) => !s.id.startsWith("ch1-"))) {

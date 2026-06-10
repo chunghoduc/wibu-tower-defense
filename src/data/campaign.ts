@@ -78,6 +78,23 @@ export const CAMPAIGN_CHAPTERS: CampaignChapter[] = [
     // homage: descent into a demon-king's burning castle — Infinity Castle x Dante's Inferno
     homage: "Inspired by a descent into a demon-king's burning citadel.",
   },
+  {
+    chapter: 4,
+    id: "ch4",
+    title: "Mire Hollow",
+    biome: "A luminous poison swamp where the spores never stop falling.",
+    bgKey: bgKey("chapter-swamp"),
+    blurb: "A drowning wade through a fungal sea that is eating the world.",
+    lore:
+      "Past the furnace the world does not burn — it rots. The demon-king's broken " +
+      "host was dumped into the lowland fens to die, and it did not. It festered, and " +
+      "a glowing fungal sea bloomed from the carrion, breathing a miasma that kills " +
+      "anything that draws breath. The drowned dead walk beneath the black water, and " +
+      "the deeper you wade toward the rot's beating heart, the thicker the spores fall.",
+    // homage: a slow march through a toxic fungal jungle swallowing the world,
+    //         drowned dead under the water — Nausicaä's Sea of Corruption x the Dead Marshes
+    homage: "Inspired by a slow wade through a poison jungle that is swallowing the world.",
+  },
 ];
 
 const BY_NUMBER = new Map(CAMPAIGN_CHAPTERS.map((c) => [c.chapter, c]));
