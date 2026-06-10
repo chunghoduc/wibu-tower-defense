@@ -5,6 +5,8 @@ import { STAGES } from "../data/stage.ts";
 import { ENEMIES } from "../data/enemies.ts";
 import { stageBgKey } from "../data/uiManifest.ts";
 import { openEnemyPanel, enemiesForStage } from "./enemyListPanel.ts";
+import { isDifficultyUnlocked, prerequisiteTier } from "../core/difficultyUnlock.ts";
+import type { HeroSave } from "../core/save.ts";
 import type { Difficulty, StageDef } from "../data/schema.ts";
 
 const DIFFICULTIES: Difficulty[] = ["Normal", "Hard", "Nightmare"];
@@ -24,6 +26,8 @@ const GAP_Y = 118;
 export class StageSelectScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = "Normal";
   private diffBtns: Phaser.GameObjects.Text[] = [];
+  private stageLayer?: Phaser.GameObjects.Container;
+  private legend?: Phaser.GameObjects.Text;
 
   constructor() {
     super("StageSelectScene");
@@ -35,6 +39,8 @@ export class StageSelectScene extends Phaser.Scene {
     // previous visit — otherwise refreshDiffTabs() would call setBackgroundColor
     // on destroyed Texts whose WebGL texture source is gone (crash on real GPU).
     this.diffBtns = [];
+    this.stageLayer = undefined;
+    this.legend = undefined;
     const mgr: SaveManager = this.registry.get("saveManager");
     const save = mgr.getSave();
     const W = this.scale.width;
@@ -87,12 +93,33 @@ export class StageSelectScene extends Phaser.Scene {
       btn.on("pointerdown", () => {
         this.selectedDifficulty = diff;
         this.refreshDiffTabs();
+        this.buildStageGrid(save);
       });
       this.diffBtns.push(btn);
     });
     this.refreshDiffTabs();
 
-    // Stage cards
+    // Stage cards (rebuilt whenever the difficulty tab changes)
+    this.buildStageGrid(save);
+
+    // Legend at bottom (its text tracks the selected difficulty's unlock rule)
+    this.legend = this.add
+      .text(W / 2, H - 14, "", { fontSize: "10px", color: "#555555" })
+      .setOrigin(0.5, 1);
+    this.refreshLegend();
+  }
+
+  /** (Re)paint the stage card grid for the currently selected difficulty. */
+  private buildStageGrid(save: HeroSave): void {
+    const W = this.scale.width;
+    this.stageLayer?.destroy(true);
+    const layer = this.add.container(0, 0);
+    this.stageLayer = layer;
+    const add = <T extends Phaser.GameObjects.GameObject>(o: T): T => {
+      layer.add(o);
+      return o;
+    };
+
     const clearMap = save.progress.stageClearMap;
     const START_X = (W - (COLS - 1) * GAP_X - CARD_W) / 2 + CARD_W / 2;
     const START_Y = 90;
@@ -105,42 +132,49 @@ export class StageSelectScene extends Phaser.Scene {
 
       const clearRecord = clearMap[stage.id];
       const anyCleared = clearRecord && (clearRecord.Normal || clearRecord.Hard || clearRecord.Nightmare);
+      // Sequential gate: can't even open a stage until the previous one is
+      // cleared on Normal. Tier gate: this stage's chapter must be conquered on
+      // the tier below before the selected harder tier can be played.
       const isLocked = i > 0 && !clearMap[STAGES[i - 1].id]?.Normal;
+      const tierLocked = !isLocked && !isDifficultyUnlocked(save, stage.id, this.selectedDifficulty);
+      const dimmed = isLocked || tierLocked;
       const left = x - CARD_W / 2;
 
       // Per-card layers stacked by insertion order (fill → art → veil → border →
       // text), so each card's painting reads cleanly and text stays legible.
-      const bg = isLocked ? 0x222222 : anyCleared ? 0x1a3a2a : 0x1a2a3a;
-      this.add.graphics().fillStyle(bg, 1).fillRoundedRect(left, y, CARD_W, CARD_H, 8);
+      const bg = isLocked ? 0x222222 : tierLocked ? 0x2a2230 : anyCleared ? 0x1a3a2a : 0x1a2a3a;
+      add(this.add.graphics().fillStyle(bg, 1).fillRoundedRect(left, y, CARD_W, CARD_H, 8));
 
       // The stage's hand-painted backdrop, cover-fit and masked to the rounded
       // card so each stage is recognisable at a glance. Locked stages stay dark.
       const bgkey = stageBgKey(stage.id);
       if (this.textures.exists(bgkey)) {
-        const img = this.add.image(x, y + CARD_H / 2, bgkey);
+        const img = add(this.add.image(x, y + CARD_H / 2, bgkey));
         img.setScale(Math.max(CARD_W / img.width, CARD_H / img.height));
-        const maskG = this.make.graphics({}).fillStyle(0xffffff).fillRoundedRect(left, y, CARD_W, CARD_H, 8);
+        // Invisible mask child — destroyed with the layer on rebuild (no leak).
+        const maskG = add(this.add.graphics().fillStyle(0xffffff).fillRoundedRect(left, y, CARD_W, CARD_H, 8));
+        maskG.setVisible(false);
         img.setMask(maskG.createGeometryMask());
-        if (isLocked) img.setTint(0x55585f);
+        if (dimmed) img.setTint(isLocked ? 0x55585f : 0x8a7fa0);
         // Dark veil so the card text stays legible over the art.
-        this.add.graphics().fillStyle(0x05070c, isLocked ? 0.62 : 0.5).fillRoundedRect(left, y, CARD_W, CARD_H, 8);
+        add(this.add.graphics().fillStyle(0x05070c, dimmed ? 0.6 : 0.5).fillRoundedRect(left, y, CARD_W, CARD_H, 8));
       }
-      this.add.graphics().lineStyle(2, isLocked ? 0x333333 : 0x4a6a8a, 1).strokeRoundedRect(left, y, CARD_W, CARD_H, 8);
+      add(this.add.graphics().lineStyle(2, isLocked ? 0x333333 : tierLocked ? 0x5a4a6a : 0x4a6a8a, 1).strokeRoundedRect(left, y, CARD_W, CARD_H, 8));
 
       // Per-stage "Foes" scout button (top-left) — list the enemies & boss this
       // stage fields, so the player can plan a loadout. Available even when the
       // stage is locked, so the road ahead can be scouted.
-      const foes = this.add
+      const foes = add(this.add
         .text(left + 6, y + 6, "👁 Foes", { fontSize: "9px", color: "#ffe0a0", backgroundColor: "#00000088" })
         .setOrigin(0, 0).setPadding(4, 2, 4, 2)
-        .setInteractive({ useHandCursor: true });
+        .setInteractive({ useHandCursor: true }));
       foes.on("pointerover", () => foes.setColor("#fff2cc"));
       foes.on("pointerout", () => foes.setColor("#ffe0a0"));
       foes.on("pointerdown", () => this.openStageEnemies(stage));
 
       // Stage number + name (stroked so they read over the painted backdrop)
-      const nameColor = isLocked ? "#777777" : "#ffffff";
-      this.add
+      const nameColor = dimmed ? "#888888" : "#ffffff";
+      add(this.add
         .text(x, y + 10, `Stage ${i + 1}`, {
           fontSize: "11px",
           color: isLocked ? "#556677" : "#9fd0ff",
@@ -148,9 +182,9 @@ export class StageSelectScene extends Phaser.Scene {
           stroke: "#05070c",
           strokeThickness: 3,
         })
-        .setOrigin(0.5, 0);
+        .setOrigin(0.5, 0));
 
-      this.add
+      add(this.add
         .text(x, y + 26, stage.name, {
           fontSize: "9px",
           color: nameColor,
@@ -159,7 +193,7 @@ export class StageSelectScene extends Phaser.Scene {
           stroke: "#05070c",
           strokeThickness: 3,
         })
-        .setOrigin(0.5, 0);
+        .setOrigin(0.5, 0));
 
       // Clear badges
       if (clearRecord) {
@@ -168,24 +202,41 @@ export class StageSelectScene extends Phaser.Scene {
         if (clearRecord.Hard) badges.push("H");
         if (clearRecord.Nightmare) badges.push("NM");
         if (badges.length > 0) {
-          this.add
+          add(this.add
             .text(x, y + 54, badges.join(" · "), {
               fontSize: "9px",
               color: "#ffd700",
             })
-            .setOrigin(0.5, 0);
+            .setOrigin(0.5, 0));
         }
       }
 
       if (isLocked) {
-        this.add
+        add(this.add
           .text(x, y + CARD_H / 2, "🔒", { fontSize: "20px" })
-          .setOrigin(0.5, 0.5);
+          .setOrigin(0.5, 0.5));
+        return;
+      }
+
+      // Tier-locked: the stage is reachable, but the selected difficulty is
+      // gated behind clearing this chapter on the tier below. Show why instead
+      // of a Play button.
+      if (tierLocked) {
+        const prereq = prerequisiteTier(this.selectedDifficulty);
+        add(this.add
+          .text(x, y + CARD_H - 10, `🔒 Clear chapter on ${prereq}`, {
+            fontSize: "9px",
+            color: "#caa6e0",
+            backgroundColor: "#3a2a4a",
+            align: "center",
+          })
+          .setOrigin(0.5, 1)
+          .setPadding(8, 4, 8, 4));
         return;
       }
 
       // Play button area
-      const playBtn = this.add
+      const playBtn = add(this.add
         .text(x, y + CARD_H - 10, "▶ Play", {
           fontSize: "12px",
           color: "#ffffff",
@@ -193,20 +244,24 @@ export class StageSelectScene extends Phaser.Scene {
         })
         .setOrigin(0.5, 1)
         .setPadding(10, 4, 10, 4)
-        .setInteractive({ useHandCursor: true });
+        .setInteractive({ useHandCursor: true }));
 
       playBtn.on("pointerover", () => playBtn.setBackgroundColor("#1e88e5"));
       playBtn.on("pointerout", () => playBtn.setBackgroundColor("#1565c0"));
       playBtn.on("pointerdown", () => this.launchStage(stage));
     });
 
-    // Legend at bottom
-    this.add
-      .text(W / 2, H - 14, "Clear Normal to unlock the next stage  ·  N/H/NM = clear badges", {
-        fontSize: "10px",
-        color: "#555555",
-      })
-      .setOrigin(0.5, 1);
+    this.refreshLegend();
+  }
+
+  /** Bottom hint line — explains the unlock rule for the selected tier. */
+  private refreshLegend(): void {
+    if (!this.legend) return;
+    const prereq = prerequisiteTier(this.selectedDifficulty);
+    const text = prereq
+      ? `${this.selectedDifficulty} unlocks per chapter once every stage is cleared on ${prereq}  ·  N/H/NM = clear badges`
+      : "Clear Normal to unlock the next stage  ·  clear a whole chapter to open Hard  ·  N/H/NM = clear badges";
+    this.legend.setText(text);
   }
 
   private refreshDiffTabs(): void {
@@ -219,6 +274,10 @@ export class StageSelectScene extends Phaser.Scene {
   }
 
   private launchStage(stage: StageDef): void {
+    // Guard: the Play button is only shown when unlocked, but never trust the
+    // view alone to enforce the tier gate.
+    const mgr: SaveManager = this.registry.get("saveManager");
+    if (!isDifficultyUnlocked(mgr.getSave(), stage.id, this.selectedDifficulty)) return;
     this.registry.set("selectedStage", stage);
     this.registry.set("selectedDifficulty", this.selectedDifficulty);
     this.scene.start("BattleScene");
