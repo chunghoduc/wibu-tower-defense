@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TOWERS } from "../src/data/towers.ts";
 import { attackStyleFor, isMeleeStyle } from "../src/data/attackStyle.ts";
-import { deriveDamageType, FAMILY, type WeaponFamily } from "../src/data/weaponFamily.ts";
+import { deriveDamageType } from "../src/data/weaponFamily.ts";
 
 /** Pre-rework damage types — frozen snapshot guarding against silent drift. */
 const EXPECTED_DAMAGE: Record<string, "Physical" | "Magic"> = {
