@@ -18,20 +18,47 @@ describe("T6 — per-character attack styles", () => {
     expect(style("kanae-petalfall")).not.toBe("cannon");  // katana, not a shell
     expect(style("megu-explosion-sage")).toBe("fireball"); // explosion, not a shell
     expect(style("akagan-ashen")).toBe("fireball");        // molten magma
-    expect(style("zoran-thricedraw")).toBe("slash");       // three katana (melee)
-    expect(style("sota-caped-fist")).toBe("slash");        // bare-fisted punch
   });
 
-  it("physical damage towers are arrow (ranged) or slash (melee)", () => {
+  it("physical melee damage towers read as a melee swing, not a projectile", () => {
+    const melee = new Set(["slash", "flurry", "punch", "smash", "hex"]);
     for (const t of TOWERS.filter((x) => x.role === "damage" && x.damageType === "Physical")) {
       const s = attackStyleFor(t);
-      expect([s, t.baseStats.range], t.id).toContain(s);
-      expect(s === "arrow" || s === "slash").toBe(true);
+      // Either a ranged loose (arrow) or one of the melee swing styles.
+      expect(s === "arrow" || melee.has(s), `${t.id} → ${s}`).toBe(true);
     }
   });
 
+  it("differentiates melee archetypes so each unit reads distinctly", () => {
+    // Single blade → one anime crescent.
+    expect(style("kazu-spirit-brawler")).toBe("slash");   // spirit sword
+    // Multiple blades → a rapid flurry.
+    expect(style("zoran-thricedraw")).toBe("flurry");     // three katana
+    // Fast fists → a jab; a slow, devastating fist → a weighty smash.
+    expect(style("yamo-desert-bandit")).toBe("punch");    // quick ki fists
+    expect(style("prince-vael")).toBe("punch");           // bare-handed ki combat
+    expect(style("sota-caped-fist")).toBe("smash");       // one finishing punch (slow, heavy)
+    // Heavy tankers body-slam / crack the ground → smash.
+    for (const id of ["riku-ironhide", "garrek-ironscale", "joro-diamondhide", "reinhart-armored-wall", "garron-unbreaking-pillar"]) {
+      expect(style(id), id).toBe("smash");
+    }
+    // Non-ice debuff swipes stay as the purple hex slash.
+    expect(style("doro-mire-spirit")).toBe("hex");
+    expect(style("shika-shadowbinder")).toBe("hex");
+    expect(style("garan-sandshackle")).toBe("hex");
+  });
+
+  it("the new melee styles do not bleed into ranged/elemental units", () => {
+    expect(style("akagan-ashen")).toBe("fireball");      // molten fists, ranged
+    expect(style("kilo-lightning-hand")).toBe("lightning"); // lightning fists, ranged
+    expect(style("karu-sunfist")).toBe("arcane");        // magic ki wave, ranged
+    expect(style("sasu-stormblade")).toBe("lightning");  // lightning chokuto
+    expect(style("kanae-petalfall")).toBe("arcane");     // katana at range → arcane bolt
+    expect(style("morren-plaguebearer")).toBe("poison"); // decay touch
+  });
+
   it("every tower resolves to a known style", () => {
-    const known = new Set(["arrow", "fireball", "iceball", "lightning", "arcane", "cannon", "poison", "holy", "slash", "hex"]);
+    const known = new Set(["arrow", "fireball", "iceball", "lightning", "arcane", "cannon", "poison", "holy", "slash", "hex", "punch", "flurry", "smash"]);
     for (const t of TOWERS) expect(known.has(attackStyleFor(t)), t.id).toBe(true);
   });
 

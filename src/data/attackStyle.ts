@@ -9,7 +9,9 @@ import type { CharacterDef, WeaponType } from "./schema.ts";
 
 export type AttackStyle =
   | "arrow" | "fireball" | "iceball" | "lightning" | "arcane"
-  | "cannon" | "poison" | "holy" | "slash" | "hex" | "punch" | "gunshot";
+  | "cannon" | "poison" | "holy" | "slash" | "hex" | "punch" | "gunshot"
+  // Melee swing archetypes — each reads as a distinct hand-to-hand strike.
+  | "flurry" | "smash";
 
 const RANGED_MELEE = 120;
 const has = (s: string, ...keys: string[]) => keys.some((k) => s.includes(k));
@@ -29,6 +31,10 @@ export function attackStyleFor(def: CharacterDef): AttackStyle {
   if (def.role === "support") return "holy";
   if (def.role === "debuff") return ice ? "iceball" : "hex";
 
+  // Tankers are walls — they body-slam, club, and crack the ground. Always a
+  // weighty smash (they carry no elemental projectile).
+  if (def.role === "tanker") return "smash";
+
   // Elemental theme drives the projectile flavor.
   if (fire) return "fireball";
   if (ice) return "iceball";
@@ -38,9 +44,22 @@ export function attackStyleFor(def: CharacterDef): AttackStyle {
   // Otherwise match the weapon the character actually holds.
   if (has(w, "bow", "arrow")) return "arrow";
   if (has(w, "cannon", "gun", "firearm", "artillery", "shell", "rifle")) return "cannon";
-  if (has(w, "katana", "sword", "blade", "rapier", "glaive", "saber", "chokuto", "cleaver")) return def.baseStats.range >= RANGED_MELEE ? "arcane" : "slash";
+  // Blunt weapons land as a smash regardless of reach.
+  if (has(w, "club", "mace", "maul", "hammer", "warhammer", "cudgel", "bludgeon")) return "smash";
+  if (has(w, "katana", "sword", "blade", "rapier", "glaive", "saber", "chokuto", "cleaver")) {
+    if (def.baseStats.range >= RANGED_MELEE) return "arcane";
+    // Wielding several blades at once reads as a rapid flurry, not one cut.
+    return has(w, "three", "twin", "dual", "double", "pair", "both", "two ") ? "flurry" : "slash";
+  }
   if (has(w, "staff", "wand", "tome", "grimoire", "scepter", "rod")) return "arcane";
-  if (/\bki\b/.test(w) || has(w, "fist", "punch", "chakra", "knuckle", "gauntlet", "palm")) return def.damageType === "Magic" ? "arcane" : "slash";
+  if (/\bki\b/.test(w) || has(w, "fist", "punch", "chakra", "knuckle", "gauntlet", "palm")) {
+    if (def.damageType === "Magic") return "arcane";
+    // A single, world-ending blow lands as a smash; ordinary fists are a quick jab.
+    // (The derived attackSpeed reflects role/rarity, not weight, so we read the
+    //  weapon's own language for the heavy-hitters.)
+    const heavyBlow = has(w, "ends everything", "one punch", "world-bend", "shatter", "devastat", "finishing", "cataclysm", "apocal");
+    return heavyBlow ? "smash" : "punch";
+  }
 
   // Final fallbacks by role / damage type.
   if (def.role === "dot") return "poison";

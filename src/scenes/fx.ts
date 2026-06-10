@@ -10,6 +10,7 @@ import type { DamageType, Vec2 } from "../data/schema.ts";
 import { makeCrisp } from "./ui.ts";
 import { skillStyleFor } from "../data/attackStyle.ts";
 import { SkillVfx } from "./skillVfx.ts";
+import { MeleeFx } from "./meleeFx.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { tierOfBox } from "../core/boxes.ts";
 
@@ -32,6 +33,8 @@ export class FxLayer {
   private readonly fac: Phaser.GameObjects.GameObjectFactory;
   /** Cinematic active-skill cast VFX (themed per element). */
   private readonly skillVfx: SkillVfx;
+  /** Melee swing VFX (slash / flurry / punch / smash). */
+  private readonly melee: MeleeFx;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -54,6 +57,7 @@ export class FxLayer {
         }) as Phaser.GameObjects.GameObjectFactory
       : scene.add;
     this.skillVfx = new SkillVfx(scene, this.fac, this.depth);
+    this.melee = new MeleeFx(scene, this.fac, this.depth);
   }
 
   play(e: FxEvent): void {
@@ -148,9 +152,11 @@ export class FxLayer {
   private attackFx(style: string, from: Vec2, to: Vec2, ranged: boolean, crit: boolean, dmgColor: number, role: string): void {
     switch (style) {
       case "lightning": this.bolt(from, to, 0x9fe6ff); this.spark(to, 0x9fe6ff); return;
-      case "slash": this.slash(to, crit ? 0xffe07a : dmgColor); return;
-      case "hex": this.slash(to, 0xb085f5); return;
-      case "punch": this.punch(from, to, crit ? 0xffe07a : dmgColor); return;
+      case "slash": this.melee.slash(from, to, crit ? 0xffe07a : dmgColor, crit); return;
+      case "flurry": this.melee.flurry(from, to, crit ? 0xffe07a : dmgColor, crit); return;
+      case "smash": this.melee.smash(from, to, crit ? 0xffe07a : dmgColor, crit); return;
+      case "hex": this.melee.slash(from, to, 0xb085f5, crit); return;
+      case "punch": this.melee.punch(from, to, crit ? 0xffe07a : dmgColor, crit); return;
       case "gunshot": this.gunshot(from, to, crit ? 0xfff2a8 : 0xffe39a); return;
       case "arrow": this.arrow(from, to, 0xe8d9a0); return;
       case "fireball": this.orb(from, to, 0xff6a2a, 5.5, 0xffd24d, "round"); return;
@@ -161,26 +167,8 @@ export class FxLayer {
       case "cannon": this.orb(from, to, 0x4a4f5a, 7, 0x9aa0ac, "round"); return;
       default:
         if (ranged) this.projectile(from, to, dmgColor, role);
-        else this.slash(to, crit ? 0xffe07a : dmgColor);
+        else this.melee.slash(from, to, crit ? 0xffe07a : dmgColor, crit);
     }
-  }
-
-  /** A bare-fisted punch — a short knuckle streak that drives into the target
-   *  with a sharp impact pop. Melee: no flying projectile, the hit lands at `to`. */
-  private punch(from: Vec2, to: Vec2, color: number): void {
-    const ang = Math.atan2(to.y - from.y, to.x - from.x);
-    // The jab starts most of the way to the target and snaps the final stretch in.
-    const sx = to.x - Math.cos(ang) * 22, sy = to.y - Math.sin(ang) * 22;
-    const fist = this.fac.rectangle(sx, sy, 9, 5, color).setRotation(ang).setOrigin(0, 0.5).setDepth(this.depth);
-    this.scene.tweens.add({
-      targets: fist, x: to.x, y: to.y, duration: 70, ease: "Quint.easeIn",
-      onComplete: () => {
-        fist.destroy();
-        const pop = this.fac.circle(to.x, to.y, 5, color, 0.9).setDepth(this.depth + 1);
-        this.scene.tweens.add({ targets: pop, scale: 2.2, alpha: 0, duration: 170, ease: "Quad.easeOut", onComplete: () => pop.destroy() });
-        this.spark(to, color);
-      },
-    });
   }
 
   /** A gunshot — a fast, dead-straight bullet tracer with a muzzle flash at the
@@ -242,14 +230,6 @@ export class FxLayer {
       targets: [dot, glow], x: to.x, y: to.y, duration: dur, ease: "Sine.easeIn",
       onComplete: () => { glow.destroy(); this.spark(to, color); dot.destroy(); },
     });
-  }
-
-  private slash(at: Vec2, color: number): void {
-    const g = this.fac.graphics({ x: at.x, y: at.y }).setDepth(this.depth);
-    g.lineStyle(3, color, 0.95);
-    g.beginPath(); g.arc(0, 0, 16, Phaser.Math.DegToRad(-50), Phaser.Math.DegToRad(60)); g.strokePath();
-    g.setScale(0.5).setAngle(Phaser.Math.Between(-30, 30));
-    this.scene.tweens.add({ targets: g, scale: 1.25, alpha: 0, duration: 180, ease: "Quad.easeOut", onComplete: () => g.destroy() });
   }
 
   private spark(at: Vec2, color: number): void {
