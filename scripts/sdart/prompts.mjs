@@ -125,6 +125,16 @@ const RARITY_RIM = {
 export function itemStyleFor(look, rarity) {
   return ITEM_STYLE.replace("{V}", `${look}, ${RARITY_RIM[rarity] || RARITY_RIM.Common}`);
 }
+
+// ---- SKILLS (ability-emblem icon style) ----
+// A skill icon is the EMBLEM of its cast effect — a glowing magical sigil/burst,
+// no character, no weapon-holder. The `look` comes straight from each skill's VFX
+// `appearance` metadata so the icon matches the in-battle signature.
+const SKILL_STYLE = "a single magical ability skill emblem icon, a glowing energy sigil depicting {V}, dramatic radiant glow, swirling magical energy, no character, no person, clean cel-shaded anime game asset, bold centered emblem, isolated on a plain solid dark slate background, intense bloom";
+/** Skill ability-icon prompt from VFX metadata: the effect `look` + rarity rim. */
+export function skillStyleFor(look, rarity) {
+  return SKILL_STYLE.replace("{V}", `${look}, ${RARITY_RIM[rarity] || RARITY_RIM.Common}`);
+}
 export const ITEM_VISUAL = {
   "iron-sword": "a simple straight iron longsword",
   "elven-bow": "an elegant curved green and gold elven longbow",

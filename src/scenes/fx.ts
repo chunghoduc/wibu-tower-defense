@@ -8,7 +8,6 @@ import Phaser from "phaser";
 import type { FxEvent } from "../core/battle.ts";
 import type { DamageType, Vec2 } from "../data/schema.ts";
 import { makeCrisp } from "./ui.ts";
-import { skillStyleFor } from "../data/attackStyle.ts";
 import { SkillVfx } from "./skillVfx.ts";
 import { MeleeFx } from "./meleeFx.ts";
 import { ImpactFx } from "./impactFx.ts";
@@ -74,7 +73,7 @@ export class FxLayer {
         this.damageNumber(e.at, Math.round(e.amount), DMG_NUM_COLOR[e.damageType], e.aoe);
         break;
       case "cast":
-        this.skillVfx.cast(e.at, skillStyleFor(e.skillId), e.radius, e.skillId, e.source);
+        this.skillVfx.cast(e.at, e.radius, e.skillId, e.source);
         break;
       case "splash":
         this.ring(e.at, e.radius, DMG_COLOR[e.damageType], 320);

@@ -4,7 +4,7 @@
 import { mkdirSync, existsSync, writeFileSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import {
-  style, itemStyleFor, NEGATIVE, POSE,
+  style, itemStyleFor, skillStyleFor, NEGATIVE, POSE,
   TOWER_VISUAL, ENEMY_VISUAL, BOSS_VISUAL,
   HERO_BASE, HERO_WEAPON,
 } from "./prompts.mjs";
@@ -12,6 +12,9 @@ import {
 // Item icons are catalog-driven: `npm run gen:item-visual` dumps every item's
 // homage `appearance.look` + rarity here, so SDXL follows the item metadata.
 const ITEM_VISUAL_PATH = "scripts/sdart/itemVisual.json";
+// Skill ability icons are VFX-metadata-driven: `npm run gen:skill-visual` dumps
+// each hero active's cast `appearance`, so the icon matches its in-battle effect.
+const SKILL_VISUAL_PATH = "scripts/sdart/skillVisual.json";
 
 const SD = "http://127.0.0.1:8765/generate";
 const CUTOUT = "scripts/sdart/cutout.py";
@@ -73,6 +76,11 @@ function buildJobs() {
   // icons as a fixed 96×96 native asset; other sizes render cropped/oversized.
   for (const it of items)
     jobs.push({ kind: "item", id: it.id, file: `${it.id}.png`, prompt: itemStyleFor(it.look, it.rarity), seed: seedOf(it.id), w: 768, h: 768, size: 96 });
+  // skill ability emblems — 96×96, same fixed-size contract as item icons.
+  const skills = existsSync(SKILL_VISUAL_PATH) ? JSON.parse(readFileSync(SKILL_VISUAL_PATH, "utf8")) : [];
+  if (!skills.length) console.log(`  WARN: ${SKILL_VISUAL_PATH} missing/empty — run \`npm run gen:skill-visual\` first`);
+  for (const sk of skills)
+    jobs.push({ kind: "skill", id: sk.id, file: `${sk.id}.png`, prompt: skillStyleFor(sk.look, sk.rarity), seed: seedOf(sk.id), w: 768, h: 768, size: 96 });
   return jobs;
 }
 

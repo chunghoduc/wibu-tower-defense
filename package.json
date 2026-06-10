@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "gen:art-prompts": "vite-node scripts/genArtPrompts.ts",
     "gen:sprites": "vite-node scripts/genSprites.ts",
-    "gen:item-visual": "vite-node scripts/genItemVisual.ts"
+    "gen:item-visual": "vite-node scripts/genItemVisual.ts",
+    "gen:skill-visual": "vite-node scripts/genSkillVisual.ts"
   },
   "dependencies": {
     "phaser": "^3.80.1"

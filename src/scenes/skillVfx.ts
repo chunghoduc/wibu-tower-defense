@@ -6,7 +6,9 @@
 // blade arcs — built from Phaser shapes + tweens (no art assets). FxLayer
 // delegates the "cast" event here; everything is pure presentation.
 import Phaser from "phaser";
-import { SKILL_STYLE_COLOR, type SkillStyle } from "../data/attackStyle.ts";
+import { SKILL_STYLE_COLOR, skillStyleFor, type SkillStyle } from "../data/attackStyle.ts";
+import { skillVfxSpec } from "../data/skillVfxMeta.ts";
+import { renderSignature } from "./skillSignatures.ts";
 
 type V = { x: number; y: number };
 
@@ -28,8 +30,19 @@ export class SkillVfx {
     private readonly depth: number,
   ) {}
 
-  /** Render a skill cast: a base burst plus the style's themed spectacle. */
-  cast(at: V, style: SkillStyle, radius: number, skillId: string | undefined, source: "tower" | "hero"): void {
+  /** Render a skill cast. Hero active skills each have a UNIQUE bespoke signature
+   *  (skillSignatures.ts); everything else (tower actives) falls back to the
+   *  keyword-derived elemental style. */
+  cast(at: V, radius: number, skillId: string | undefined, source: "tower" | "hero"): void {
+    const spec = skillVfxSpec(skillId);
+    if (spec) {
+      // A unique per-skill set-piece. baseBurst carries the icon emblem flare;
+      // the signature draws its own shake where it wants weight.
+      this.baseBurst(at, spec.palette.core, radius, skillId);
+      renderSignature(this.scene, this.fac, this.depth, at, spec, radius);
+      return;
+    }
+    const style = skillStyleFor(skillId);
     const color = SKILL_STYLE_COLOR[style];
     this.baseBurst(at, color, radius, skillId);
     switch (style) {
@@ -58,8 +71,11 @@ export class SkillVfx {
       const line = this.fac.rectangle(at.x, at.y, 3, 16, color).setOrigin(0.5, 1).setRotation(a).setDepth(this.depth + 1);
       this.tween(line, { scaleY: 3, alpha: 0 }, 420);
     }
-    const key = skillId ? `vfx__${skillId}` : "";
-    if (key && this.scene.textures.exists(key)) {
+    // Emblem flare: prefer a dedicated vfx texture, else reuse the skill's icon.
+    const key = skillId
+      ? [`vfx__${skillId}`, `skill__${skillId}`].find((k) => this.scene.textures.exists(k)) ?? ""
+      : "";
+    if (key) {
       const spr = this.fac.image(at.x, at.y, key).setDepth(this.depth + 4).setScale(0.3).setAlpha(0.95);
       this.tween(spr, { scale: 1.7, angle: 50, alpha: 0 }, 460, "Cubic.easeOut");
     }

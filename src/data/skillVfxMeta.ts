@@ -1,0 +1,154 @@
+// src/data/skillVfxMeta.ts
+//
+// Per-skill cast VFX metadata — the single source of truth for what each hero
+// active skill LOOKS like when it fires. Every active skill gets its own unique,
+// deliberately over-the-top "signature" so a player can tell at a glance which
+// skill just went off, even mid-swarm.
+//
+// This drives two things from one description:
+//   1) the in-battle signature renderer (src/scenes/skillSignatures.ts), and
+//   2) the prompt used to paint each skill's ability icon / cast emblem.
+//
+// `signature` selects which bespoke set-piece to draw; `palette` tints it;
+// `appearance` is the human-readable art brief (also surfaced in the codex).
+// The colours are deliberately distinct per skill so two skills never read the
+// same — that's the whole point of "easily see the differences".
+
+/** A single skill's cast-effect identity. */
+export interface SkillVfxSpec {
+  /** Which bespoke set-piece the renderer draws (1:1 with a skill). */
+  signature: SkillSignature;
+  /** Tints layered over the set-piece. `core` is the dominant hue. */
+  palette: { core: number; hot: number; deep: number };
+  /** Plain-language description of the look — art brief + in-game codex blurb. */
+  appearance: string;
+}
+
+/** The bespoke set-pieces, one per active skill (never shared). */
+export type SkillSignature =
+  | "valiant-sweep"
+  | "spirit-comet"
+  | "steel-cross"
+  | "earthshatter"
+  | "guillotine"
+  | "triple-volley"
+  | "piercing-lance"
+  | "mana-detonation"
+  | "arcane-supernova"
+  | "muzzle-barrage"
+  | "concussion-blast"
+  | "hex-sigil"
+  | "pure-technique"
+  | "void-rift";
+
+/**
+ * Map of active-skill id → its cast-effect identity. MUST stay 1:1 with
+ * ACTIVE_SKILLS in skills.ts (a test enforces full coverage + uniqueness).
+ */
+export const SKILL_VFX: Record<string, SkillVfxSpec> = {
+  "valiant-strike": {
+    signature: "valiant-sweep",
+    palette: { core: 0xffe07a, hot: 0xffffff, deep: 0xc8962a },
+    appearance:
+      "A radiant golden crescent sweeps a full half-circle around the hero, " +
+      "trailing a banner-like ribbon of light, while a bright cross-gleam flashes " +
+      "at the centre and gold motes drift upward. Heroic, clean, warm.",
+  },
+  "spirit-bolt": {
+    signature: "spirit-comet",
+    palette: { core: 0x6fe9ff, hot: 0xffffff, deep: 0x2a8fc0 },
+    appearance:
+      "A cyan spirit-orb implodes to a pinpoint then erupts into a ghost-flame " +
+      "burst, throwing out curling wisp trails that fade like will-o'-the-wisps. " +
+      "Ethereal teal-white.",
+  },
+  "iron-cleave": {
+    signature: "steel-cross",
+    palette: { core: 0xcfe2f0, hot: 0xffffff, deep: 0x6f87a0 },
+    appearance:
+      "Two broad steel blade-arcs slash across each other in a hard X, throwing a " +
+      "horizontal ground-crack shock and a spray of bright sparks. Cold metallic blue-white.",
+  },
+  "stone-bash": {
+    signature: "earthshatter",
+    palette: { core: 0xd2a86a, hot: 0xffe6b0, deep: 0x7a5230 },
+    appearance:
+      "An overhead slam drives a heavy dust shock outward; jagged stone shards erupt " +
+      "from the ground in a ring and a brown debris cloud billows up. Earthy, weighty, screen-shaking.",
+  },
+  "execute-slash": {
+    signature: "guillotine",
+    palette: { core: 0xff3a3a, hot: 0xffffff, deep: 0x8c0a0a },
+    appearance:
+      "A single massive vertical guillotine slash drops straight down with a crimson " +
+      "flash and a lingering blood-red X afterimage. Brutal, decisive, dark-red.",
+  },
+  "tri-shot": {
+    signature: "triple-volley",
+    palette: { core: 0x5fe08a, hot: 0xd8ffcf, deep: 0x2f8a4a },
+    appearance:
+      "Three glowing emerald arrows fan outward in a wide spread, each leaving a " +
+      "fletched light-trail and bursting into a small green spark on the far edge. Quick and verdant.",
+  },
+  "piercing-arrow": {
+    signature: "piercing-lance",
+    palette: { core: 0xbfe6ff, hot: 0xffffff, deep: 0x4f9fd8 },
+    appearance:
+      "One long, thin azure lance-beam shoots out in a straight line, punching through " +
+      "everything with a white sonic ring at the muzzle and a sharp tapering streak. Precise, fast, icy-blue.",
+  },
+  "mana-burst": {
+    signature: "mana-detonation",
+    palette: { core: 0x5a8cff, hot: 0xcfe0ff, deep: 0x2a4fc0 },
+    appearance:
+      "Concentric sapphire mana-rings pulse outward while glowing rune-motes orbit and " +
+      "a soft core implodes then pops in a blue flash. Calm, magical, deep blue.",
+  },
+  "arcane-nova": {
+    signature: "arcane-supernova",
+    palette: { core: 0xc77dde, hot: 0xf0d4ff, deep: 0x7a2fd0 },
+    appearance:
+      "A huge violet supernova: a double expanding ring blasts out, two counter-rotating " +
+      "arcane sigils spin, and a starfield of magenta sparks scatters. The biggest, brightest cast — screen shakes.",
+  },
+  "rapid-fire": {
+    signature: "muzzle-barrage",
+    palette: { core: 0xffae3a, hot: 0xffe08a, deep: 0xc85a10 },
+    appearance:
+      "Five staccato orange muzzle-flashes stamp out in a line, each spitting a bullet " +
+      "tracer streak and a curl of grey smoke. Rapid, punchy, hot orange-yellow.",
+  },
+  "concussion-round": {
+    signature: "concussion-blast",
+    palette: { core: 0xffc46a, hot: 0xfff0c0, deep: 0x8a6a30 },
+    appearance:
+      "One heavy shell lands with a thick amber shockwave ring, a billow of grey smoke, " +
+      "and a ring of spinning stun-stars overhead. Concussive and dusty — screen shakes.",
+  },
+  "shadow-curse": {
+    signature: "hex-sigil",
+    palette: { core: 0x9a4fd0, hot: 0xd8a8ff, deep: 0x3a1060 },
+    appearance:
+      "A dark pentacle hex-sigil blooms on the ground, purple glyphs orbit it, and creeping " +
+      "shadow tendrils claw outward before sinking away. Ominous, dim, violet-on-black.",
+  },
+  "true-strike": {
+    signature: "pure-technique",
+    palette: { core: 0xffffff, hot: 0xffffff, deep: 0xffe9a8 },
+    appearance:
+      "A blinding pure-white slash with no colour to it — a stark flash, golden filament " +
+      "lines converging to a single point, and one crisp expanding ring. Absolute, flawless, white-gold.",
+  },
+  "void-palm": {
+    signature: "void-rift",
+    palette: { core: 0x2a0a40, hot: 0xd8a8ff, deep: 0x000000 },
+    appearance:
+      "A black void-rift tears open with a glowing violet rim; cracks in space radiate outward, " +
+      "then the rift collapses to a point and snaps shut in a white reality-tear flash. The most dramatic cast.",
+  },
+};
+
+/** Lookup helper — returns the spec for a skill id, or undefined for non-hero casts. */
+export function skillVfxSpec(skillId: string | undefined): SkillVfxSpec | undefined {
+  return skillId ? SKILL_VFX[skillId] : undefined;
+}

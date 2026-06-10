@@ -178,6 +178,8 @@ export interface HeroRuntime {
   damageType: DamageType;
   /** Equipped weapon family (null = unarmed/boxing) — drives attack style & reach. */
   weaponType: WeaponType | null;
+  /** The hero's single equipped active-skill id — drives the cast VFX signature. */
+  equippedSkillId?: string;
   pos: Vec2;
   moveTarget: Vec2;
   hp: number;

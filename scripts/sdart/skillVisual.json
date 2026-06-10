@@ -1,0 +1,86 @@
+[
+  {
+    "id": "valiant-strike",
+    "name": "Valiant Strike",
+    "rarity": "Common",
+    "look": "A radiant golden crescent sweeps a full half-circle around the hero, trailing a banner-like ribbon of light, while a bright cross-gleam flashes at the centre and gold motes drift upward. Heroic, clean, warm."
+  },
+  {
+    "id": "spirit-bolt",
+    "name": "Spirit Bolt",
+    "rarity": "Common",
+    "look": "A cyan spirit-orb implodes to a pinpoint then erupts into a ghost-flame burst, throwing out curling wisp trails that fade like will-o'-the-wisps. Ethereal teal-white."
+  },
+  {
+    "id": "iron-cleave",
+    "name": "Iron Cleave",
+    "rarity": "Common",
+    "look": "Two broad steel blade-arcs slash across each other in a hard X, throwing a horizontal ground-crack shock and a spray of bright sparks. Cold metallic blue-white."
+  },
+  {
+    "id": "stone-bash",
+    "name": "Stone Bash",
+    "rarity": "Magic",
+    "look": "An overhead slam drives a heavy dust shock outward; jagged stone shards erupt from the ground in a ring and a brown debris cloud billows up. Earthy, weighty, screen-shaking."
+  },
+  {
+    "id": "execute-slash",
+    "name": "Execute",
+    "rarity": "Rare",
+    "look": "A single massive vertical guillotine slash drops straight down with a crimson flash and a lingering blood-red X afterimage. Brutal, decisive, dark-red."
+  },
+  {
+    "id": "tri-shot",
+    "name": "Tri-Shot",
+    "rarity": "Common",
+    "look": "Three glowing emerald arrows fan outward in a wide spread, each leaving a fletched light-trail and bursting into a small green spark on the far edge. Quick and verdant."
+  },
+  {
+    "id": "piercing-arrow",
+    "name": "Piercing Arrow",
+    "rarity": "Rare",
+    "look": "One long, thin azure lance-beam shoots out in a straight line, punching through everything with a white sonic ring at the muzzle and a sharp tapering streak. Precise, fast, icy-blue."
+  },
+  {
+    "id": "mana-burst",
+    "name": "Mana Burst",
+    "rarity": "Common",
+    "look": "Concentric sapphire mana-rings pulse outward while glowing rune-motes orbit and a soft core implodes then pops in a blue flash. Calm, magical, deep blue."
+  },
+  {
+    "id": "arcane-nova",
+    "name": "Arcane Nova",
+    "rarity": "Legendary",
+    "look": "A huge violet supernova: a double expanding ring blasts out, two counter-rotating arcane sigils spin, and a starfield of magenta sparks scatters. The biggest, brightest cast — screen shakes."
+  },
+  {
+    "id": "rapid-fire",
+    "name": "Rapid Fire",
+    "rarity": "Magic",
+    "look": "Five staccato orange muzzle-flashes stamp out in a line, each spitting a bullet tracer streak and a curl of grey smoke. Rapid, punchy, hot orange-yellow."
+  },
+  {
+    "id": "concussion-round",
+    "name": "Concussion Round",
+    "rarity": "Rare",
+    "look": "One heavy shell lands with a thick amber shockwave ring, a billow of grey smoke, and a ring of spinning stun-stars overhead. Concussive and dusty — screen shakes."
+  },
+  {
+    "id": "shadow-curse",
+    "name": "Shadow Curse",
+    "rarity": "Magic",
+    "look": "A dark pentacle hex-sigil blooms on the ground, purple glyphs orbit it, and creeping shadow tendrils claw outward before sinking away. Ominous, dim, violet-on-black."
+  },
+  {
+    "id": "true-strike",
+    "name": "True Strike",
+    "rarity": "Legendary",
+    "look": "A blinding pure-white slash with no colour to it — a stark flash, golden filament lines converging to a single point, and one crisp expanding ring. Absolute, flawless, white-gold."
+  },
+  {
+    "id": "void-palm",
+    "name": "Void Palm",
+    "rarity": "Unique",
+    "look": "A black void-rift tears open with a glowing violet rim; cracks in space radiate outward, then the rift collapses to a point and snaps shut in a white reality-tear flash. The most dramatic cast."
+  }
+]

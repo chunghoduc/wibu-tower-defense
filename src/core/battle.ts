@@ -173,6 +173,7 @@ export class BattleState {
         stats: resolvedStats,
         damageType: opts.hero.damageType ?? "Physical",
         weaponType,
+        equippedSkillId: opts.heroSave.hero.equippedSkillIds[0],
         pos: { ...opts.hero.startPos },
         moveTarget: { ...opts.hero.startPos },
         hp: resolvedStats.maxHp,
@@ -453,7 +454,7 @@ export class BattleState {
 
     this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1, heroAttackStyle(h.weaponType, h.damageType, h.stats.range));
     if (h.mana >= MANA_MAX) {
-      this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero", -1);
+      this.castActive(h.stats, h.stats.atk, h.damageType, target.pos, "hero", -1, h.equippedSkillId);
       h.mana = 0;
     }
     h.attackCd = 1 / h.stats.attackSpeed;
