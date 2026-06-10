@@ -168,6 +168,30 @@ describe("difficulty scaling", () => {
     };
     // 1.55× Normal floor (first wave ⇒ no intra-stage ramp; see waveScaling.ts).
     expect(spawnHp("Normal")).toBeCloseTo(155);
-    expect(spawnHp("Nightmare")).toBeCloseTo(1050); // 10.5× — ~20× combat power vs Normal
+    expect(spawnHp("Nightmare")).toBeCloseTo(1480); // 14.8× HP — ~25× combat power vs Normal
+  });
+
+  it("Hard is ~10× the combat power (HP × ATK) of Normal", () => {
+    const power = (difficulty: "Normal" | "Hard") => {
+      const e = mkEnemy({ baseStats: makeStats({ maxHp: 100, atk: 10, moveSpeed: 1 }) });
+      const b = world([e], [], mkStage(oneWave("grunt", 1), { castleHp: 1e6 }), { difficulty });
+      for (let i = 0; i < 200 && b.enemies.length === 0; i++) b.tick(0.05);
+      const s = b.enemies[0]!.stats;
+      return s.maxHp * s.atk;
+    };
+    expect(power("Hard") / power("Normal")).toBeCloseTo(10, 0);
+  });
+
+  it("bosses scale harder than trash on Hard (extra boss multipliers)", () => {
+    const spawn = (archetype: "Rusher" | "Boss") => {
+      const e = mkEnemy({ archetype, baseStats: makeStats({ maxHp: 100, atk: 10, moveSpeed: 1 }) });
+      const b = world([e], [], mkStage(oneWave("grunt", 1), { castleHp: 1e6 }), { difficulty: "Hard" });
+      for (let i = 0; i < 200 && b.enemies.length === 0; i++) b.tick(0.05);
+      return b.enemies[0]!.stats;
+    };
+    const trash = spawn("Rusher");
+    const boss = spawn("Boss");
+    expect(boss.maxHp / trash.maxHp).toBeCloseTo(1.5, 5); // bossHpMult on Hard
+    expect(boss.atk / trash.atk).toBeCloseTo(1.3, 5); // bossAtkMult on Hard
   });
 });

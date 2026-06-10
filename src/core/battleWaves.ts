@@ -96,12 +96,16 @@ export const waveMethods = {
       stageNumber(this.stage.id),
       def.archetype === "Boss",
     );
+    // Bosses scale harder than trash on the upper tiers (boss* multipliers).
+    const isBoss = def.archetype === "Boss";
+    const bossHp = isBoss ? scale.bossHpMult : 1;
+    const bossAtk = isBoss ? scale.bossAtkMult : 1;
     const hpMul = (ch.enemyHpMul ?? 1) * this.endlessMul * ramp.hpMult;
     const atkMul = this.endlessMul * ramp.atkMult;
     let stats: Stats = {
       ...def.baseStats,
-      maxHp: def.baseStats.maxHp * scale.hpMult * hpMul,
-      atk: def.baseStats.atk * scale.atkMult * atkMul,
+      maxHp: def.baseStats.maxHp * scale.hpMult * bossHp * hpMul,
+      atk: def.baseStats.atk * scale.atkMult * bossAtk * atkMul,
       armor: def.baseStats.armor * (ch.enemyArmorMul ?? 1),
       magicResist: def.baseStats.magicResist * (ch.enemyArmorMul ?? 1),
       moveSpeed: def.baseStats.moveSpeed * (ch.enemySpeedMul ?? 1),
