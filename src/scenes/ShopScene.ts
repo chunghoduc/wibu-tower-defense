@@ -11,6 +11,9 @@ import type { SaveManager } from "../core/saveManager.ts";
 import type { ShopStockEntry, ItemInstanceSave } from "../core/save.ts";
 import { ITEM_CATALOG_MAP, itemSellValue } from "../data/items.ts";
 import { crispText, hoverGlowRect, hoverPop } from "./ui.ts";
+import { drawScrollbar } from "./scrollbar.ts";
+import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
+import { buildCategoryChips, slotInCategory, type ItemCategory, type CategoryChips } from "./itemFilter.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
 import type { Rarity } from "../data/schema.ts";
 
@@ -31,12 +34,20 @@ export class ShopScene extends Phaser.Scene {
   private tabSell!: Phaser.GameObjects.Text;
   private refreshBtn!: Phaser.GameObjects.Text;
   private confirmDialog: Phaser.GameObjects.Container | null = null;
+  private sellOffset = 0;       // sell grid scroll position, in rows
+  private sellMaxOffset = 0;
+  private sellCategory: ItemCategory = "all";   // slot-family sub-filter (Sell view)
+  private sellDrag!: DragScrollHandle;          // touch/drag scrolling for the sell grid
+  private catChips!: CategoryChips;
 
   constructor() { super("ShopScene"); }
 
   create(): void {
     fadeIn(this);
     this.mode = "buy";
+    this.sellOffset = 0;
+    this.sellMaxOffset = 0;
+    this.sellCategory = "all";
     this.confirmDialog?.destroy(true);
     this.confirmDialog = null;
     this.mgr = this.registry.get("saveManager");
@@ -62,6 +73,31 @@ export class ShopScene extends Phaser.Scene {
     this.feedback = this.add.text(W / 2, 500, "", { fontSize: "13px", color: "#a5d6a7" }).setOrigin(0.5);
     this.grid = this.add.container(0, 0);
     this.tooltip = this.add.container(0, 0).setDepth(200).setVisible(false);
+
+    // Category sub-filter for the Sell grid (Weapon / Armor / Accessory).
+    this.catChips = buildCategoryChips(this, 24, 62, (c) => {
+      this.sellCategory = c; this.sellOffset = 0; this.redraw();
+    });
+
+    // Mouse wheel scrolls the sell grid one row per notch.
+    this.input.on("wheel", (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
+      if (this.mode !== "sell" || this.sellMaxOffset <= 0) return;
+      const next = Phaser.Math.Clamp(this.sellOffset + (dy > 0 ? 1 : -1), 0, this.sellMaxOffset);
+      if (next !== this.sellOffset) { this.sellOffset = next; this.redraw(); }
+    });
+
+    // Touch/drag scrolling for the sell grid (mobile has no wheel). Rect matches
+    // the grid laid out in drawSell(); cards suppress their tap when a drag moved.
+    this.sellDrag = attachDragScroll(this, {
+      rect: () => ({ x: 24, y: 84, w: 7 * (124 + 6), h: 466 - 84 }),
+      rowH: 96 + 8,
+      maxOffset: () => this.sellMaxOffset,
+      getOffset: () => this.sellOffset,
+      setOffset: (n) => { this.sellOffset = n; },
+      onChange: () => this.redraw(),
+      enabled: () => this.mode === "sell",
+    });
+
     this.redraw();
   }
 
@@ -88,6 +124,8 @@ export class ShopScene extends Phaser.Scene {
     this.tabBuy.setBackgroundColor(this.mode === "buy" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "buy" ? 1 : 0.7);
     this.tabSell.setBackgroundColor(this.mode === "sell" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "sell" ? 1 : 0.7);
     this.refreshBtn.setVisible(this.mode === "buy").setText(this.refreshLabel());
+    this.catChips.setVisible(this.mode === "sell");
+    this.catChips.update(this.sellCategory);
 
     if (this.mode === "buy") this.drawBuy();
     else this.drawSell(save.inventory.items, save.inventory.equipped);
@@ -150,18 +188,37 @@ export class ShopScene extends Phaser.Scene {
   }
 
   // ── Sell: inventory grid (equipped items are hidden — unequip them first) ──
+  // Overflowing rows scroll via the mouse wheel; only on-screen cards are drawn.
   private drawSell(items: ItemInstanceSave[], equipped: Record<string, string | undefined>): void {
     const equippedIds = new Set(Object.values(equipped).filter(Boolean) as string[]);
-    const sellable = items.filter((inst) => !equippedIds.has(inst.id));
+    const sellable = items.filter((inst) => {
+      if (equippedIds.has(inst.id)) return false;
+      const def = ITEM_CATALOG_MAP.get(inst.defId);
+      return def ? slotInCategory(def.slot, this.sellCategory) : true;
+    });
+    this.sellMaxOffset = 0;
     if (sellable.length === 0) {
-      this.grid.add(crispText(this, this.scale.width / 2, 220, "No items to sell.", { fontSize: "14px", color: "#90a4bb" }).setOrigin(0.5));
+      const msg = this.sellCategory === "all" ? "No items to sell." : "No items in this category.";
+      this.grid.add(crispText(this, this.scale.width / 2, 220, msg, { fontSize: "14px", color: "#90a4bb" }).setOrigin(0.5));
       return;
     }
     const COLS = 7, CW = 124, CH = 96, X0 = 24, Y0 = 84, GX = 6, GY = 8, BOTTOM = 466;
-    sellable.forEach((inst, i) => {
-      const x = X0 + (i % COLS) * (CW + GX), y = Y0 + Math.floor(i / COLS) * (CH + GY);
-      if (y + CH > BOTTOM) return;
-      this.drawSellCard(inst, x, y, CW, CH);
+    const rowH = CH + GY;
+    const visibleRows = Math.max(1, Math.floor((BOTTOM - Y0) / rowH));
+    const totalRows = Math.ceil(sellable.length / COLS);
+    this.sellMaxOffset = Math.max(0, totalRows - visibleRows);
+    this.sellOffset = Phaser.Math.Clamp(this.sellOffset, 0, this.sellMaxOffset);
+
+    for (let r = 0; r < visibleRows; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const idx = (this.sellOffset + r) * COLS + c;
+        if (idx >= sellable.length) break;
+        this.drawSellCard(sellable[idx], X0 + c * (CW + GX), Y0 + r * rowH, CW, CH);
+      }
+    }
+    drawScrollbar(this, this.grid, {
+      x: X0 + COLS * (CW + GX) - GX + 2, y: Y0, h: visibleRows * rowH - GY,
+      total: totalRows, visible: visibleRows, offset: this.sellOffset,
     });
   }
 
@@ -190,7 +247,7 @@ export class ShopScene extends Phaser.Scene {
       if (def) renderItemTooltip(this, this.tooltip, inst, def, x + w, y);
     });
     z.on("pointerout", () => { this.hoverLabel.setText(""); this.tooltip.setVisible(false); });
-    z.on("pointerup", () => this.confirmSell(inst, def?.name ?? "Item", sell));
+    z.on("pointerup", () => { if (!this.sellDrag.didScroll()) this.confirmSell(inst, def?.name ?? "Item", sell); });
     this.grid.add(z);
   }
 

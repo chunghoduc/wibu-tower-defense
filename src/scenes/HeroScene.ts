@@ -14,6 +14,9 @@ import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName, type MaterialKind } from "../data/materials.ts";
 import { enhanceChance, jewelForLevel, enhanceBonus, MAX_ENHANCE } from "../core/enhance.ts";
 import { crispText, panelText } from "./ui.ts";
+import { drawScrollbar } from "./scrollbar.ts";
+import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
+import { buildCategoryChips, slotInCategory, type ItemCategory, type CategoryChips } from "./itemFilter.ts";
 import { BoxOpenOverlay } from "./boxOpenOverlay.ts";
 import { boxOddsText } from "../core/boxes.ts";
 
@@ -42,9 +45,16 @@ export class HeroScene extends Phaser.Scene {
   private toast!: Phaser.GameObjects.Text;
   private filter: InvFilter = "items";
   private filterTabs: Phaser.GameObjects.Text[] = [];
+  private itemCategory: ItemCategory = "all";   // slot-family sub-filter (Items view only)
+  private catChips!: CategoryChips;
   private dialog!: Phaser.GameObjects.Container;   // enhance modal
   private didDrag = false;
   private boxOverlay?: BoxOpenOverlay;
+  private invOffset = 0;        // inventory scroll position, in rows
+  private invDrag!: DragScrollHandle;  // touch/drag scrolling for the inventory grid
+  private invMaxOffset = 0;
+  private invCols = 1;
+  private invVisibleRows = 1;
 
   constructor() { super("HeroScene"); }
 
@@ -54,6 +64,8 @@ export class HeroScene extends Phaser.Scene {
     this.slotZones.clear(); this.slotPos.clear();
     this.filterTabs = [];          // reset on scene re-entry
     this.didDrag = false;
+    this.invOffset = 0;
+    this.itemCategory = "all";
     this.boxOverlay = undefined;   // stale across scene re-entry (Phaser reuses instances)
     this.input.dragDistanceThreshold = 8; // small moves = click (enhance), not drag
     const W = this.scale.width;
@@ -73,8 +85,13 @@ export class HeroScene extends Phaser.Scene {
       const t = crispText(this, this.invRect.x + i * 96, 72, tab.label, { fontSize: "12px", color: "#fff", backgroundColor: "#1a2a3a" })
         .setPadding(10, 4, 10, 4).setInteractive({ useHandCursor: true });
       t.setData("filter", tab.id);
-      t.on("pointerdown", () => { this.filter = tab.id; this.refreshTabs(); this.refresh(); });
+      t.on("pointerdown", () => { this.filter = tab.id; this.invOffset = 0; this.refreshTabs(); this.refresh(); });
       this.filterTabs.push(t);
+    });
+    // Category sub-filter (Weapon / Armor / Accessory), shown only on the Items
+    // view — sits on the right of the tab row and narrows a crowded bag.
+    this.catChips = buildCategoryChips(this, this.invRect.x + 300, 72, (c) => {
+      this.itemCategory = c; this.invOffset = 0; this.refresh();
     });
 
     // Equipment paper-doll: every slot mapped to its place on the hero's body.
@@ -115,6 +132,28 @@ export class HeroScene extends Phaser.Scene {
       .setOrigin(0.5).setPadding(8, 4, 8, 4).setDepth(220).setVisible(false);
 
     this.setupDrag();
+
+    // Mouse wheel scrolls the inventory grid (only when hovering over it).
+    this.input.on("wheel", (p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
+      if (this.invMaxOffset <= 0) return;
+      const r = this.invRect;
+      if (p.x < r.x || p.x > r.x + r.w || p.y < r.y || p.y > r.y + r.h) return;
+      const next = Phaser.Math.Clamp(this.invOffset + (dy > 0 ? 1 : -1), 0, this.invMaxOffset);
+      if (next !== this.invOffset) { this.invOffset = next; this.refresh(); }
+    });
+
+    // Touch/drag scrolling: drag empty grid space to scroll. Defers to tile
+    // drags (equip) via the didDrag flag so dragging a tile still moves it.
+    this.invDrag = attachDragScroll(this, {
+      rect: () => this.invRect,
+      rowH: TILE + 6,
+      maxOffset: () => this.invMaxOffset,
+      getOffset: () => this.invOffset,
+      setOffset: (n) => { this.invOffset = n; },
+      onChange: () => this.refresh(),
+      blocked: () => this.didDrag,
+    });
+
     this.refreshTabs();
     this.refresh();
   }
@@ -164,6 +203,8 @@ export class HeroScene extends Phaser.Scene {
   private refresh(): void {
     this.tiles.removeAll(true);
     const save = this.mgr.getSave();
+    this.catChips.setVisible(this.filter === "items");
+    this.catChips.update(this.itemCategory);
 
     // Equipped tiles always sit on the paper-doll.
     for (const slot of ITEM_SLOTS) {
@@ -175,23 +216,51 @@ export class HeroScene extends Phaser.Scene {
       this.tiles.add(this.makeTile(inst, p.x, p.y, slot, 40));
     }
 
+    // Window the inventory list: clamp the scroll offset to what the current
+    // filter holds, then only the rows inside the viewport get tiles.
+    this.invCols = Math.max(1, Math.floor((this.invRect.w - 12) / (TILE + 6)));
+    this.invVisibleRows = Math.max(1, Math.floor((this.invRect.h - 12) / (TILE + 6)));
+    const totalRows = Math.ceil(this.listCount(save) / this.invCols);
+    this.invMaxOffset = Math.max(0, totalRows - this.invVisibleRows);
+    this.invOffset = Phaser.Math.Clamp(this.invOffset, 0, this.invMaxOffset);
+
     if (this.filter === "items") this.refreshItems(save);
     else this.refreshMaterials(save, this.filter === "boxes" ? ["box"] : ["jewel", "consumable"]);
+
+    drawScrollbar(this, this.tiles, {
+      x: this.invRect.x + this.invRect.w - 10, y: this.invRect.y + 8, h: this.invRect.h - 16,
+      total: totalRows, visible: this.invVisibleRows, offset: this.invOffset,
+    });
   }
 
+  /** Unequipped bag items matching the active category sub-filter. */
+  private bagItems(save: ReturnType<SaveManager["getSave"]>): ItemInstanceSave[] {
+    const equipped = new Set(Object.values(save.inventory.equipped).filter(Boolean));
+    return save.inventory.items.filter((it) => {
+      if (equipped.has(it.id)) return false;
+      const def = ITEM_CATALOG_MAP.get(it.defId);
+      return def ? slotInCategory(def.slot, this.itemCategory) : true;
+    });
+  }
+
+  /** Number of inventory cells the active filter would render (for scroll math). */
+  private listCount(save: ReturnType<SaveManager["getSave"]>): number {
+    if (this.filter === "items") return this.bagItems(save).length;
+    const kinds: MaterialKind[] = this.filter === "boxes" ? ["box"] : ["jewel", "consumable"];
+    return MATERIALS.filter((m) => kinds.includes(m.kind) && (save.materials[m.id] ?? 0) > 0).length;
+  }
+
+  /** Grid cell for the i-th list item, or null when it falls outside the scroll window. */
   private gridPos(i: number): { x: number; y: number } | null {
-    const cols = Math.floor((this.invRect.w - 12) / (TILE + 6));
-    const c = i % cols, r = Math.floor(i / cols);
+    const c = i % this.invCols, r = Math.floor(i / this.invCols) - this.invOffset;
+    if (r < 0 || r >= this.invVisibleRows) return null;
     const x = this.invRect.x + 12 + c * (TILE + 6) + TILE / 2;
     const y = this.invRect.y + 12 + r * (TILE + 6) + TILE / 2;
-    if (y > this.invRect.y + this.invRect.h - TILE / 2) return null;
     return { x, y };
   }
 
   private refreshItems(save: ReturnType<SaveManager["getSave"]>): void {
-    const equipped = new Set(Object.values(save.inventory.equipped).filter(Boolean));
-    const bag = save.inventory.items.filter((it) => !equipped.has(it.id));
-    bag.forEach((inst, i) => {
+    this.bagItems(save).forEach((inst, i) => {
       const p = this.gridPos(i);
       if (p) this.tiles.add(this.makeTile(inst, p.x, p.y, null));
     });
@@ -253,7 +322,7 @@ export class HeroScene extends Phaser.Scene {
     c.add(glow);
     c.on("pointerover", () => { this.showTooltip(inst, x, y); glow.setVisible(true); c.setDepth(30); this.tweens.add({ targets: c, scaleX: 1.12, scaleY: 1.12, duration: 90, ease: "Back.easeOut" }); });
     c.on("pointerout", () => { this.hideTooltip(); glow.setVisible(false); c.setDepth(8); this.tweens.add({ targets: c, scaleX: 1, scaleY: 1, duration: 120, ease: "Quad.easeOut" }); });
-    c.on("pointerup", () => { if (!this.didDrag) this.openEnhance(inst.id); }); // tap = enhance
+    c.on("pointerup", () => { if (!this.didDrag && !this.invDrag.didScroll()) this.openEnhance(inst.id); }); // tap = enhance
     return c;
   }
 
