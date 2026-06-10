@@ -5,8 +5,12 @@ import { getMasteryLevel, getMasteryXp } from "./mastery.ts";
 import { getAwakening, canAwaken, awaken } from "./awakening.ts";
 import { ensureWishlist, setWishlist, canClaimSpark, claimSpark } from "./banner.ts";
 import { craftAlchemy, exchangeCopies } from "./alchemy.ts";
-import { expeditionActive, expeditionPendingGold, startExpedition, collectExpedition } from "./expedition.ts";
-import { bestEndlessWave, recordEndlessWave } from "./endless.ts";
+import {
+  expeditionActive, expeditionPendingGold, startExpedition, collectExpedition,
+  expeditionGoldPerHour, expeditionGoldPerHourFor, expeditionCanCollect,
+  expeditionCollectReadyAt, expeditionEligibleTowerIds,
+} from "./expedition.ts";
+import { bestEndlessWave, recordEndlessWave, claimEndlessRun, endlessEntryCost, payEndlessEntry } from "./endless.ts";
 import { rolloverBossRush, recordBossRushTier } from "./bossRush.ts";
 import { claimableMilestoneCount, nextClaimableTier, claimMilestone, unlockedTitles } from "./milestones.ts";
 import { powerRating, profileSummary, setTitle } from "./profile.ts";
@@ -90,7 +94,7 @@ export class SaveManager extends SaveManagerCore {
     if (freeSpinAvailable(this.save, today)) n++;
     n += claimableBountyCount(this.save);
     n += claimableMilestoneCount(this.save);
-    if (expeditionActive(this.save) && expeditionPendingGold(this.save, nowMs) > 0) n++;
+    if (expeditionCanCollect(this.save, nowMs) && expeditionPendingGold(this.save, nowMs) > 0) n++;
     return n;
   }
 
@@ -108,6 +112,11 @@ export class SaveManager extends SaveManagerCore {
   // ── F2 Idle expedition ──────────────────────────────────────────────────────
   expeditionActive(): boolean { return expeditionActive(this.save); }
   expeditionPendingGold(nowMs = Date.now()): number { return expeditionPendingGold(this.save, nowMs); }
+  expeditionGoldPerHour(): number { return expeditionGoldPerHour(this.save); }
+  expeditionGoldPerHourFor(towerIds: string[]): number { return expeditionGoldPerHourFor(this.save, towerIds); }
+  expeditionCanCollect(nowMs = Date.now()): boolean { return expeditionCanCollect(this.save, nowMs); }
+  expeditionCollectReadyAt(): number { return expeditionCollectReadyAt(this.save); }
+  expeditionEligibleTowerIds(): string[] { return expeditionEligibleTowerIds(this.save); }
   startExpedition(towerIds: string[], nowMs = Date.now()): void {
     startExpedition(this.save, towerIds, nowMs);
     this.persist();
@@ -120,11 +129,25 @@ export class SaveManager extends SaveManagerCore {
 
   // ── F11 Endless survival ────────────────────────────────────────────────────
   bestEndlessWave(stageId: string): number { return bestEndlessWave(this.save, stageId); }
+  /** Gold needed to start an endless run on this stage (scales with the player's best wave). */
+  endlessEntryCost(stageId: string): number { return endlessEntryCost(bestEndlessWave(this.save, stageId)); }
+  /** Spend the endless entry fee; returns gold paid, or -1 if too poor. Persists on success. */
+  payEndlessEntry(stageId: string): number {
+    const paid = payEndlessEntry(this.save, stageId);
+    if (paid >= 0) this.persist();
+    return paid;
+  }
   /** Record an endless run result; returns true on a new personal best. Persists. */
   recordEndlessWave(stageId: string, wave: number): boolean {
     const pb = recordEndlessWave(this.save, stageId, wave);
     this.persist();
     return pb;
+  }
+  /** Settle an endless run: grant rewards for newly-reached depth, record best. Persists. */
+  claimEndlessRun(stageId: string, wavesReached: number): { reward: Reward; isBest: boolean } {
+    const out = claimEndlessRun(this.save, stageId, wavesReached);
+    this.persist();
+    return out;
   }
 
   // ── F12 Boss rush (weekly) ──────────────────────────────────────────────────

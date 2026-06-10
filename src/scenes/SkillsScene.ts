@@ -20,6 +20,7 @@ const RARITY_INT: Record<Rarity, number> = {
   Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
 };
 const DMG_HEX: Record<string, string> = { Physical: "#ff8a65", Magic: "#b39ddb", True: "#fff176" };
+const DMG_INT: Record<string, number> = { Physical: 0xff8a65, Magic: 0xb39ddb, True: 0xfff176 };
 
 const COLS = 4, CW = 224, CH = 148, X0 = 16, Y0 = 62, GAP_X = 8, GAP_Y = 6;
 
@@ -74,6 +75,10 @@ export class SkillsScene extends Phaser.Scene {
       .fillRoundedRect(x, y, CW, CH, 8);
     g.lineStyle(equipped ? 3 : 2, equipped ? 0xb085f5 : owned ? RARITY_INT[def.rarity] : 0x2a3442, owned ? 1 : 0.7)
       .strokeRoundedRect(x, y, CW, CH, 8);
+    // Inset damage-type frame (Physical / Magic / True) — the outer border keeps
+    // showing rarity, this inner one distinguishes how the skill deals damage.
+    g.lineStyle(1.5, DMG_INT[def.damageType] ?? 0x9fb0c4, owned ? 0.9 : 0.4)
+      .strokeRoundedRect(x + 3, y + 3, CW - 6, CH - 6, 6);
     this.layer.add(g);
 
     // Icon.

@@ -26,15 +26,32 @@ describe("boss roster", () => {
     }
   });
 
-  it("each of the 10 stages ends in exactly one boss, and they are distinct across stages", () => {
-    const finals: string[] = [];
+  it("every campaign stage ends in exactly one boss", () => {
     for (const stage of STAGES) {
       const lastWave = stage.waves[stage.waves.length - 1];
       const bossSpawns = lastWave.spawns.filter((s) => byId.get(s.enemyId)?.archetype === "Boss");
       expect(bossSpawns.length, stage.id).toBe(1);
-      finals.push(bossSpawns[0].enemyId);
     }
+  });
+
+  it("Chapter 1 fields a distinct boss for each of its ten stages", () => {
+    const finals = STAGES.filter((s) => s.id.startsWith("ch1-")).map((stage) => {
+      const lastWave = stage.waves[stage.waves.length - 1];
+      return lastWave.spawns.find((s) => byId.get(s.enemyId)?.archetype === "Boss")!.enemyId;
+    });
     expect(finals.length).toBe(10);
-    expect(new Set(finals).size).toBe(10); // a distinct boss per stage
+    expect(new Set(finals).size).toBe(10); // a distinct boss per stage in Ch.1
+  });
+
+  it("the expansion chapters (stages 11-30) all resolve to a real boss", () => {
+    // Chapter 2/3/4/5 reuse the roster (elite-scaled by the progression curve), so
+    // bosses need not be distinct — but every authored stage must resolve to a
+    // real boss, never the silent 'overlord' fallback.
+    for (const stage of STAGES.filter((s) => !s.id.startsWith("ch1-"))) {
+      const lastWave = stage.waves[stage.waves.length - 1];
+      const boss = lastWave.spawns.find((s) => byId.get(s.enemyId)?.archetype === "Boss");
+      expect(boss, stage.id).toBeDefined();
+      expect(byId.get(boss!.enemyId)!.archetype).toBe("Boss");
+    }
   });
 });

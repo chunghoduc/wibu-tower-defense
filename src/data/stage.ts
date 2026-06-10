@@ -8,11 +8,12 @@
 import { makeStats, type SpawnEntry, type StageDef, type TerrainFeature, type TerrainType, type Vec2, type WaveDef } from "./schema.ts";
 import { Rng } from "../core/rng.ts";
 import { stageThemeForStage } from "./chapters.ts";
+import { EXPANSION_LAYOUTS, BOSS_EXPANSION } from "./stagesExpansion.ts";
 
 export const GAME_WIDTH = 960;
 export const GAME_HEIGHT = 540;
 
-interface Layout {
+export interface Layout {
   name: string;
   path: Vec2[];
   air: Vec2[];
@@ -82,11 +83,24 @@ const LAYOUTS: Layout[] = [
   },
 ];
 
-/** Final boss for each of the 10 stages (1-indexed), escalating in difficulty. */
+/**
+ * Final boss for each stage (1-indexed), escalating in difficulty. Chapter 1's
+ * ten bosses, then the Chapter 2/3/4/5 expansion roster (stages 11–30) appended.
+ */
 export const BOSS_BY_STAGE = [
   "champion", "zabro", "ryomen", "kura", "warden",
   "akai", "mukade", "madarok", "overlord", "meruon",
+  ...BOSS_EXPANSION,
 ];
+
+/** Every campaign layout in stage order: Chapter 1, then the 2–5 expansion. */
+const ALL_LAYOUTS: Layout[] = [...LAYOUTS, ...EXPANSION_LAYOUTS];
+
+/** Stage id (with the right `chN-` region prefix) for a global stage number. */
+function stageIdFor(n: number): string {
+  const chapter = n <= 10 ? 1 : n <= 15 ? 2 : n <= 20 ? 3 : n <= 25 ? 4 : 5;
+  return `ch${chapter}-s${n}`;
+}
 
 /** Stage number (1-based) parsed from a stage id like "ch1-s7". */
 export function stageNumber(stageId: string): number {
@@ -209,8 +223,8 @@ function generateTerrain(path: Vec2[], seed: number, block: TerrainType[], decor
   return feats;
 }
 
-export const STAGES: StageDef[] = LAYOUTS.map((l, i) => {
-  const id = `ch1-s${i + 1}`;
+export const STAGES: StageDef[] = ALL_LAYOUTS.map((l, i) => {
+  const id = stageIdFor(i + 1);
   const path = l.path.map(scaleV);
   const theme = stageThemeForStage(id);
   return {

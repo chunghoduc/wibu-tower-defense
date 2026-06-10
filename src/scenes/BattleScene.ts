@@ -33,7 +33,7 @@ import { Sfx } from "./audio.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
 import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 import { BattleCameraController } from "./battleCamera.ts";
-import { TERRAIN_COLOR, buildSquad } from "./battleSceneHelpers.ts";
+import { TERRAIN_COLOR, RARITY_INT, buildSquad } from "./battleSceneHelpers.ts";
 import { renderMethods, type RenderMethods } from "./battleSceneRender.ts";
 import { spritesMethods, type SpritesMethods } from "./battleSceneSprites.ts";
 import { inputMethods, type InputMethods } from "./battleSceneInput.ts";
@@ -66,6 +66,7 @@ export class BattleScene extends Phaser.Scene {
   banner!: Phaser.GameObjects.Text;
   info!: Phaser.GameObjects.Text;
   avatarTiles: Phaser.GameObjects.Container[] = [];
+  avatarPulses: Phaser.Tweens.Tween[] = [];   // breathing-glow tweens on rarer build-bar cards
   terrainSprites: Phaser.GameObjects.Image[] = [];
   placeGhost: Phaser.GameObjects.Container | null = null;
   gameSpeed = 1;
@@ -122,6 +123,7 @@ export class BattleScene extends Phaser.Scene {
     this.confirmDialog = null;
     this.rangePreviewUid = -1;
     this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
+    this.avatarPulses = [];
     this.terrainSprites = [];
     this.placeGhost = null;
 
@@ -147,6 +149,7 @@ export class BattleScene extends Phaser.Scene {
       heroSave: save,
       challenge: this.battleMode.challenge,
       endlessMul: this.battleMode.endlessMul,
+      endless: this.battleMode.kind === "endless",
     });
 
     // Two display layers: the battlefield (rendered by a zoomed-out camera) and
@@ -292,12 +295,35 @@ export class BattleScene extends Phaser.Scene {
   /** Build the bottom bar of draggable character avatars (T12). */
   buildBuildBar(): void {
     const TW = 74;
+    // Per-rarity glow: base alpha + an optional breathing pulse (stronger/faster up
+    // the chain) so a card's rarity reads at a glance during battle. Common is plain.
+    const RGLOW: Record<string, { glow: number; pulse: number }> = {
+      Common: { glow: 0, pulse: 0 }, Magic: { glow: 0.16, pulse: 0 },
+      Rare: { glow: 0.24, pulse: 900 }, Legendary: { glow: 0.32, pulse: 720 },
+      Unique: { glow: 0.42, pulse: 560 },
+    };
     this.buildOrder.forEach((def, i) => {
       const x = 14 + i * TW, y = 504;
       const c = this.add.container(x + TW / 2, y + 16).setSize(TW - 8, 44).setDepth(12);
+      const w = TW - 8, hw = w / 2;
+      const rarityCol = RARITY_INT[def.rarity] ?? 0x3a4a64;
+      const rg = RGLOW[def.rarity] ?? RGLOW.Common;
+      // Rarity glow sits behind the card body — a soft rarity-colored halo.
+      if (rg.glow > 0) {
+        const glow = this.add.graphics();
+        glow.fillStyle(rarityCol, 1).fillRoundedRect(-hw - 4, -20, w + 8, 52, 9);
+        glow.setAlpha(rg.glow);
+        c.add(glow);
+        if (rg.pulse > 0) {
+          this.avatarPulses.push(this.tweens.add({
+            targets: glow, alpha: rg.glow * 0.4, duration: rg.pulse,
+            yoyo: true, repeat: -1, ease: "Sine.easeInOut",
+          }));
+        }
+      }
       const bg = this.add.graphics();
-      bg.fillStyle(0x1a2230, 1).fillRoundedRect(-(TW - 8) / 2, -16, TW - 8, 44, 6);
-      bg.lineStyle(1.5, 0x3a4a64, 1).strokeRoundedRect(-(TW - 8) / 2, -16, TW - 8, 44, 6);
+      bg.fillStyle(0x1a2230, 1).fillRoundedRect(-hw, -16, w, 44, 6);
+      bg.lineStyle(1.5, rarityCol, 1).strokeRoundedRect(-hw, -16, w, 44, 6);
       c.add(bg);
       const key = `tower__${def.id}`;
       if (this.textures.exists(key)) {
@@ -318,6 +344,8 @@ export class BattleScene extends Phaser.Scene {
 
   /** Recreate the avatar tiles (e.g. to snap a dragged tile home). */
   rebuildAvatarTiles(): void {
+    this.avatarPulses.forEach((t) => t.stop());   // drop tweens before their glow graphics die
+    this.avatarPulses = [];
     this.avatarTiles.forEach((t) => t.destroy());
     this.avatarTiles = [];
     this.buildBuildBar();

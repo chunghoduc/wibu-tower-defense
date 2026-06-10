@@ -180,6 +180,10 @@ export interface HeroRuntime {
   weaponType: WeaponType | null;
   /** The hero's single equipped active-skill id — drives the cast VFX signature. */
   equippedSkillId?: string;
+  /** Burst multiplier on atk for the equipped active (legacy ×2 when unset). */
+  activeMult?: number;
+  /** Damage type of the equipped active skill (falls back to weapon type). */
+  activeDamageType?: DamageType;
   pos: Vec2;
   moveTarget: Vec2;
   hp: number;
@@ -205,6 +209,8 @@ export interface BattleOptions {
   challenge?: ChallengeEffects;
   /** F11 endless: enemy stat multiplier applied on top of difficulty (per-wave ramp). */
   endlessMul?: number;
+  /** F11 endless survival: generate waves forever, scaling per-wave; run ends only on loss. */
+  endless?: boolean;
 }
 
 export interface Catalogs {

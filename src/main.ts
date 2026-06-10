@@ -12,6 +12,7 @@ import { SettingsScene } from "./scenes/SettingsScene.ts";
 import { SkillsScene } from "./scenes/SkillsScene.ts";
 import { QuestScene } from "./scenes/QuestScene.ts";
 import { ActivitiesScene } from "./scenes/ActivitiesScene.ts";
+import { ExpeditionScene } from "./scenes/ExpeditionScene.ts";
 import { ForgeScene } from "./scenes/ForgeScene.ts";
 import { PreloadScene } from "./scenes/PreloadScene.ts";
 import { GAME_HEIGHT, GAME_WIDTH, STAGES } from "./data/stage.ts";
@@ -45,7 +46,7 @@ const game = new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [PreloadScene, MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene, ShopScene, PassiveGridScene, HeroScene, SquadScene, SettingsScene, SkillsScene, QuestScene, ActivitiesScene, ForgeScene],
+  scene: [PreloadScene, MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene, ShopScene, PassiveGridScene, HeroScene, SquadScene, SettingsScene, SkillsScene, QuestScene, ActivitiesScene, ExpeditionScene, ForgeScene],
 });
 
 game.registry.set("saveManager", saveManager);

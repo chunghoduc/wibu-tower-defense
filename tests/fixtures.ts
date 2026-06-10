@@ -85,6 +85,8 @@ export function world(
       seed: opts.seed ?? 1,
       difficulty: opts.difficulty ?? "Normal",
       eliteChance: opts.eliteChance ?? 0,
+      endless: opts.endless ?? false,
+      endlessMul: opts.endlessMul,
       hero: opts.hero ?? {
         stats: makeStats({ maxHp: 1e9, attackSpeed: 0, range: 0, moveSpeed: 0 }),
         startPos: { x: -500, y: -500 },

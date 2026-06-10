@@ -151,38 +151,70 @@ export const spritesMethods = {
 
   /**
    * Procedural enemy animation driving the single SDXL creature sprite so it
-   * feels alive: GROUND enemies walk with a waddle + stride bob + breathing,
-   * FLYING enemies hover above the lane with a smooth float + wing-sway tilt,
-   * and any enemy squashes/recoils when HURT (set by the hit FX). Bosses with a
-   * real rig walk sheet play that instead. Frozen enemies stand still + shiver.
+   * reads as real locomotion instead of sliding ("floating") along the lane.
+   * The 2-frame SDXL `_walk` sheet (frames near-identical) keeps cycling for a
+   * touch of limb variation, but the *transform* is what sells movement:
+   *  - GROUND enemies get a 2-beat step cycle whose phase advances with the
+   *    distance actually travelled — so footfalls stay glued to the ground and
+   *    a slowed/stopped enemy steps slower/stops (the core fix for floating).
+   *    Each step plants a foot (squash + settle), rocks the body toward the
+   *    planted side (waddle), bobs up between falls, and leans into travel.
+   *  - FLYING enemies get a brisk, constant-rhythm WING-BEAT: the body rises on
+   *    each downstroke, wings spread (scaleX pulse) on the beat, and the body
+   *    banks on a slower roll as it glides.
+   *  - HURT squash/recoil overlays either (set by the hit FX, decays ~160ms).
+   * Bosses use the same gait at reduced amplitude + longer stride (heavy).
+   * Frozen / stunned enemies hold still with a faint shiver, no stepping.
    */
   animateEnemy(this: BattleScene, s: Phaser.GameObjects.Sprite, e: EnemyRuntime, key: string): void {
-    const frozen = e.slowPct >= 0.6;
+    const now = this.time.now;
+    const boss = e.def.archetype === "Boss";
+    const frozen = e.slowPct >= 0.6 || e.stunTimer > 0;
+    const base = (s.getData("baseScale") as number) ?? s.scaleX;
+
+    // Keep the SDXL walk sheet cycling, but never rely on it alone. Don't stomp
+    // an in-flight one-shot (attack/skill/hurt) — it returns to walk itself;
+    // pause the loop while frozen so a held enemy doesn't moon-walk in place.
     if (this.anims.exists(`${key}_walk`)) {
-      // Don't interrupt a one-shot (attack / skill / hurt) — it returns to walk itself.
       const cur = s.anims.currentAnim?.key;
       const inOneShot = s.anims.isPlaying &&
         (cur === `${key}_attack` || cur === `${key}_skill` || cur === `${key}_hurt`);
-      if (!frozen && !inOneShot && cur !== `${key}_walk`) s.play(`${key}_walk`);
-      return;
+      if (!inOneShot) {
+        if (frozen) { if (s.anims.isPlaying) s.anims.pause(); }
+        else if (cur !== `${key}_walk` || !s.anims.isPlaying) s.play(`${key}_walk`);
+      }
     }
 
-    const base = (s.getData("baseScale") as number) ?? s.scaleX;
-    const now = this.time.now;
-    const t = now * 0.011 + e.uid * 1.7;
+    // Distance travelled since last frame → couples the gait to the ground.
+    const px = e.pos.x, py = e.pos.y;
+    const lx = s.getData("lastPosX") as number | undefined;
+    const ly = s.getData("lastPosY") as number | undefined;
+    const moved = lx === undefined ? 0 : Math.min(20, Math.hypot(px - lx, py - (ly as number)));
+    s.setData("lastPosX", px); s.setData("lastPosY", py);
+
     let scaleX = base, scaleY = base, angle = 0, yOff = 0;
 
-    if (e.def.flying) {
-      yOff = -14 - Math.sin(t * 1.4) * 5;               // lift + hover bob
-      angle = Math.sin(t * 1.4) * 4;                    // wing-sway tilt
-      const breathe = 1 + Math.sin(t * 2) * 0.03;
-      scaleX = base * breathe; scaleY = base * breathe;
+    if (e.flying) {
+      const w = now * 0.017 + e.uid * 1.7;              // ~2.7 wing-beats/sec
+      const beat = Math.sin(w);
+      yOff = -15 + Math.cos(w) * 4.5;                   // body rises on the downstroke
+      angle = Math.sin(w * 0.5) * 6;                    // slow banking roll
+      scaleX = base * (1 + beat * 0.05);                // wings spread on the beat
+      scaleY = base * (1 - beat * 0.03);
     } else if (frozen) {
-      angle = Math.sin(now * 0.05) * 1.2;               // faint shiver
+      angle = Math.sin(now * 0.05) * 1.2;               // faint shiver, no stepping
     } else {
-      angle = Math.sin(t) * 5;                          // walk waddle
-      yOff = -Math.abs(Math.sin(t * 2)) * 2.2;          // stride bob
-      scaleY = base * (1 + Math.sin(t * 2) * 0.02);     // breathing
+      const A = boss ? 0.6 : 1;                          // bosses bob/rock less (heavy)
+      let c = (s.getData("gaitPhase") as number) ?? e.uid * 1.3;
+      c += moved * 0.16 * (boss ? 0.7 : 1);              // ~one step per ~20px; longer boss stride
+      s.setData("gaitPhase", c);
+      const swing = Math.abs(Math.sin(c));               // 0 at foot-plant, 1 mid-swing
+      const plant = 1 - swing;                           // weight settling on the planted foot
+      yOff = -swing * 3.2 * A;                           // body rises between footfalls
+      angle = -Math.cos(c) * 4.5 * A;                    // waddle rock toward the planted foot
+      scaleY = base * (1 - 0.07 * plant * A);            // squash + settle on each step
+      scaleX = base * (1 + 0.05 * plant * A);
+      if (moved > 0.2 && lx !== undefined) angle += Math.sign(px - lx) * 2; // lean into travel
     }
 
     // Hurt squash overlays the base motion (set on the hit FX, decays ~160ms).

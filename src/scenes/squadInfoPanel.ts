@@ -151,7 +151,11 @@ export function renderHeroInfo(scene: S, c: C, x: number, y: number, w: number, 
   const equipped = ITEM_SLOTS.filter((s) => save.inventory.equipped[s]).length;
   add(c, crispText(scene, x, sy, `Equipped items: ${equipped}/${ITEM_SLOTS.length}`, { fontSize: "10px", color: "#e8eef6" }));
   sy += 16;
-  const skNames = save.hero.equippedSkillIds.map((id) => ACTIVE_SKILLS_MAP.get(id)?.name ?? id);
+  const skNames = save.hero.equippedSkillIds.map((id) => {
+    const name = ACTIVE_SKILLS_MAP.get(id)?.name ?? id;
+    const lvl = save.hero.obtainedSkills.find((s) => s.skillId === id)?.level;
+    return lvl ? `${name} L${lvl}` : name;
+  });
   add(c, crispText(scene, x, sy, `Skills: ${skNames.length ? skNames.join(", ") : "none equipped"}`, { fontSize: "10px", color: skNames.length ? "#a8d8ff" : "#8fa0b4" }));
   sy += 16;
   add(c, crispText(scene, x, sy, `Passive nodes: ${save.hero.unlockedNodes.length}`, { fontSize: "10px", color: "#cdd6e6" }));

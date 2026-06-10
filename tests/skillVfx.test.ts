@@ -90,4 +90,40 @@ describe("hero cast plumbing", () => {
     }
     expect(castSkillId).toBe("execute-slash");
   });
+
+  it("levels the equipped skill through use (spec: +1 use-XP per cast, capped at hero level)", () => {
+    const b = heroBattleCasting("execute-slash");
+    // Skill drops at level 1; the cap is the hero's level, so raise it well above 1
+    // or every cast is a no-op (a brand-new hero's starter skill IS already capped).
+    b._heroSave!.hero.level = 20;
+    const entry = b._heroSave!.hero.obtainedSkills.find((e) => e.skillId === "execute-slash")!;
+    expect(entry.level).toBe(1);
+    b.hero.stats.range = 400;
+    b.hero.stats.attackSpeed = 10;
+    // Run long enough for many casts; skillXpToLevel(1) = 10 casts to reach level 2.
+    for (let t = 0; t < 400; t++) {
+      b.hero.mana = MANA_MAX;
+      b.tick(0.05);
+    }
+    // Either it levelled (useXp rolled over) or at minimum it accrued use-XP — both
+    // prove the cast→XP wiring fires. Before this fix it was permanently 0 / level 1.
+    expect(entry.level > 1 || entry.useXp > 0).toBe(true);
+  });
+
+  it("casts the equipped skill's damage type, not the weapon's", () => {
+    // true-strike deals True; the hero's weapon defaults to Physical. The cast
+    // must come out True — the equipped skill drives the burst type.
+    const b = heroBattleCasting("true-strike");
+    expect(b.hero.activeDamageType).toBe("True");
+    expect(b.hero.activeMult).toBeGreaterThan(0);
+    b.hero.stats.range = 400;
+    b.hero.stats.attackSpeed = 10;
+    let castType: string | null = null;
+    for (let t = 0; t < 160 && castType === null; t++) {
+      b.hero.mana = MANA_MAX;
+      b.tick(0.05);
+      for (const fx of b.fx) if (fx.type === "cast" && fx.source === "hero") castType = fx.damageType;
+    }
+    expect(castType).toBe("True");
+  });
 });

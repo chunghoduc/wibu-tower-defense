@@ -1,11 +1,12 @@
 import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
-import { STAGES } from "../data/stage.ts";
+import { STAGES, stageNumber } from "../data/stage.ts";
 import { ENEMIES } from "../data/enemies.ts";
 import { stageBgKey } from "../data/uiManifest.ts";
 import { openEnemyPanel, enemiesForStage } from "./enemyListPanel.ts";
 import { isDifficultyUnlocked, prerequisiteTier } from "../core/difficultyUnlock.ts";
+import { CAMPAIGN_CHAPTERS, playerChapterOf, campaignChapterForStage } from "../data/campaign.ts";
 import type { HeroSave } from "../core/save.ts";
 import type { Difficulty, StageDef } from "../data/schema.ts";
 
@@ -25,9 +26,12 @@ const GAP_Y = 118;
 
 export class StageSelectScene extends Phaser.Scene {
   private selectedDifficulty: Difficulty = "Normal";
+  private selectedChapter = 1;
   private diffBtns: Phaser.GameObjects.Text[] = [];
+  private chapterBtns: Phaser.GameObjects.Text[] = [];
   private stageLayer?: Phaser.GameObjects.Container;
   private legend?: Phaser.GameObjects.Text;
+  private regionText?: Phaser.GameObjects.Text;
 
   constructor() {
     super("StageSelectScene");
@@ -39,10 +43,15 @@ export class StageSelectScene extends Phaser.Scene {
     // previous visit — otherwise refreshDiffTabs() would call setBackgroundColor
     // on destroyed Texts whose WebGL texture source is gone (crash on real GPU).
     this.diffBtns = [];
+    this.chapterBtns = [];
     this.stageLayer = undefined;
     this.legend = undefined;
+    this.regionText = undefined;
     const mgr: SaveManager = this.registry.get("saveManager");
     const save = mgr.getSave();
+    // Open on the furthest region the player has reached, so returning players
+    // land where they left off rather than back at Chapter 1.
+    this.selectedChapter = this.furthestReachedChapter(save);
     const W = this.scale.width;
     const H = this.scale.height;
 
@@ -77,8 +86,36 @@ export class StageSelectScene extends Phaser.Scene {
     place("✦ Skills", "#3a2a5a", () => this.openLoadout("SkillsScene"));
     place("⚔ Squad", "#2a4a3a", () => this.openLoadout("SquadScene"));
 
+    // Chapter (region) tabs — only chapters that actually have stages.
+    const chapters = CAMPAIGN_CHAPTERS.filter((c) => STAGES.some((s) => playerChapterOf(s.id) === c.chapter));
+    const chTabY = 50;
+    const chSpan = 150;
+    chapters.forEach((c, i) => {
+      const x = W / 2 - ((chapters.length - 1) * chSpan) / 2 + i * chSpan;
+      const btn = this.add
+        .text(x, chTabY, `Ch.${c.chapter}`, { fontSize: "15px", color: "#ffd9a0", backgroundColor: "#241a2e" })
+        .setOrigin(0.5)
+        .setPadding(14, 6, 14, 6)
+        .setInteractive({ useHandCursor: true });
+      btn.setData("chapter", c.chapter);
+      btn.on("pointerdown", () => {
+        this.selectedChapter = c.chapter;
+        this.refreshChapterTabs();
+        this.refreshRegion();
+        this.buildStageGrid(save);
+      });
+      this.chapterBtns.push(btn);
+    });
+    this.refreshChapterTabs();
+
+    // Region name + lore blurb for the selected chapter.
+    this.regionText = this.add
+      .text(W / 2, 76, "", { fontSize: "11px", color: "#c8b8a0", align: "center", wordWrap: { width: W - 80 } })
+      .setOrigin(0.5, 0);
+    this.refreshRegion();
+
     // Difficulty tabs
-    const tabY = 56;
+    const tabY = 110;
     DIFFICULTIES.forEach((diff, i) => {
       const x = W / 2 - 140 + i * 140;
       const btn = this.add
@@ -122,11 +159,18 @@ export class StageSelectScene extends Phaser.Scene {
 
     const clearMap = save.progress.stageClearMap;
     const START_X = (W - (COLS - 1) * GAP_X - CARD_W) / 2 + CARD_W / 2;
-    const START_Y = 90;
+    const START_Y = 138;
 
-    STAGES.forEach((stage, i) => {
-      const col = i % COLS;
-      const row = Math.floor(i / COLS);
+    // Only the selected chapter's stages, but keep each stage's GLOBAL index so
+    // sequential unlocking and the displayed stage number stay continuous across
+    // chapters (a chapter's first stage gates behind the prior chapter's last).
+    const chapterStages = STAGES
+      .map((stage, gi) => ({ stage, gi }))
+      .filter(({ stage }) => playerChapterOf(stage.id) === this.selectedChapter);
+
+    chapterStages.forEach(({ stage, gi }, li) => {
+      const col = li % COLS;
+      const row = Math.floor(li / COLS);
       const x = START_X + col * GAP_X;
       const y = START_Y + row * GAP_Y;
 
@@ -135,7 +179,7 @@ export class StageSelectScene extends Phaser.Scene {
       // Sequential gate: can't even open a stage until the previous one is
       // cleared on Normal. Tier gate: this stage's chapter must be conquered on
       // the tier below before the selected harder tier can be played.
-      const isLocked = i > 0 && !clearMap[STAGES[i - 1].id]?.Normal;
+      const isLocked = gi > 0 && !clearMap[STAGES[gi - 1].id]?.Normal;
       const tierLocked = !isLocked && !isDifficultyUnlocked(save, stage.id, this.selectedDifficulty);
       const dimmed = isLocked || tierLocked;
       const left = x - CARD_W / 2;
@@ -146,8 +190,14 @@ export class StageSelectScene extends Phaser.Scene {
       add(this.add.graphics().fillStyle(bg, 1).fillRoundedRect(left, y, CARD_W, CARD_H, 8));
 
       // The stage's hand-painted backdrop, cover-fit and masked to the rounded
-      // card so each stage is recognisable at a glance. Locked stages stay dark.
-      const bgkey = stageBgKey(stage.id);
+      // card so each stage is recognisable at a glance. Stages without bespoke
+      // art (the expansion chapters) fall back to their region backdrop. Locked
+      // stages stay dark.
+      let bgkey = stageBgKey(stage.id);
+      if (!this.textures.exists(bgkey)) {
+        const ch = campaignChapterForStage(stage.id);
+        if (ch) bgkey = ch.bgKey;
+      }
       if (this.textures.exists(bgkey)) {
         const img = add(this.add.image(x, y + CARD_H / 2, bgkey));
         img.setScale(Math.max(CARD_W / img.width, CARD_H / img.height));
@@ -175,7 +225,7 @@ export class StageSelectScene extends Phaser.Scene {
       // Stage number + name (stroked so they read over the painted backdrop)
       const nameColor = dimmed ? "#888888" : "#ffffff";
       add(this.add
-        .text(x, y + 10, `Stage ${i + 1}`, {
+        .text(x, y + 10, `Stage ${stageNumber(stage.id)}`, {
           fontSize: "11px",
           color: isLocked ? "#556677" : "#9fd0ff",
           fontStyle: "bold",
@@ -271,6 +321,37 @@ export class StageSelectScene extends Phaser.Scene {
       btn.setBackgroundColor(active ? "#2a4a6a" : "#1a2a3a");
       btn.setAlpha(active ? 1 : 0.6);
     });
+  }
+
+  private refreshChapterTabs(): void {
+    this.chapterBtns.forEach((btn) => {
+      const active = btn.getData("chapter") === this.selectedChapter;
+      btn.setBackgroundColor(active ? "#4a3622" : "#241a2e");
+      btn.setAlpha(active ? 1 : 0.6);
+    });
+  }
+
+  /** Region title + lore hook for the selected chapter. */
+  private refreshRegion(): void {
+    if (!this.regionText) return;
+    const c = CAMPAIGN_CHAPTERS.find((x) => x.chapter === this.selectedChapter);
+    this.regionText.setText(c ? `${c.title} — ${c.blurb}` : "");
+  }
+
+  /** The deepest region whose first stage is unlocked, so we open there. */
+  private furthestReachedChapter(save: HeroSave): number {
+    const clearMap = save.progress.stageClearMap;
+    const present = CAMPAIGN_CHAPTERS
+      .map((c) => c.chapter)
+      .filter((ch) => STAGES.some((s) => playerChapterOf(s.id) === ch));
+    let best = present[0] ?? 1;
+    for (const ch of present) {
+      const first = STAGES.findIndex((s) => playerChapterOf(s.id) === ch);
+      if (first < 0) continue;
+      const unlocked = first === 0 || clearMap[STAGES[first - 1].id]?.Normal === true;
+      if (unlocked) best = Math.max(best, ch);
+    }
+    return best;
   }
 
   private launchStage(stage: StageDef): void {

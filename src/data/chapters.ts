@@ -71,6 +71,22 @@ const STAGE_BIOMES: Record<number, StageBiome> = {
   9: { terrainTint: 0xdfe6da, groundOverlay: 0x141d1c, block: ["stone", "jungle", "water"], decor: ["grass", "stone"] },
   // 10 — Wardens' Gate: dark teal fortress wood
   10: { terrainTint: 0xbfd8c8, groundOverlay: 0x10201a, block: ["jungle", "stone", "jungle"], decor: ["grass"] },
+  // 13 — Mirage Bazaar: glass dunes glinting in the heat
+  13: { terrainTint: 0xffe0b0, groundOverlay: 0x241d12, block: ["crystal", "stone", "sand"], decor: ["sand", "crystal"] },
+  // 15 — Gate of the Glass Throne: shattered crystal ramparts
+  15: { terrainTint: 0xffffff, groundOverlay: 0x201828, block: ["crystal", "stone", "crystal", "mountain"], decor: ["sand", "stone"] },
+  // 19 — Magma Reliquary: lava channels among black crystal
+  19: { terrainTint: 0xffffff, groundOverlay: 0x2a1410, block: ["lava", "crystal", "stone"], decor: ["crystal", "sand"] },
+  // 20 — Throne of Emberfall: the demon-king's furnace
+  20: { terrainTint: 0xffffff, groundOverlay: 0x2a1008, block: ["lava", "mountain", "lava", "stone"], decor: ["sand", "lava"] },
+  // 23 — Sporebloom Hollow: luminous fungus glowing over the black water
+  23: { terrainTint: 0xb6f0c2, groundOverlay: 0x10220f, block: ["crystal", "jungle", "water"], decor: ["grass", "crystal"] },
+  // 25 — Heart of the Rot: the corruption's beating core
+  25: { terrainTint: 0xc0e0a0, groundOverlay: 0x141f14, block: ["water", "jungle", "crystal", "water"], decor: ["crystal", "grass"] },
+  // 28 — Spire of Unmaking: jagged black-crystal ramparts climbing into the void
+  28: { terrainTint: 0xd8c8f0, groundOverlay: 0x1d1430, block: ["crystal", "mountain", "crystal", "stone"], decor: ["crystal", "stone"] },
+  // 30 — The Wound at the World's End: the source, where reality comes apart
+  30: { terrainTint: 0xe6d6ff, groundOverlay: 0x241038, block: ["crystal", "crystal", "stone", "mountain"], decor: ["crystal", "crystal"] },
 };
 
 const STAGES_PER_CHAPTER = 5;

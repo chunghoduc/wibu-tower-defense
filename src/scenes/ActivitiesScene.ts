@@ -20,7 +20,6 @@ import { MILESTONES } from "../data/milestones.ts";
 import { metricValue, claimedTier, nextClaimableTier } from "../core/milestones.ts";
 import { isoWeekKey } from "../core/meta.ts";
 import { challengeForDay } from "../core/challenge.ts";
-import { endlessEnemyMul } from "../core/endless.ts";
 import { STAGES } from "../data/stage.ts";
 import type { BattleMode } from "./BattleScene.ts";
 import type { Difficulty } from "../data/schema.ts";
@@ -166,30 +165,53 @@ export class ActivitiesScene extends Phaser.Scene {
   }
 
   private drawExpedition(y: number): number {
+    const now = Date.now();
     const save = this.mgr.getSave();
     const active = expeditionActive(save);
-    const pending = expeditionPendingGold(save, Date.now());
-    const h = 64;
-    this.panel(y, h, 0x33405a, active && pending > 0);
-    this.layer.add(crispText(this, PANEL_X + 16, y + 10, "🧭 Expedition", { fontSize: "16px", color: "#ffe9b0", fontStyle: "bold" }));
-    this.layer.add(crispText(this, PANEL_X + 16, y + 34,
-      active ? `Party of ${save.meta.expedition.towerIds.length} · ${pending} 🪙 waiting (caps at 8h)` : "Send up to 3 heroes to gather gold while you're away.",
-      { fontSize: "12px", color: active ? "#ffd56a" : "#9fb0c4" }));
+    const pending = expeditionPendingGold(save, now);
+    const canCollect = this.mgr.expeditionCanCollect(now);
+    const rate = this.mgr.expeditionGoldPerHour();
+    const h = 72;
+    this.panel(y, h, 0x33405a, canCollect && pending > 0);
+    this.layer.add(crispText(this, PANEL_X + 16, y + 8, "🧭 Expedition", { fontSize: "16px", color: "#ffe9b0", fontStyle: "bold" }));
     if (active) {
-      this.button(PANEL_X + PANEL_W - 16, y + h / 2, "Collect", "#1f8f43", pending > 0, () => {
+      this.layer.add(crispText(this, PANEL_X + 16, y + 30,
+        `Party of ${save.meta.expedition.towerIds.length}  ·  earning ${rate} 🪙/hr (rarity + ★ scaled)`,
+        { fontSize: "12px", color: "#9fc0e6" }));
+      // Second line: pending haul + collect-readiness (15-min minimum).
+      const readyNote = canCollect ? `${pending} 🪙 ready to collect` : `${pending} 🪙 gathered · collectable in ${this.minutesUntil(this.mgr.expeditionCollectReadyAt(), now)}`;
+      this.layer.add(crispText(this, PANEL_X + 16, y + 50, `${readyNote}  ·  caps at 8h`, { fontSize: "12px", color: canCollect ? "#ffd56a" : "#9fb0c4" }));
+      // Re-party link (left of the Collect button).
+      this.linkText(PANEL_X + PANEL_W - 130, y + h / 2, "Re-party ›", () => fadeToScene(this, "ExpeditionScene"));
+      this.button(PANEL_X + PANEL_W - 16, y + h / 2, "Collect", "#1f8f43", canCollect && pending > 0, () => {
         const r = this.mgr.collectExpedition();
         const label = rewardLabel(r);
         if (label) this.celebrate(y + h / 2, rewardEmojis(r), label, 0x7fd0ff);
         this.showToast(`Expedition: ${label || "nothing yet"}`); this.redraw();
       });
     } else {
-      this.button(PANEL_X + PANEL_W - 16, y + h / 2, "Dispatch", "#3a6a9a", Object.keys(save.collection).length > 0, () => {
-        const party = (save.squad?.length ? save.squad : Object.keys(save.collection)).slice(0, 3);
-        this.mgr.startExpedition(party);
-        this.showToast(`Dispatched ${party.length} heroes!`); this.redraw();
-      });
+      this.layer.add(crispText(this, PANEL_X + 16, y + 32,
+        "Send up to 3 spare heroes (not in your battle squad) to gather gold while you're away.",
+        { fontSize: "12px", color: "#9fb0c4" }));
+      this.button(PANEL_X + PANEL_W - 16, y + h / 2, "Choose Heroes ›", "#3a6a9a", this.mgr.expeditionEligibleTowerIds().length > 0, () => fadeToScene(this, "ExpeditionScene"));
     }
     return y + h + 12;
+  }
+
+  /** A small inline text link (left-aligned button without a chip background). */
+  private linkText(x: number, y: number, label: string, cb: () => void): void {
+    const t = crispText(this, x, y, label, { fontSize: "12px", color: "#9fd0ff" })
+      .setOrigin(1, 0.5).setInteractive({ useHandCursor: true });
+    t.on("pointerover", () => t.setColor("#cfe9ff"));
+    t.on("pointerout", () => t.setColor("#9fd0ff"));
+    t.on("pointerup", cb);
+    this.layer.add(t);
+  }
+
+  /** Human-readable "Nm" / "<1m" until the given epoch ms. */
+  private minutesUntil(targetMs: number, now: number): string {
+    const m = Math.ceil((targetMs - now) / 60000);
+    return m <= 1 ? "<1m" : `${m}m`;
   }
 
   /** Highest-index stage the player has cleared on any difficulty (null if none). */
@@ -237,11 +259,18 @@ export class ActivitiesScene extends Phaser.Scene {
     {
       const h = 56;
       const best = cleared ? this.mgr.bestEndlessWave(cleared.id) : 0;
+      const cost = cleared ? this.mgr.endlessEntryCost(cleared.id) : 0;
+      const canPay = !!cleared && save.currency.gold >= cost;
       this.panel(y, h, 0x2c3a4f);
       this.layer.add(crispText(this, PANEL_X + 14, y + 8, "🌊 Endless Survival", { fontSize: "14px", color: "#ffe9b0", fontStyle: "bold" }));
-      this.layer.add(crispText(this, PANEL_X + 14, y + 28, cleared ? `Survive escalating waves. Best wave: ${best}.` : "Clear a stage first to unlock.", { fontSize: "11px", color: "#aab8cc" }));
-      this.button(PANEL_X + PANEL_W - 14, y + h / 2, "Play", "#3a6a9a", !!cleared,
-        () => cleared && this.launch(cleared.id, "Nightmare", { kind: "endless", endlessMul: endlessEnemyMul(best + 1) }));
+      this.layer.add(crispText(this, PANEL_X + 14, y + 28, cleared ? `Waves never stop — boss every 10. Best wave: ${best}. · Entry 🪙${cost}` : "Clear a stage first to unlock.", { fontSize: "11px", color: "#aab8cc" }));
+      this.button(PANEL_X + PANEL_W - 14, y + h / 2, cleared ? `Play 🪙${cost}` : "Play", "#3a6a9a", canPay,
+        () => {
+          if (!cleared) return;
+          const paid = this.mgr.payEndlessEntry(cleared.id);
+          if (paid < 0) { this.showToast(`Need 🪙${cost} gold to enter`); return; }
+          this.launch(cleared.id, "Nightmare", { kind: "endless" });
+        });
       y += h + 8;
     }
 
