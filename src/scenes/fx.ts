@@ -11,6 +11,7 @@ import { makeCrisp } from "./ui.ts";
 import { skillStyleFor } from "../data/attackStyle.ts";
 import { SkillVfx } from "./skillVfx.ts";
 import { MeleeFx } from "./meleeFx.ts";
+import { ImpactFx } from "./impactFx.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { tierOfBox } from "../core/boxes.ts";
 
@@ -35,6 +36,8 @@ export class FxLayer {
   private readonly skillVfx: SkillVfx;
   /** Melee swing VFX (slash / flurry / punch / smash). */
   private readonly melee: MeleeFx;
+  /** Per-element projectile contact VFX (fire/ice/shock/arcane/poison/…). */
+  private readonly impact: ImpactFx;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -58,6 +61,7 @@ export class FxLayer {
       : scene.add;
     this.skillVfx = new SkillVfx(scene, this.fac, this.depth);
     this.melee = new MeleeFx(scene, this.fac, this.depth);
+    this.impact = new ImpactFx(scene, this.fac, this.depth);
   }
 
   play(e: FxEvent): void {
@@ -151,7 +155,7 @@ export class FxLayer {
   /** Dispatch a per-character attack visual by style (T6). */
   private attackFx(style: string, from: Vec2, to: Vec2, ranged: boolean, crit: boolean, dmgColor: number, role: string): void {
     switch (style) {
-      case "lightning": this.bolt(from, to, 0x9fe6ff); this.spark(to, 0x9fe6ff); return;
+      case "lightning": this.bolt(from, to, 0x9fe6ff); this.impact.shock(to); return;
       case "slash": this.melee.slash(from, to, crit ? 0xffe07a : dmgColor, crit); return;
       case "flurry": this.melee.flurry(from, to, crit ? 0xffe07a : dmgColor, crit); return;
       case "smash": this.melee.smash(from, to, crit ? 0xffe07a : dmgColor, crit); return;
@@ -159,12 +163,16 @@ export class FxLayer {
       case "punch": this.melee.punch(from, to, crit ? 0xffe07a : dmgColor, crit); return;
       case "gunshot": this.gunshot(from, to, crit ? 0xfff2a8 : 0xffe39a); return;
       case "arrow": this.arrow(from, to, 0xe8d9a0); return;
-      case "fireball": this.orb(from, to, 0xff6a2a, 5.5, 0xffd24d, "round"); return;
-      case "iceball": this.orb(from, to, 0x6fc6ff, 5, 0xe1f5ff, "diamond"); return;
-      case "arcane": this.orb(from, to, 0xc77dde, 5, 0xeec6ff, "round"); return;
-      case "poison": this.orb(from, to, 0x8bc34a, 5, 0xd3ec9e, "round"); return;
-      case "holy": this.orb(from, to, 0xffe98a, 4.5, 0xffffff, "round"); return;
-      case "cannon": this.orb(from, to, 0x4a4f5a, 7, 0x9aa0ac, "round"); return;
+      case "fireball": this.orb(from, to, 0xff6a2a, 5.5, 0xffd24d, "round", (at) => this.impact.fire(at)); return;
+      case "iceball": this.orb(from, to, 0x6fc6ff, 5, 0xe1f5ff, "diamond", (at) => this.impact.ice(at)); return;
+      case "arcane": this.orb(from, to, 0xc77dde, 5, 0xeec6ff, "round", (at) => this.impact.arcane(at)); return;
+      case "poison": this.orb(from, to, 0x8bc34a, 5, 0xd3ec9e, "round", (at) => this.impact.poison(at)); return;
+      case "holy": this.orb(from, to, 0xffe98a, 4.5, 0xffffff, "round", (at) => this.impact.holy(at)); return;
+      case "cannon": {
+        const ang = Math.atan2(to.y - from.y, to.x - from.x);
+        this.orb(from, to, 0x4a4f5a, 7, 0x9aa0ac, "round", (at) => this.impact.cannon(at, ang));
+        return;
+      }
       default:
         if (ranged) this.projectile(from, to, dmgColor, role);
         else this.melee.slash(from, to, crit ? 0xffe07a : dmgColor, crit);
@@ -182,7 +190,7 @@ export class FxLayer {
     const dur = Math.min(140, 30 + Phaser.Math.Distance.BetweenPoints(from as Phaser.Types.Math.Vector2Like, to as Phaser.Types.Math.Vector2Like) * 0.5);
     this.scene.tweens.add({
       targets: tracer, x: to.x, y: to.y, duration: dur, ease: "Quad.easeIn",
-      onComplete: () => { this.spark(to, color); tracer.destroy(); },
+      onComplete: () => { this.impact.bullet(to, color); tracer.destroy(); },
     });
   }
 
@@ -194,13 +202,13 @@ export class FxLayer {
     const dur = Math.min(240, 50 + Phaser.Math.Distance.BetweenPoints(from as Phaser.Types.Math.Vector2Like, to as Phaser.Types.Math.Vector2Like) * 0.85);
     this.scene.tweens.add({
       targets: shaft, x: to.x, y: to.y, duration: dur, ease: "Sine.easeIn",
-      onComplete: () => { this.spark(to, color); shaft.destroy(); },
+      onComplete: () => { this.impact.pierce(to, ang); shaft.destroy(); },
     });
   }
 
   /** A magic orb (round or diamond) that flies to the target with a glow + a
    *  colored impact burst. Used for fireball/iceball/arcane/poison/holy/cannon. */
-  private orb(from: Vec2, to: Vec2, color: number, r: number, core: number, shape: "round" | "diamond" = "round"): void {
+  private orb(from: Vec2, to: Vec2, color: number, r: number, core: number, shape: "round" | "diamond", onImpact: (to: Vec2) => void): void {
     const body = shape === "diamond"
       ? this.fac.star(from.x, from.y, 4, r * 0.5, r, color).setDepth(this.depth)
       : this.fac.circle(from.x, from.y, r, color).setDepth(this.depth);
@@ -209,11 +217,7 @@ export class FxLayer {
     const dur = Math.min(260, 60 + Phaser.Math.Distance.BetweenPoints(from as Phaser.Types.Math.Vector2Like, to as Phaser.Types.Math.Vector2Like) * 0.9);
     this.scene.tweens.add({
       targets: [body, glow], x: to.x, y: to.y, duration: dur, ease: "Sine.easeIn",
-      onComplete: () => {
-        body.destroy(); glow.destroy();
-        const burst = this.fac.circle(to.x, to.y, r + 1, core, 0.9).setDepth(this.depth + 1);
-        this.scene.tweens.add({ targets: burst, scale: 2.6, alpha: 0, duration: 240, ease: "Quad.easeOut", onComplete: () => burst.destroy() });
-      },
+      onComplete: () => { body.destroy(); glow.destroy(); onImpact(to); },
     });
   }
 
