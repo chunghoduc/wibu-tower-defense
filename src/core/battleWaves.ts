@@ -7,6 +7,7 @@ import { stageNumber } from "../data/stage.ts";
 import { lerp, pointAtDistance } from "./path.ts";
 import { applyEliteBoost, rollEliteImmunity } from "./elite.ts";
 import { waveScaling } from "./waveScaling.ts";
+import { progressionScaling } from "./progressionScaling.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type Catalogs, type ScheduledSpawn, type SpawnRequest,
@@ -86,22 +87,20 @@ export const waveMethods = {
     const scale = DIFFICULTY_SCALING[this.difficulty];
     // F5 challenge tilts + F11 endless ramp layer on top of difficulty scaling.
     const ch = this.challenge;
+    const isBoss = def.archetype === "Boss";
     // Intra-stage escalation: each successive wave in a stage is tougher than the
     // last, so the back half of a stage is a real throughput test (not a victory
     // lap one tower can sweep). Bosses are exempt from the steep ramp — they
     // already carry the stage's difficulty spike via the escalating boss roster.
-    const ramp = waveScaling(
-      this.waveIndex,
-      this.stage.waves.length,
-      stageNumber(this.stage.id),
-      def.archetype === "Boss",
-    );
+    const ramp = waveScaling(this.waveIndex, this.stage.waves.length, isBoss);
+    // Cross-stage/chapter long-game curve: the SAME enemy gets geometrically
+    // tougher the deeper you are in the campaign (applies to bosses too).
+    const prog = progressionScaling(stageNumber(this.stage.id));
     // Bosses scale harder than trash on the upper tiers (boss* multipliers).
-    const isBoss = def.archetype === "Boss";
     const bossHp = isBoss ? scale.bossHpMult : 1;
     const bossAtk = isBoss ? scale.bossAtkMult : 1;
-    const hpMul = (ch.enemyHpMul ?? 1) * this.endlessMul * ramp.hpMult;
-    const atkMul = this.endlessMul * ramp.atkMult;
+    const hpMul = (ch.enemyHpMul ?? 1) * this.endlessMul * ramp.hpMult * prog.hpMult;
+    const atkMul = this.endlessMul * ramp.atkMult * prog.atkMult;
     let stats: Stats = {
       ...def.baseStats,
       maxHp: def.baseStats.maxHp * scale.hpMult * bossHp * hpMul,
@@ -143,7 +142,7 @@ export const waveMethods = {
       def,
       stats,
       hp: stats.maxHp,
-      shield: (def.special?.shieldHp ?? 0) * scale.hpMult * ramp.hpMult,
+      shield: (def.special?.shieldHp ?? 0) * scale.hpMult * ramp.hpMult * prog.hpMult,
       flying,
       stealth: def.special?.stealth ?? false,
       revealed: !(def.special?.stealth ?? false),
