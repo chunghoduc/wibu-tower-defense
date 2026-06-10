@@ -13,3 +13,8 @@ npm-debug.log*
 
 # runtime logs (vite-plugin-filelog)
 logs/
+
+# Firebase CLI local artifacts
+.firebase/
+firebase-debug.log*
+firebase-debug.*.log*

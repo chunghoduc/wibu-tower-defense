@@ -1,0 +1,38 @@
+name: Deploy to Firebase Hosting (live)
+
+on:
+  push:
+    branches: [main]
+
+# Cancel an in-progress live deploy if a newer push arrives.
+concurrency:
+  group: firebase-live
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck + build
+        run: npm run build
+
+      - name: Tests
+        run: npm test
+
+      - name: Deploy to live channel
+        run: >-
+          npx -y firebase-tools deploy --only hosting
+          --project wibu-tower-defense-d8b1c
+          --non-interactive
+          --token "$FIREBASE_TOKEN"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

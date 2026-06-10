@@ -1,0 +1,72 @@
+name: Preview deploy (PR)
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: firebase-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-preview:
+    runs-on: ubuntu-latest
+    # Secrets are unavailable to PRs opened from forks; skip those.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck + build
+        run: npm run build
+
+      - name: Tests
+        run: npm test
+
+      - name: Deploy preview channel
+        id: preview
+        run: |
+          url=$(npx -y firebase-tools hosting:channel:deploy "pr-${{ github.event.pull_request.number }}" \
+            --project wibu-tower-defense-d8b1c \
+            --expires 7d \
+            --no-authorized-domains \
+            --json \
+            --token "$FIREBASE_TOKEN" \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const r=JSON.parse(s);const sites=r.result||{};const first=Object.values(sites)[0]||{};console.log(first.url||'')})")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.preview.outputs.url }}';
+            if (!url) return;
+            const body = `🔥 **Preview deploy ready**\n\n${url}\n\n_Expires in 7 days._`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const mine = comments.find(c => c.user.type === 'Bot' && c.body.includes('Preview deploy ready'));
+            if (mine) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: mine.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body,
+              });
+            }
