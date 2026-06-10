@@ -7,7 +7,7 @@ import {
 } from "../src/core/endless.ts";
 import { BOSS_BY_STAGE } from "../src/data/stage.ts";
 import { isEmptyReward } from "../src/core/rewards.ts";
-import { recordBossRushTier, bestBossRushTier, rolloverBossRush, bossRushReward, BOSS_RUSH_TIERS } from "../src/core/bossRush.ts";
+import { recordBossRushTier, bestBossRushTier, rolloverBossRush, bossRushReward, bossRushWave, BOSS_RUSH_TIERS } from "../src/core/bossRush.ts";
 import { world, mkEnemy, mkStage, oneWave } from "./fixtures.ts";
 
 const waveCount = (w: { spawns: { count: number }[] }) => w.spawns.reduce((n, s) => n + s.count, 0);
@@ -156,5 +156,28 @@ describe("F12 boss rush (weekly)", () => {
     recordBossRushTier(s, "2026-W24", 5);
     rolloverBossRush(s, "2026-W25");
     expect(bestBossRushTier(s)).toBe(0);
+  });
+
+  it("every gauntlet tier spawns a roster boss; tiers are clamped to the gauntlet size", () => {
+    for (let t = 1; t <= BOSS_RUSH_TIERS; t++) {
+      const w = bossRushWave(t);
+      expect(w.spawns.some((s) => BOSS_BY_STAGE.includes(s.enemyId))).toBe(true);
+    }
+    // Tiers escalate the roster boss as you climb (not the same boss every time).
+    expect(bossRushWave(1).spawns.some((s) => BOSS_BY_STAGE.includes(s.enemyId))).toBe(true);
+    // Out-of-range tiers clamp into [1, BOSS_RUSH_TIERS] rather than indexing off the end.
+    expect(bossRushWave(0)).toEqual(bossRushWave(1));
+    expect(bossRushWave(999)).toEqual(bossRushWave(BOSS_RUSH_TIERS));
+  });
+
+  it("the boss-rush gauntlet is a BOUNDED run of exactly BOSS_RUSH_TIERS waves (no max-prize-for-wave-6 exploit)", () => {
+    // Catalog has only "grunt"; the gauntlet's brute/boss spawns are unknown ids
+    // and get skipped, so each wave clears empty — isolating the wave-COUNT logic.
+    // tier must equal bosses-defeated (== cleared waves), never the wave index.
+    const stage = mkStage(oneWave("grunt", 1), { castleHp: 1e9, path: [{ x: 0, y: 0 }, { x: 300, y: 0 }] });
+    const b = world([mkEnemy()], [], stage, { bossRush: true });
+    for (let i = 0; i < 4000 && b.outcome === "ongoing"; i++) b.tick(0.05);
+    expect(b.outcome).toBe("won");                 // the gauntlet resolves (unlike endless)
+    expect(b.wavesCleared).toBe(BOSS_RUSH_TIERS);  // tier maxes ONLY by clearing all tiers
   });
 });

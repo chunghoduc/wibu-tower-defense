@@ -80,13 +80,23 @@ export function installMobileLandscape(game: Phaser.Game): void {
     overlay.style.display = isPortrait() ? "flex" : "none";
   };
 
-  // First gesture anywhere: enter fullscreen + lock landscape. Re-arm if the
-  // browser drops fullscreen (e.g. user swipes it away) so the next tap retries.
+  // First gesture anywhere: enter fullscreen + lock landscape (browsers forbid
+  // both outside a user gesture). This must fire ONCE per arming, not on every
+  // tap — otherwise orientation.lock() is re-invoked on each touch all session,
+  // and rapid repeat calls reject/abort one another on Android. The handler
+  // removes itself; we re-arm only when the browser later drops fullscreen so a
+  // subsequent tap can restore it.
   const onGesture = () => {
+    window.removeEventListener("pointerdown", onGesture);
+    window.removeEventListener("touchstart", onGesture);
     void goLandscapeFullscreen(game);
   };
-  window.addEventListener("pointerdown", onGesture, { passive: true });
-  window.addEventListener("touchstart", onGesture, { passive: true });
+  const arm = () => {
+    window.addEventListener("pointerdown", onGesture, { passive: true });
+    window.addEventListener("touchstart", onGesture, { passive: true });
+  };
+  arm();
+  game.scale.on("leavefullscreen", arm);
 
   window.addEventListener("resize", sync);
   window.addEventListener("orientationchange", sync);

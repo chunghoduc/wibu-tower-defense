@@ -9,9 +9,32 @@
 import type { HeroSave } from "./save.ts";
 import { grantReward, type Reward } from "./rewards.ts";
 import { AWAKENING_CRYSTAL, SUMMON_SCROLL } from "../data/materials.ts";
+import { BOSS_BY_STAGE } from "../data/stage.ts";
+import type { SpawnEntry, WaveDef } from "../data/schema.ts";
 
 /** Number of bosses in the gauntlet. */
 export const BOSS_RUSH_TIERS = 6;
+
+/**
+ * Spawn schedule for boss-rush tier `tier` (1-based, 1..BOSS_RUSH_TIERS). Each
+ * tier is one boss pulled from the campaign roster — climbing the roster so the
+ * gauntlet escalates — fronted by a little brute fodder to pressure the lane,
+ * with a co-boss joining the back tiers. The run is otherwise a normal sim, so
+ * difficulty + endlessMul + progression scaling stack on top of these spawns.
+ *
+ * This is the real gauntlet: clearing tier N means defeating N bosses, so the
+ * reported tier (bosses defeated) maps 1:1 onto {@link bossRushReward} — you
+ * cannot earn the top prize without actually beating all {@link BOSS_RUSH_TIERS}.
+ */
+export function bossRushWave(tier: number): WaveDef {
+  const t = Math.max(1, Math.min(BOSS_RUSH_TIERS, Math.floor(tier)));
+  const bossId = BOSS_BY_STAGE[(t - 1) % BOSS_BY_STAGE.length];
+  const spawns: SpawnEntry[] = [
+    { enemyId: "brute", count: Math.min(2 + t, 8), interval: 1.0, delay: 0 },
+    { enemyId: bossId, count: 1 + Math.floor((t - 1) / 3), interval: 4, delay: 2 },
+  ];
+  return { spawns };
+}
 
 /** Cumulative reward for *reaching* a given tier (claimed once per week, highest). */
 export function bossRushReward(tier: number): Reward {

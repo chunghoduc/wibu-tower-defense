@@ -150,6 +150,7 @@ export class BattleScene extends Phaser.Scene {
       challenge: this.battleMode.challenge,
       endlessMul: this.battleMode.endlessMul,
       endless: this.battleMode.kind === "endless",
+      bossRush: this.battleMode.kind === "bossrush",
     });
 
     // Two display layers: the battlefield (rendered by a zoomed-out camera) and

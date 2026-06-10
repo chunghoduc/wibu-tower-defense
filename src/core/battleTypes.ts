@@ -211,6 +211,8 @@ export interface BattleOptions {
   endlessMul?: number;
   /** F11 endless survival: generate waves forever, scaling per-wave; run ends only on loss. */
   endless?: boolean;
+  /** F12 boss rush: a fixed gauntlet of BOSS_RUSH_TIERS boss waves instead of authored ones. */
+  bossRush?: boolean;
 }
 
 export interface Catalogs {

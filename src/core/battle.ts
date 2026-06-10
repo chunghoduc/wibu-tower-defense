@@ -130,6 +130,10 @@ export class BattleState {
   readonly endlessMul: number;
   /** @internal F11 endless survival: waves generate forever and scale per-wave; never "won". */
   readonly endless: boolean;
+  /** @internal F12 boss rush: a fixed gauntlet of BOSS_RUSH_TIERS boss waves. */
+  readonly bossRush: boolean;
+  /** @internal Count of waves FULLY cleared (every enemy down) — the boss-rush tier. */
+  wavesCleared = 0;
 
   constructor(stage: StageDef, catalogs: Catalogs, opts: BattleOptions) {
     this.stage = stage;
@@ -150,6 +154,7 @@ export class BattleState {
     this.challenge = opts.challenge ?? {};
     this.endlessMul = opts.endlessMul ?? 1;
     this.endless = opts.endless ?? false;
+    this.bossRush = opts.bossRush ?? false;
     this.totalPathLen = pathLength(stage.path);
     this.castlePos = stage.path[stage.path.length - 1];
     this.castleHp = stage.castleHp;
@@ -470,7 +475,13 @@ export class BattleState {
       // Written straight into the live save like kill XP; the scene flushes after
       // the battle. Without this the equipped skill never levels and its Power —
       // which drives the burst size — is frozen at the level it dropped/started at.
-      if (this._heroSave && h.equippedSkillId) awardSkillUseXp(this._heroSave, h.equippedSkillId);
+      if (this._heroSave && h.equippedSkillId) {
+        awardSkillUseXp(this._heroSave, h.equippedSkillId);
+        // A level-up earned mid-battle must hit harder on the NEXT cast THIS
+        // battle, not only next battle — re-resolve the frozen burst multiplier
+        // from the live save so the leveling actually couples to the damage.
+        h.activeMult = heroActiveBurst(this._heroSave).mult;
+      }
     }
     h.attackCd = 1 / h.stats.attackSpeed;
   }

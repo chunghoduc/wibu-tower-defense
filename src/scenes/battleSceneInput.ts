@@ -345,8 +345,11 @@ export const inputMethods = {
       const gained = rewardLabel(reward);
       modeNote = `Endless: reached wave ${wavesReached}${isBest ? " — new best!" : ""}${gained ? ` · ${gained}` : ""}`;
     } else if (this.battleMode.kind === "bossrush") {
-      const r = this.saveManager.recordBossRushTier(isoWeekKey(new Date()), wavesReached);
-      modeNote = `Boss Rush: tier ${wavesReached}${rewardLabel(r) ? ` · ${rewardLabel(r)}` : ""}`;
+      // Tier = bosses actually DEFEATED (fully-cleared gauntlet waves), never the
+      // raw wave index — so the top weekly prize requires beating the whole rush.
+      const tier = this.battle.wavesCleared;
+      const r = this.saveManager.recordBossRushTier(isoWeekKey(new Date()), tier);
+      modeNote = `Boss Rush: tier ${tier}${rewardLabel(r) ? ` · ${rewardLabel(r)}` : ""}`;
     }
     // F14 flawless victory → a bonus boss chest.
     if (outcome === "won" && this.battleMode.kind === "normal" && this.battle.wasFlawless()) {

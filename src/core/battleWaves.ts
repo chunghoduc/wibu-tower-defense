@@ -9,6 +9,7 @@ import { applyEliteBoost, rollEliteImmunity } from "./elite.ts";
 import { waveScaling } from "./waveScaling.ts";
 import { progressionScaling } from "./progressionScaling.ts";
 import { endlessWave, endlessEnemyMul } from "./endless.ts";
+import { bossRushWave, BOSS_RUSH_TIERS } from "./bossRush.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type Catalogs, type ScheduledSpawn, type SpawnRequest,
@@ -17,10 +18,13 @@ import {
 
 export const waveMethods = {
   updateWaves(this: BattleState, dt: number): void {
+    // Boss rush runs a fixed gauntlet (BOSS_RUSH_TIERS waves); endless never ends;
+    // a normal stage runs its authored count.
+    const totalWaves = this.bossRush ? BOSS_RUSH_TIERS : this.stage.waves.length;
     if (!this.waveActive) {
       // Endless never runs out of waves — it keeps generating them until the
       // castle falls, so allWavesStarted (the "won" gate) is never tripped.
-      if (!this.endless && this.waveIndex + 1 >= this.stage.waves.length) {
+      if (!this.endless && this.waveIndex + 1 >= totalWaves) {
         this.allWavesStarted = true;
         return;
       }
@@ -41,13 +45,15 @@ export const waveMethods = {
     if (fullySpawned && this.enemies.length === 0) {
       this.waveActive = false;
       this.interWaveTimer = INTER_WAVE_DELAY;
+      // A wave is fully cleared here — drives the boss-rush tier (bosses defeated).
+      this.wavesCleared++;
       // F14: wave cleared — if nothing leaked, pay a perfect-wave bonus.
       if (!this.waveLeaked) {
         const bonus = Math.round(this.waveGold * PERFECT_WAVE_BONUS_FRAC);
         if (bonus > 0) this.gold += bonus;
         this.emit({ type: "perfect", waveIndex: this.waveIndex, bonus });
       }
-      if (!this.endless && this.waveIndex + 1 >= this.stage.waves.length) this.allWavesStarted = true;
+      if (!this.endless && this.waveIndex + 1 >= totalWaves) this.allWavesStarted = true;
     }
   },
 
@@ -56,8 +62,13 @@ export const waveMethods = {
     // F14: a fresh wave starts flawless; track its kill gold for the bonus.
     this.waveLeaked = false;
     this.waveGold = 0;
-    // Endless generates wave N on demand (1-based); normal stages read authored waves.
-    const wave = this.endless ? endlessWave(this.waveIndex + 1) : this.stage.waves[this.waveIndex];
+    // Endless generates wave N on demand (1-based); boss rush pulls the gauntlet
+    // tier; normal stages read their authored waves.
+    const wave = this.endless
+      ? endlessWave(this.waveIndex + 1)
+      : this.bossRush
+        ? bossRushWave(this.waveIndex + 1)
+        : this.stage.waves[this.waveIndex];
     const schedule: ScheduledSpawn[] = [];
     for (const group of wave.spawns) {
       for (let i = 0; i < group.count; i++) {
