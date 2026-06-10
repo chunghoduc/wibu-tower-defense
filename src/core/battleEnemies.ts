@@ -9,6 +9,7 @@ import { combatLogOn, emitDamageLog } from "./combatLog.ts";
 import { slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pointAtDistance } from "./path.ts";
 import { computeAuraMods, NEUTRAL_AURA } from "./enemyAuras.ts";
+import { enemyTowerAttack } from "./enemyCombat.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type EnemyRuntime, type TowerRuntime,
@@ -45,6 +46,9 @@ export const enemyMethods = {
       } else if (action.kind === "tower") {
         const tower = action.tower;
         this.enemyAttack(e, dt, () => this.dealDamageToTower(e, tower));
+        // Bosses, flyers, and ordinary melee strike in passing without halting;
+        // only dedicated tower-killers (Sapper/Raider) stop to demolish.
+        if (!action.blocking) this.advanceEnemy(e, dt);
       } else {
         this.advanceEnemy(e, dt);
       }
@@ -77,11 +81,11 @@ export const enemyMethods = {
   chooseEnemyAction(
     this: BattleState,
     e: EnemyRuntime,
-  ): { kind: "hero" } | { kind: "tower"; tower: TowerRuntime } | { kind: "move" } {
+  ): { kind: "hero" } | { kind: "tower"; tower: TowerRuntime; blocking: boolean } | { kind: "move" } {
     if (this.hero.alive && !e.flying && dist(e.pos, this.hero.pos) <= HERO_BLOCK_RANGE) {
       return { kind: "hero" };
     }
-    const atk = e.def.special?.attacksTowers;
+    const atk = enemyTowerAttack(e.def);
     if (atk) {
       let best: TowerRuntime | null = null;
       for (const t of this.towers) {
@@ -89,7 +93,7 @@ export const enemyMethods = {
           if (!best || dist(e.pos, t.pos) < dist(e.pos, best.pos)) best = t;
         }
       }
-      if (best) return { kind: "tower", tower: best };
+      if (best) return { kind: "tower", tower: best, blocking: !atk.whileMoving };
     }
     return { kind: "move" };
   },

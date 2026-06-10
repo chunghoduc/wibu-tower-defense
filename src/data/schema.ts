@@ -326,6 +326,11 @@ export interface EnemyDef {
   /** Damage dealt to the castle if this enemy reaches it. */
   castleDamage: number;
   baseStats: Stats;
+  /**
+   * Optional weapon — bosses use it to set how far they can strike towers
+   * (its RANGE only; the enemy's own `damageType` is unaffected).
+   */
+  weapon?: WeaponSpec;
   special?: EnemySpecial;
   boss?: BossMechanics;
   artRef: string;

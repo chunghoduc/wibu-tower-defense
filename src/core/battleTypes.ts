@@ -65,6 +65,14 @@ export interface DmgCtx {
 
 /** How close an enemy must be to the hero to be body-blocked into melee. */
 export const HERO_BLOCK_RANGE = 28;
+/**
+ * Melee reach an ordinary ground ("on road") enemy uses to swipe at towers as it
+ * marches past. Set just above LANE_CLEARANCE (30) so only towers planted right
+ * against the road are threatened — towers set back a little stay safe.
+ */
+export const MELEE_TOWER_RANGE = 40;
+/** Fallback tower-attack reach for a boss that authors no weapon. */
+export const BOSS_DEFAULT_TOWER_RANGE = 70;
 /** Default radius of splash / active-skill AoE bursts. */
 export const SPLASH_RADIUS = 60;
 /** Mana is a fixed charge bar: every caster fills the same 0..100 pool. */
