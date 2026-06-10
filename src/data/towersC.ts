@@ -21,7 +21,7 @@ export const TOWERS_C: CharacterDef[] = [
     description:
       "A runaway princess who taught herself the bow in exile and never misses the same target twice. Quick, bright, and far steadier than her soft hands suggest.",
     meta: {
-      homage: "Yona (Akatsuki no Yona) — the exiled archer princess",
+      homage: "An exiled princess who taught herself the bow surviving in the wild",
       outfit: "A traveller's red-and-cream tunic with a half-cloak and a worn quiver, long red hair tied back",
       weapon: { family: "bow", display: "A slender hunting bow drawn in rapid, clean loosings" },
     },
@@ -64,7 +64,7 @@ export const TOWERS_C: CharacterDef[] = [
     description:
       "A legendary archer-hero who looses one arrow into the heavens and brings down a falling sky of shafts. Each volley is offered like a last shot.",
     meta: {
-      homage: "Arash (Fate) — the archer of the sky-splitting arrow",
+      homage: "A legendary hero-archer remembered for one sky-splitting shot",
       outfit: "A weathered nomad-hero's open vest and arm-wraps, a massive ornate war-bow on his back",
       weapon: { family: "bow", display: "A great war-bow that arcs a rain of arrows over a wide span" },
     },
@@ -131,7 +131,7 @@ export const TOWERS_C: CharacterDef[] = [
     description:
       "A wandering peacemaker with a bottomless smile and an impossibly fast trigger finger. He swears he never aims to kill — and somehow never has to.",
     meta: {
-      homage: "Vash the Stampede (Trigun)",
+      homage: "A wandering pacifist gunslinger with an impossibly fast trigger finger",
       outfit: "A long red duster over a buckled bodysuit, round orange glasses and unruly blond spikes",
       weapon: { family: "gun", display: "A long silver revolver fired in a blur of trick shots" },
     },
@@ -152,7 +152,7 @@ export const TOWERS_C: CharacterDef[] = [
     description:
       "A sharpshooter from the underground who upgraded from rifle to grenade-launcher and never looked back. Every shell she lobs blooms into a wall of fire.",
     meta: {
-      homage: "Yoko Littner (Gurren Lagann)",
+      homage: "A fiery underground sharpshooter who graduated to a grenade launcher",
       outfit: "A flame-print bikini top with a slung ammo belt and short shorts, long red-orange ponytail",
       weapon: { family: "gun", element: "fire", display: "A break-action grenade launcher firing explosive shells" },
     },
@@ -174,7 +174,7 @@ export const TOWERS_C: CharacterDef[] = [
     description:
       "A humming markswoman whose enchanted rounds bend around cover and rebound from foe to foe, hunting down everything in the lane before the echo fades.",
     meta: {
-      homage: "Rip Van Winkle (Hellsing) — the wielder of curving, will-guided bullets",
+      homage: "A humming markswoman whose enchanted bullets curve and rebound at will",
       outfit: "A long military greatcoat and round spectacles, a slender ornate long-rifle held high",
       weapon: { family: "gun", display: "A long-barrelled rifle firing rounds that rebound between targets" },
     },
@@ -197,7 +197,7 @@ export const TOWERS_C: CharacterDef[] = [
     description:
       "A weapons-scroll prodigy who hurls a glittering hail of kunai, bolas, and wire that pins enemies where they stand. Never reaches for the same tool twice.",
     meta: {
-      homage: "Tenten (Naruto) — the thrown-weapons specialist",
+      homage: "A thrown-weapons prodigy who never reaches for the same tool twice",
       outfit: "A sleeveless qipao-style top with twin hair buns and bandaged forearms, scroll pouches at the hip",
       weapon: { family: "thrown", display: "A whirling fan of kunai and weighted bola-wire" },
     },
@@ -354,7 +354,7 @@ export const TOWERS_C: CharacterDef[] = [
     description:
       "A dazzling, deeply unserious water-goddess whose floating orb pours blessing over the whole battle line — astonishingly powerful when she stops complaining long enough to use it.",
     meta: {
-      homage: "Aqua (KonoSuba) — the self-proclaimed goddess of support",
+      homage: "A dazzling, deeply unserious self-proclaimed water-goddess of support",
       outfit: "A blue-and-white goddess's dress with detached sleeves and a water-ring halo, a glowing scrying orb afloat at her hand",
       weapon: { family: "orb", element: "holy", display: "A floating scrying orb that haloes allies in sacred light" },
     },
