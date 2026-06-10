@@ -10,6 +10,7 @@ import { crispText } from "./ui.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { rewardLabel } from "../core/rewards.ts";
 import { rewardBurst, rewardEmojis } from "./rewardBurst.ts";
+import { playSpinReel } from "./spinReel.ts";
 import { nextStreakReward, streakClaimable, STREAK_CYCLE } from "../core/streak.ts";
 import { freeSpinAvailable, PAID_SPIN_COST } from "../core/spin.ts";
 import { expeditionActive, expeditionPendingGold } from "../core/expedition.ts";
@@ -151,9 +152,14 @@ export class ActivitiesScene extends Phaser.Scene {
         const res = free ? this.mgr.spinFree(today) : this.mgr.spinPaid(today);
         if (res) {
           const rare = res.prize.rare || res.pityTriggered;
-          this.celebrate(y + h / 2, ["🎉", "✨", ...rewardEmojis(res.prize.reward)], res.prize.label,
-            rare ? 0xff5bd0 : 0xffd24d);
-          this.showToast(`🎉 ${res.prize.label}${res.pityTriggered ? " (lucky!)" : ""}`); this.redraw();
+          const accent = rare ? 0xff5bd0 : 0xffd24d;
+          // Suspense first: the reel scrolls and lands on the prize, then the
+          // celebration bursts from where it landed (screen centre).
+          playSpinReel(this, res.prize, rare, () => {
+            rewardBurst(this, this.scale.width / 2, this.scale.height / 2,
+              { emojis: ["🎉", "✨", ...rewardEmojis(res.prize.reward)], label: res.prize.label, accent });
+            this.showToast(`🎉 ${res.prize.label}${res.pityTriggered ? " (lucky!)" : ""}`); this.redraw();
+          });
         }
       });
     return y + h + 12;
