@@ -37,7 +37,7 @@ import { Rng } from "./rng.ts";
 import { addHeroShare, towerStatPipeline } from "./stats.ts";
 import { resolveHeroBattleStats } from "./heroStats.ts";
 import { effectiveBehavior, battleLevelAtkMul } from "./towerUpgrade.ts";
-import { attackStyleFor, heroAttackStyle } from "../data/attackStyle.ts";
+import { attackStyleFor, heroAttackStyle, isMeleeStyle } from "../data/attackStyle.ts";
 import { selectTarget, type TargetFilter } from "./targeting.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
 import { ELITE_BATTLE_CHANCE, ELITE_BOUNTY_MULT, applyEliteBoost, rollEliteImmunity } from "./elite.ts";
@@ -503,6 +503,21 @@ export class BattleState {
       this.hero.stats,
     );
     return upgraded.range;
+  }
+
+  /**
+   * The attack range a tower of `characterId` WOULD have the instant it's placed
+   * (★1 / battleLevel 0), used to draw an accurate placement coverage ring. Mirrors
+   * spawnTower's range resolution: base reach scaled by the unit's collection-star
+   * tier. The hero share no longer touches range (towers are static), so this is the
+   * true reach — drawing def.baseStats.range alone under-reports starred towers.
+   */
+  previewPlaceRange(characterId: string): number {
+    const def = this.cat.characters.get(characterId);
+    if (!def) return 0;
+    const towerLevel = this._heroSave?.hero.level ?? 1;
+    const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
+    return towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0).range;
   }
 
   /** Gold refunded when selling a tower (fraction of total invested). */
@@ -1076,8 +1091,12 @@ export class BattleState {
       if (!target) continue;
 
       const effAtk = t.stats.atk * (1 + t.buffAtkPct);
-      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role, t.uid, attackStyleFor(t.def));
+      const style = attackStyleFor(t.def);
+      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role, t.uid, style);
       this.applyRoleEffect(t, effAtk, target);
+      // Melee swings cleave: every strike also hits all other enemies within the
+      // tower's (short) reach for the same damage — short range, wide arc.
+      if (isMeleeStyle(style)) this.applyCleave(t.stats, t.def.damageType, effAtk, t.pos, target);
 
       if (t.stats.maxMana > 0 && t.mana >= t.stats.maxMana) {
         // Skills may deal True damage (the only path to True).
@@ -1263,6 +1282,30 @@ export class BattleState {
     if (ei === "Physical" && damageType === "Physical") return true;
     if (ei === "Magic" && damageType === "Magic") return true;
     return false;
+  }
+
+  /**
+   * Melee cleave: a melee tower's basic swing strikes every OTHER enemy within
+   * its reach (centered on the tower) for the SAME full damage as the primary
+   * hit. AoE-flagged, so it honours AoE immunity and armor/resist mitigation —
+   * the short-range tradeoff for clearing whole clusters at once.
+   */
+  private applyCleave(
+    attacker: Stats,
+    damageType: DamageType,
+    effAtk: number,
+    center: Vec2,
+    primary: EnemyRuntime,
+  ): void {
+    const radius = attacker.range;
+    if (radius <= 0) return;
+    const ctx = this.dmgCtx("cleave", "cleave", `cleave atk ${effAtk.toFixed(1)}`);
+    for (const e of this.enemies) {
+      if (!e.alive || e === primary) continue;
+      if (dist(e.pos, center) <= radius) {
+        this.applyDamage(e, damageType, effAtk, attacker.armorPen, attacker.magicPen, true, true, ctx);
+      }
+    }
   }
 
   private applySplash(

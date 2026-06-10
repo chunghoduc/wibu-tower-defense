@@ -16,6 +16,19 @@ export type AttackStyle =
 const RANGED_MELEE = 120;
 const has = (s: string, ...keys: string[]) => keys.some((k) => s.includes(k));
 
+/**
+ * Hand-to-hand swing styles. A tower whose basic attack reads as one of these
+ * fights at melee reach and CLEAVES — every swing strikes all enemies within
+ * its (short) range for full damage. Ranged/elemental/aura styles do not. `hex`
+ * is deliberately excluded: it's the ranged debuff touch, not a melee swing.
+ */
+const MELEE_STYLES: ReadonlySet<AttackStyle> = new Set(["slash", "flurry", "punch", "smash"]);
+
+/** Whether an attack style is a melee swing (and therefore cleaves). */
+export function isMeleeStyle(style: AttackStyle): boolean {
+  return MELEE_STYLES.has(style);
+}
+
 /** Pick an attack style for a character. */
 export function attackStyleFor(def: CharacterDef): AttackStyle {
   // Elements are read from the WEAPON description only — the character name can

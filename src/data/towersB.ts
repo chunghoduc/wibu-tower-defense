@@ -45,7 +45,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "wildfire",
     behavior: { dot: { dps: 12, duration: 3.5 } },
     baseStats: makeStats({
-      atk: 12, attackSpeed: 1.1, range: 140, skillPower: 1.2, maxHp: 110,
+      atk: 12, attackSpeed: 1.1, range: 135, skillPower: 1.2, maxHp: 110,
       maxMana: 70, manaOnHit: 11, manaRegen: 2,
     }),
   }),
@@ -68,7 +68,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "plague-cloud",
     behavior: { dot: { dps: 16, duration: 4 } },
     baseStats: makeStats({
-      atk: 14, attackSpeed: 1.0, range: 150, magicPen: 0.2, skillPower: 1.3,
+      atk: 14, attackSpeed: 1.0, range: 140, magicPen: 0.2, skillPower: 1.3,
       maxHp: 120, maxMana: 80, manaOnHit: 12, manaRegen: 2,
     }),
   }),
@@ -91,7 +91,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "inferno-snap",
     behavior: { dot: { dps: 24, duration: 4.5 } },
     baseStats: makeStats({
-      atk: 18, attackSpeed: 1.0, range: 165, magicPen: 0.35, skillPower: 1.6,
+      atk: 18, attackSpeed: 1.0, range: 150, magicPen: 0.35, skillPower: 1.6,
       maxHp: 150, maxMana: 90, manaOnHit: 13, manaRegen: 2,
     }),
   }),
@@ -114,7 +114,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "black-rot",
     behavior: { dot: { dps: 30, duration: 5, damageType: "True" } }, // the rot bypasses everything
     baseStats: makeStats({
-      atk: 20, attackSpeed: 1.0, range: 170, skillPower: 1.8, maxHp: 170,
+      atk: 20, attackSpeed: 1.0, range: 155, skillPower: 1.8, maxHp: 170,
       maxMana: 95, manaOnHit: 13, manaRegen: 2,
     }),
   }),
@@ -139,7 +139,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "tar-pit",
     behavior: { slow: { pct: 0.28, duration: 2 } },
     baseStats: makeStats({
-      atk: 8, attackSpeed: 0.9, range: 130, maxHp: 110, maxMana: 65, manaOnHit: 10, manaRegen: 1,
+      atk: 8, attackSpeed: 0.9, range: 125, maxHp: 110, maxMana: 65, manaOnHit: 10, manaRegen: 1,
     }),
   }),
   t({
@@ -161,7 +161,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "shadow-stitch",
     behavior: { stun: { duration: 0.8, chance: 0.3 }, slow: { pct: 0.2, duration: 1.5 } },
     baseStats: makeStats({
-      atk: 12, attackSpeed: 0.9, range: 150, skillPower: 1.1, maxHp: 130,
+      atk: 12, attackSpeed: 0.9, range: 140, skillPower: 1.1, maxHp: 130,
       maxMana: 80, manaOnHit: 12, manaRegen: 2,
     }),
   }),
@@ -184,7 +184,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "ice-geyser",
     behavior: { slow: { pct: 0.38, duration: 2.3 } },
     baseStats: makeStats({
-      atk: 16, attackSpeed: 1.0, range: 155, skillPower: 1.3, maxHp: 140,
+      atk: 16, attackSpeed: 1.0, range: 145, skillPower: 1.3, maxHp: 140,
       maxMana: 80, manaOnHit: 12, manaRegen: 2,
     }),
   }),
@@ -207,7 +207,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "blizzard",
     behavior: { slow: { pct: 0.5, duration: 3 }, stun: { duration: 0.6, chance: 0.2 } },
     baseStats: makeStats({
-      atk: 22, attackSpeed: 1.0, range: 165, skillPower: 1.5, maxHp: 160,
+      atk: 22, attackSpeed: 1.0, range: 150, skillPower: 1.5, maxHp: 160,
       maxMana: 85, manaOnHit: 13, manaRegen: 2,
     }),
   }),
@@ -234,7 +234,7 @@ export const TOWERS_B: CharacterDef[] = [
       activeType: "True", // the burial crushes regardless of armor
     },
     baseStats: makeStats({
-      atk: 30, attackSpeed: 0.9, range: 150, armorPen: 0.3, skillPower: 1.5, maxHp: 240,
+      atk: 30, attackSpeed: 0.9, range: 140, armorPen: 0.3, skillPower: 1.5, maxHp: 240,
       maxMana: 95, manaOnHit: 14, manaRegen: 1,
     }),
   }),
@@ -278,7 +278,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["allegro"],
     active: "crescendo",
     behavior: { buffAura: { radius: 150, attackSpeedPct: 0.15 } },
-    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 130, maxHp: 140, maxMana: 0 }),
+    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 125, maxHp: 140, maxMana: 0 }),
   }),
   t({
     id: "orin-celestial-herald",
@@ -298,7 +298,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["blessing", "shun-shield"],
     active: "reject-fate",
     behavior: { buffAura: { radius: 150, atkPct: 0.12, attackSpeedPct: 0.08 } },
-    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 140, maxHp: 160, maxMana: 0 }),
+    baseStats: makeStats({ atk: 8, attackSpeed: 0.8, range: 135, maxHp: 160, maxMana: 0 }),
   }),
   t({
     id: "aldric-banner-bearer",
@@ -318,7 +318,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["rally", "vanguard", "last-charge"],
     active: "war-cry",
     behavior: { buffAura: { radius: 165, atkPct: 0.18, attackSpeedPct: 0.1 } },
-    baseStats: makeStats({ atk: 10, attackSpeed: 0.8, range: 140, maxHp: 220, maxMana: 0 }),
+    baseStats: makeStats({ atk: 10, attackSpeed: 0.8, range: 135, maxHp: 220, maxMana: 0 }),
   }),
   t({
     id: "senna-slug-sannin",
@@ -338,7 +338,7 @@ export const TOWERS_B: CharacterDef[] = [
     passives: ["hundred-healings", "monster-strength", "sannin-resolve"],
     active: "creation-rebirth",
     behavior: { buffAura: { radius: 185, atkPct: 0.25, attackSpeedPct: 0.18 } },
-    baseStats: makeStats({ atk: 16, attackSpeed: 0.8, range: 160, maxHp: 260, maxMana: 0 }),
+    baseStats: makeStats({ atk: 16, attackSpeed: 0.8, range: 150, maxHp: 260, maxMana: 0 }),
   }),
 
   // ============================ TANKER ============================
@@ -364,7 +364,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "ironhide-slam",
     behavior: { defenseScale: { armor: 1.2, maxHp: 0.05 } },
     baseStats: makeStats({
-      range: 95, critRate: 0.05, armor: 18, magicResist: 12, damageReduction: 0.05, hpRegen: 4,
+      range: 85, critRate: 0.05, armor: 18, magicResist: 12, damageReduction: 0.05, hpRegen: 4,
     }),
   }),
   t({
@@ -386,7 +386,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "scaleguard-crash",
     behavior: { defenseScale: { armor: 1.5, magicResist: 1.0, maxHp: 0.06 } },
     baseStats: makeStats({
-      range: 100, critRate: 0.05, armor: 28, magicResist: 22, damageReduction: 0.06, hpRegen: 5,
+      range: 90, critRate: 0.05, armor: 28, magicResist: 22, damageReduction: 0.06, hpRegen: 5,
     }),
   }),
   t({
@@ -408,7 +408,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "adamant-burst",
     behavior: { defenseScale: { armor: 1.8, maxHp: 0.07 } },
     baseStats: makeStats({
-      range: 100, critRate: 0.08, critDamage: 1.8, armor: 42, magicResist: 28, damageReduction: 0.08, hpRegen: 6,
+      range: 90, critRate: 0.08, critDamage: 1.8, armor: 42, magicResist: 28, damageReduction: 0.08, hpRegen: 6,
     }),
   }),
   t({
@@ -430,7 +430,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "armored-charge",
     behavior: { defenseScale: { armor: 2.2, maxHp: 0.08 } },
     baseStats: makeStats({
-      range: 105, critRate: 0.1, armor: 60, magicResist: 40, damageReduction: 0.1, hpRegen: 8,
+      range: 95, critRate: 0.1, armor: 60, magicResist: 40, damageReduction: 0.1, hpRegen: 8,
     }),
   }),
   t({
@@ -452,7 +452,7 @@ export const TOWERS_B: CharacterDef[] = [
     active: "fortress-smash",
     behavior: { defenseScale: { armor: 2.6, magicResist: 1.5, maxHp: 0.1 } },
     baseStats: makeStats({
-      range: 120, critRate: 0.15, critDamage: 2.0, armor: 80, magicResist: 60,
+      range: 100, critRate: 0.15, critDamage: 2.0, armor: 80, magicResist: 60,
       damageReduction: 0.14, hpRegen: 10, omnivamp: 0.1,
     }),
   }),
