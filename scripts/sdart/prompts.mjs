@@ -48,6 +48,23 @@ export const TOWER_VISUAL = {
   "orin-celestial-herald": "a kind gentle healer girl with long orange hair and blue flower hairpins, a blue and white outfit, conjuring a glowing golden hexagonal shield barrier",
   "aldric-banner-bearer": "a heroic blond military commander with combed-back hair, a tan military coat with a green cape, holding a war banner aloft, determined expression",
   "senna-slug-sannin": "a powerful female healer warrior with blonde hair in low twin ponytails and a blue diamond mark on her forehead, a green haori over a grey outfit, confident",
+  // batch C — ranged & arcane towers (bow/crossbow/gun/thrown/tome/scepter/wand/orb)
+  "aya-dawnshot": "a determined young archer princess with long bright red hair tied back, a red-and-cream traveller's tunic and half-cloak, a worn quiver, drawing a slender hunting bow",
+  "lyran-ricochet": "a poised green-cloaked elf marksman with pointed ears and long pale hair, light leather armor, a hooded green ranger cloak, loosing an arrow from an elegant longbow",
+  "seren-skyfall": "a weathered nomad archer-hero with tan skin and a headscarf, an open travel vest and arm-wraps, drawing a massive ornate war-bow aimed at the sky, glowing arrow",
+  "dren-heavybolt": "a stern taciturn monster-hunter with short dark hair and a scarred jaw, a heavy hunter's longcoat and steel bracers, bracing a bulky steel-limbed crossbow",
+  "vesska-venombolt": "a hooded female assassin with sharp eyes, a dark wrapped assassin's outfit with green toxin vials at the belt, aiming a slim repeating crossbow dripping green venom",
+  "vance-the-drifter": "a lanky wandering gunslinger with spiky blond hair and round orange glasses, a long red duster over a buckled grey bodysuit, twirling a long silver revolver, easy grin",
+  "yael-boomshot": "a fiery red-orange long-ponytailed sharpshooter girl in a flame-print top with a slung ammo belt and short shorts, hefting a break-action grenade launcher",
+  "rivka-rebound": "a humming markswoman with long wavy hair and round spectacles, a long military greatcoat, raising a slender ornate long-rifle, faint glowing curved bullet trails",
+  "tella-wirefang": "an agile weapons-mistress with twin hair buns and bandaged forearms, a sleeveless qipao-style top, throwing a glittering fan of kunai and weighted bola-wire",
+  "mortise-inkhex": "a pale gaunt scrivener-mage with dark circles, an ink-stained black scholar's robe, a quill behind one ear, a floating open black grimoire leaking sickly green ink",
+  "verena-quillbane": "a stern female court archivist with hair in a tight bun, a high-collared violet academic robe with gold trim, holding an enchanted tome and a glowing quill",
+  "auriel-wardlight": "a radiant regal queen-cleric with flowing golden hair and a winged circlet, a white-and-gold royal gown, raising a tall jewelled scepter pouring warm light",
+  "sael-arcrod": "a wind-swept storm-priest with short tousled hair, a storm-grey robe with crackling blue trim, raising a copper scepter capped by a sparking blue crystal",
+  "pim-sparklet": "a tiny over-eager apprentice witch girl in an oversized starry mage-robe and a too-big pointed hat, waving a stubby crystal-tipped wand spitting little sparks",
+  "aldous-boltcaster": "a precise composed battle-mage with neat hair and a focusing monocle, a deep-blue mage coat covered in silver sigils, leveling a long rune-etched wand firing arcane darts",
+  "aquella-the-radiant": "a dazzling water-goddess with long blue hair and a water-ring halo, a blue-and-white goddess dress with detached sleeves, a glowing scrying orb floating at her hand",
 };
 
 // ---- HERO weapon-variant looks (outlook changes with equipped weapon) ----
@@ -88,6 +105,20 @@ export const BOSS_VISUAL = {
 // ---- ITEMS (icon style) ----
 const ITEM_STYLE = "a single game item icon, {V}, clean cel-shaded anime game asset, centered, isolated on a plain solid light grey background, no shadow, soft rim light";
 export function itemStyle(v) { return ITEM_STYLE.replace("{V}", v); }
+
+// Rarity reads as a separable rim-glow layer (NOT a body re-tint) so the same
+// item line stays recognizable across tiers — matches RARITY_PALETTE in artSpec.
+const RARITY_RIM = {
+  Common: "no glow, clean flat lighting",
+  Magic: "a thin cobalt-blue rim glow",
+  Rare: "a royal-purple rim glow with faint sparkles",
+  Legendary: "a glowing molten-gold outline with ember motes",
+  Unique: "a radiant crimson aura",
+};
+/** Item icon prompt from catalog metadata: the curated `look` + rarity rim. */
+export function itemStyleFor(look, rarity) {
+  return ITEM_STYLE.replace("{V}", `${look}, ${RARITY_RIM[rarity] || RARITY_RIM.Common}`);
+}
 export const ITEM_VISUAL = {
   "iron-sword": "a simple straight iron longsword",
   "elven-bow": "an elegant curved green and gold elven longbow",
