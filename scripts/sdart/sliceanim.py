@@ -41,6 +41,20 @@ def components(mask, step=2, min_px=2000):
                     boxes.append((minx, miny, maxx, maxy))
     return boxes
 
+def _frame_names(n):
+    """Rig-style pose names for n sliced frames (idle -> attack -> skill),
+    matching the sheet prompt's pose order. Mirrors gen.mjs synthFrameNames so
+    the manifest builder and the slicer agree."""
+    if n <= 1: return ["idle"]
+    if n == 2: return ["idle1", "atk1"]
+    if n == 3: return ["idle1", "atk1", "skill1"]
+    idle = max(1, round(n * 0.4))
+    atk = -(-(n - idle) // 2)  # ceil
+    skill = n - idle - atk
+    return ([f"idle{i+1}" for i in range(idle)]
+            + [f"atk{i+1}" for i in range(atk)]
+            + [f"skill{i+1}" for i in range(skill)])
+
 def main(inp, outp, cell=128, max_frames=12):
     from rembg import remove
     im = Image.open(inp).convert("RGBA")
@@ -80,7 +94,8 @@ def main(inp, outp, cell=128, max_frames=12):
         oy = cell - nh - 2                          # feet anchored to bottom
         strip.alpha_composite(fig, (ox, max(0, oy)))
     strip.save(outp)
-    json.dump({"frameWidth": cell, "frameHeight": cell, "frames": n},
+    json.dump({"frameWidth": cell, "frameHeight": cell, "frames": n,
+               "names": _frame_names(n)},
               open(outp.rsplit(".", 1)[0] + ".json", "w"))
     print(f"sliced {n} frames -> {outp}")
     return n

@@ -100,6 +100,24 @@ if (!only || only === "vfx") for (const [id, spec] of Object.entries(VFX_SPECS))
 // `--only=manifest` rebuilds ONLY this manifest by scanning the sprite dirs —
 // it does NOT regenerate art, so SDXL-painted sprites (tower/item/skill) survive.
 import { readFileSync, readdirSync, existsSync } from "node:fs";
+// SDXL-sliced sheets (sliceanim.py) ship {frameWidth,frameHeight,frames} with NO
+// `names`, because the slicer can't label poses semantically. Synthesize a
+// rig-style name list from the frame count so the manifest stays animatable:
+// frames flow idle -> attack -> skill, matching the sheet prompt's pose order
+// (idle, walk, strike, recoil). Self-naming JSONs (gen.mjs writers) keep theirs.
+function synthFrameNames(n) {
+  if (n <= 1) return ["idle"];
+  if (n === 2) return ["idle1", "atk1"];
+  if (n === 3) return ["idle1", "atk1", "skill1"];
+  const idle = Math.max(1, Math.round(n * 0.4));
+  const atk = Math.ceil((n - idle) / 2);
+  const skill = n - idle - atk;
+  const names = [];
+  for (let i = 0; i < idle; i++) names.push(`idle${i + 1}`);
+  for (let i = 0; i < atk; i++) names.push(`atk${i + 1}`);
+  for (let i = 0; i < skill; i++) names.push(`skill${i + 1}`);
+  return names;
+}
 if (!only || only === "manifest") {
   const entries = [];
   for (const kind of ["tower", "hero", "enemy", "boss", "item", "skill", "vfx", "box"]) {
@@ -108,6 +126,8 @@ if (!only || only === "manifest") {
     for (const f of readdirSync(dir).filter((f) => f.endsWith(".json"))) {
       const id = f.slice(0, -5);
       const meta = JSON.parse(readFileSync(`${dir}/${f}`, "utf8"));
+      if (!Array.isArray(meta.names) || meta.names.length !== meta.frames)
+        meta.names = synthFrameNames(meta.frames);
       entries.push({ key: `${kind}__${id}`, kind, id, path: `assets/sprites/${kind}/${id}.png`, ...meta });
     }
   }
