@@ -29,52 +29,58 @@ export function isMeleeStyle(style: AttackStyle): boolean {
   return MELEE_STYLES.has(style);
 }
 
-/** Pick an attack style for a character. */
+/** Pick a basic-attack style for a character from its structured weapon spec. */
 export function attackStyleFor(def: CharacterDef): AttackStyle {
-  // Elements are read from the WEAPON description only — the character name can
-  // contain misleading substrings (e.g. "Thr-ice-draw"); every elemental weapon
-  // states its element explicitly.
-  const w = (def.meta?.weapon ?? "").toLowerCase();
-  const fire = has(w, "ember", "flame", "fire", "molten", "magma", "wild", "inferno", "blaze", "burn", "powder", "explosion", "eruption", "lava", "foxfire", "ignit", "bomb");
-  const ice = has(w, "ice", "frost", "chill", "snow", "hoar", "blizzard", "glacial", "freez");
-  const elec = has(w, "thunder", "lightning", "bolt", "storm", "volt", "chidori", "spark");
-  const poison = has(w, "poison", "venom", "toxin", "plague", "rot", "bramble", "corros", "blight", "decay", "barbed", "thorn");
+  const spec = def.meta?.weapon;
+  if (!spec) return fallbackStyle(def); // defensive: towers always carry a spec
+
+  const el = spec.element;
+  const fire = el === "fire", ice = el === "ice", elec = el === "lightning", poison = el === "poison";
 
   // Aura-based archetypes read by effect, not by a flying projectile.
   if (def.role === "support") return "holy";
   if (def.role === "debuff") return ice ? "iceball" : "hex";
-
-  // Tankers are walls — they body-slam, club, and crack the ground. Always a
-  // weighty smash (they carry no elemental projectile).
+  // Tankers are walls — they body-slam and crack the ground.
   if (def.role === "tanker") return "smash";
 
-  // Elemental theme drives the projectile flavor.
+  // Elemental theme drives the projectile flavour (incl. enchanted melee weapons).
   if (fire) return "fireball";
   if (ice) return "iceball";
   if (elec) return "lightning";
   if (poison) return "poison";
 
-  // Otherwise match the weapon the character actually holds.
-  if (has(w, "bow", "arrow")) return "arrow";
-  if (has(w, "cannon", "gun", "firearm", "artillery", "shell", "rifle")) return "cannon";
-  // Blunt weapons land as a smash regardless of reach.
-  if (has(w, "club", "mace", "maul", "hammer", "warhammer", "cudgel", "bludgeon")) return "smash";
-  if (has(w, "katana", "sword", "blade", "rapier", "glaive", "saber", "chokuto", "cleaver")) {
-    if (def.baseStats.range >= RANGED_MELEE) return "arcane";
-    // Wielding several blades at once reads as a rapid flurry, not one cut.
-    return has(w, "three", "twin", "dual", "double", "pair", "both", "two ") ? "flurry" : "slash";
+  // Otherwise the weapon the character actually holds.
+  switch (spec.family) {
+    case "bow":
+    case "crossbow":
+      return "arrow";
+    case "gun":
+      return "cannon";
+    case "blunt":
+      return "smash";
+    case "spear":
+    case "sword":
+      if (def.baseStats.range >= RANGED_MELEE) return "arcane";
+      return spec.multi ? "flurry" : "slash"; // several blades → a rapid flurry
+    case "staff":
+    case "wand":
+    case "tome":
+    case "scepter":
+    case "rod":
+    case "orb":
+      return "arcane";
+    case "fist":
+      if (def.damageType === "Magic") return "arcane"; // ki/spirit fists cast
+      return spec.heavy ? "smash" : "punch";
+    default:
+      // thrown / thorn / sand / banner / nature / curse / shadow / talisman /
+      // instrument / aura / charm — read by role / damage type.
+      return fallbackStyle(def);
   }
-  if (has(w, "staff", "wand", "tome", "grimoire", "scepter", "rod")) return "arcane";
-  if (/\bki\b/.test(w) || has(w, "fist", "punch", "chakra", "knuckle", "gauntlet", "palm")) {
-    if (def.damageType === "Magic") return "arcane";
-    // A single, world-ending blow lands as a smash; ordinary fists are a quick jab.
-    // (The derived attackSpeed reflects role/rarity, not weight, so we read the
-    //  weapon's own language for the heavy-hitters.)
-    const heavyBlow = has(w, "ends everything", "one punch", "world-bend", "shatter", "devastat", "finishing", "cataclysm", "apocal");
-    return heavyBlow ? "smash" : "punch";
-  }
+}
 
-  // Final fallbacks by role / damage type.
+/** Role/range fallback when no weapon family maps to a concrete swing or loose. */
+function fallbackStyle(def: CharacterDef): AttackStyle {
   if (def.role === "dot") return "poison";
   if (def.role === "chain") return "lightning";
   if (def.damageType === "Magic") return "arcane";

@@ -25,7 +25,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Yamo the Desert Bandit", // homage: Yamcha (Dragon Ball) — famously outclassed
     rarity: "Common",
     role: "damage",
-    damageType: "Physical",
     target: "Both",
     cost: 45,
     description:
@@ -33,7 +32,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Yamcha (Dragon Ball) — the famously outclassed underdog",
       outfit: "Tattered orange-and-blue martial gi with a sand scarf and a forehead band",
-      weapon: "Bare fists and a thrown ball of ki",
+      weapon: { family: "fist", display: "Bare fists and a thrown ball of ki" },
     },
     passives: ["wolf-fang"],
     active: "spirit-ball",
@@ -47,7 +46,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Kazu the Spirit Brawler", // homage: Kazuma Kuwabara (YuYu Hakusho)
     rarity: "Magic",
     role: "damage",
-    damageType: "Magic",
     target: "Ground",
     cost: 70,
     description:
@@ -55,7 +53,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Kazuma Kuwabara (YuYu Hakusho)",
       outfit: "A street tough's rolled-up school uniform with a towering pompadour, sleeves torn for brawling",
-      weapon: "A Spirit Sword conjured from raw energy",
+      weapon: { family: "sword", enchanted: true, display: "A Spirit Sword conjured from raw energy" },
     },
     passives: ["spirit-sword", "street-code"],
     active: "dimensional-slash",
@@ -69,7 +67,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Zoran Thricedraw", // homage: Roronoa Zoro (One Piece)
     rarity: "Rare",
     role: "damage",
-    damageType: "Physical",
     target: "Ground",
     cost: 100,
     description:
@@ -77,7 +74,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Roronoa Zoro (One Piece)",
       outfit: "A dark open coat over a green haramaki sash, three sheaths riding the left hip",
-      weapon: "Three katana — one in each hand and one clenched in his teeth",
+      weapon: { family: "sword", multi: true, display: "Three katana — one in each hand and one clenched in his teeth" },
     },
     passives: ["three-sword-style", "first-strike"],
     active: "iaido-slash",
@@ -91,7 +88,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Prince Vael", // homage: Vegeta (Dragon Ball)
     rarity: "Legendary",
     role: "damage",
-    damageType: "Physical",
     target: "Ground",
     cost: 160,
     description:
@@ -99,7 +95,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Vegeta (Dragon Ball)",
       outfit: "A royal warrior's blue bodysuit with a white armored chestplate and gloves, chin always raised",
-      weapon: "Bare-handed ki combat capped by a piercing energy flash",
+      weapon: { family: "fist", display: "Bare-handed ki combat capped by a piercing energy flash" },
     },
     passives: ["royal-pride", "galick-surge", "perfect-form"],
     active: "final-flash",
@@ -114,7 +110,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Karu Sunfist", // homage: Son Goku (Dragon Ball)
     rarity: "Unique",
     role: "damage",
-    damageType: "Magic",
     target: "Both",
     cost: 210,
     description:
@@ -122,7 +117,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Son Goku (Dragon Ball)",
       outfit: "An orange martial gi over a blue undershirt and belt, wild spiked hair",
-      weapon: "Fists and a charged, world-shaking ki wave",
+      weapon: { family: "fist", enchanted: true, display: "Fists and a charged, world-shaking ki wave" },
     },
     passives: ["boundless-ki", "instinct", "second-wind"],
     active: "kamefist-wave",
@@ -137,7 +132,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Jugo the Limitless", // homage: Satoru Gojo (Jujutsu Kaisen)
     rarity: "Unique",
     role: "damage",
-    damageType: "Magic",
     target: "Both",
     cost: 215,
     description:
@@ -145,7 +139,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Satoru Gojo (Jujutsu Kaisen)",
       outfit: "A black high-collared coat with a white blindfold drawn over the eyes",
-      weapon: "Cursed energy that folds the space around his foes",
+      weapon: { family: "curse", display: "Cursed energy that folds the space around his foes" },
     },
     passives: ["infinity", "six-eyes", "domain"],
     active: "hollow-purple",
@@ -160,7 +154,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Sota the Caped Fist", // homage: Saitama (One Punch Man)
     rarity: "Unique",
     role: "damage",
-    damageType: "Physical",
     target: "Both",
     cost: 220,
     description:
@@ -168,7 +161,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Saitama (One Punch Man)",
       outfit: "A plain yellow jumpsuit with a white cape and red gloves and boots, expression utterly bored",
-      weapon: "A single bare-fisted punch that ends everything",
+      weapon: { family: "fist", heavy: true, display: "A single bare-fisted punch that ends everything" },
     },
     passives: ["no-limiter", "deadpan", "casual-stride"],
     active: "serious-punch",
@@ -185,7 +178,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Pip Powderkeg", // homage: Megumin (KonoSuba), as a junior dabbler
     rarity: "Common",
     role: "splash",
-    damageType: "Physical",
     target: "Ground",
     cost: 55,
     description:
@@ -193,7 +185,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Megumin as a junior dabbler (KonoSuba)",
       outfit: "An oversized crimson mage robe and witch hat with a single eyepatch, all far too big for her",
-      weapon: "Gunpowder, hand-lit bombs, and a stubby explosion wand",
+      weapon: { family: "gun", element: "fire", display: "Gunpowder, hand-lit bombs, and a stubby explosion wand" },
     },
     passives: ["loose-pin"],
     active: "frag-toss",
@@ -207,7 +199,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Iron Bo the Cannonarm", // homage: Franky (One Piece)
     rarity: "Magic",
     role: "splash",
-    damageType: "Physical",
     target: "Ground",
     cost: 85,
     description:
@@ -215,7 +206,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Franky (One Piece)",
       outfit: "A loud Hawaiian shirt over a massive cyborg torso, blue pompadour and a star tattoo, metal forearms",
-      weapon: "Twin siege cannons built into both forearms",
+      weapon: { family: "gun", display: "Twin siege cannons built into both forearms" },
     },
     passives: ["siege-payload", "cola-boost"],
     active: "coup-de-burst",
@@ -230,7 +221,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Kanae Petalfall", // homage: the Flower Hashira (Demon Slayer)
     rarity: "Rare",
     role: "splash",
-    damageType: "Magic",
     target: "Both",
     cost: 110,
     description:
@@ -238,7 +228,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "the Flower Hashira (Demon Slayer)",
       outfit: "A flowing pastel haori patterned with blossoms, hair pinned with a flower clasp",
-      weapon: "A slender nichirin katana whose cuts scatter razor petals",
+      weapon: { family: "sword", enchanted: true, display: "A slender nichirin katana whose cuts scatter razor petals" },
     },
     passives: ["wide-bloom", "fuse-master"],
     active: "petal-storm",
@@ -253,7 +243,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Akagan the Ashen", // homage: Akainu / magma-logia (One Piece)
     rarity: "Legendary",
     role: "splash",
-    damageType: "Magic",
     target: "Ground",
     cost: 165,
     description:
@@ -261,7 +250,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Akainu / the magma-logia (One Piece)",
       outfit: "A warlord's double-breasted marine greatcoat and cap, grim and weathered",
-      weapon: "Fists of erupting molten magma",
+      weapon: { family: "fist", element: "fire", enchanted: true, display: "Fists of erupting molten magma" },
     },
     passives: ["eruption", "molten-core", "aftershock"],
     active: "great-eruption",
@@ -276,7 +265,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Megu the Explosion Sage", // homage: Megumin at full power (KonoSuba)
     rarity: "Unique",
     role: "splash",
-    damageType: "Magic",
     target: "Both",
     cost: 205,
     description:
@@ -284,7 +272,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Megumin at full power (KonoSuba)",
       outfit: "A crimson archmage robe and pointed witch hat with an eyepatch and fingerless gloves, mid dramatic pose",
-      weapon: "A gnarled wizard's staff that channels a single apocalyptic Explosion",
+      weapon: { family: "staff", element: "fire", display: "A gnarled wizard's staff that channels a single apocalyptic Explosion" },
     },
     passives: ["explosion-only", "crimson-pride", "overflow"],
     active: "explosion",
@@ -301,7 +289,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Tobi the Skipstone", // homage: scrappy ninja trainees (e.g., Konohamaru, Naruto)
     rarity: "Common",
     role: "chain",
-    damageType: "Physical",
     target: "Both",
     cost: 55,
     description:
@@ -309,7 +296,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "scrappy ninja trainees such as Konohamaru (Naruto)",
       outfit: "A young ninja's blue trainee uniform with a long trailing scarf and goggles pushed up on the brow",
-      weapon: "Energy-charged stones skipped across the crowd",
+      weapon: { family: "thrown", display: "Energy-charged stones skipped across the crowd" },
     },
     passives: ["bounce"],
     active: "double-skip",
@@ -323,7 +310,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Zeni the Spark", // homage: Zenitsu Agatsuma (Demon Slayer)
     rarity: "Magic",
     role: "chain",
-    damageType: "Magic",
     target: "Both",
     cost: 85,
     description:
@@ -331,7 +317,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Zenitsu Agatsuma (Demon Slayer)",
       outfit: "A bright yellow triangle-patterned haori over a black uniform, hair flopping over teary eyes",
-      weapon: "A lightning-etched nichirin katana, unleashed only while asleep",
+      weapon: { family: "sword", element: "lightning", enchanted: true, display: "A lightning-etched nichirin katana, unleashed only while asleep" },
     },
     passives: ["conduit", "thunderclap"],
     active: "chain-lightning",
@@ -346,7 +332,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Hyo the Frost Arc", // homage: Toshiro Hitsugaya (Bleach)
     rarity: "Rare",
     role: "chain",
-    damageType: "Magic",
     target: "Both",
     cost: 110,
     description:
@@ -354,7 +339,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Toshiro Hitsugaya (Bleach)",
       outfit: "A captain's black robe under a white haori, white hair and a turquoise ice-toned sash",
-      weapon: "An ice-releasing longsword that looses ricocheting frozen arcs",
+      weapon: { family: "sword", element: "ice", enchanted: true, display: "An ice-releasing longsword that looses ricocheting frozen arcs" },
     },
     passives: ["cold-snap", "ricochet"],
     active: "glacial-chain",
@@ -369,7 +354,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Kilo the Lightning Hand", // homage: Killua Zoldyck (Hunter x Hunter)
     rarity: "Legendary",
     role: "chain",
-    damageType: "Magic",
     target: "Both",
     cost: 155,
     description:
@@ -377,7 +361,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Killua Zoldyck (Hunter x Hunter)",
       outfit: "A simple turtleneck and shorts, spiky silver-white hair, lightning crawling over bare skin",
-      weapon: "Bare hands cloaked in crackling lightning",
+      weapon: { family: "fist", element: "lightning", enchanted: true, display: "Bare hands cloaked in crackling lightning" },
     },
     passives: ["godspeed", "whirlwind", "assassin-instinct"],
     active: "thunderbolt",
@@ -392,7 +376,6 @@ const TOWERS_A: CharacterDef[] = [
     name: "Sasu the Stormblade", // homage: Sasuke Uchiha (Naruto)
     rarity: "Unique",
     role: "chain",
-    damageType: "Magic",
     target: "Both",
     cost: 205,
     description:
@@ -400,7 +383,7 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Sasuke Uchiha (Naruto)",
       outfit: "A dark high-collared cloak bearing a clan crest, black hair, one arm wrapped in storm-light",
-      weapon: "A lightning-charged chokuto that calls down a dragon of thunder",
+      weapon: { family: "sword", element: "lightning", enchanted: true, display: "A lightning-charged chokuto that calls down a dragon of thunder" },
     },
     passives: ["sharingan", "chidori-stream", "vengeance"],
     active: "kirin",

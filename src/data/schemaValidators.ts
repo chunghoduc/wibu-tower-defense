@@ -8,6 +8,7 @@ import {
   PASSIVE_NODE_TYPES, PASSIVE_REGIONS, RARITIES, TARGET_TYPES, TOWER_ROLES, WEAPON_TYPES,
   type ActiveSkillDef, type CharacterDef, type EnemyDef, type ItemDef, type PassiveNodeDef, type StageDef,
 } from "./schema.ts";
+import { WEAPON_FAMILIES, deriveDamageType } from "./weaponFamily.ts";
 
 export class SchemaError extends Error {}
 
@@ -24,6 +25,16 @@ export function validateCharacter(c: CharacterDef): CharacterDef {
     (ATTACK_DAMAGE_TYPES as readonly string[]).includes(c.damageType),
     `character ${c.id}: basic-attack damageType must be Physical or Magic (True is skill-only)`,
   );
+  if (c.meta) {
+    assert(
+      (WEAPON_FAMILIES as readonly string[]).includes(c.meta.weapon.family),
+      `character ${c.id}: invalid weapon family ${c.meta.weapon.family}`,
+    );
+    assert(
+      deriveDamageType(c.meta.weapon) === c.damageType,
+      `character ${c.id}: weapon ${c.meta.weapon.family} derives ${deriveDamageType(c.meta.weapon)} but damageType is ${c.damageType}`,
+    );
+  }
   assert((TARGET_TYPES as readonly string[]).includes(c.target), `character ${c.id}: bad target`);
   assert(c.cost >= 0, `character ${c.id}: cost must be >= 0`);
   assert(

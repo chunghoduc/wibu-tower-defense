@@ -9,7 +9,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Bram the Thornling", // homage: wood/plant users (e.g., mokuton, Naruto)
     rarity: "Common",
     role: "dot",
-    damageType: "Physical",
     target: "Ground",
     cost: 45,
     description:
@@ -17,7 +16,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "wood/plant users such as the mokuton style (Naruto)",
       outfit: "A tiny treant body of bark and moss with a leaf-tuft crown and grumpy knothole eyes",
-      weapon: "Barbed vines that lash and bleed trespassers",
+      weapon: { family: "thorn", element: "poison", display: "Barbed vines that lash and bleed trespassers" },
     },
     passives: ["barbs"],
     active: "bramble",
@@ -31,7 +30,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Kona the Ember Fox", // homage: nine-tailed fox spirits (e.g., Kurama, Naruto)
     rarity: "Magic",
     role: "dot",
-    damageType: "Magic",
     target: "Both",
     cost: 80,
     description:
@@ -39,7 +37,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "nine-tailed fox spirits such as Kurama (Naruto)",
       outfit: "A fox-girl in a red-and-white miko robe, nine ember-tipped tails fanning behind her",
-      weapon: "Foxfire — clinging spirit flame that smolders in the wound",
+      weapon: { family: "nature", element: "fire", display: "Foxfire — clinging spirit flame that smolders in the wound" },
     },
     passives: ["smolder", "foxfire"],
     active: "wildfire",
@@ -54,7 +52,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Shion the Venom Priestess", // homage: poison users (e.g., Shizuku, HxH)
     rarity: "Rare",
     role: "dot",
-    damageType: "Magic",
     target: "Both",
     cost: 100,
     description:
@@ -62,7 +59,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "poison users such as Shizuku (Hunter x Hunter)",
       outfit: "A serene shrine maiden's deep-violet robe with prayer beads and a veiled headdress",
-      weapon: "Anointing toxins and venom-tipped prayer talismans",
+      weapon: { family: "talisman", element: "poison", display: "Anointing toxins and venom-tipped prayer talismans" },
     },
     passives: ["virulence", "lingering-toxin"],
     active: "plague-cloud",
@@ -77,7 +74,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Roan the Flame Alchemist", // homage: Roy Mustang (Fullmetal Alchemist)
     rarity: "Legendary",
     role: "dot",
-    damageType: "Magic",
     target: "Both",
     cost: 155,
     description:
@@ -85,7 +81,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "Roy Mustang (Fullmetal Alchemist)",
       outfit: "A trim military officer's blue uniform under a long coat, ignition-cloth gloves on both hands",
-      weapon: "Spark-cloth gloves that snap fire to life from the air itself",
+      weapon: { family: "aura", element: "fire", display: "Spark-cloth gloves that snap fire to life from the air itself" },
     },
     passives: ["ignition", "pinpoint-flame", "ambition"],
     active: "inferno-snap",
@@ -100,7 +96,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Morren the Plaguebearer", // homage: decay/curse wielders (e.g., Mahito, JJK)
     rarity: "Unique",
     role: "dot",
-    damageType: "Magic",
     target: "Both",
     cost: 200,
     description:
@@ -108,7 +103,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "decay/curse wielders such as Mahito (Jujutsu Kaisen)",
       outfit: "A hollow-eyed wanderer's tattered grey cloak stained with rot, skin a patchwork of decay",
-      weapon: "A bare touch that spreads unstoppable black decay",
+      weapon: { family: "curse", element: "poison", display: "A bare touch that spreads unstoppable black decay" },
     },
     passives: ["corrosion", "epidemic", "necrosis"],
     active: "black-rot",
@@ -125,7 +120,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Doro the Mire Spirit", // homage: swamp/mud yokai
     rarity: "Common",
     role: "debuff",
-    damageType: "Magic",
     target: "Ground",
     cost: 50,
     description:
@@ -133,7 +127,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "swamp and mud yokai of old folklore",
       outfit: "A small bog-sprite formed of dripping mud and reeds with glowing marsh-light eyes",
-      weapon: "Sucking tar and grasping mud that drag foes down",
+      weapon: { family: "nature", display: "A mire conduit of sucking tar and grasping mud that drag foes down" },
     },
     passives: ["sticky-mud"],
     active: "tar-pit",
@@ -147,7 +141,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Shika the Shadowbinder", // homage: Shikamaru Nara (Naruto)
     rarity: "Magic",
     role: "debuff",
-    damageType: "Magic",
     target: "Ground",
     cost: 85,
     description:
@@ -155,7 +148,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "Shikamaru Nara (Naruto)",
       outfit: "A green flak vest over a dark mesh uniform, hair tied in a spiky tail, perpetually half-asleep",
-      weapon: "His own shadow, stretched out to stitch enemies in place",
+      weapon: { family: "shadow", display: "His own shadow, stretched out to stitch enemies in place" },
     },
     passives: ["shadow-bind", "two-hundred-iq"],
     active: "shadow-stitch",
@@ -170,7 +163,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Glace the Ice-Maker", // homage: ice-make mages (e.g., Gray, Fairy Tail)
     rarity: "Rare",
     role: "debuff",
-    damageType: "Magic",
     target: "Both",
     cost: 105,
     description:
@@ -178,7 +170,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "ice-make mages such as Gray Fullbuster (Fairy Tail)",
       outfit: "A bare-chested ice mage in dark trousers with a silver necklace, frost rimming his fists",
-      weapon: "Ice-Make — weapons sculpted from ice in an instant",
+      weapon: { family: "aura", element: "ice", display: "An ice conjurer's focus — weapons sculpted from ice in an instant" },
     },
     passives: ["ice-make", "freezing-touch"],
     active: "ice-geyser",
@@ -193,7 +185,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Yuki the Frostward Maiden", // homage: ice-queen generals (e.g., Esdeath, Akame ga Kill)
     rarity: "Legendary",
     role: "debuff",
-    damageType: "Magic",
     target: "Both",
     cost: 155,
     description:
@@ -201,7 +192,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "ice-queen generals such as Esdeath (Akame ga Kill)",
       outfit: "A glacial general's white-and-blue military coat with epaulettes and long ice-blue hair",
-      weapon: "A rapier of conjured ice and a time-freezing aura",
+      weapon: { family: "sword", element: "ice", enchanted: true, display: "A rapier of conjured ice and a time-freezing aura" },
     },
     passives: ["deep-chill", "hoarfrost", "absolute-zero"],
     active: "blizzard",
@@ -216,7 +207,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Garan Sandshackle", // homage: Gaara (Naruto)
     rarity: "Unique",
     role: "debuff",
-    damageType: "Physical",
     target: "Ground",
     cost: 195,
     description:
@@ -224,7 +214,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "Gaara (Naruto)",
       outfit: "A sand-red robe with a great gourd strapped to the back, dark-rimmed sleepless eyes, somber and still",
-      weapon: "A living gourd of sand that entombs and crushes",
+      weapon: { family: "sand", display: "A living gourd of sand that entombs and crushes" },
     },
     passives: ["sand-armor", "iron-grip", "tailed-rage"],
     active: "sand-burial",
@@ -245,7 +235,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Mochi the Morale Sprite", // homage: tiny cheer/mascot spirits
     rarity: "Common",
     role: "support",
-    damageType: "Magic",
     target: "Ground",
     cost: 50,
     description:
@@ -253,7 +242,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "tiny cheer and mascot spirits",
       outfit: "A round, squishy white mochi-spirit with stubby arms and an unshakeable grin",
-      weapon: "Tiny cheer pom-poms and bottomless encouragement",
+      weapon: { family: "charm", display: "Tiny cheer pom-poms and bottomless encouragement" },
     },
     passives: ["cheer"],
     active: "pep-talk",
@@ -265,7 +254,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Lyra Tempo", // homage: musician buffers (e.g., Brook, One Piece)
     rarity: "Magic",
     role: "support",
-    damageType: "Magic",
     target: "Both",
     cost: 90,
     description:
@@ -273,7 +261,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "musician buffers such as Brook (One Piece)",
       outfit: "A traveling minstrel's frock coat and feathered hat, a violin tucked under one arm",
-      weapon: "A battle-violin whose quickening rhythm hastens allies",
+      weapon: { family: "instrument", display: "A battle-violin whose quickening rhythm hastens allies" },
     },
     passives: ["allegro"],
     active: "crescendo",
@@ -285,7 +273,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Orin the Celestial Herald", // homage: rejection/shield healers (e.g., Orihime, Bleach)
     rarity: "Rare",
     role: "support",
-    damageType: "Magic",
     target: "Both",
     cost: 115,
     description:
@@ -293,7 +280,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "rejection/shield healers such as Orihime (Bleach)",
       outfit: "A gentle herald's white-and-gold dress with fairy-pin hairclips",
-      weapon: "Fairy-blessing shields and fate-rejecting wards",
+      weapon: { family: "charm", display: "Fairy-blessing shields and fate-rejecting wards" },
     },
     passives: ["blessing", "shun-shield"],
     active: "reject-fate",
@@ -305,7 +292,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Aldric the Banner-Bearer", // homage: rallying commanders (e.g., Erwin Smith, AoT)
     rarity: "Legendary",
     role: "support",
-    damageType: "Physical",
     target: "Ground",
     cost: 160,
     description:
@@ -313,7 +299,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "rallying commanders such as Erwin Smith (Attack on Titan)",
       outfit: "A grizzled commander's tan military coat under a wing-crest cloak, one sleeve bound",
-      weapon: "A great war-banner raised high as a rallying standard",
+      weapon: { family: "banner", display: "A great war-banner raised high as a rallying standard" },
     },
     passives: ["rally", "vanguard", "last-charge"],
     active: "war-cry",
@@ -325,7 +311,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Senna the Slug Sannin", // homage: Tsunade (Naruto)
     rarity: "Unique",
     role: "support",
-    damageType: "Physical",
     target: "Both",
     cost: 200,
     description:
@@ -333,7 +318,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "Tsunade (Naruto)",
       outfit: "A grey-green haori over a sleeveless top, blonde hair in twin tails, a violet seal on the brow",
-      weapon: "Monstrous chakra-enhanced fists and master healing arts",
+      weapon: { family: "fist", display: "Monstrous chakra-enhanced fists and master healing arts" },
     },
     passives: ["hundred-healings", "monster-strength", "sannin-resolve"],
     active: "creation-rebirth",
@@ -350,7 +335,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Riku the Ironhide", // homage: Kirishima / Red Riot (My Hero Academia) — Hardening
     rarity: "Common",
     role: "tanker",
-    damageType: "Physical",
     target: "Ground",
     cost: 60,
     description:
@@ -358,7 +342,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "Kirishima / Red Riot (My Hero Academia) — the Hardening tank",
       outfit: "A rugged red-trimmed guard's harness over hardened, jagged skin, spiked crimson hair",
-      weapon: "Iron-hardened fists and a shoulder-first body slam",
+      weapon: { family: "fist", display: "Iron-hardened fists and a shoulder-first body slam" },
     },
     passives: ["ironhide", "guts"],
     active: "ironhide-slam",
@@ -372,7 +356,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Garrek Ironscale", // homage: Gajeel / Iron Dragon Slayer (Fairy Tail)
     rarity: "Magic",
     role: "tanker",
-    damageType: "Magic",
     target: "Ground",
     cost: 80,
     description:
@@ -380,7 +363,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "Gajeel / the Iron Dragon Slayer (Fairy Tail)",
       outfit: "A dark studded coat over iron-scaled skin, wild black mane and riveted brow",
-      weapon: "Iron-scaled fists and a club-like dragon-iron forearm",
+      weapon: { family: "fist", enchanted: true, display: "Iron-scaled fists and a club-like dragon-iron forearm" },
     },
     passives: ["iron-scales", "counter-stance"],
     active: "scaleguard-crash",
@@ -394,7 +377,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Joro the Diamondhide", // homage: Diamond Jozu (One Piece)
     rarity: "Rare",
     role: "tanker",
-    damageType: "Physical",
     target: "Ground",
     cost: 110,
     description:
@@ -402,7 +384,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "Diamond Jozu (One Piece)",
       outfit: "A broad-shouldered officer's coat over a body faceted like cut diamond, glinting hard light",
-      weapon: "Diamond-hard fists that crack the ground on impact",
+      weapon: { family: "fist", display: "Diamond-hard fists that crack the ground on impact" },
     },
     passives: ["diamond-body", "unbreakable"],
     active: "adamant-burst",
@@ -416,7 +398,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Reinhart the Armored Wall", // homage: Reiner / the Armored Titan (Attack on Titan)
     rarity: "Legendary",
     role: "tanker",
-    damageType: "Physical",
     target: "Ground",
     cost: 145,
     description:
@@ -424,7 +405,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "Reiner / the Armored Titan (Attack on Titan)",
       outfit: "Interlocking bone-white armor plating over every limb, weathered and battle-scarred",
-      weapon: "Plated fists and a full-body charge that flattens the line",
+      weapon: { family: "fist", display: "Plated fists and a full-body charge that flattens the line" },
     },
     passives: ["plated-hide", "bulwark", "last-bastion"],
     active: "armored-charge",
@@ -438,7 +419,6 @@ export const TOWERS_B: CharacterDef[] = [
     name: "Garron the Unbreaking Pillar", // homage: All Might (My Hero Academia)
     rarity: "Unique",
     role: "tanker",
-    damageType: "Physical",
     target: "Both",
     cost: 200,
     description:
@@ -446,7 +426,7 @@ export const TOWERS_B: CharacterDef[] = [
     meta: {
       homage: "All Might (My Hero Academia) — the unbreakable Symbol of Peace",
       outfit: "A broad heroic frame in blue-and-gold, golden swept-back hair and an unshakeable grin",
-      weapon: "Bare fists and a city-block-shaking smash",
+      weapon: { family: "fist", display: "Bare fists and a city-block-shaking smash" },
     },
     passives: ["indomitable", "symbol-of-peace", "counter-stance"],
     active: "fortress-smash",

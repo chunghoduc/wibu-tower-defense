@@ -180,7 +180,7 @@ export class CollectionScene extends Phaser.Scene {
     if (m) {
       field("Inspired by", m.homage);
       field("Outfit", m.outfit);
-      field("Weapon", m.weapon);
+      field("Weapon", m.weapon.display);
     }
     field("Lore", tower.description);
 

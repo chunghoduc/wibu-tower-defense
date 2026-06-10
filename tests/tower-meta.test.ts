@@ -8,7 +8,7 @@ describe("character codex metadata", () => {
       expect(t.meta, `${t.id} missing meta`).toBeDefined();
       expect(t.meta!.homage.length, `${t.id} homage`).toBeGreaterThan(3);
       expect(t.meta!.outfit.length, `${t.id} outfit`).toBeGreaterThan(3);
-      expect(t.meta!.weapon.length, `${t.id} weapon`).toBeGreaterThan(3);
+      expect(t.meta!.weapon.display.length, `${t.id} weapon`).toBeGreaterThan(3);
     }
   });
 

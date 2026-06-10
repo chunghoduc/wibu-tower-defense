@@ -14,6 +14,8 @@
 // Categorical attributes
 // ---------------------------------------------------------------------------
 
+import type { WeaponSpec } from "./weaponFamily.ts";
+
 export const DAMAGE_TYPES = ["Physical", "Magic", "True"] as const;
 export type DamageType = (typeof DAMAGE_TYPES)[number];
 
@@ -241,8 +243,8 @@ export interface CharacterMeta {
   homage: string;
   /** Short description of the character's signature outfit / visual design. */
   outfit: string;
-  /** The character's main weapon or fighting implement. */
-  weapon: string;
+  /** The character's signature weapon, structured so damage type/style derive from it. */
+  weapon: WeaponSpec;
 }
 
 /** A collectible character — deployed in battle as a static tower. */
@@ -382,6 +384,28 @@ export interface ItemDef {
   /** Overlay ref applied to hero visual when equipped (Phase 4). */
   appearanceRef?: string;
   artRef: string;
+  /**
+   * Visual + flavour metadata. Single source of truth that drives BOTH the
+   * inventory icon AND the in-battle "worn" overlay, so they cannot drift.
+   * `appearance.look` is fed verbatim to the SDXL art pipeline.
+   */
+  appearance?: ItemAppearance;
+  /** Designer-only homage note (the anime item this evokes); never shipped raw. */
+  homage?: { source: string; original: string };
+  /** What makes the item special, echoing the source item's signature gimmick. */
+  specialty?: string;
+  /** 1–2 sentence player-facing flavour line. */
+  lore?: string;
+}
+
+/** Visual identity shared by an item's icon and its worn overlay. */
+export interface ItemAppearance {
+  /** Silhouette family → worn-art template + icon shape (e.g. "greatblade"). */
+  family: string;
+  /** Curated palette — body tint + accent. Reused by icon AND worn art (never PNG-sampled). */
+  material: { tint: string; accent: string };
+  /** Prose describing exactly how it looks; seeds the SDXL prompt. */
+  look: string;
 }
 
 /** Special enemy behaviours layered on top of the base march-to-castle loop. */
