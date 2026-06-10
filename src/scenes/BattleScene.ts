@@ -41,6 +41,9 @@ import { isoWeekKey } from "../core/meta.ts";
 import { boxIdForTier } from "../data/materials.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
 
+/** Duration (ms) of a tower's procedural strike-recoil punch. */
+const TOWER_STRIKE_MS = 200;
+
 /** A special battle mode launched from the Activities hub (else a normal stage). */
 export interface BattleMode {
   kind: "normal" | "challenge" | "endless" | "bossrush";
@@ -382,7 +385,7 @@ export class BattleScene extends Phaser.Scene {
     this.placeGhost.setPosition(wp.x, wp.y);
     const def = this.buildOrder.find((d) => d.id === towerId);
     const ok = pointer.y < 500 && this.battle.canPlaceAt({ x: wp.x, y: wp.y }) && !!def && this.battle.gold >= def.cost;
-    const range = def?.baseStats.range ?? 130;
+    const range = def ? this.battle.previewPlaceRange(def.id) : 130;
     const ring = this.placeGhost.getData("ring") as Phaser.GameObjects.Graphics;
     ring.clear();
     ring.lineStyle(1.5, ok ? 0x66ff88 : 0xff5a5a, 0.4).strokeCircle(0, 0, range);   // coverage preview
@@ -747,7 +750,9 @@ export class BattleScene extends Phaser.Scene {
       if (ev.source === "hero") {
         this.heroSprite?.playAttack();   // body anim + weapon swing arc
       } else {
-        this.playSpriteOneShot(this.towerSprites.get(ev.uid) ?? null, ["attack"], "idle");
+        const ts = this.towerSprites.get(ev.uid) ?? null;
+        ts?.setData("atkUntil", this.time.now + TOWER_STRIKE_MS); // procedural recoil punch
+        this.playSpriteOneShot(ts, ["attack"], "idle");
       }
     } else if (ev.type === "hit") {
       this.sfx.hit();
@@ -765,7 +770,11 @@ export class BattleScene extends Phaser.Scene {
     } else if (ev.type === "cast") {
       this.sfx.cast();
       if (ev.source === "hero") this.heroSprite?.playCast();   // hero skill frames + flourish
-      else this.playSpriteOneShot(this.towerSprites.get(ev.uid) ?? null, ["skill", "attack"], "idle"); // tower active skill
+      else {
+        const ts = this.towerSprites.get(ev.uid) ?? null;
+        ts?.setData("atkUntil", this.time.now + TOWER_STRIKE_MS); // procedural recoil punch
+        this.playSpriteOneShot(ts, ["skill", "attack"], "idle"); // tower active skill
+      }
     } else if (ev.type === "bossCast") {
       this.playSpriteOneShot(this.enemySprites.get(ev.uid) ?? null, ["skill", "attack"], "walk"); // boss ability
     } else if (ev.type === "loot") {
@@ -914,6 +923,37 @@ export class BattleScene extends Phaser.Scene {
     s.y = e.pos.y + yOff;
   }
 
+  /**
+   * Procedural tower animation. The SDXL sheet frames are near-identical (a
+   * single txt2img pass can't paint distinct poses), so frame-cycling reads as
+   * static — we drive life on the transform instead, exactly like enemies do:
+   * a gentle breathing pulse + idle sway while standing, and a recoil "punch"
+   * (anticipation stretch + lift + angle kick, set by attack/skill FX) on each
+   * strike. `base` already folds in the upgrade-level scale.
+   */
+  private animateTower(s: Phaser.GameObjects.Sprite, t: TowerRuntime, base: number): void {
+    const now = this.time.now;
+    const ph = now * 0.004 + t.uid * 2.1;             // slow idle phase, desynced per tower
+    let scaleX = base;
+    let scaleY = base * (1 + Math.sin(ph * 2) * 0.025); // breathing
+    let angle = Math.sin(ph) * 1.5;                    // faint idle sway
+    let yOff = Math.sin(ph * 2) * 1.2;                 // subtle bob
+
+    // Strike recoil overlays the idle motion (set on attack/cast FX, decays).
+    const atkUntil = (s.getData("atkUntil") as number) ?? 0;
+    if (now < atkUntil) {
+      const k = (atkUntil - now) / TOWER_STRIKE_MS;   // 1 → 0
+      scaleY = base * (1 + 0.16 * k);
+      scaleX = base * (1 - 0.10 * k);
+      yOff -= 6 * k;                                   // lift on the strike
+      angle += (t.uid % 2 ? 1 : -1) * 6 * k;          // directional kick
+    }
+
+    s.setAngle(angle);
+    s.setScale(scaleX, scaleY);
+    s.y = t.pos.y + yOff;
+  }
+
   /** Create/update/cull pixel-art sprites for towers, enemies and the hero. */
   private manageSprites(): void {
     const seenT = new Set<number>();
@@ -923,7 +963,10 @@ export class BattleScene extends Phaser.Scene {
       if (s) {
         seenT.add(t.uid);
         s.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
-        if (s.height) s.setScale((50 / s.height) * (1 + 0.05 * t.battleLevel)); // grow as upgraded (T10)
+        if (s.height) {
+          const base = (50 / s.height) * (1 + 0.05 * t.battleLevel); // grow as upgraded (T10)
+          this.animateTower(s, t, base);
+        }
       }
     }
     for (const [uid, s] of this.towerSprites) if (!seenT.has(uid)) { s.destroy(); this.towerSprites.delete(uid); }
