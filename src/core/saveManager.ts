@@ -10,7 +10,7 @@ import {
   expeditionGoldPerHour, expeditionGoldPerHourFor, expeditionCanCollect,
   expeditionCollectReadyAt, expeditionEligibleTowerIds,
 } from "./expedition.ts";
-import { bestEndlessWave, recordEndlessWave, claimEndlessRun } from "./endless.ts";
+import { bestEndlessWave, recordEndlessWave, claimEndlessRun, endlessEntryCost, payEndlessEntry } from "./endless.ts";
 import { rolloverBossRush, recordBossRushTier } from "./bossRush.ts";
 import { claimableMilestoneCount, nextClaimableTier, claimMilestone, unlockedTitles } from "./milestones.ts";
 import { powerRating, profileSummary, setTitle } from "./profile.ts";
@@ -129,6 +129,14 @@ export class SaveManager extends SaveManagerCore {
 
   // ── F11 Endless survival ────────────────────────────────────────────────────
   bestEndlessWave(stageId: string): number { return bestEndlessWave(this.save, stageId); }
+  /** Gold needed to start an endless run on this stage (scales with the player's best wave). */
+  endlessEntryCost(stageId: string): number { return endlessEntryCost(bestEndlessWave(this.save, stageId)); }
+  /** Spend the endless entry fee; returns gold paid, or -1 if too poor. Persists on success. */
+  payEndlessEntry(stageId: string): number {
+    const paid = payEndlessEntry(this.save, stageId);
+    if (paid >= 0) this.persist();
+    return paid;
+  }
   /** Record an endless run result; returns true on a new personal best. Persists. */
   recordEndlessWave(stageId: string, wave: number): boolean {
     const pb = recordEndlessWave(this.save, stageId, wave);

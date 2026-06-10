@@ -3,6 +3,7 @@ import { createFreshSave } from "../src/core/save.ts";
 import {
   endlessEnemyMul, endlessMilestoneReward, bestEndlessWave, recordEndlessWave, ENDLESS_MILESTONE_EVERY,
   endlessWave, isEndlessBossWave, endlessBossId, endlessRunReward, claimEndlessRun, ENDLESS_BOSS_EVERY,
+  endlessEntryCost, payEndlessEntry, ENDLESS_ENTRY_CAP,
 } from "../src/core/endless.ts";
 import { BOSS_BY_STAGE } from "../src/data/stage.ts";
 import { isEmptyReward } from "../src/core/rewards.ts";
@@ -107,6 +108,27 @@ describe("F11 endless survival", () => {
     const deeper = claimEndlessRun(s, "stage-1", 25);
     expect(deeper.isBest).toBe(true);
     expect(deeper.reward).toEqual(endlessRunReward(12, 25));
+  });
+
+  it("entry cost rises with best wave, has a cheap floor and a hard cap", () => {
+    expect(endlessEntryCost(0)).toBe(150);                        // cheap first taste
+    expect(endlessEntryCost(20)).toBeGreaterThan(endlessEntryCost(10)); // scales with record
+    expect(endlessEntryCost(20)).toBe(850);                      // 150 + 35*20, round10
+    expect(endlessEntryCost(100000)).toBe(ENDLESS_ENTRY_CAP);    // never locks you out
+    expect(endlessEntryCost(50) % 10).toBe(0);                   // always a round number
+  });
+
+  it("paying entry deducts gold and is refused when too poor", () => {
+    const s = createFreshSave();
+    s.currency.gold = 1000;
+    recordEndlessWave(s, "stage-1", 20); // best 20 → cost 850
+    const paid = payEndlessEntry(s, "stage-1");
+    expect(paid).toBe(850);
+    expect(s.currency.gold).toBe(150);
+    // Now broke for the 850 fee → refused, no further deduction.
+    const again = payEndlessEntry(s, "stage-1");
+    expect(again).toBe(-1);
+    expect(s.currency.gold).toBe(150);
   });
 });
 

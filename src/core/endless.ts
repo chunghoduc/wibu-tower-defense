@@ -115,6 +115,30 @@ export function bestEndlessWave(save: HeroSave, stageId: string): number {
   return save.meta.endless.bestWave[stageId] ?? 0;
 }
 
+// ── Entry cost ───────────────────────────────────────────────────────────────
+// Endless pays diamonds + chests, never gold, so it is a pure gold *sink* funded
+// by campaign/expedition/login income. The fee scales with your best wave so it
+// stays *felt* at every tier (a flat fee is pocket change to a deep, gold-rich
+// player and the sink dies). Linear — not exponential — because the reward is
+// already farm-resistant; exploding the cost too would double-punish the grind.
+export const ENDLESS_ENTRY_BASE = 150;     // cheap first taste (best 0)
+export const ENDLESS_ENTRY_PER_WAVE = 35;  // ≈ one Nightmare clear (1000g) at best 20
+export const ENDLESS_ENTRY_CAP = 4000;     // anti-lockout: never wall a player out of unlocked content
+
+/** Gold to start an endless run, scaled to the player's best wave (round-10, capped). */
+export function endlessEntryCost(bestWave: number): number {
+  const raw = ENDLESS_ENTRY_BASE + ENDLESS_ENTRY_PER_WAVE * Math.max(0, bestWave);
+  return Math.min(ENDLESS_ENTRY_CAP, Math.round(raw / 10) * 10);
+}
+
+/** Spend the entry fee for an endless run on `stageId`. Returns the gold paid, or -1 if unaffordable. */
+export function payEndlessEntry(save: HeroSave, stageId: string): number {
+  const cost = endlessEntryCost(bestEndlessWave(save, stageId));
+  if (save.currency.gold < cost) return -1;
+  save.currency.gold -= cost;
+  return cost;
+}
+
 /** Record an endless result; returns true if it's a new personal best. */
 export function recordEndlessWave(save: HeroSave, stageId: string, wave: number): boolean {
   if (wave > bestEndlessWave(save, stageId)) {

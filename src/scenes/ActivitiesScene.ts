@@ -259,11 +259,18 @@ export class ActivitiesScene extends Phaser.Scene {
     {
       const h = 56;
       const best = cleared ? this.mgr.bestEndlessWave(cleared.id) : 0;
+      const cost = cleared ? this.mgr.endlessEntryCost(cleared.id) : 0;
+      const canPay = !!cleared && save.currency.gold >= cost;
       this.panel(y, h, 0x2c3a4f);
       this.layer.add(crispText(this, PANEL_X + 14, y + 8, "🌊 Endless Survival", { fontSize: "14px", color: "#ffe9b0", fontStyle: "bold" }));
-      this.layer.add(crispText(this, PANEL_X + 14, y + 28, cleared ? `Waves never stop — a boss every 10. Best wave: ${best}.` : "Clear a stage first to unlock.", { fontSize: "11px", color: "#aab8cc" }));
-      this.button(PANEL_X + PANEL_W - 14, y + h / 2, "Play", "#3a6a9a", !!cleared,
-        () => cleared && this.launch(cleared.id, "Nightmare", { kind: "endless" }));
+      this.layer.add(crispText(this, PANEL_X + 14, y + 28, cleared ? `Waves never stop — boss every 10. Best wave: ${best}. · Entry 🪙${cost}` : "Clear a stage first to unlock.", { fontSize: "11px", color: "#aab8cc" }));
+      this.button(PANEL_X + PANEL_W - 14, y + h / 2, cleared ? `Play 🪙${cost}` : "Play", "#3a6a9a", canPay,
+        () => {
+          if (!cleared) return;
+          const paid = this.mgr.payEndlessEntry(cleared.id);
+          if (paid < 0) { this.showToast(`Need 🪙${cost} gold to enter`); return; }
+          this.launch(cleared.id, "Nightmare", { kind: "endless" });
+        });
       y += h + 8;
     }
 
