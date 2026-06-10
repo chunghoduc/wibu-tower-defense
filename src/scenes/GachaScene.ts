@@ -4,16 +4,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { HARD_PITY, MULTI_PULL_COST, SINGLE_PULL_COST, type SummonResult } from "../core/gacha.ts";
 import { SUMMON_SCROLL } from "../data/materials.ts";
 import { Rng } from "../core/rng.ts";
-import { TOWERS } from "../data/towers.ts";
-import { frameKey } from "../data/uiManifest.ts";
-
-const RARITY_HEX: Record<string, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
+import { SummonResultOverlay } from "./summonResultOverlay.ts";
 
 export class GachaScene extends Phaser.Scene {
   private mgr!: SaveManager;
@@ -22,7 +13,7 @@ export class GachaScene extends Phaser.Scene {
   private pull1Btn!: Phaser.GameObjects.Text;
   private pull10Btn!: Phaser.GameObjects.Text;
   private freeBtn!: Phaser.GameObjects.Text;
-  private resultContainer!: Phaser.GameObjects.Container;
+  private resultOverlay!: SummonResultOverlay;
 
   constructor() {
     super("GachaScene");
@@ -88,7 +79,7 @@ export class GachaScene extends Phaser.Scene {
     this.pull1Btn.on("pointerdown", () => this.doPull(1));
     this.pull10Btn.on("pointerdown", () => this.doPull(10));
 
-    this.resultContainer = this.add.container(0, 0);
+    this.resultOverlay = new SummonResultOverlay(this, () => this.refreshUI());
 
     // Tick the free-summon countdown once a second.
     this.time.addEvent({ delay: 1000, loop: true, callback: () => this.refreshFreeButton() });
@@ -180,60 +171,6 @@ export class GachaScene extends Phaser.Scene {
   }
 
   private showResults(results: SummonResult[]): void {
-    this.resultContainer.removeAll(true);
-
-    const W = this.scale.width;
-    const CARD_W = 84;
-    const CARD_H = 96;
-    const COLS = Math.min(results.length, 5);
-    const GAP_X = 96;
-    const ROW_H = CARD_H + 18;
-    const START_Y = 200;
-
-    results.forEach((r, i) => {
-      const col = i % COLS;
-      const row = Math.floor(i / COLS);
-      const x = W / 2 - ((COLS - 1) * GAP_X) / 2 + col * GAP_X;
-      const y = START_Y + row * ROW_H;
-
-      const def = TOWERS.find((t) => t.id === r.characterId);
-      const hexStr = RARITY_HEX[r.rarity] ?? "#888888";
-      const colorInt = parseInt(hexStr.replace("#", ""), 16);
-
-      // A framed character card: dark inset, avatar, design-team rarity frame.
-      const card = this.add.container(x, y + CARD_H / 2);
-      const half = { w: CARD_W / 2, h: CARD_H / 2 };
-      const inner = this.add.graphics();
-      inner.fillStyle(0x0b0f17, 0.9).fillRoundedRect(-half.w + 5, -half.h + 5, CARD_W - 10, CARD_H - 10, 6);
-      card.add(inner);
-
-      const avKey = `tower__${r.characterId}`;
-      if (this.textures.exists(avKey)) {
-        const img = this.add.image(0, -8, avKey, 0).setOrigin(0.5);
-        img.setScale(Math.min((CARD_W - 20) / img.width, (CARD_H - 44) / img.height));
-        card.add(img);
-      }
-
-      const fKey = frameKey(r.rarity);
-      if (this.textures.exists(fKey)) {
-        card.add(this.add.image(0, 0, fKey).setDisplaySize(CARD_W, CARD_H));
-      } else {
-        const g = this.add.graphics();
-        g.lineStyle(2, colorInt, 1).strokeRoundedRect(-half.w, -half.h, CARD_W, CARD_H, 8);
-        card.add(g);
-      }
-
-      card.add(this.add.text(0, -half.h + 6, def?.name ?? r.characterId, { fontSize: "8px", color: hexStr, wordWrap: { width: CARD_W - 14 }, align: "center" }).setOrigin(0.5, 0));
-      card.add(this.add.text(0, half.h - 28, r.rarity, { fontSize: "10px", color: hexStr, fontStyle: "bold" }).setOrigin(0.5, 0));
-      card.add(this.add.text(0, half.h - 15, "★".repeat(r.newStars), { fontSize: "11px", color: "#ffd700" }).setOrigin(0.5, 0));
-      if (r.isNew) {
-        card.add(this.add.text(half.w - 4, -half.h + 4, "NEW!", { fontSize: "9px", color: "#ffffff", backgroundColor: "#c0392b" }).setOrigin(1, 0).setPadding(3, 1, 3, 1));
-      }
-
-      // Staggered scale-in reveal — the marquee reward moment.
-      card.setScale(0.55).setAlpha(0);
-      this.tweens.add({ targets: card, scale: 1, alpha: 1, delay: i * 70, duration: 260, ease: "Back.easeOut" });
-      this.resultContainer.add(card);
-    });
+    this.resultOverlay.show(results);
   }
 }
