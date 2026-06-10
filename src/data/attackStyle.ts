@@ -48,6 +48,7 @@ export function attackStyleFor(def: CharacterDef): AttackStyle {
   if (ice) return "iceball";
   if (elec) return "lightning";
   if (poison) return "poison";
+  if (el === "holy") return "holy"; // radiant-imbued weapon casts a holy bolt
 
   // Otherwise the weapon the character actually holds.
   switch (spec.family) {

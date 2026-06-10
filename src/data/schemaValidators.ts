@@ -8,7 +8,7 @@ import {
   PASSIVE_NODE_TYPES, PASSIVE_REGIONS, RARITIES, TARGET_TYPES, TOWER_ROLES, WEAPON_TYPES,
   type ActiveSkillDef, type CharacterDef, type EnemyDef, type ItemDef, type PassiveNodeDef, type StageDef,
 } from "./schema.ts";
-import { WEAPON_FAMILIES, deriveDamageType } from "./weaponFamily.ts";
+import { WEAPON_ELEMENTS, WEAPON_FAMILIES, deriveDamageType } from "./weaponFamily.ts";
 
 export class SchemaError extends Error {}
 
@@ -29,6 +29,11 @@ export function validateCharacter(c: CharacterDef): CharacterDef {
     assert(
       (WEAPON_FAMILIES as readonly string[]).includes(c.meta.weapon.family),
       `character ${c.id}: invalid weapon family ${c.meta.weapon.family}`,
+    );
+    assert(
+      c.meta.weapon.element === undefined ||
+        (WEAPON_ELEMENTS as readonly string[]).includes(c.meta.weapon.element),
+      `character ${c.id}: invalid weapon element ${c.meta.weapon.element}`,
     );
     assert(
       deriveDamageType(c.meta.weapon) === c.damageType,
