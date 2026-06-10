@@ -109,7 +109,8 @@ export class QuestScene extends Phaser.Scene {
     const allClaimed = DAILY_QUESTS.every((q) => save.quests.claimed.includes(q.id));
     const collected = save.quests.allClaimed;
     const ready = allClaimed && !collected;
-    const x = X0, y = Y0 + 2 * (CH + GAP_Y), w = CW * 2 + GAP_X, h = 50;
+    const rows = Math.ceil(DAILY_QUESTS.length / COLS); // banner sits below ALL quest rows
+    const x = X0, y = Y0 + rows * (CH + GAP_Y), w = CW * 2 + GAP_X, h = 50;
 
     const g = this.add.graphics();
     g.fillStyle(ready ? 0x2a2410 : 0x14181f, 1).fillRoundedRect(x, y, w, h, 10);
