@@ -19,6 +19,7 @@
 import type { ItemAppearance } from "./schema.ts";
 import { ITEM_LORE_BASE } from "./itemLoreBase.ts";
 import { ITEM_LORE_LINES } from "./itemLoreLines.ts";
+import { ITEM_LORE_EXPANSION } from "./itemLoreExpansion.ts";
 
 export interface ItemLoreEntry {
   /** Display name for a base/signature item (overrides the catalog default). */
@@ -36,6 +37,7 @@ export interface ItemLoreEntry {
 export const ITEM_LORE: Record<string, ItemLoreEntry> = {
   ...ITEM_LORE_BASE,
   ...ITEM_LORE_LINES,
+  ...ITEM_LORE_EXPANSION,
 };
 
 /** Tier prefixes that the generator strips to map a generated id to its line. */

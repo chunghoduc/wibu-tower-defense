@@ -1,5 +1,7 @@
 import { Rng } from "../core/rng.ts";
 import { loreFor } from "./itemLore.ts";
+import { archetypeFor, type ItemArchetype } from "./itemArchetype.ts";
+import { EXPANSION_LINES } from "./itemsExpansion.ts";
 import {
   type ItemDef,
   type ItemDefSlot,
@@ -167,7 +169,7 @@ export const ITEM_CATALOG: ItemDef[] = [
 // Procedurally generated item lines (T10): 26 themed lines × 5 rarities = 130
 // extra items, spanning every slot/weapon type with varied PRIMARY affixes.
 // ---------------------------------------------------------------------------
-interface ItemLine {
+export interface ItemLine {
   id: string;
   base: string;
   slot: ItemDefSlot;
@@ -177,6 +179,8 @@ interface ItemLine {
   stats: Partial<Stats>; // base stats at Common tier
   affixPool: string[];
   pet?: boolean;
+  /** Build archetype stamped onto every rarity tier (else derived from primary). */
+  archetype?: ItemArchetype;
 }
 
 const RARITY_TIERS: { rarity: Rarity; lvl: number; statMult: number; primMult: number; prefix: string }[] = [
@@ -233,6 +237,10 @@ const ITEM_LINES: ItemLine[] = [
   { id: "duelist-band", base: "Duelist Band", slot: "Ring", primary: "attackSpeed", primaryBase: 0.07, stats: { attackSpeed: 0.06, atk: 4 }, affixPool: ["attackSpeed", "critRate", "atk"] },
 ];
 
+// The 200-item homage expansion (40 lines × 5 rarities) lives in its own module
+// to keep this file focused; appended here so the generation loop covers it too.
+ITEM_LINES.push(...EXPANSION_LINES);
+
 const r2 = (n: number) => Math.round(n * 1000) / 1000;
 // Crit is a flat-added chance/multiplier, so it shouldn't scale up with rarity
 // as steeply as scalar stats — otherwise top-tier crit gear reaches absurd crit.
@@ -259,6 +267,7 @@ for (const line of ITEM_LINES) {
       baseStats: stats,
       primaryAffix: { type: line.primary, baseValue: r2(line.primaryBase * primMult) },
       affixPool: line.affixPool,
+      archetype: line.archetype ?? archetypeFor({ primaryAffix: { type: line.primary } }),
       ...(line.pet ? { petUtility: { goldPerSec: r2(0.4 * tier.statMult), goldFind: r2(0.04 * tier.statMult) } } : {}),
       artRef: "placeholder",
     }));

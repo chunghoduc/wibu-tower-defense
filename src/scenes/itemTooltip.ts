@@ -8,6 +8,7 @@
 import Phaser from "phaser";
 import { panelText } from "./ui.ts";
 import { itemStatRows, SOURCE_COLOR, QUALITY_COLOR } from "../data/itemDisplay.ts";
+import { archetypeFor, ARCHETYPE_COLOR, ARCHETYPE_LABEL } from "../data/itemArchetype.ts";
 import type { ItemDef, Rarity } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 
@@ -44,6 +45,10 @@ export function renderItemTooltip(
   const enh = inst.enhanceLevel ? `  +${inst.enhanceLevel}` : "";
   c.add(panelText(scene, tx + padX, ty + 8, def.name, { fontSize: "14px", color: RARITY_HEX[def.rarity], fontStyle: "bold", wordWrap: { width: w - padX * 2 } }));
   c.add(panelText(scene, tx + padX, ty + 27, `${def.rarity} ${def.slot}${def.weaponType ? ` (${def.weaponType})` : ""}${enh}`, { fontSize: "11px", color: "#aebfd4" }));
+  // Build-archetype tag (right of the rarity/slot line) — makes the item's build
+  // identity (physical / magic / defense / utility) legible at a glance.
+  const arch = archetypeFor(def);
+  c.add(panelText(scene, tx + w - padX, ty + 27, ARCHETYPE_LABEL[arch], { fontSize: "11px", color: ARCHETYPE_COLOR[arch], fontStyle: "bold" }).setOrigin(1, 0));
 
   // Stat rows. Source colour marks where the stat comes from; value colour marks
   // roll quality. Base stats: label + right-aligned value (+ enhance bonus).

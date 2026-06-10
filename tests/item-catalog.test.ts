@@ -37,8 +37,8 @@ describe("crit stats stay reasonable", () => {
 });
 
 describe("expanded item catalog (T10)", () => {
-  it("has at least 149 items (19 base + 130 generated)", () => {
-    expect(ITEM_CATALOG.length).toBeGreaterThanOrEqual(149);
+  it("has at least 349 items (19 base + 130 generated + 200 expansion)", () => {
+    expect(ITEM_CATALOG.length).toBeGreaterThanOrEqual(349);
   });
 
   it("all item ids are unique", () => {
@@ -95,6 +95,41 @@ describe("loot expansion batch", () => {
       for (const prefix of ["worn", "fine", "masterwork", "heroic", "mythic"]) {
         expect(ITEM_CATALOG_MAP.has(`${prefix}-${line}`), `${prefix}-${line}`).toBe(true);
       }
+    }
+  });
+});
+
+describe("200-item homage expansion", () => {
+  // The 40 expansion line ids (itemsExpansion.ts) → 40 × 5 = 200 items.
+  const EXPANSION_LINES = [
+    "kingsworn-brand", "moonlit-greatblade", "rimewill-runeblade", "busterfell-cleaver",
+    "emberlight-saber", "galewind-longbow", "dawnsong-bow", "peacekeeper-revolver",
+    "starhunter-cannon", "eldwood-wand", "dreadpage-codex", "titangrip-knuckles",
+    "mithrilweave-shirt", "beskar-plate", "havelthane-plate", "dragonscale-mail",
+    "sentinel-bulwark", "ribbon-circlet", "hadeshood-cowl", "valor-greathelm",
+    "seerlight-circlet", "titanhold-gauntlets", "trickster-grips", "mistwalk-treads",
+    "valkyrie-pinions", "phoenix-pinions", "juggernaut-signet", "archmage-loop",
+    "bulwark-band", "wayfarer-ring", "warpriest-talisman", "archon-amulet",
+    "wardstone-amulet", "midas-locket", "heartforge-pendant", "direwolf-cub",
+    "arcane-wisp", "iron-sentinel-chibi", "lucky-tanuki", "emberfox-kit",
+  ];
+
+  it("adds exactly 40 lines = 200 items, each spanning all 5 rarities", () => {
+    expect(EXPANSION_LINES.length).toBe(40);
+    for (const line of EXPANSION_LINES) {
+      for (const prefix of ["worn", "fine", "masterwork", "heroic", "mythic"]) {
+        expect(ITEM_CATALOG_MAP.has(`${prefix}-${line}`), `${prefix}-${line}`).toBe(true);
+      }
+    }
+  });
+
+  it("every expansion item carries a homage name, archetype, and lore", () => {
+    for (const line of EXPANSION_LINES) {
+      const mythic = ITEM_CATALOG_MAP.get(`mythic-${line}`)!;
+      expect(mythic.archetype, line).toBeDefined();
+      expect(mythic.lore, line).toBeTruthy();
+      // Name is the rarity-prefixed homage base, never a raw "Mythic <lineId>".
+      expect(mythic.name, line).not.toContain(line);
     }
   });
 });

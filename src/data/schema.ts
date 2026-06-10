@@ -15,6 +15,7 @@
 // ---------------------------------------------------------------------------
 
 import type { WeaponSpec } from "./weaponFamily.ts";
+import type { ItemArchetype } from "./itemArchetype.ts";
 import type { DamageType, TargetType, TowerRole, AttackDamageType, Rarity,
   Immunity, EnemyArchetype, ItemDefSlot, WeaponType, PassiveNodeType,
   PassiveRegion } from "./schemaEnums.ts";
@@ -207,6 +208,12 @@ export interface ItemDef {
   primaryAffix: { type: string; baseValue: number };
   /** Random affixes drawn from this pool; rarity gates count. */
   affixPool: string[];
+  /**
+   * Build archetype this item pushes toward (physical / magic / defense /
+   * utility / hybrid). Optional: when omitted it is derived from the primary
+   * affix via `archetypeFor()`. Authored only for deliberate hybrids.
+   */
+  archetype?: ItemArchetype;
   /** Pet slot only — utility properties. */
   petUtility?: PetUtility;
   /** Wing slot only — rarity-gated passive id. */
