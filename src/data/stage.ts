@@ -110,11 +110,11 @@ const spawn = (enemyId: string, count: number, interval = 0.8, delay = 0): Spawn
 function buildWaves(n: number): WaveDef[] {
   const w: WaveDef[] = [];
 
-  // Wave 1 — rushers.
-  w.push({ spawns: [spawn("grunt", 5 + n, 0.9), spawn("runner", Math.min(2 + n, 8), 0.6, 4)] });
+  // Wave 1 — rushers. (Cadence tightens on later stages so more enemies overlap.)
+  w.push({ spawns: [spawn("grunt", 5 + n, n >= 6 ? 0.7 : 0.9), spawn("runner", Math.min(2 + n, 8), 0.6, 4)] });
 
   // Wave 2 — flyers and the first armor.
-  const w2: SpawnEntry[] = [spawn("grunt", 6 + n, 0.7)];
+  const w2: SpawnEntry[] = [spawn("grunt", 6 + n, n >= 6 ? 0.55 : 0.7)];
   if (n >= 2) w2.push(spawn("gargoyle", 2 + Math.floor(n / 2), 1.2, 3));
   if (n >= 2) w2.push(spawn("brute", Math.max(1, Math.floor(n / 2)), 1.5, 6));
   w.push({ spawns: w2 });
@@ -137,11 +137,14 @@ function buildWaves(n: number): WaveDef[] {
   // Mid-boss wave (from stage 4).
   if (n >= 4) w.push({ spawns: [spawn("grunt", 4, 0.5), spawn("champion", 1, 1, 4)] });
 
-  // Pressure wave for later stages.
-  if (n >= 6) {
-    const wx: SpawnEntry[] = [spawn("runner", 6 + n, 0.4)];
-    wx.push(spawn("summoner", 1, 1, 5));
-    wx.push(spawn("hexer", 1, 1, 6)); // tower-slowing healer — a priority kill
+  // Escalating pressure wave — appears from stage 3 so even early stages ramp
+  // toward a climax instead of plateauing. The swarm gets denser and gains
+  // priority-kill supports / walls as the stage number climbs.
+  if (n >= 3) {
+    const wx: SpawnEntry[] = [spawn("runner", 6 + n, n >= 6 ? 0.35 : 0.5)];
+    if (n >= 4) wx.push(spawn("gargoyle", 1 + Math.floor(n / 3), 0.9, 2));
+    if (n >= 6) wx.push(spawn("summoner", 1, 1, 5));
+    if (n >= 6) wx.push(spawn("hexer", 1, 1, 6)); // tower-slowing healer — a priority kill
     if (n >= 7) wx.push(spawn("raider", 1 + Math.floor(n / 4), 2, 3));
     if (n >= 7) wx.push(spawn("courier", 1, 1, 2));
     if (n >= 8) wx.push(spawn(n % 2 === 0 ? "golem" : "monolith", 1 + Math.floor(n / 6), 2.5, 4));

@@ -355,7 +355,10 @@ export interface DifficultyScaling {
  * ≈ 30 ≈ 20×.)
  */
 export const DIFFICULTY_SCALING: Record<Difficulty, DifficultyScaling> = {
-  Normal: { hpMult: 1.3, atkMult: 1.15, bountyMult: 1 },
+  // Normal floor lifted (1.3→1.55 HP, 1.15→1.25 atk): the base game asks for
+  // real defence from wave one. Most of the "too easy" fix comes from the
+  // intra-stage wave ramp (see waveScaling.ts), not this flat multiplier.
+  Normal: { hpMult: 1.55, atkMult: 1.25, bountyMult: 1 },
   Hard: { hpMult: 4, atkMult: 1.85, bountyMult: 2 },
   Nightmare: { hpMult: 10.5, atkMult: 2.85, bountyMult: 4 },
 };

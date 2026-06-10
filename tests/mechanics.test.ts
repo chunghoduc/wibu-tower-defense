@@ -166,7 +166,8 @@ describe("difficulty scaling", () => {
       for (let i = 0; i < 200 && b.enemies.length === 0; i++) b.tick(0.05);
       return b.enemies[0]?.stats.maxHp ?? 0;
     };
-    expect(spawnHp("Normal")).toBeCloseTo(130); // 1.3× baseline (Normal is harder than 1.0)
+    // 1.55× Normal floor (first wave ⇒ no intra-stage ramp; see waveScaling.ts).
+    expect(spawnHp("Normal")).toBeCloseTo(155);
     expect(spawnHp("Nightmare")).toBeCloseTo(1050); // 10.5× — ~20× combat power vs Normal
   });
 });
