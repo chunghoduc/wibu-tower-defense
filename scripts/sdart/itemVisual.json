@@ -1,0 +1,3503 @@
+[
+  {
+    "id": "iron-sword",
+    "name": "Dawncut Katana",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Common",
+    "family": "greatblade",
+    "look": "a straight single-edged katana with a matte charcoal-steel blade, a plain ring guard, and a dark cord-wrapped grip"
+  },
+  {
+    "id": "elven-bow",
+    "name": "Hallowed Spirit Bow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Magic",
+    "family": "bow",
+    "look": "an elegant tall recurve longbow of pale green spiritwood with gold-leaf tips and a faintly glowing string"
+  },
+  {
+    "id": "arcane-staff",
+    "name": "Wisteria Caster Staff",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Rare",
+    "family": "staff",
+    "look": "an ornate dark wooden magic staff topped with a glowing violet crystal orb ringed by floating runes"
+  },
+  {
+    "id": "thunder-cannon",
+    "name": "Voltcoil Cannon",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Legendary",
+    "family": "firearm",
+    "look": "a heavy bronze steampunk hand cannon wrapped in copper coils, crackling with arcs of blue electricity"
+  },
+  {
+    "id": "leather-cap",
+    "name": "Cadet's Leather Cap",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "helm",
+    "look": "a simple worn brown leather scouting cap with a short stitched brim"
+  },
+  {
+    "id": "iron-helm",
+    "name": "Bronze Saint Helm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "helm",
+    "look": "a polished steel knight's helmet with a smooth crown and a narrow vision slit"
+  },
+  {
+    "id": "cloth-robe",
+    "name": "Wanderer's Field Robe",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "robe",
+    "look": "a simple grey-blue cloth field robe with loose sleeves and a wrapped waist"
+  },
+  {
+    "id": "scale-mail",
+    "name": "Hawk Knight Scalemail",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "a steel scale-mail chest cuirass of overlapping plates with a raised collar"
+  },
+  {
+    "id": "worn-gloves",
+    "name": "Trainee Wraps",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "gloves",
+    "look": "a pair of worn brown leather fingerless gloves with frayed straps"
+  },
+  {
+    "id": "assassin-gloves",
+    "name": "Nightreaper Gloves",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "gloves",
+    "look": "a pair of dark leather assassin gloves with a thin red blade folded along each wrist"
+  },
+  {
+    "id": "worn-boots",
+    "name": "Wayfarer Boots",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "boots",
+    "look": "a pair of worn brown leather travel boots, scuffed at the toes"
+  },
+  {
+    "id": "swift-boots",
+    "name": "Flashstep Greaves",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "boots",
+    "look": "a pair of enchanted green boots with small white feathered wings at the heels"
+  },
+  {
+    "id": "mana-pendant",
+    "name": "Aegis-Eye Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a silver amulet set with a glowing blue mana gem ringed by a thin gold bezel"
+  },
+  {
+    "id": "copper-ring",
+    "name": "Novice Seal Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a simple plain copper band with a small flat seal face"
+  },
+  {
+    "id": "resonance-ring",
+    "name": "Soul Resonance Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a silver ring set with a glowing purple gem that pulses in time"
+  },
+  {
+    "id": "coin-sprite",
+    "name": "Fortune Mote",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "familiar",
+    "look": "a cute glowing golden coin spirit with tiny stub wings and big sparkling eyes"
+  },
+  {
+    "id": "fortune-fox",
+    "name": "Ninetail Coinkeeper",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "familiar",
+    "look": "an adorable orange nine-tailed fox spirit pet clutching a fat gold coin"
+  },
+  {
+    "id": "fledgling-wings",
+    "name": "Fledgling Halo Wings",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "wings",
+    "look": "a pair of small soft white feathered angel wings with a faint pale glow"
+  },
+  {
+    "id": "tempest-wings",
+    "name": "Tempest Featherwings",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "wings",
+    "look": "a pair of large glowing blue storm-energy wings shedding sparks of wind"
+  },
+  {
+    "id": "dawnbreaker",
+    "name": "Daybreak Solblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Unique",
+    "family": "greatblade",
+    "look": "a radiant long katana with a sun-gold blade trailing motes of dawnlight and a flame-wrapped guard"
+  },
+  {
+    "id": "void-render",
+    "name": "Hollow Purple Driver",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Legendary",
+    "family": "firearm",
+    "look": "a sleek black hand cannon channeling a swirling violet sphere of collapsing energy at the muzzle"
+  },
+  {
+    "id": "aegis-of-dawn",
+    "name": "Goldcloth of Dawn",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "a gleaming ornate gold breastplate with radiant filigree and a sunburst at the heart"
+  },
+  {
+    "id": "seers-eye",
+    "name": "All-Seeing Oracle Eye",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a gold-rimmed amulet holding a crimson iris-gem that seems to track the viewer"
+  },
+  {
+    "id": "midas-paw",
+    "name": "Goldhand Maneki",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "familiar",
+    "look": "a chubby beckoning gold cat-spirit with one raised paw and a coin bell at its collar"
+  },
+  {
+    "id": "worn-warblade",
+    "name": "Worn Hollowmoon Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Common",
+    "family": "greatblade",
+    "look": "an oversized cleaver-style longsword with a dark blade-spine, no crossguard, and a bandage-wrapped grip"
+  },
+  {
+    "id": "fine-warblade",
+    "name": "Fine Hollowmoon Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Magic",
+    "family": "greatblade",
+    "look": "an oversized cleaver-style longsword with a dark blade-spine, no crossguard, and a bandage-wrapped grip"
+  },
+  {
+    "id": "masterwork-warblade",
+    "name": "Masterwork Hollowmoon Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Rare",
+    "family": "greatblade",
+    "look": "an oversized cleaver-style longsword with a dark blade-spine, no crossguard, and a bandage-wrapped grip"
+  },
+  {
+    "id": "heroic-warblade",
+    "name": "Heroic Hollowmoon Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Legendary",
+    "family": "greatblade",
+    "look": "an oversized cleaver-style longsword with a dark blade-spine, no crossguard, and a bandage-wrapped grip"
+  },
+  {
+    "id": "mythic-warblade",
+    "name": "Mythic Hollowmoon Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Unique",
+    "family": "greatblade",
+    "look": "an oversized cleaver-style longsword with a dark blade-spine, no crossguard, and a bandage-wrapped grip"
+  },
+  {
+    "id": "worn-longbow",
+    "name": "Worn Spiritbone Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Common",
+    "family": "bow",
+    "look": "a tall recurve longbow of pale spirit-bone with a faintly glowing drawn string"
+  },
+  {
+    "id": "fine-longbow",
+    "name": "Fine Spiritbone Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Magic",
+    "family": "bow",
+    "look": "a tall recurve longbow of pale spirit-bone with a faintly glowing drawn string"
+  },
+  {
+    "id": "masterwork-longbow",
+    "name": "Masterwork Spiritbone Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Rare",
+    "family": "bow",
+    "look": "a tall recurve longbow of pale spirit-bone with a faintly glowing drawn string"
+  },
+  {
+    "id": "heroic-longbow",
+    "name": "Heroic Spiritbone Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Legendary",
+    "family": "bow",
+    "look": "a tall recurve longbow of pale spirit-bone with a faintly glowing drawn string"
+  },
+  {
+    "id": "mythic-longbow",
+    "name": "Mythic Spiritbone Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Unique",
+    "family": "bow",
+    "look": "a tall recurve longbow of pale spirit-bone with a faintly glowing drawn string"
+  },
+  {
+    "id": "worn-wizard-staff",
+    "name": "Worn Crimson Caster Staff",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Common",
+    "family": "staff",
+    "look": "a dark wooden caster's staff crowned with a crimson explosion-gem wreathed in embers"
+  },
+  {
+    "id": "fine-wizard-staff",
+    "name": "Fine Crimson Caster Staff",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Magic",
+    "family": "staff",
+    "look": "a dark wooden caster's staff crowned with a crimson explosion-gem wreathed in embers"
+  },
+  {
+    "id": "masterwork-wizard-staff",
+    "name": "Masterwork Crimson Caster Staff",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Rare",
+    "family": "staff",
+    "look": "a dark wooden caster's staff crowned with a crimson explosion-gem wreathed in embers"
+  },
+  {
+    "id": "heroic-wizard-staff",
+    "name": "Heroic Crimson Caster Staff",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Legendary",
+    "family": "staff",
+    "look": "a dark wooden caster's staff crowned with a crimson explosion-gem wreathed in embers"
+  },
+  {
+    "id": "mythic-wizard-staff",
+    "name": "Mythic Crimson Caster Staff",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Unique",
+    "family": "staff",
+    "look": "a dark wooden caster's staff crowned with a crimson explosion-gem wreathed in embers"
+  },
+  {
+    "id": "worn-hand-cannon",
+    "name": "Worn Stampede Sidearm",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Common",
+    "family": "firearm",
+    "look": "a long silver revolver with an engraved barrel and a worn wooden grip"
+  },
+  {
+    "id": "fine-hand-cannon",
+    "name": "Fine Stampede Sidearm",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Magic",
+    "family": "firearm",
+    "look": "a long silver revolver with an engraved barrel and a worn wooden grip"
+  },
+  {
+    "id": "masterwork-hand-cannon",
+    "name": "Masterwork Stampede Sidearm",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Rare",
+    "family": "firearm",
+    "look": "a long silver revolver with an engraved barrel and a worn wooden grip"
+  },
+  {
+    "id": "heroic-hand-cannon",
+    "name": "Heroic Stampede Sidearm",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Legendary",
+    "family": "firearm",
+    "look": "a long silver revolver with an engraved barrel and a worn wooden grip"
+  },
+  {
+    "id": "mythic-hand-cannon",
+    "name": "Mythic Stampede Sidearm",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Unique",
+    "family": "firearm",
+    "look": "a long silver revolver with an engraved barrel and a worn wooden grip"
+  },
+  {
+    "id": "worn-grimoire",
+    "name": "Worn Clovermark Grimoire",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Common",
+    "family": "tome",
+    "look": "a thick leather spellbook clasped shut, a green clover sigil embossed on the cover"
+  },
+  {
+    "id": "fine-grimoire",
+    "name": "Fine Clovermark Grimoire",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Magic",
+    "family": "tome",
+    "look": "a thick leather spellbook clasped shut, a green clover sigil embossed on the cover"
+  },
+  {
+    "id": "masterwork-grimoire",
+    "name": "Masterwork Clovermark Grimoire",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Rare",
+    "family": "tome",
+    "look": "a thick leather spellbook clasped shut, a green clover sigil embossed on the cover"
+  },
+  {
+    "id": "heroic-grimoire",
+    "name": "Heroic Clovermark Grimoire",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Legendary",
+    "family": "tome",
+    "look": "a thick leather spellbook clasped shut, a green clover sigil embossed on the cover"
+  },
+  {
+    "id": "mythic-grimoire",
+    "name": "Mythic Clovermark Grimoire",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Unique",
+    "family": "tome",
+    "look": "a thick leather spellbook clasped shut, a green clover sigil embossed on the cover"
+  },
+  {
+    "id": "worn-war-fists",
+    "name": "Worn Symbol Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Common",
+    "family": "gauntlet",
+    "look": "a pair of heavy steel knuckle gauntlets with golden plating across the knuckles"
+  },
+  {
+    "id": "fine-war-fists",
+    "name": "Fine Symbol Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Magic",
+    "family": "gauntlet",
+    "look": "a pair of heavy steel knuckle gauntlets with golden plating across the knuckles"
+  },
+  {
+    "id": "masterwork-war-fists",
+    "name": "Masterwork Symbol Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Rare",
+    "family": "gauntlet",
+    "look": "a pair of heavy steel knuckle gauntlets with golden plating across the knuckles"
+  },
+  {
+    "id": "heroic-war-fists",
+    "name": "Heroic Symbol Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Legendary",
+    "family": "gauntlet",
+    "look": "a pair of heavy steel knuckle gauntlets with golden plating across the knuckles"
+  },
+  {
+    "id": "mythic-war-fists",
+    "name": "Mythic Symbol Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Unique",
+    "family": "gauntlet",
+    "look": "a pair of heavy steel knuckle gauntlets with golden plating across the knuckles"
+  },
+  {
+    "id": "worn-warhelm",
+    "name": "Worn Slayer's Steel Helm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "helm",
+    "look": "a full steel barbute helm with a narrow T-visor and a riveted brow"
+  },
+  {
+    "id": "fine-warhelm",
+    "name": "Fine Slayer's Steel Helm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "helm",
+    "look": "a full steel barbute helm with a narrow T-visor and a riveted brow"
+  },
+  {
+    "id": "masterwork-warhelm",
+    "name": "Masterwork Slayer's Steel Helm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "helm",
+    "look": "a full steel barbute helm with a narrow T-visor and a riveted brow"
+  },
+  {
+    "id": "heroic-warhelm",
+    "name": "Heroic Slayer's Steel Helm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "helm",
+    "look": "a full steel barbute helm with a narrow T-visor and a riveted brow"
+  },
+  {
+    "id": "mythic-warhelm",
+    "name": "Mythic Slayer's Steel Helm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "helm",
+    "look": "a full steel barbute helm with a narrow T-visor and a riveted brow"
+  },
+  {
+    "id": "worn-mage-cowl",
+    "name": "Worn Arcanist's Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "helm",
+    "look": "a deep arcanist's hood of midnight cloth trimmed with faint silver runes"
+  },
+  {
+    "id": "fine-mage-cowl",
+    "name": "Fine Arcanist's Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "helm",
+    "look": "a deep arcanist's hood of midnight cloth trimmed with faint silver runes"
+  },
+  {
+    "id": "masterwork-mage-cowl",
+    "name": "Masterwork Arcanist's Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "helm",
+    "look": "a deep arcanist's hood of midnight cloth trimmed with faint silver runes"
+  },
+  {
+    "id": "heroic-mage-cowl",
+    "name": "Heroic Arcanist's Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "helm",
+    "look": "a deep arcanist's hood of midnight cloth trimmed with faint silver runes"
+  },
+  {
+    "id": "mythic-mage-cowl",
+    "name": "Mythic Arcanist's Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "helm",
+    "look": "a deep arcanist's hood of midnight cloth trimmed with faint silver runes"
+  },
+  {
+    "id": "worn-platemail",
+    "name": "Worn Claymore Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "chestplate",
+    "look": "a heavy layered steel cuirass with broad angular pauldrons"
+  },
+  {
+    "id": "fine-platemail",
+    "name": "Fine Claymore Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "chestplate",
+    "look": "a heavy layered steel cuirass with broad angular pauldrons"
+  },
+  {
+    "id": "masterwork-platemail",
+    "name": "Masterwork Claymore Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "a heavy layered steel cuirass with broad angular pauldrons"
+  },
+  {
+    "id": "heroic-platemail",
+    "name": "Heroic Claymore Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "chestplate",
+    "look": "a heavy layered steel cuirass with broad angular pauldrons"
+  },
+  {
+    "id": "mythic-platemail",
+    "name": "Mythic Claymore Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "a heavy layered steel cuirass with broad angular pauldrons"
+  },
+  {
+    "id": "worn-battle-robe",
+    "name": "Worn Sage Battle Robe",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "robe",
+    "look": "a sage's open battle robe with wide sleeves, red trim, and a thick rope sash"
+  },
+  {
+    "id": "fine-battle-robe",
+    "name": "Fine Sage Battle Robe",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "robe",
+    "look": "a sage's open battle robe with wide sleeves, red trim, and a thick rope sash"
+  },
+  {
+    "id": "masterwork-battle-robe",
+    "name": "Masterwork Sage Battle Robe",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "robe",
+    "look": "a sage's open battle robe with wide sleeves, red trim, and a thick rope sash"
+  },
+  {
+    "id": "heroic-battle-robe",
+    "name": "Heroic Sage Battle Robe",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "robe",
+    "look": "a sage's open battle robe with wide sleeves, red trim, and a thick rope sash"
+  },
+  {
+    "id": "mythic-battle-robe",
+    "name": "Mythic Sage Battle Robe",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "robe",
+    "look": "a sage's open battle robe with wide sleeves, red trim, and a thick rope sash"
+  },
+  {
+    "id": "worn-brigandine",
+    "name": "Worn Einherjar Brigandine",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "chestplate",
+    "look": "a riveted leather-and-iron brigandine worn over a coarse wool tunic"
+  },
+  {
+    "id": "fine-brigandine",
+    "name": "Fine Einherjar Brigandine",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "chestplate",
+    "look": "a riveted leather-and-iron brigandine worn over a coarse wool tunic"
+  },
+  {
+    "id": "masterwork-brigandine",
+    "name": "Masterwork Einherjar Brigandine",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "a riveted leather-and-iron brigandine worn over a coarse wool tunic"
+  },
+  {
+    "id": "heroic-brigandine",
+    "name": "Heroic Einherjar Brigandine",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "chestplate",
+    "look": "a riveted leather-and-iron brigandine worn over a coarse wool tunic"
+  },
+  {
+    "id": "mythic-brigandine",
+    "name": "Mythic Einherjar Brigandine",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "a riveted leather-and-iron brigandine worn over a coarse wool tunic"
+  },
+  {
+    "id": "worn-battle-gloves",
+    "name": "Worn Brawler's Wraps",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "gloves",
+    "look": "a pair of green fingerless hand-wraps reinforced with studded leather over the knuckles"
+  },
+  {
+    "id": "fine-battle-gloves",
+    "name": "Fine Brawler's Wraps",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "gloves",
+    "look": "a pair of green fingerless hand-wraps reinforced with studded leather over the knuckles"
+  },
+  {
+    "id": "masterwork-battle-gloves",
+    "name": "Masterwork Brawler's Wraps",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "gloves",
+    "look": "a pair of green fingerless hand-wraps reinforced with studded leather over the knuckles"
+  },
+  {
+    "id": "heroic-battle-gloves",
+    "name": "Heroic Brawler's Wraps",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "gloves",
+    "look": "a pair of green fingerless hand-wraps reinforced with studded leather over the knuckles"
+  },
+  {
+    "id": "mythic-battle-gloves",
+    "name": "Mythic Brawler's Wraps",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "gloves",
+    "look": "a pair of green fingerless hand-wraps reinforced with studded leather over the knuckles"
+  },
+  {
+    "id": "worn-swift-gloves",
+    "name": "Worn Godspeed Gloves",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "gloves",
+    "look": "slim pale-blue gloves crackling faintly with white lightning at the fingertips"
+  },
+  {
+    "id": "fine-swift-gloves",
+    "name": "Fine Godspeed Gloves",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "gloves",
+    "look": "slim pale-blue gloves crackling faintly with white lightning at the fingertips"
+  },
+  {
+    "id": "masterwork-swift-gloves",
+    "name": "Masterwork Godspeed Gloves",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "gloves",
+    "look": "slim pale-blue gloves crackling faintly with white lightning at the fingertips"
+  },
+  {
+    "id": "heroic-swift-gloves",
+    "name": "Heroic Godspeed Gloves",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "gloves",
+    "look": "slim pale-blue gloves crackling faintly with white lightning at the fingertips"
+  },
+  {
+    "id": "mythic-swift-gloves",
+    "name": "Mythic Godspeed Gloves",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "gloves",
+    "look": "slim pale-blue gloves crackling faintly with white lightning at the fingertips"
+  },
+  {
+    "id": "worn-assassin-mitts",
+    "name": "Worn Shadowfang Mitts",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "gloves",
+    "look": "tight black assassin's mitts with a thin red blade tucked along each forearm"
+  },
+  {
+    "id": "fine-assassin-mitts",
+    "name": "Fine Shadowfang Mitts",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "gloves",
+    "look": "tight black assassin's mitts with a thin red blade tucked along each forearm"
+  },
+  {
+    "id": "masterwork-assassin-mitts",
+    "name": "Masterwork Shadowfang Mitts",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "gloves",
+    "look": "tight black assassin's mitts with a thin red blade tucked along each forearm"
+  },
+  {
+    "id": "heroic-assassin-mitts",
+    "name": "Heroic Shadowfang Mitts",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "gloves",
+    "look": "tight black assassin's mitts with a thin red blade tucked along each forearm"
+  },
+  {
+    "id": "mythic-assassin-mitts",
+    "name": "Mythic Shadowfang Mitts",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "gloves",
+    "look": "tight black assassin's mitts with a thin red blade tucked along each forearm"
+  },
+  {
+    "id": "worn-striders",
+    "name": "Worn Shinobi Striders",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "boots",
+    "look": "open-toed dark shinobi sandals with bound shin-wraps"
+  },
+  {
+    "id": "fine-striders",
+    "name": "Fine Shinobi Striders",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "boots",
+    "look": "open-toed dark shinobi sandals with bound shin-wraps"
+  },
+  {
+    "id": "masterwork-striders",
+    "name": "Masterwork Shinobi Striders",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "boots",
+    "look": "open-toed dark shinobi sandals with bound shin-wraps"
+  },
+  {
+    "id": "heroic-striders",
+    "name": "Heroic Shinobi Striders",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "boots",
+    "look": "open-toed dark shinobi sandals with bound shin-wraps"
+  },
+  {
+    "id": "mythic-striders",
+    "name": "Mythic Shinobi Striders",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "boots",
+    "look": "open-toed dark shinobi sandals with bound shin-wraps"
+  },
+  {
+    "id": "worn-war-boots",
+    "name": "Worn Vanguard War Boots",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "boots",
+    "look": "sturdy grey armored marching boots with steel toe-caps and harness straps"
+  },
+  {
+    "id": "fine-war-boots",
+    "name": "Fine Vanguard War Boots",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "boots",
+    "look": "sturdy grey armored marching boots with steel toe-caps and harness straps"
+  },
+  {
+    "id": "masterwork-war-boots",
+    "name": "Masterwork Vanguard War Boots",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "boots",
+    "look": "sturdy grey armored marching boots with steel toe-caps and harness straps"
+  },
+  {
+    "id": "heroic-war-boots",
+    "name": "Heroic Vanguard War Boots",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "boots",
+    "look": "sturdy grey armored marching boots with steel toe-caps and harness straps"
+  },
+  {
+    "id": "mythic-war-boots",
+    "name": "Mythic Vanguard War Boots",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "boots",
+    "look": "sturdy grey armored marching boots with steel toe-caps and harness straps"
+  },
+  {
+    "id": "worn-mana-talisman",
+    "name": "Worn Spirit Ward Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a folded paper-and-gold spirit ward wrapped around a glowing teal bead"
+  },
+  {
+    "id": "fine-mana-talisman",
+    "name": "Fine Spirit Ward Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a folded paper-and-gold spirit ward wrapped around a glowing teal bead"
+  },
+  {
+    "id": "masterwork-mana-talisman",
+    "name": "Masterwork Spirit Ward Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a folded paper-and-gold spirit ward wrapped around a glowing teal bead"
+  },
+  {
+    "id": "heroic-mana-talisman",
+    "name": "Heroic Spirit Ward Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a folded paper-and-gold spirit ward wrapped around a glowing teal bead"
+  },
+  {
+    "id": "mythic-mana-talisman",
+    "name": "Mythic Spirit Ward Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a folded paper-and-gold spirit ward wrapped around a glowing teal bead"
+  },
+  {
+    "id": "worn-focus-gem",
+    "name": "Worn Soul Focus Gem",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a small round soul-gem of pale gold light set in a thin gold ring on a chain"
+  },
+  {
+    "id": "fine-focus-gem",
+    "name": "Fine Soul Focus Gem",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a small round soul-gem of pale gold light set in a thin gold ring on a chain"
+  },
+  {
+    "id": "masterwork-focus-gem",
+    "name": "Masterwork Soul Focus Gem",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a small round soul-gem of pale gold light set in a thin gold ring on a chain"
+  },
+  {
+    "id": "heroic-focus-gem",
+    "name": "Heroic Soul Focus Gem",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a small round soul-gem of pale gold light set in a thin gold ring on a chain"
+  },
+  {
+    "id": "mythic-focus-gem",
+    "name": "Mythic Soul Focus Gem",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a small round soul-gem of pale gold light set in a thin gold ring on a chain"
+  },
+  {
+    "id": "worn-pierce-pendant",
+    "name": "Worn Piercer's Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a slender needle-shaped silver pendant hanging from a fine chain"
+  },
+  {
+    "id": "fine-pierce-pendant",
+    "name": "Fine Piercer's Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a slender needle-shaped silver pendant hanging from a fine chain"
+  },
+  {
+    "id": "masterwork-pierce-pendant",
+    "name": "Masterwork Piercer's Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a slender needle-shaped silver pendant hanging from a fine chain"
+  },
+  {
+    "id": "heroic-pierce-pendant",
+    "name": "Heroic Piercer's Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a slender needle-shaped silver pendant hanging from a fine chain"
+  },
+  {
+    "id": "mythic-pierce-pendant",
+    "name": "Mythic Piercer's Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a slender needle-shaped silver pendant hanging from a fine chain"
+  },
+  {
+    "id": "worn-blood-ring",
+    "name": "Worn Crimson Thirst Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a dark iron ring set with a deep crimson blood-garnet"
+  },
+  {
+    "id": "fine-blood-ring",
+    "name": "Fine Crimson Thirst Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a dark iron ring set with a deep crimson blood-garnet"
+  },
+  {
+    "id": "masterwork-blood-ring",
+    "name": "Masterwork Crimson Thirst Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a dark iron ring set with a deep crimson blood-garnet"
+  },
+  {
+    "id": "heroic-blood-ring",
+    "name": "Heroic Crimson Thirst Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a dark iron ring set with a deep crimson blood-garnet"
+  },
+  {
+    "id": "mythic-blood-ring",
+    "name": "Mythic Crimson Thirst Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a dark iron ring set with a deep crimson blood-garnet"
+  },
+  {
+    "id": "worn-fortune-ring",
+    "name": "Worn Pirate's Fortune Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a fat gold signet ring stamped with a coin-and-skull emblem"
+  },
+  {
+    "id": "fine-fortune-ring",
+    "name": "Fine Pirate's Fortune Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a fat gold signet ring stamped with a coin-and-skull emblem"
+  },
+  {
+    "id": "masterwork-fortune-ring",
+    "name": "Masterwork Pirate's Fortune Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a fat gold signet ring stamped with a coin-and-skull emblem"
+  },
+  {
+    "id": "heroic-fortune-ring",
+    "name": "Heroic Pirate's Fortune Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a fat gold signet ring stamped with a coin-and-skull emblem"
+  },
+  {
+    "id": "mythic-fortune-ring",
+    "name": "Mythic Pirate's Fortune Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a fat gold signet ring stamped with a coin-and-skull emblem"
+  },
+  {
+    "id": "worn-precision-ring",
+    "name": "Worn Hawk-Eye Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a slender dark band set with a single green hawk-eye stone"
+  },
+  {
+    "id": "fine-precision-ring",
+    "name": "Fine Hawk-Eye Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a slender dark band set with a single green hawk-eye stone"
+  },
+  {
+    "id": "masterwork-precision-ring",
+    "name": "Masterwork Hawk-Eye Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a slender dark band set with a single green hawk-eye stone"
+  },
+  {
+    "id": "heroic-precision-ring",
+    "name": "Heroic Hawk-Eye Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a slender dark band set with a single green hawk-eye stone"
+  },
+  {
+    "id": "mythic-precision-ring",
+    "name": "Mythic Hawk-Eye Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a slender dark band set with a single green hawk-eye stone"
+  },
+  {
+    "id": "worn-vital-ring",
+    "name": "Worn Senzu Vital Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a green jade ring carved in the shape of a curled sprouting bean"
+  },
+  {
+    "id": "fine-vital-ring",
+    "name": "Fine Senzu Vital Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a green jade ring carved in the shape of a curled sprouting bean"
+  },
+  {
+    "id": "masterwork-vital-ring",
+    "name": "Masterwork Senzu Vital Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a green jade ring carved in the shape of a curled sprouting bean"
+  },
+  {
+    "id": "heroic-vital-ring",
+    "name": "Heroic Senzu Vital Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a green jade ring carved in the shape of a curled sprouting bean"
+  },
+  {
+    "id": "mythic-vital-ring",
+    "name": "Mythic Senzu Vital Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a green jade ring carved in the shape of a curled sprouting bean"
+  },
+  {
+    "id": "worn-aegis-charm",
+    "name": "Worn Guardian's Aegis Charm",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a small round shield-shaped charm of bronze rimmed with blue enamel"
+  },
+  {
+    "id": "fine-aegis-charm",
+    "name": "Fine Guardian's Aegis Charm",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a small round shield-shaped charm of bronze rimmed with blue enamel"
+  },
+  {
+    "id": "masterwork-aegis-charm",
+    "name": "Masterwork Guardian's Aegis Charm",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a small round shield-shaped charm of bronze rimmed with blue enamel"
+  },
+  {
+    "id": "heroic-aegis-charm",
+    "name": "Heroic Guardian's Aegis Charm",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a small round shield-shaped charm of bronze rimmed with blue enamel"
+  },
+  {
+    "id": "mythic-aegis-charm",
+    "name": "Mythic Guardian's Aegis Charm",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a small round shield-shaped charm of bronze rimmed with blue enamel"
+  },
+  {
+    "id": "worn-coin-pet",
+    "name": "Worn Goldslime Sprite",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "familiar",
+    "look": "a tiny round golden slime sprite with a coin-slot mouth and big shining eyes"
+  },
+  {
+    "id": "fine-coin-pet",
+    "name": "Fine Goldslime Sprite",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "familiar",
+    "look": "a tiny round golden slime sprite with a coin-slot mouth and big shining eyes"
+  },
+  {
+    "id": "masterwork-coin-pet",
+    "name": "Masterwork Goldslime Sprite",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "familiar",
+    "look": "a tiny round golden slime sprite with a coin-slot mouth and big shining eyes"
+  },
+  {
+    "id": "heroic-coin-pet",
+    "name": "Heroic Goldslime Sprite",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "familiar",
+    "look": "a tiny round golden slime sprite with a coin-slot mouth and big shining eyes"
+  },
+  {
+    "id": "mythic-coin-pet",
+    "name": "Mythic Goldslime Sprite",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "familiar",
+    "look": "a tiny round golden slime sprite with a coin-slot mouth and big shining eyes"
+  },
+  {
+    "id": "worn-fortune-pet",
+    "name": "Worn Payday Felynx",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "familiar",
+    "look": "a chubby cat-like coin beast with a gold collar bell, batting a coin between its paws"
+  },
+  {
+    "id": "fine-fortune-pet",
+    "name": "Fine Payday Felynx",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "familiar",
+    "look": "a chubby cat-like coin beast with a gold collar bell, batting a coin between its paws"
+  },
+  {
+    "id": "masterwork-fortune-pet",
+    "name": "Masterwork Payday Felynx",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "familiar",
+    "look": "a chubby cat-like coin beast with a gold collar bell, batting a coin between its paws"
+  },
+  {
+    "id": "heroic-fortune-pet",
+    "name": "Heroic Payday Felynx",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "familiar",
+    "look": "a chubby cat-like coin beast with a gold collar bell, batting a coin between its paws"
+  },
+  {
+    "id": "mythic-fortune-pet",
+    "name": "Mythic Payday Felynx",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "familiar",
+    "look": "a chubby cat-like coin beast with a gold collar bell, batting a coin between its paws"
+  },
+  {
+    "id": "worn-skywings",
+    "name": "Worn Skyfreedom Wings",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "wings",
+    "look": "a pair of broad feathered wings, slate-and-white, edged with sky-blue light"
+  },
+  {
+    "id": "fine-skywings",
+    "name": "Fine Skyfreedom Wings",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "wings",
+    "look": "a pair of broad feathered wings, slate-and-white, edged with sky-blue light"
+  },
+  {
+    "id": "masterwork-skywings",
+    "name": "Masterwork Skyfreedom Wings",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "wings",
+    "look": "a pair of broad feathered wings, slate-and-white, edged with sky-blue light"
+  },
+  {
+    "id": "heroic-skywings",
+    "name": "Heroic Skyfreedom Wings",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "wings",
+    "look": "a pair of broad feathered wings, slate-and-white, edged with sky-blue light"
+  },
+  {
+    "id": "mythic-skywings",
+    "name": "Mythic Skyfreedom Wings",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "wings",
+    "look": "a pair of broad feathered wings, slate-and-white, edged with sky-blue light"
+  },
+  {
+    "id": "worn-frost-glaive",
+    "name": "Worn Frostfang Glaive",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Common",
+    "family": "greatblade",
+    "look": "a long pale-steel sword sheathed in frost, breathing cold mist along its edge"
+  },
+  {
+    "id": "fine-frost-glaive",
+    "name": "Fine Frostfang Glaive",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Magic",
+    "family": "greatblade",
+    "look": "a long pale-steel sword sheathed in frost, breathing cold mist along its edge"
+  },
+  {
+    "id": "masterwork-frost-glaive",
+    "name": "Masterwork Frostfang Glaive",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Rare",
+    "family": "greatblade",
+    "look": "a long pale-steel sword sheathed in frost, breathing cold mist along its edge"
+  },
+  {
+    "id": "heroic-frost-glaive",
+    "name": "Heroic Frostfang Glaive",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Legendary",
+    "family": "greatblade",
+    "look": "a long pale-steel sword sheathed in frost, breathing cold mist along its edge"
+  },
+  {
+    "id": "mythic-frost-glaive",
+    "name": "Mythic Frostfang Glaive",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Unique",
+    "family": "greatblade",
+    "look": "a long pale-steel sword sheathed in frost, breathing cold mist along its edge"
+  },
+  {
+    "id": "worn-venom-fang",
+    "name": "Worn Serpent Venom Fang",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Common",
+    "family": "gauntlet",
+    "look": "a fanged knuckle-claw dripping luminous purple venom"
+  },
+  {
+    "id": "fine-venom-fang",
+    "name": "Fine Serpent Venom Fang",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Magic",
+    "family": "gauntlet",
+    "look": "a fanged knuckle-claw dripping luminous purple venom"
+  },
+  {
+    "id": "masterwork-venom-fang",
+    "name": "Masterwork Serpent Venom Fang",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Rare",
+    "family": "gauntlet",
+    "look": "a fanged knuckle-claw dripping luminous purple venom"
+  },
+  {
+    "id": "heroic-venom-fang",
+    "name": "Heroic Serpent Venom Fang",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Legendary",
+    "family": "gauntlet",
+    "look": "a fanged knuckle-claw dripping luminous purple venom"
+  },
+  {
+    "id": "mythic-venom-fang",
+    "name": "Mythic Serpent Venom Fang",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Unique",
+    "family": "gauntlet",
+    "look": "a fanged knuckle-claw dripping luminous purple venom"
+  },
+  {
+    "id": "worn-bulwark-plate",
+    "name": "Worn Aegis Bulwark Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "chestplate",
+    "look": "a thick rounded breastplate bearing a blue heraldic shield crest"
+  },
+  {
+    "id": "fine-bulwark-plate",
+    "name": "Fine Aegis Bulwark Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "chestplate",
+    "look": "a thick rounded breastplate bearing a blue heraldic shield crest"
+  },
+  {
+    "id": "masterwork-bulwark-plate",
+    "name": "Masterwork Aegis Bulwark Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "a thick rounded breastplate bearing a blue heraldic shield crest"
+  },
+  {
+    "id": "heroic-bulwark-plate",
+    "name": "Heroic Aegis Bulwark Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "chestplate",
+    "look": "a thick rounded breastplate bearing a blue heraldic shield crest"
+  },
+  {
+    "id": "mythic-bulwark-plate",
+    "name": "Mythic Aegis Bulwark Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "a thick rounded breastplate bearing a blue heraldic shield crest"
+  },
+  {
+    "id": "worn-oracle-crown",
+    "name": "Worn Geass Oracle Crown",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "helm",
+    "look": "a thin dark circlet drawn over one eye, a glowing red sigil burning at the brow"
+  },
+  {
+    "id": "fine-oracle-crown",
+    "name": "Fine Geass Oracle Crown",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "helm",
+    "look": "a thin dark circlet drawn over one eye, a glowing red sigil burning at the brow"
+  },
+  {
+    "id": "masterwork-oracle-crown",
+    "name": "Masterwork Geass Oracle Crown",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "helm",
+    "look": "a thin dark circlet drawn over one eye, a glowing red sigil burning at the brow"
+  },
+  {
+    "id": "heroic-oracle-crown",
+    "name": "Heroic Geass Oracle Crown",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "helm",
+    "look": "a thin dark circlet drawn over one eye, a glowing red sigil burning at the brow"
+  },
+  {
+    "id": "mythic-oracle-crown",
+    "name": "Mythic Geass Oracle Crown",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "helm",
+    "look": "a thin dark circlet drawn over one eye, a glowing red sigil burning at the brow"
+  },
+  {
+    "id": "worn-shadowstep-treads",
+    "name": "Worn Shadowstep Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "boots",
+    "look": "low black soft-soled treads wrapped tight for silent, sudden movement"
+  },
+  {
+    "id": "fine-shadowstep-treads",
+    "name": "Fine Shadowstep Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "boots",
+    "look": "low black soft-soled treads wrapped tight for silent, sudden movement"
+  },
+  {
+    "id": "masterwork-shadowstep-treads",
+    "name": "Masterwork Shadowstep Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "boots",
+    "look": "low black soft-soled treads wrapped tight for silent, sudden movement"
+  },
+  {
+    "id": "heroic-shadowstep-treads",
+    "name": "Heroic Shadowstep Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "boots",
+    "look": "low black soft-soled treads wrapped tight for silent, sudden movement"
+  },
+  {
+    "id": "mythic-shadowstep-treads",
+    "name": "Mythic Shadowstep Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "boots",
+    "look": "low black soft-soled treads wrapped tight for silent, sudden movement"
+  },
+  {
+    "id": "worn-duelist-band",
+    "name": "Worn Duelist's Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a sleek techno-ring shaped like a miniature dueling gauntlet with a glowing blue edge"
+  },
+  {
+    "id": "fine-duelist-band",
+    "name": "Fine Duelist's Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a sleek techno-ring shaped like a miniature dueling gauntlet with a glowing blue edge"
+  },
+  {
+    "id": "masterwork-duelist-band",
+    "name": "Masterwork Duelist's Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a sleek techno-ring shaped like a miniature dueling gauntlet with a glowing blue edge"
+  },
+  {
+    "id": "heroic-duelist-band",
+    "name": "Heroic Duelist's Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a sleek techno-ring shaped like a miniature dueling gauntlet with a glowing blue edge"
+  },
+  {
+    "id": "mythic-duelist-band",
+    "name": "Mythic Duelist's Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a sleek techno-ring shaped like a miniature dueling gauntlet with a glowing blue edge"
+  },
+  {
+    "id": "worn-kingsworn-brand",
+    "name": "Worn Kingsworn Brand",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Common",
+    "family": "greatblade",
+    "look": "a broad knightly longsword with a mirror-bright blade, a golden cruciform crossguard, and a blue-wrapped grip"
+  },
+  {
+    "id": "fine-kingsworn-brand",
+    "name": "Fine Kingsworn Brand",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Magic",
+    "family": "greatblade",
+    "look": "a broad knightly longsword with a mirror-bright blade, a golden cruciform crossguard, and a blue-wrapped grip"
+  },
+  {
+    "id": "masterwork-kingsworn-brand",
+    "name": "Masterwork Kingsworn Brand",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Rare",
+    "family": "greatblade",
+    "look": "a broad knightly longsword with a mirror-bright blade, a golden cruciform crossguard, and a blue-wrapped grip"
+  },
+  {
+    "id": "heroic-kingsworn-brand",
+    "name": "Heroic Kingsworn Brand",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Legendary",
+    "family": "greatblade",
+    "look": "a broad knightly longsword with a mirror-bright blade, a golden cruciform crossguard, and a blue-wrapped grip"
+  },
+  {
+    "id": "mythic-kingsworn-brand",
+    "name": "Mythic Kingsworn Brand",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Unique",
+    "family": "greatblade",
+    "look": "a broad knightly longsword with a mirror-bright blade, a golden cruciform crossguard, and a blue-wrapped grip"
+  },
+  {
+    "id": "worn-moonlit-greatblade",
+    "name": "Worn Moonlit Greatblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Common",
+    "family": "greatblade",
+    "look": "a curved greatsword of pale blue crystal that sheds a soft moonglow along its fuller"
+  },
+  {
+    "id": "fine-moonlit-greatblade",
+    "name": "Fine Moonlit Greatblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Magic",
+    "family": "greatblade",
+    "look": "a curved greatsword of pale blue crystal that sheds a soft moonglow along its fuller"
+  },
+  {
+    "id": "masterwork-moonlit-greatblade",
+    "name": "Masterwork Moonlit Greatblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Rare",
+    "family": "greatblade",
+    "look": "a curved greatsword of pale blue crystal that sheds a soft moonglow along its fuller"
+  },
+  {
+    "id": "heroic-moonlit-greatblade",
+    "name": "Heroic Moonlit Greatblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Legendary",
+    "family": "greatblade",
+    "look": "a curved greatsword of pale blue crystal that sheds a soft moonglow along its fuller"
+  },
+  {
+    "id": "mythic-moonlit-greatblade",
+    "name": "Mythic Moonlit Greatblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Unique",
+    "family": "greatblade",
+    "look": "a curved greatsword of pale blue crystal that sheds a soft moonglow along its fuller"
+  },
+  {
+    "id": "worn-rimewill-runeblade",
+    "name": "Worn Rimewill Runeblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Common",
+    "family": "greatblade",
+    "look": "a jagged rune-etched greatsword wreathed in frost, a single cold blue eye set in the hilt"
+  },
+  {
+    "id": "fine-rimewill-runeblade",
+    "name": "Fine Rimewill Runeblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Magic",
+    "family": "greatblade",
+    "look": "a jagged rune-etched greatsword wreathed in frost, a single cold blue eye set in the hilt"
+  },
+  {
+    "id": "masterwork-rimewill-runeblade",
+    "name": "Masterwork Rimewill Runeblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Rare",
+    "family": "greatblade",
+    "look": "a jagged rune-etched greatsword wreathed in frost, a single cold blue eye set in the hilt"
+  },
+  {
+    "id": "heroic-rimewill-runeblade",
+    "name": "Heroic Rimewill Runeblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Legendary",
+    "family": "greatblade",
+    "look": "a jagged rune-etched greatsword wreathed in frost, a single cold blue eye set in the hilt"
+  },
+  {
+    "id": "mythic-rimewill-runeblade",
+    "name": "Mythic Rimewill Runeblade",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Unique",
+    "family": "greatblade",
+    "look": "a jagged rune-etched greatsword wreathed in frost, a single cold blue eye set in the hilt"
+  },
+  {
+    "id": "worn-busterfell-cleaver",
+    "name": "Worn Busterfell Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Common",
+    "family": "greatblade",
+    "look": "an enormous flat slab of a sword, broad as a door, with twin bolt-holes near the simple wrapped tang"
+  },
+  {
+    "id": "fine-busterfell-cleaver",
+    "name": "Fine Busterfell Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Magic",
+    "family": "greatblade",
+    "look": "an enormous flat slab of a sword, broad as a door, with twin bolt-holes near the simple wrapped tang"
+  },
+  {
+    "id": "masterwork-busterfell-cleaver",
+    "name": "Masterwork Busterfell Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Rare",
+    "family": "greatblade",
+    "look": "an enormous flat slab of a sword, broad as a door, with twin bolt-holes near the simple wrapped tang"
+  },
+  {
+    "id": "heroic-busterfell-cleaver",
+    "name": "Heroic Busterfell Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Legendary",
+    "family": "greatblade",
+    "look": "an enormous flat slab of a sword, broad as a door, with twin bolt-holes near the simple wrapped tang"
+  },
+  {
+    "id": "mythic-busterfell-cleaver",
+    "name": "Mythic Busterfell Cleaver",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Unique",
+    "family": "greatblade",
+    "look": "an enormous flat slab of a sword, broad as a door, with twin bolt-holes near the simple wrapped tang"
+  },
+  {
+    "id": "worn-emberlight-saber",
+    "name": "Worn Emberlight Saber",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Common",
+    "family": "greatblade",
+    "look": "a slim metal hilt projecting a humming blade of pure ember-coloured energy"
+  },
+  {
+    "id": "fine-emberlight-saber",
+    "name": "Fine Emberlight Saber",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Magic",
+    "family": "greatblade",
+    "look": "a slim metal hilt projecting a humming blade of pure ember-coloured energy"
+  },
+  {
+    "id": "masterwork-emberlight-saber",
+    "name": "Masterwork Emberlight Saber",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Rare",
+    "family": "greatblade",
+    "look": "a slim metal hilt projecting a humming blade of pure ember-coloured energy"
+  },
+  {
+    "id": "heroic-emberlight-saber",
+    "name": "Heroic Emberlight Saber",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Legendary",
+    "family": "greatblade",
+    "look": "a slim metal hilt projecting a humming blade of pure ember-coloured energy"
+  },
+  {
+    "id": "mythic-emberlight-saber",
+    "name": "Mythic Emberlight Saber",
+    "slot": "Weapon",
+    "weaponType": "Sword",
+    "rarity": "Unique",
+    "family": "greatblade",
+    "look": "a slim metal hilt projecting a humming blade of pure ember-coloured energy"
+  },
+  {
+    "id": "worn-galewind-longbow",
+    "name": "Worn Galewind Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Common",
+    "family": "bow",
+    "look": "a tall green warbow carved with wind-sigils, its string singing faintly in a breeze"
+  },
+  {
+    "id": "fine-galewind-longbow",
+    "name": "Fine Galewind Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Magic",
+    "family": "bow",
+    "look": "a tall green warbow carved with wind-sigils, its string singing faintly in a breeze"
+  },
+  {
+    "id": "masterwork-galewind-longbow",
+    "name": "Masterwork Galewind Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Rare",
+    "family": "bow",
+    "look": "a tall green warbow carved with wind-sigils, its string singing faintly in a breeze"
+  },
+  {
+    "id": "heroic-galewind-longbow",
+    "name": "Heroic Galewind Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Legendary",
+    "family": "bow",
+    "look": "a tall green warbow carved with wind-sigils, its string singing faintly in a breeze"
+  },
+  {
+    "id": "mythic-galewind-longbow",
+    "name": "Mythic Galewind Longbow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Unique",
+    "family": "bow",
+    "look": "a tall green warbow carved with wind-sigils, its string singing faintly in a breeze"
+  },
+  {
+    "id": "worn-dawnsong-bow",
+    "name": "Worn Dawnsong Bow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Common",
+    "family": "bow",
+    "look": "a graceful golden recurve bow strung with light, sun-rays etched along the limbs"
+  },
+  {
+    "id": "fine-dawnsong-bow",
+    "name": "Fine Dawnsong Bow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Magic",
+    "family": "bow",
+    "look": "a graceful golden recurve bow strung with light, sun-rays etched along the limbs"
+  },
+  {
+    "id": "masterwork-dawnsong-bow",
+    "name": "Masterwork Dawnsong Bow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Rare",
+    "family": "bow",
+    "look": "a graceful golden recurve bow strung with light, sun-rays etched along the limbs"
+  },
+  {
+    "id": "heroic-dawnsong-bow",
+    "name": "Heroic Dawnsong Bow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Legendary",
+    "family": "bow",
+    "look": "a graceful golden recurve bow strung with light, sun-rays etched along the limbs"
+  },
+  {
+    "id": "mythic-dawnsong-bow",
+    "name": "Mythic Dawnsong Bow",
+    "slot": "Weapon",
+    "weaponType": "Bow",
+    "rarity": "Unique",
+    "family": "bow",
+    "look": "a graceful golden recurve bow strung with light, sun-rays etched along the limbs"
+  },
+  {
+    "id": "worn-peacekeeper-revolver",
+    "name": "Worn Peacekeeper Revolver",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Common",
+    "family": "firearm",
+    "look": "a heavy long-barrelled revolver of weathered steel with sandalwood grips and worn engraving"
+  },
+  {
+    "id": "fine-peacekeeper-revolver",
+    "name": "Fine Peacekeeper Revolver",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Magic",
+    "family": "firearm",
+    "look": "a heavy long-barrelled revolver of weathered steel with sandalwood grips and worn engraving"
+  },
+  {
+    "id": "masterwork-peacekeeper-revolver",
+    "name": "Masterwork Peacekeeper Revolver",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Rare",
+    "family": "firearm",
+    "look": "a heavy long-barrelled revolver of weathered steel with sandalwood grips and worn engraving"
+  },
+  {
+    "id": "heroic-peacekeeper-revolver",
+    "name": "Heroic Peacekeeper Revolver",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Legendary",
+    "family": "firearm",
+    "look": "a heavy long-barrelled revolver of weathered steel with sandalwood grips and worn engraving"
+  },
+  {
+    "id": "mythic-peacekeeper-revolver",
+    "name": "Mythic Peacekeeper Revolver",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Unique",
+    "family": "firearm",
+    "look": "a heavy long-barrelled revolver of weathered steel with sandalwood grips and worn engraving"
+  },
+  {
+    "id": "worn-starhunter-cannon",
+    "name": "Worn Starhunter Cannon",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Common",
+    "family": "firearm",
+    "look": "a bulky orange arm-mounted cannon with a glowing cyan emitter ring at the muzzle"
+  },
+  {
+    "id": "fine-starhunter-cannon",
+    "name": "Fine Starhunter Cannon",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Magic",
+    "family": "firearm",
+    "look": "a bulky orange arm-mounted cannon with a glowing cyan emitter ring at the muzzle"
+  },
+  {
+    "id": "masterwork-starhunter-cannon",
+    "name": "Masterwork Starhunter Cannon",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Rare",
+    "family": "firearm",
+    "look": "a bulky orange arm-mounted cannon with a glowing cyan emitter ring at the muzzle"
+  },
+  {
+    "id": "heroic-starhunter-cannon",
+    "name": "Heroic Starhunter Cannon",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Legendary",
+    "family": "firearm",
+    "look": "a bulky orange arm-mounted cannon with a glowing cyan emitter ring at the muzzle"
+  },
+  {
+    "id": "mythic-starhunter-cannon",
+    "name": "Mythic Starhunter Cannon",
+    "slot": "Weapon",
+    "weaponType": "Gun",
+    "rarity": "Unique",
+    "family": "firearm",
+    "look": "a bulky orange arm-mounted cannon with a glowing cyan emitter ring at the muzzle"
+  },
+  {
+    "id": "worn-eldwood-wand",
+    "name": "Worn Eldwood Wand",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Common",
+    "family": "staff",
+    "look": "a long knobbled wand of pale elder-wood, gnarled with growth-rings, ending in a blunt tip"
+  },
+  {
+    "id": "fine-eldwood-wand",
+    "name": "Fine Eldwood Wand",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Magic",
+    "family": "staff",
+    "look": "a long knobbled wand of pale elder-wood, gnarled with growth-rings, ending in a blunt tip"
+  },
+  {
+    "id": "masterwork-eldwood-wand",
+    "name": "Masterwork Eldwood Wand",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Rare",
+    "family": "staff",
+    "look": "a long knobbled wand of pale elder-wood, gnarled with growth-rings, ending in a blunt tip"
+  },
+  {
+    "id": "heroic-eldwood-wand",
+    "name": "Heroic Eldwood Wand",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Legendary",
+    "family": "staff",
+    "look": "a long knobbled wand of pale elder-wood, gnarled with growth-rings, ending in a blunt tip"
+  },
+  {
+    "id": "mythic-eldwood-wand",
+    "name": "Mythic Eldwood Wand",
+    "slot": "Weapon",
+    "weaponType": "Staff",
+    "rarity": "Unique",
+    "family": "staff",
+    "look": "a long knobbled wand of pale elder-wood, gnarled with growth-rings, ending in a blunt tip"
+  },
+  {
+    "id": "worn-dreadpage-codex",
+    "name": "Worn Dreadpage Codex",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Common",
+    "family": "tome",
+    "look": "a heavy book bound in cracked dark leather, a screaming face pressed into the cover"
+  },
+  {
+    "id": "fine-dreadpage-codex",
+    "name": "Fine Dreadpage Codex",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Magic",
+    "family": "tome",
+    "look": "a heavy book bound in cracked dark leather, a screaming face pressed into the cover"
+  },
+  {
+    "id": "masterwork-dreadpage-codex",
+    "name": "Masterwork Dreadpage Codex",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Rare",
+    "family": "tome",
+    "look": "a heavy book bound in cracked dark leather, a screaming face pressed into the cover"
+  },
+  {
+    "id": "heroic-dreadpage-codex",
+    "name": "Heroic Dreadpage Codex",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Legendary",
+    "family": "tome",
+    "look": "a heavy book bound in cracked dark leather, a screaming face pressed into the cover"
+  },
+  {
+    "id": "mythic-dreadpage-codex",
+    "name": "Mythic Dreadpage Codex",
+    "slot": "Weapon",
+    "weaponType": "Tome",
+    "rarity": "Unique",
+    "family": "tome",
+    "look": "a heavy book bound in cracked dark leather, a screaming face pressed into the cover"
+  },
+  {
+    "id": "worn-titangrip-knuckles",
+    "name": "Worn Titangrip Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Common",
+    "family": "gauntlet",
+    "look": "a pair of massive golden battle-gauntlets set with six glowing coloured gemstones across the knuckles"
+  },
+  {
+    "id": "fine-titangrip-knuckles",
+    "name": "Fine Titangrip Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Magic",
+    "family": "gauntlet",
+    "look": "a pair of massive golden battle-gauntlets set with six glowing coloured gemstones across the knuckles"
+  },
+  {
+    "id": "masterwork-titangrip-knuckles",
+    "name": "Masterwork Titangrip Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Rare",
+    "family": "gauntlet",
+    "look": "a pair of massive golden battle-gauntlets set with six glowing coloured gemstones across the knuckles"
+  },
+  {
+    "id": "heroic-titangrip-knuckles",
+    "name": "Heroic Titangrip Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Legendary",
+    "family": "gauntlet",
+    "look": "a pair of massive golden battle-gauntlets set with six glowing coloured gemstones across the knuckles"
+  },
+  {
+    "id": "mythic-titangrip-knuckles",
+    "name": "Mythic Titangrip Knuckles",
+    "slot": "Weapon",
+    "weaponType": "Fist",
+    "rarity": "Unique",
+    "family": "gauntlet",
+    "look": "a pair of massive golden battle-gauntlets set with six glowing coloured gemstones across the knuckles"
+  },
+  {
+    "id": "worn-mithrilweave-shirt",
+    "name": "Worn Mithrilweave Shirt",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "chestplate",
+    "look": "a feather-light shirt of fine silver chain mail, rings so small they shimmer like water"
+  },
+  {
+    "id": "fine-mithrilweave-shirt",
+    "name": "Fine Mithrilweave Shirt",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "chestplate",
+    "look": "a feather-light shirt of fine silver chain mail, rings so small they shimmer like water"
+  },
+  {
+    "id": "masterwork-mithrilweave-shirt",
+    "name": "Masterwork Mithrilweave Shirt",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "a feather-light shirt of fine silver chain mail, rings so small they shimmer like water"
+  },
+  {
+    "id": "heroic-mithrilweave-shirt",
+    "name": "Heroic Mithrilweave Shirt",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "chestplate",
+    "look": "a feather-light shirt of fine silver chain mail, rings so small they shimmer like water"
+  },
+  {
+    "id": "mythic-mithrilweave-shirt",
+    "name": "Mythic Mithrilweave Shirt",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "a feather-light shirt of fine silver chain mail, rings so small they shimmer like water"
+  },
+  {
+    "id": "worn-beskar-plate",
+    "name": "Worn Beskar Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "chestplate",
+    "look": "a seamless matte-silver cuirass of dense forged plate, utterly featureless and proud"
+  },
+  {
+    "id": "fine-beskar-plate",
+    "name": "Fine Beskar Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "chestplate",
+    "look": "a seamless matte-silver cuirass of dense forged plate, utterly featureless and proud"
+  },
+  {
+    "id": "masterwork-beskar-plate",
+    "name": "Masterwork Beskar Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "a seamless matte-silver cuirass of dense forged plate, utterly featureless and proud"
+  },
+  {
+    "id": "heroic-beskar-plate",
+    "name": "Heroic Beskar Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "chestplate",
+    "look": "a seamless matte-silver cuirass of dense forged plate, utterly featureless and proud"
+  },
+  {
+    "id": "mythic-beskar-plate",
+    "name": "Mythic Beskar Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "a seamless matte-silver cuirass of dense forged plate, utterly featureless and proud"
+  },
+  {
+    "id": "worn-havelthane-plate",
+    "name": "Worn Havelthane Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "chestplate",
+    "look": "an immense suit of carved stone armour, slabs of rock bound with iron rivets"
+  },
+  {
+    "id": "fine-havelthane-plate",
+    "name": "Fine Havelthane Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "chestplate",
+    "look": "an immense suit of carved stone armour, slabs of rock bound with iron rivets"
+  },
+  {
+    "id": "masterwork-havelthane-plate",
+    "name": "Masterwork Havelthane Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "an immense suit of carved stone armour, slabs of rock bound with iron rivets"
+  },
+  {
+    "id": "heroic-havelthane-plate",
+    "name": "Heroic Havelthane Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "chestplate",
+    "look": "an immense suit of carved stone armour, slabs of rock bound with iron rivets"
+  },
+  {
+    "id": "mythic-havelthane-plate",
+    "name": "Mythic Havelthane Plate",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "an immense suit of carved stone armour, slabs of rock bound with iron rivets"
+  },
+  {
+    "id": "worn-dragonscale-mail",
+    "name": "Worn Dragonscale Mail",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "chestplate",
+    "look": "overlapping green dragon scales lacquered onto a leather backing, each scale edged in bronze"
+  },
+  {
+    "id": "fine-dragonscale-mail",
+    "name": "Fine Dragonscale Mail",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "chestplate",
+    "look": "overlapping green dragon scales lacquered onto a leather backing, each scale edged in bronze"
+  },
+  {
+    "id": "masterwork-dragonscale-mail",
+    "name": "Masterwork Dragonscale Mail",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "overlapping green dragon scales lacquered onto a leather backing, each scale edged in bronze"
+  },
+  {
+    "id": "heroic-dragonscale-mail",
+    "name": "Heroic Dragonscale Mail",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "chestplate",
+    "look": "overlapping green dragon scales lacquered onto a leather backing, each scale edged in bronze"
+  },
+  {
+    "id": "mythic-dragonscale-mail",
+    "name": "Mythic Dragonscale Mail",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "overlapping green dragon scales lacquered onto a leather backing, each scale edged in bronze"
+  },
+  {
+    "id": "worn-sentinel-bulwark",
+    "name": "Worn Sentinel Bulwark",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "chestplate",
+    "look": "a rounded blue breastplate with a bold concentric ring motif and a central star"
+  },
+  {
+    "id": "fine-sentinel-bulwark",
+    "name": "Fine Sentinel Bulwark",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "chestplate",
+    "look": "a rounded blue breastplate with a bold concentric ring motif and a central star"
+  },
+  {
+    "id": "masterwork-sentinel-bulwark",
+    "name": "Masterwork Sentinel Bulwark",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "chestplate",
+    "look": "a rounded blue breastplate with a bold concentric ring motif and a central star"
+  },
+  {
+    "id": "heroic-sentinel-bulwark",
+    "name": "Heroic Sentinel Bulwark",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "chestplate",
+    "look": "a rounded blue breastplate with a bold concentric ring motif and a central star"
+  },
+  {
+    "id": "mythic-sentinel-bulwark",
+    "name": "Mythic Sentinel Bulwark",
+    "slot": "BodyArmor",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "chestplate",
+    "look": "a rounded blue breastplate with a bold concentric ring motif and a central star"
+  },
+  {
+    "id": "worn-ribbon-circlet",
+    "name": "Worn Ribbon Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "helm",
+    "look": "a delicate silver circlet threaded with a fluttering pink silk ribbon and a small bow"
+  },
+  {
+    "id": "fine-ribbon-circlet",
+    "name": "Fine Ribbon Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "helm",
+    "look": "a delicate silver circlet threaded with a fluttering pink silk ribbon and a small bow"
+  },
+  {
+    "id": "masterwork-ribbon-circlet",
+    "name": "Masterwork Ribbon Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "helm",
+    "look": "a delicate silver circlet threaded with a fluttering pink silk ribbon and a small bow"
+  },
+  {
+    "id": "heroic-ribbon-circlet",
+    "name": "Heroic Ribbon Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "helm",
+    "look": "a delicate silver circlet threaded with a fluttering pink silk ribbon and a small bow"
+  },
+  {
+    "id": "mythic-ribbon-circlet",
+    "name": "Mythic Ribbon Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "helm",
+    "look": "a delicate silver circlet threaded with a fluttering pink silk ribbon and a small bow"
+  },
+  {
+    "id": "worn-hadeshood-cowl",
+    "name": "Worn Hadeshood Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "helm",
+    "look": "a deep shadowed hood of smoky grey, the face beneath lost in unnatural darkness"
+  },
+  {
+    "id": "fine-hadeshood-cowl",
+    "name": "Fine Hadeshood Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "helm",
+    "look": "a deep shadowed hood of smoky grey, the face beneath lost in unnatural darkness"
+  },
+  {
+    "id": "masterwork-hadeshood-cowl",
+    "name": "Masterwork Hadeshood Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "helm",
+    "look": "a deep shadowed hood of smoky grey, the face beneath lost in unnatural darkness"
+  },
+  {
+    "id": "heroic-hadeshood-cowl",
+    "name": "Heroic Hadeshood Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "helm",
+    "look": "a deep shadowed hood of smoky grey, the face beneath lost in unnatural darkness"
+  },
+  {
+    "id": "mythic-hadeshood-cowl",
+    "name": "Mythic Hadeshood Cowl",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "helm",
+    "look": "a deep shadowed hood of smoky grey, the face beneath lost in unnatural darkness"
+  },
+  {
+    "id": "worn-valor-greathelm",
+    "name": "Worn Valor Greathelm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "helm",
+    "look": "a full steel greathelm with a crowned brow and a narrow cross-slit visor"
+  },
+  {
+    "id": "fine-valor-greathelm",
+    "name": "Fine Valor Greathelm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "helm",
+    "look": "a full steel greathelm with a crowned brow and a narrow cross-slit visor"
+  },
+  {
+    "id": "masterwork-valor-greathelm",
+    "name": "Masterwork Valor Greathelm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "helm",
+    "look": "a full steel greathelm with a crowned brow and a narrow cross-slit visor"
+  },
+  {
+    "id": "heroic-valor-greathelm",
+    "name": "Heroic Valor Greathelm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "helm",
+    "look": "a full steel greathelm with a crowned brow and a narrow cross-slit visor"
+  },
+  {
+    "id": "mythic-valor-greathelm",
+    "name": "Mythic Valor Greathelm",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "helm",
+    "look": "a full steel greathelm with a crowned brow and a narrow cross-slit visor"
+  },
+  {
+    "id": "worn-seerlight-circlet",
+    "name": "Worn Seerlight Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "helm",
+    "look": "a golden circlet set with a single green eye-stone that glows with inner sight"
+  },
+  {
+    "id": "fine-seerlight-circlet",
+    "name": "Fine Seerlight Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "helm",
+    "look": "a golden circlet set with a single green eye-stone that glows with inner sight"
+  },
+  {
+    "id": "masterwork-seerlight-circlet",
+    "name": "Masterwork Seerlight Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "helm",
+    "look": "a golden circlet set with a single green eye-stone that glows with inner sight"
+  },
+  {
+    "id": "heroic-seerlight-circlet",
+    "name": "Heroic Seerlight Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "helm",
+    "look": "a golden circlet set with a single green eye-stone that glows with inner sight"
+  },
+  {
+    "id": "mythic-seerlight-circlet",
+    "name": "Mythic Seerlight Circlet",
+    "slot": "Helmet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "helm",
+    "look": "a golden circlet set with a single green eye-stone that glows with inner sight"
+  },
+  {
+    "id": "worn-titanhold-gauntlets",
+    "name": "Worn Titanhold Gauntlets",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "gloves",
+    "look": "heavy golden gauntlets with armoured knuckles and six small coloured gem-sockets along the back"
+  },
+  {
+    "id": "fine-titanhold-gauntlets",
+    "name": "Fine Titanhold Gauntlets",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "gloves",
+    "look": "heavy golden gauntlets with armoured knuckles and six small coloured gem-sockets along the back"
+  },
+  {
+    "id": "masterwork-titanhold-gauntlets",
+    "name": "Masterwork Titanhold Gauntlets",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "gloves",
+    "look": "heavy golden gauntlets with armoured knuckles and six small coloured gem-sockets along the back"
+  },
+  {
+    "id": "heroic-titanhold-gauntlets",
+    "name": "Heroic Titanhold Gauntlets",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "gloves",
+    "look": "heavy golden gauntlets with armoured knuckles and six small coloured gem-sockets along the back"
+  },
+  {
+    "id": "mythic-titanhold-gauntlets",
+    "name": "Mythic Titanhold Gauntlets",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "gloves",
+    "look": "heavy golden gauntlets with armoured knuckles and six small coloured gem-sockets along the back"
+  },
+  {
+    "id": "worn-trickster-grips",
+    "name": "Worn Trickster Grips",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "gloves",
+    "look": "supple dark leather gloves with reinforced fingertips and crimson stitching"
+  },
+  {
+    "id": "fine-trickster-grips",
+    "name": "Fine Trickster Grips",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "gloves",
+    "look": "supple dark leather gloves with reinforced fingertips and crimson stitching"
+  },
+  {
+    "id": "masterwork-trickster-grips",
+    "name": "Masterwork Trickster Grips",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "gloves",
+    "look": "supple dark leather gloves with reinforced fingertips and crimson stitching"
+  },
+  {
+    "id": "heroic-trickster-grips",
+    "name": "Heroic Trickster Grips",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "gloves",
+    "look": "supple dark leather gloves with reinforced fingertips and crimson stitching"
+  },
+  {
+    "id": "mythic-trickster-grips",
+    "name": "Mythic Trickster Grips",
+    "slot": "Gloves",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "gloves",
+    "look": "supple dark leather gloves with reinforced fingertips and crimson stitching"
+  },
+  {
+    "id": "worn-mistwalk-treads",
+    "name": "Worn Mistwalk Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "boots",
+    "look": "tall travelling boots of soft grey leather, faint mist curling around the soles"
+  },
+  {
+    "id": "fine-mistwalk-treads",
+    "name": "Fine Mistwalk Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "boots",
+    "look": "tall travelling boots of soft grey leather, faint mist curling around the soles"
+  },
+  {
+    "id": "masterwork-mistwalk-treads",
+    "name": "Masterwork Mistwalk Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "boots",
+    "look": "tall travelling boots of soft grey leather, faint mist curling around the soles"
+  },
+  {
+    "id": "heroic-mistwalk-treads",
+    "name": "Heroic Mistwalk Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "boots",
+    "look": "tall travelling boots of soft grey leather, faint mist curling around the soles"
+  },
+  {
+    "id": "mythic-mistwalk-treads",
+    "name": "Mythic Mistwalk Treads",
+    "slot": "Boots",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "boots",
+    "look": "tall travelling boots of soft grey leather, faint mist curling around the soles"
+  },
+  {
+    "id": "worn-valkyrie-pinions",
+    "name": "Worn Valkyrie Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "wings",
+    "look": "a pair of broad white-feathered wings tipped with gleaming golden flight-pinions"
+  },
+  {
+    "id": "fine-valkyrie-pinions",
+    "name": "Fine Valkyrie Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "wings",
+    "look": "a pair of broad white-feathered wings tipped with gleaming golden flight-pinions"
+  },
+  {
+    "id": "masterwork-valkyrie-pinions",
+    "name": "Masterwork Valkyrie Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "wings",
+    "look": "a pair of broad white-feathered wings tipped with gleaming golden flight-pinions"
+  },
+  {
+    "id": "heroic-valkyrie-pinions",
+    "name": "Heroic Valkyrie Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "wings",
+    "look": "a pair of broad white-feathered wings tipped with gleaming golden flight-pinions"
+  },
+  {
+    "id": "mythic-valkyrie-pinions",
+    "name": "Mythic Valkyrie Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "wings",
+    "look": "a pair of broad white-feathered wings tipped with gleaming golden flight-pinions"
+  },
+  {
+    "id": "worn-phoenix-pinions",
+    "name": "Worn Phoenix Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "wings",
+    "look": "a pair of flame-feathered wings burning orange to gold, trailing soft embers"
+  },
+  {
+    "id": "fine-phoenix-pinions",
+    "name": "Fine Phoenix Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "wings",
+    "look": "a pair of flame-feathered wings burning orange to gold, trailing soft embers"
+  },
+  {
+    "id": "masterwork-phoenix-pinions",
+    "name": "Masterwork Phoenix Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "wings",
+    "look": "a pair of flame-feathered wings burning orange to gold, trailing soft embers"
+  },
+  {
+    "id": "heroic-phoenix-pinions",
+    "name": "Heroic Phoenix Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "wings",
+    "look": "a pair of flame-feathered wings burning orange to gold, trailing soft embers"
+  },
+  {
+    "id": "mythic-phoenix-pinions",
+    "name": "Mythic Phoenix Pinions",
+    "slot": "Wing",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "wings",
+    "look": "a pair of flame-feathered wings burning orange to gold, trailing soft embers"
+  },
+  {
+    "id": "worn-juggernaut-signet",
+    "name": "Worn Juggernaut Signet",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a thick blood-red signet ring banded in gold, a clenched-fist seal on its face"
+  },
+  {
+    "id": "fine-juggernaut-signet",
+    "name": "Fine Juggernaut Signet",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a thick blood-red signet ring banded in gold, a clenched-fist seal on its face"
+  },
+  {
+    "id": "masterwork-juggernaut-signet",
+    "name": "Masterwork Juggernaut Signet",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a thick blood-red signet ring banded in gold, a clenched-fist seal on its face"
+  },
+  {
+    "id": "heroic-juggernaut-signet",
+    "name": "Heroic Juggernaut Signet",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a thick blood-red signet ring banded in gold, a clenched-fist seal on its face"
+  },
+  {
+    "id": "mythic-juggernaut-signet",
+    "name": "Mythic Juggernaut Signet",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a thick blood-red signet ring banded in gold, a clenched-fist seal on its face"
+  },
+  {
+    "id": "worn-archmage-loop",
+    "name": "Worn Archmage Loop",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a sleek green metal ring set with a glowing emerald lantern-stone"
+  },
+  {
+    "id": "fine-archmage-loop",
+    "name": "Fine Archmage Loop",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a sleek green metal ring set with a glowing emerald lantern-stone"
+  },
+  {
+    "id": "masterwork-archmage-loop",
+    "name": "Masterwork Archmage Loop",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a sleek green metal ring set with a glowing emerald lantern-stone"
+  },
+  {
+    "id": "heroic-archmage-loop",
+    "name": "Heroic Archmage Loop",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a sleek green metal ring set with a glowing emerald lantern-stone"
+  },
+  {
+    "id": "mythic-archmage-loop",
+    "name": "Mythic Archmage Loop",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a sleek green metal ring set with a glowing emerald lantern-stone"
+  },
+  {
+    "id": "worn-bulwark-band",
+    "name": "Worn Bulwark Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a broad brushed-steel band shaped like a tiny tower shield over the knuckle"
+  },
+  {
+    "id": "fine-bulwark-band",
+    "name": "Fine Bulwark Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a broad brushed-steel band shaped like a tiny tower shield over the knuckle"
+  },
+  {
+    "id": "masterwork-bulwark-band",
+    "name": "Masterwork Bulwark Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a broad brushed-steel band shaped like a tiny tower shield over the knuckle"
+  },
+  {
+    "id": "heroic-bulwark-band",
+    "name": "Heroic Bulwark Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a broad brushed-steel band shaped like a tiny tower shield over the knuckle"
+  },
+  {
+    "id": "mythic-bulwark-band",
+    "name": "Mythic Bulwark Band",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a broad brushed-steel band shaped like a tiny tower shield over the knuckle"
+  },
+  {
+    "id": "worn-wayfarer-ring",
+    "name": "Worn Wayfarer Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "ring",
+    "look": "a plain golden band, utterly smooth and unmarked, with a faint warm sheen"
+  },
+  {
+    "id": "fine-wayfarer-ring",
+    "name": "Fine Wayfarer Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "ring",
+    "look": "a plain golden band, utterly smooth and unmarked, with a faint warm sheen"
+  },
+  {
+    "id": "masterwork-wayfarer-ring",
+    "name": "Masterwork Wayfarer Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "ring",
+    "look": "a plain golden band, utterly smooth and unmarked, with a faint warm sheen"
+  },
+  {
+    "id": "heroic-wayfarer-ring",
+    "name": "Heroic Wayfarer Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "ring",
+    "look": "a plain golden band, utterly smooth and unmarked, with a faint warm sheen"
+  },
+  {
+    "id": "mythic-wayfarer-ring",
+    "name": "Mythic Wayfarer Ring",
+    "slot": "Ring",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "ring",
+    "look": "a plain golden band, utterly smooth and unmarked, with a faint warm sheen"
+  },
+  {
+    "id": "worn-warpriest-talisman",
+    "name": "Worn Warpriest Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a heavy iron war-medallion stamped with crossed blades on a braided red cord"
+  },
+  {
+    "id": "fine-warpriest-talisman",
+    "name": "Fine Warpriest Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a heavy iron war-medallion stamped with crossed blades on a braided red cord"
+  },
+  {
+    "id": "masterwork-warpriest-talisman",
+    "name": "Masterwork Warpriest Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a heavy iron war-medallion stamped with crossed blades on a braided red cord"
+  },
+  {
+    "id": "heroic-warpriest-talisman",
+    "name": "Heroic Warpriest Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a heavy iron war-medallion stamped with crossed blades on a braided red cord"
+  },
+  {
+    "id": "mythic-warpriest-talisman",
+    "name": "Mythic Warpriest Talisman",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a heavy iron war-medallion stamped with crossed blades on a braided red cord"
+  },
+  {
+    "id": "worn-archon-amulet",
+    "name": "Worn Archon Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a regal amulet bearing a large faceted red gemstone in an ornate golden setting"
+  },
+  {
+    "id": "fine-archon-amulet",
+    "name": "Fine Archon Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a regal amulet bearing a large faceted red gemstone in an ornate golden setting"
+  },
+  {
+    "id": "masterwork-archon-amulet",
+    "name": "Masterwork Archon Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a regal amulet bearing a large faceted red gemstone in an ornate golden setting"
+  },
+  {
+    "id": "heroic-archon-amulet",
+    "name": "Heroic Archon Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a regal amulet bearing a large faceted red gemstone in an ornate golden setting"
+  },
+  {
+    "id": "mythic-archon-amulet",
+    "name": "Mythic Archon Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a regal amulet bearing a large faceted red gemstone in an ornate golden setting"
+  },
+  {
+    "id": "worn-wardstone-amulet",
+    "name": "Worn Wardstone Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a polished blue ward-stone wrapped in protective silver wire on a leather thong"
+  },
+  {
+    "id": "fine-wardstone-amulet",
+    "name": "Fine Wardstone Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a polished blue ward-stone wrapped in protective silver wire on a leather thong"
+  },
+  {
+    "id": "masterwork-wardstone-amulet",
+    "name": "Masterwork Wardstone Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a polished blue ward-stone wrapped in protective silver wire on a leather thong"
+  },
+  {
+    "id": "heroic-wardstone-amulet",
+    "name": "Heroic Wardstone Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a polished blue ward-stone wrapped in protective silver wire on a leather thong"
+  },
+  {
+    "id": "mythic-wardstone-amulet",
+    "name": "Mythic Wardstone Amulet",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a polished blue ward-stone wrapped in protective silver wire on a leather thong"
+  },
+  {
+    "id": "worn-midas-locket",
+    "name": "Worn Midas Locket",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a small gleaming golden locket shaped like a coin, faintly warm to the touch"
+  },
+  {
+    "id": "fine-midas-locket",
+    "name": "Fine Midas Locket",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a small gleaming golden locket shaped like a coin, faintly warm to the touch"
+  },
+  {
+    "id": "masterwork-midas-locket",
+    "name": "Masterwork Midas Locket",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a small gleaming golden locket shaped like a coin, faintly warm to the touch"
+  },
+  {
+    "id": "heroic-midas-locket",
+    "name": "Heroic Midas Locket",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a small gleaming golden locket shaped like a coin, faintly warm to the touch"
+  },
+  {
+    "id": "mythic-midas-locket",
+    "name": "Mythic Midas Locket",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a small gleaming golden locket shaped like a coin, faintly warm to the touch"
+  },
+  {
+    "id": "worn-heartforge-pendant",
+    "name": "Worn Heartforge Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "amulet",
+    "look": "a circular metal chest-pendant glowing with a steady cyan light at its core"
+  },
+  {
+    "id": "fine-heartforge-pendant",
+    "name": "Fine Heartforge Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "amulet",
+    "look": "a circular metal chest-pendant glowing with a steady cyan light at its core"
+  },
+  {
+    "id": "masterwork-heartforge-pendant",
+    "name": "Masterwork Heartforge Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "amulet",
+    "look": "a circular metal chest-pendant glowing with a steady cyan light at its core"
+  },
+  {
+    "id": "heroic-heartforge-pendant",
+    "name": "Heroic Heartforge Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "amulet",
+    "look": "a circular metal chest-pendant glowing with a steady cyan light at its core"
+  },
+  {
+    "id": "mythic-heartforge-pendant",
+    "name": "Mythic Heartforge Pendant",
+    "slot": "Amulet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "amulet",
+    "look": "a circular metal chest-pendant glowing with a steady cyan light at its core"
+  },
+  {
+    "id": "worn-direwolf-cub",
+    "name": "Worn Direwolf Cub",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "familiar",
+    "look": "a small grey wolf pup with oversized paws, pale eyes, and a bristling ridge of fur"
+  },
+  {
+    "id": "fine-direwolf-cub",
+    "name": "Fine Direwolf Cub",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "familiar",
+    "look": "a small grey wolf pup with oversized paws, pale eyes, and a bristling ridge of fur"
+  },
+  {
+    "id": "masterwork-direwolf-cub",
+    "name": "Masterwork Direwolf Cub",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "familiar",
+    "look": "a small grey wolf pup with oversized paws, pale eyes, and a bristling ridge of fur"
+  },
+  {
+    "id": "heroic-direwolf-cub",
+    "name": "Heroic Direwolf Cub",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "familiar",
+    "look": "a small grey wolf pup with oversized paws, pale eyes, and a bristling ridge of fur"
+  },
+  {
+    "id": "mythic-direwolf-cub",
+    "name": "Mythic Direwolf Cub",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "familiar",
+    "look": "a small grey wolf pup with oversized paws, pale eyes, and a bristling ridge of fur"
+  },
+  {
+    "id": "worn-arcane-wisp",
+    "name": "Worn Arcane Wisp",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "familiar",
+    "look": "a tiny winged ball of blue light trailing soft glowing motes"
+  },
+  {
+    "id": "fine-arcane-wisp",
+    "name": "Fine Arcane Wisp",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "familiar",
+    "look": "a tiny winged ball of blue light trailing soft glowing motes"
+  },
+  {
+    "id": "masterwork-arcane-wisp",
+    "name": "Masterwork Arcane Wisp",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "familiar",
+    "look": "a tiny winged ball of blue light trailing soft glowing motes"
+  },
+  {
+    "id": "heroic-arcane-wisp",
+    "name": "Heroic Arcane Wisp",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "familiar",
+    "look": "a tiny winged ball of blue light trailing soft glowing motes"
+  },
+  {
+    "id": "mythic-arcane-wisp",
+    "name": "Mythic Arcane Wisp",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "familiar",
+    "look": "a tiny winged ball of blue light trailing soft glowing motes"
+  },
+  {
+    "id": "worn-iron-sentinel-chibi",
+    "name": "Worn Iron Sentinel",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "familiar",
+    "look": "a stout knee-high iron automaton with glowing eye-slits and riveted plating"
+  },
+  {
+    "id": "fine-iron-sentinel-chibi",
+    "name": "Fine Iron Sentinel",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "familiar",
+    "look": "a stout knee-high iron automaton with glowing eye-slits and riveted plating"
+  },
+  {
+    "id": "masterwork-iron-sentinel-chibi",
+    "name": "Masterwork Iron Sentinel",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "familiar",
+    "look": "a stout knee-high iron automaton with glowing eye-slits and riveted plating"
+  },
+  {
+    "id": "heroic-iron-sentinel-chibi",
+    "name": "Heroic Iron Sentinel",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "familiar",
+    "look": "a stout knee-high iron automaton with glowing eye-slits and riveted plating"
+  },
+  {
+    "id": "mythic-iron-sentinel-chibi",
+    "name": "Mythic Iron Sentinel",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "familiar",
+    "look": "a stout knee-high iron automaton with glowing eye-slits and riveted plating"
+  },
+  {
+    "id": "worn-lucky-tanuki",
+    "name": "Worn Lucky Tanuki",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "familiar",
+    "look": "a round pot-bellied raccoon-dog clutching a gold coin, a leaf perched on its head"
+  },
+  {
+    "id": "fine-lucky-tanuki",
+    "name": "Fine Lucky Tanuki",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "familiar",
+    "look": "a round pot-bellied raccoon-dog clutching a gold coin, a leaf perched on its head"
+  },
+  {
+    "id": "masterwork-lucky-tanuki",
+    "name": "Masterwork Lucky Tanuki",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "familiar",
+    "look": "a round pot-bellied raccoon-dog clutching a gold coin, a leaf perched on its head"
+  },
+  {
+    "id": "heroic-lucky-tanuki",
+    "name": "Heroic Lucky Tanuki",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "familiar",
+    "look": "a round pot-bellied raccoon-dog clutching a gold coin, a leaf perched on its head"
+  },
+  {
+    "id": "mythic-lucky-tanuki",
+    "name": "Mythic Lucky Tanuki",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "familiar",
+    "look": "a round pot-bellied raccoon-dog clutching a gold coin, a leaf perched on its head"
+  },
+  {
+    "id": "worn-emberfox-kit",
+    "name": "Worn Emberfox Kit",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "familiar",
+    "look": "a small orange fox kit with several wispy flame-tipped tails curling behind it"
+  },
+  {
+    "id": "fine-emberfox-kit",
+    "name": "Fine Emberfox Kit",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "familiar",
+    "look": "a small orange fox kit with several wispy flame-tipped tails curling behind it"
+  },
+  {
+    "id": "masterwork-emberfox-kit",
+    "name": "Masterwork Emberfox Kit",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "familiar",
+    "look": "a small orange fox kit with several wispy flame-tipped tails curling behind it"
+  },
+  {
+    "id": "heroic-emberfox-kit",
+    "name": "Heroic Emberfox Kit",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "familiar",
+    "look": "a small orange fox kit with several wispy flame-tipped tails curling behind it"
+  },
+  {
+    "id": "mythic-emberfox-kit",
+    "name": "Mythic Emberfox Kit",
+    "slot": "Pet",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "familiar",
+    "look": "a small orange fox kit with several wispy flame-tipped tails curling behind it"
+  }
+]

@@ -205,6 +205,12 @@ describe("addHeroShare", () => {
     expect(addHeroShare(tower, hero).moveSpeed).toBeCloseTo(0, 6);
   });
 
+  it("does NOT share range — a tower's reach is its own; a long-reach hero weapon must not extend it past its indicator", () => {
+    const tower = makeStats({ range: 130 });
+    const hero = makeStats({ range: 240 }); // e.g. a Bow hero
+    expect(addHeroShare(tower, hero).range).toBeCloseTo(130, 6);
+  });
+
   it("honours a custom rate", () => {
     const tower = makeStats({ atk: 100 });
     const hero = makeStats({ atk: 100 });

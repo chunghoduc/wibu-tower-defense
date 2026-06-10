@@ -4,12 +4,12 @@ import { createFreshSave } from "../src/core/save.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 import { equipSlotsFor } from "../src/data/schema.ts";
 
-function equipOne(defId: string, rolledAffixes: { type: string; value: number }[], primary: number) {
+function equipOne(defId: string, rolledAffixes: { type: string; value: number }[], primary: number, enhanceLevel = 0) {
   const save = createFreshSave();
   const def = ITEM_CATALOG.find((d) => d.id === defId)!;
   const inst = {
     id: "x1", defId, acquiredLevel: 1, rolledStats: {},
-    rolledPrimaryAffix: primary, rolledAffixes, enhanceLevel: 0,
+    rolledPrimaryAffix: primary, rolledAffixes, enhanceLevel,
   };
   save.inventory.items.push(inst as any);
   save.inventory.equipped[equipSlotsFor(def.slot)[0]] = "x1";
@@ -35,6 +35,14 @@ describe("buildAffixStats", () => {
     const save = equipOne("fine-aegis-charm", [{ type: "critDefense", value: 0.15 }], 0.08);
     const { flat } = buildAffixStats(save);
     expect(flat.some((s) => s.critDefense === 0.15)).toBe(true);
+  });
+
+  it("scales the PRIMARY affix by enhance level but leaves additional affixes alone", () => {
+    // +5 → ×1.40. warblade's primary is physicalDamage → increased atk.
+    const save = equipOne("worn-warblade", [{ type: "critRate", value: 0.1 }], 0.1, 5);
+    const { flat, increased } = buildAffixStats(save);
+    expect(increased.some((s) => Math.abs((s.atk ?? 0) - 0.14) < 1e-9)).toBe(true); // 0.1 × 1.40
+    expect(flat.some((s) => s.critRate === 0.1)).toBe(true);                        // unscaled
   });
 
   it("returns empty contributions when nothing is equipped", () => {

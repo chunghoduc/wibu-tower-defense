@@ -14,6 +14,7 @@ import type { Stats } from "../data/schema.ts";
 import { FRACTIONAL_STAT_KEYS } from "../data/schema.ts";
 import type { HeroSave } from "./save.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { enhanceBonus } from "./enhance.ts";
 
 /** Stat keys whose affix value is added FLAT (they are already fractions/multipliers). */
 const FLAT_AFFIX_KEYS = FRACTIONAL_STAT_KEYS;
@@ -48,7 +49,10 @@ export function buildAffixStats(save: HeroSave): AffixContribution {
     if (!inst) continue;
     const def = ITEM_CATALOG_MAP.get(inst.defId);
     if (!def) continue;
-    pushAffix(out, def.primaryAffix.type, inst.rolledPrimaryAffix);
+    // The PRIMARY affix scales with the item's enhance level (like its base
+    // stats); additional affixes do not. Mirrors enhanceBonus in the tooltip.
+    const primaryMult = enhanceBonus(inst.enhanceLevel ?? 0);
+    pushAffix(out, def.primaryAffix.type, inst.rolledPrimaryAffix * primaryMult);
     for (const a of inst.rolledAffixes) pushAffix(out, a.type, a.value);
   }
   return out;

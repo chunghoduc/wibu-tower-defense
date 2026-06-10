@@ -125,6 +125,49 @@ function affixRow(type: string, v: number, source: StatSource, q: Quality): Item
   return { source, quality: q, before: phrase[0], value: fmtAffixValue(type, v), after: phrase[1] };
 }
 
+/** One stat's value at the current vs the next enhance level. */
+export interface EnhancePreviewRow {
+  label: string;
+  before: string;
+  after: string;
+}
+
+/**
+ * Per-stat before/after for enhancing from `fromLevel` to `toLevel`. Enhancement
+ * scales the item's base stats (rolledStats) AND its PRIMARY affix — but not its
+ * additional affixes — so those are exactly the rows shown. Values are the
+ * displayed TOTALS (no ×mult). The primary-affix row is a percentage bonus and
+ * is suffixed " (affix)" so it reads distinctly from a same-named base stat.
+ */
+export function enhancePreviewRows(
+  inst: ItemInstanceSave,
+  def: ItemDef,
+  fromLevel: number,
+  toLevel: number,
+): EnhancePreviewRow[] {
+  const mFrom = enhanceBonus(fromLevel);
+  const mTo = enhanceBonus(toLevel);
+  const rows: EnhancePreviewRow[] = [];
+  for (const [k, v] of Object.entries(inst.rolledStats)) {
+    if (typeof v !== "number") continue;
+    rows.push({
+      label: label(k),
+      before: fmtBaseValue(k, v * mFrom),
+      after: fmtBaseValue(k, v * mTo),
+    });
+  }
+  // Primary affix (a percentage bonus) scales with enhancement too.
+  const pa = inst.rolledPrimaryAffix;
+  if (typeof pa === "number") {
+    rows.push({
+      label: `${label(def.primaryAffix.type)} (affix)`,
+      before: pctStr(pa * mFrom),
+      after: pctStr(pa * mTo),
+    });
+  }
+  return rows;
+}
+
 export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[] {
   const rows: ItemStatRow[] = [];
   // Match rollItem's scaling so the quality baseline is fair: base stats scale
@@ -148,8 +191,10 @@ export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[
     rows.push(row);
   }
 
-  // Primary affix (blue): full sentence. Apex copies expect +25% here too.
-  rows.push(affixRow(def.primaryAffix.type, inst.rolledPrimaryAffix, "primary",
+  // Primary affix (blue): full sentence. Enhancement scales the primary affix
+  // too (see affixStats), so show the enhanced TOTAL; quality still compares the
+  // raw rolled value to its base. Apex copies expect +25% here too.
+  rows.push(affixRow(def.primaryAffix.type, inst.rolledPrimaryAffix * mult, "primary",
     quality(inst.rolledPrimaryAffix, def.primaryAffix.baseValue * apexMult)));
 
   // Additional affixes (purple): full sentences.

@@ -1,13 +1,17 @@
 // SDXL art generation pipeline: prompt -> /generate -> transparent cutout ->
 // game asset. Towers get idle + attack frames; hero gets per-weapon variants.
 // Resumable (skips existing). Node 18+ (global fetch), python3 + numpy + PIL.
-import { mkdirSync, existsSync, writeFileSync } from "node:fs";
+import { mkdirSync, existsSync, writeFileSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import {
-  style, itemStyle, NEGATIVE, POSE,
-  TOWER_VISUAL, ENEMY_VISUAL, BOSS_VISUAL, ITEM_VISUAL,
+  style, itemStyleFor, NEGATIVE, POSE,
+  TOWER_VISUAL, ENEMY_VISUAL, BOSS_VISUAL,
   HERO_BASE, HERO_WEAPON,
 } from "./prompts.mjs";
+
+// Item icons are catalog-driven: `npm run gen:item-visual` dumps every item's
+// homage `appearance.look` + rarity here, so SDXL follows the item metadata.
+const ITEM_VISUAL_PATH = "scripts/sdart/itemVisual.json";
 
 const SD = "http://127.0.0.1:8765/generate";
 const CUTOUT = "scripts/sdart/cutout.py";
@@ -63,8 +67,12 @@ function buildJobs() {
     jobs.push({ kind: "enemy", id, file: `${id}.png`, prompt: style(`${v}, ${POSE.idle}`), seed: seedOf(id), w: 768, h: 1024, size: 300 });
   for (const [id, v] of Object.entries(BOSS_VISUAL))
     jobs.push({ kind: "boss", id, file: `${id}.png`, prompt: style(`${v}, ${POSE.idle}`), seed: seedOf(id), w: 832, h: 1024, size: 384 });
-  for (const [id, v] of Object.entries(ITEM_VISUAL))
-    jobs.push({ kind: "item", id, file: `${id}.png`, prompt: itemStyle(v), seed: seedOf(id), w: 768, h: 768, size: 160 });
+  const items = existsSync(ITEM_VISUAL_PATH) ? JSON.parse(readFileSync(ITEM_VISUAL_PATH, "utf8")) : [];
+  if (!items.length) console.log(`  WARN: ${ITEM_VISUAL_PATH} missing/empty — run \`npm run gen:item-visual\` first`);
+  // size 96 — the loader (PreloadScene) and the in-battle scaler treat item
+  // icons as a fixed 96×96 native asset; other sizes render cropped/oversized.
+  for (const it of items)
+    jobs.push({ kind: "item", id: it.id, file: `${it.id}.png`, prompt: itemStyleFor(it.look, it.rarity), seed: seedOf(it.id), w: 768, h: 768, size: 96 });
   return jobs;
 }
 

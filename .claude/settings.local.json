@@ -2,7 +2,27 @@
   "permissions": {
     "allow": [
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'docs\\(spec\\): automated Firebase Hosting deploy design *)",
+      "Bash(git commit -q -m 'docs\\(plan\\): firebase hosting CI/CD implementation plan *)",
+      "Bash(command -v gcloud)",
+      "Bash(gcloud --version)",
+      "Bash(gcloud auth *)",
+      "Bash(command -v firebase)",
+      "Bash(npx -y firebase-tools login:list)",
+      "Bash(command -v gh)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(npx *)",
+      "Bash(git checkout *)",
+      "Bash(npm run *)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('firebase.json','utf8'\\)\\); console.log\\('firebase.json: valid'\\)\")",
+      "Bash(node -e \"const c=require\\('./.firebaserc'\\); console.log\\('.firebaserc default:', c.projects.default\\)\")",
+      "Bash(node *)",
+      "Bash(npm test *)",
+      "Bash(git commit -q -m 'ci: auto-deploy to Firebase Hosting on push + PR previews *)",
+      "Bash(git push *)"
     ]
   }
 }

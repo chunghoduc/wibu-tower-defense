@@ -12,7 +12,8 @@ import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type Rarity } from "../data/s
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName, type MaterialKind } from "../data/materials.ts";
-import { enhanceChance, jewelForLevel, enhanceBonus, MAX_ENHANCE } from "../core/enhance.ts";
+import { enhanceChance, jewelForLevel, MAX_ENHANCE } from "../core/enhance.ts";
+import { enhancePreviewRows } from "../data/itemDisplay.ts";
 import { crispText, panelText } from "./ui.ts";
 import { drawScrollbar } from "./scrollbar.ts";
 import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
@@ -379,7 +380,12 @@ export class HeroScene extends Phaser.Scene {
     this.hideTooltip();
     this.dialog.removeAll(true);
 
-    const W = 340, H = 220, dx = (this.scale.width - W) / 2, dy = 150;
+    const numStats = Object.values(inst.rolledStats).filter((v) => typeof v === "number").length;
+    const ROW_H = 20, STATS_TOP = 44;
+    const W = 360, dx = (this.scale.width - W) / 2;
+    // Height grows with the stat list so every stat's before/after is visible.
+    const H = STATS_TOP + Math.max(1, numStats) * ROW_H + 96;
+    const dy = Math.max(80, (this.scale.height - H) / 2 - 20);
     const g = this.add.graphics();
     g.fillStyle(0x070b12, 0.6).fillRect(0, 0, this.scale.width, this.scale.height); // scrim
     g.fillStyle(0x141c28, 1).fillRoundedRect(dx, dy, W, H, 10);
@@ -396,16 +402,30 @@ export class HeroScene extends Phaser.Scene {
       const have = save.materials[jewel] ?? 0;
       const chance = enhanceChance(cur);
       const maxed = cur >= MAX_ENHANCE;
-      const add = (yy: number, txt: string, style: Phaser.Types.GameObjects.Text.TextStyle = {}) =>
-        this.dialog.add(crispText(this, dx + 16, dy + yy, txt, { fontSize: "13px", color: "#dfe8f3", ...style }));
-      add(14, `${def.name}  +${cur}`, { fontSize: "16px", color: RARITY_HEX[def.rarity], fontStyle: "bold" });
-      add(44, `Primary stats ×${enhanceBonus(cur).toFixed(2)}  →  +${cur + 1}: ×${enhanceBonus(cur + 1).toFixed(2)}`);
-      add(70, maxed ? "Maxed (+15)." : `Needs: ${MATERIALS_MAP.get(jewel)?.name} (you have ${have})`);
-      add(96, maxed ? "" : `Success: ${Math.round(chance * 100)}%${cur >= 6 ? "  ·  on failure the item loses 1–5 levels" : ""}`,
+      const next = Math.min(MAX_ENHANCE, cur + 1);
+      const add = (xx: number, yy: number, txt: string, style: Phaser.Types.GameObjects.Text.TextStyle = {}) =>
+        this.dialog.add(crispText(this, dx + xx, dy + yy, txt, { fontSize: "13px", color: "#dfe8f3", ...style }));
+      add(16, 14, `${def.name}  +${cur}${maxed ? "" : `  →  +${next}`}`,
+        { fontSize: "16px", color: RARITY_HEX[def.rarity], fontStyle: "bold" });
+
+      // Per-stat before → after (no multiplier shown). Only base stats scale.
+      const rows = enhancePreviewRows(inst, def, cur, next);
+      rows.forEach((row, i) => {
+        const ry = STATS_TOP + i * ROW_H;
+        add(20, ry, row.label, { fontSize: "12px", color: "#9fb2c8" });
+        add(150, ry, row.before, { fontSize: "13px", color: "#dfe8f3" });
+        add(220, ry, "→", { fontSize: "12px", color: "#7e8ea3" });
+        add(244, ry, row.after, { fontSize: "13px", color: maxed ? "#dfe8f3" : "#6ee06e", fontStyle: "bold" });
+      });
+      if (rows.length === 0) add(20, STATS_TOP, "No scaling stats.", { fontSize: "12px", color: "#9fb2c8" });
+
+      const infoY = STATS_TOP + Math.max(1, rows.length) * ROW_H + 6;
+      add(16, infoY, maxed ? "Maxed (+15)." : `Needs: ${MATERIALS_MAP.get(jewel)?.name} (you have ${have})`);
+      add(16, infoY + 24, maxed ? "" : `Success: ${Math.round(chance * 100)}%${cur >= 6 ? "  ·  on failure the item loses 1–5 levels" : ""}`,
         { fontSize: "11px", color: cur >= 6 ? "#ffb38a" : "#a5d6a7" });
 
       const canDo = !maxed && have > 0;
-      const btn = crispText(this, dx + W / 2, dy + H - 54, maxed ? "MAX" : (canDo ? "⚒  Enhance" : "Need jewel"), {
+      const btn = crispText(this, dx + W / 2, dy + H - 50, maxed ? "MAX" : (canDo ? "⚒  Enhance" : "Need jewel"), {
         fontSize: "15px", color: "#fff", backgroundColor: canDo ? "#1565c0" : "#444",
       }).setOrigin(0.5, 0).setPadding(16, 8, 16, 8).setAlpha(canDo ? 1 : 0.6);
       if (canDo) {

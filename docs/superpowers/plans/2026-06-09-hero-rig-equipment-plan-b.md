@@ -20,7 +20,14 @@
 - **magic** — `Staff`, `Tome` → upright channel, both hands rise, charge pulse.
 
 **Sockets per frame** (in scaled sprite-pixel space, origin = sheet top-left of the frame cell):
-`handR` (main weapon: x,y,angle) · `handL` (offhand/tome: x,y,angle) · `head` (helmet: x,y,scale) · `torso` (body armor: x,y,angle) · `footL` / `footR` (boots: x,y,angle) · `back` (wings: x,y).
+`handR` (main weapon: x,y,angle) · `handL` (offhand/tome: x,y,angle) · `head` (helmet: x,y,scale) · `torso` (body armor: x,y,angle) · `footL` / `footR` (boots: x,y,angle) · `back` (wings: x,y) · `shadow` (ground shadow anchor: x,y).
+
+**Enhancements & Physics Corrections (added during brainstorming):**
+1. **Phaser flipX Origin-Shift Correction:** In Phaser 3, setting `flipX = true` mirrors the texture, but the origin coordinates remain relative to the top-left bounds. Thus, if `facingLeft` is true, the layout engine must invert `originX` to `1 - (art.pivot.x / art.w)` so rotation and placement occur precisely around the flipped pivot (e.g. hilt/ankle).
+2. **Angle Alignments:** Since item appearance templates are drawn pointing **Up** (along $-y$) and Phaser's default rotation $0^\circ$ is **Right** ($+x$), the runtime layout must apply appropriate angular offsets to align the rig's joint angles with Phaser's rendering rotation.
+3. **Dynamic Weapon Trails/Swish VFX:** The runtime tracks the frame-by-frame velocity of the `handR` socket during attack animations (e.g. transitioning `act1` $\rightarrow$ `act2` $\rightarrow$ `act3`). When a swing occurs, a temporary trail/swish effect is drawn between consecutive socket coordinates.
+4. **Rarity Glint/Sparkle Particles:** Legendary and Unique items emit subtle, slow-falling sparkle/aura particles at their corresponding socket locations to represent high-prestige gear.
+5. **Ground Projection Shadows:** A dynamic ellipse shadow pins to the new `shadow` socket at the hero's base, scaling/contracting slightly based on the hero's vertical movement to give depth in battle.
 
 **Item appearance art is templated, not per-item.** 378 items do not get 378 bespoke drawings. A `WORN_TEMPLATES` registry maps `(slot, shape)` → a small draw function + pivot. Each item resolves a `shape` (from `weaponType` for weapons, or a coarse slot default) and a tint trio derived from its rarity/existing color, producing `worn__<shape>` textures shared across items. Bespoke overrides remain possible via `appearanceRef`.
 
@@ -178,6 +185,7 @@ describe("pixFrame socket export", () => {
     expect(r.joints.head).toMatchObject({ x: expect.any(Number), y: expect.any(Number) });
     expect(r.joints.footL).toBeTruthy();
     expect(r.joints.footR).toBeTruthy();
+    expect(r.joints.shadow).toMatchObject({ x: expect.any(Number), y: expect.any(Number) });
   });
   it("stays backward-compatible (canvas only) when no opts", () => {
     const cv = pixFrame(SPEC, HERO_MELEE[0], 48);
@@ -237,6 +245,7 @@ Replace the final `return cv;` with a joints-aware return:
     footL: { x: ftL.x, y: ftL.y + 1, angle: pose.legL[0] + pose.legL[1] },
     footR: { x: ftR.x, y: ftR.y + 1, angle: pose.legR[0] + pose.legR[1] },
     back:  { x: neck.x, y: neck.y + 2 },
+    shadow: { x: (ftL.x + ftR.x) / 2, y: cell - 2 },
   };
   return opts ? { cv, joints } : cv;
 ```
@@ -680,8 +689,8 @@ import { SocketSet } from "../src/scenes/heroSockets.ts";
 const MANIFEST = {
   cell: 192, scale: 4,
   frames: [
-    { name: "idle1", sockets: { handR: { x: 120, y: 110, angle: 20 }, head: { x: 96, y: 50, r: 24 }, footL: { x: 84, y: 170, angle: 0 }, footR: { x: 108, y: 170, angle: 0 }, torso: { x: 96, y: 110, angle: 0 }, handL: { x: 72, y: 110, angle: -20 }, back: { x: 96, y: 78 } } },
-    { name: "act2",  sockets: { handR: { x: 150, y: 60,  angle: 95 }, head: { x: 96, y: 50, r: 24 }, footL: { x: 84, y: 170, angle: 0 }, footR: { x: 108, y: 170, angle: 0 }, torso: { x: 96, y: 110, angle: 0 }, handL: { x: 72, y: 110, angle: -20 }, back: { x: 96, y: 78 } } },
+    { name: "idle1", sockets: { handR: { x: 120, y: 110, angle: 20 }, head: { x: 96, y: 50, r: 24 }, footL: { x: 84, y: 170, angle: 0 }, footR: { x: 108, y: 170, angle: 0 }, torso: { x: 96, y: 110, angle: 0 }, handL: { x: 72, y: 110, angle: -20 }, back: { x: 96, y: 78 }, shadow: { x: 96, y: 190 } } },
+    { name: "act2",  sockets: { handR: { x: 150, y: 60,  angle: 95 }, head: { x: 96, y: 50, r: 24 }, footL: { x: 84, y: 170, angle: 0 }, footR: { x: 108, y: 170, angle: 0 }, torso: { x: 96, y: 110, angle: 0 }, handL: { x: 72, y: 110, angle: -20 }, back: { x: 96, y: 78 }, shadow: { x: 96, y: 190 } } },
   ],
 };
 
@@ -963,11 +972,13 @@ describe("placeLayer", () => {
     expect(out.originY).toBeCloseTo(22 / 24, 3);
     expect(out.scale).toBeCloseTo(1.5, 3);
   });
-  it("does not double-mirror (socket already mirrored upstream)", () => {
-    const out = placeLayer({ x: -24, y: -40, angle: -30 }, { pivot: { x: 12, y: 22 }, w: 24, h: 24 },
+  it("does not double-mirror, but does adjust originX for flipX rendering", () => {
+    const out = placeLayer({ x: -24, y: -40, angle: -30 }, { pivot: { x: 6, y: 22 }, w: 24, h: 24 },
       { bodyScale: 1, wornScale: 1, facingLeft: true });
     expect(out.x).toBeCloseTo(-24, 2);
     expect(out.flipX).toBe(true);
+    // When flipped, originX must be 1 - (pivot.x / w) -> 1 - (6 / 24) = 0.75
+    expect(out.originX).toBeCloseTo(0.75, 3);
   });
 });
 ```
@@ -992,12 +1003,14 @@ export interface Placement { x: number; y: number; angle: number; scale: number;
 export function placeLayer(socket: Socket, art: WornArt, ctx: LayoutCtx): Placement {
   // Socket is already body-local and mirrored. Position the layer at the socket,
   // set its origin to the pivot so rotation happens about the grip/ankle/etc.
+  // When facing left (flipX = true), Phaser 3 requires the originX to be inverted
+  // to 1 - originX so that the pivot remains physically aligned.
   return {
     x: socket.x * ctx.bodyScale,
     y: socket.y * ctx.bodyScale,
     angle: socket.angle,
     scale: ctx.wornScale,
-    originX: art.pivot.x / art.w,
+    originX: ctx.facingLeft ? 1 - (art.pivot.x / art.w) : art.pivot.x / art.w,
     originY: art.pivot.y / art.h,
     flipX: ctx.facingLeft,
   };
@@ -1051,6 +1064,9 @@ Read the current file, then apply these structural changes:
 4. In `tick`, after choosing the locomotion/oneshot anim, read `const frameName = this.bodySprite.anims.currentFrame?.textureFrame` (the frame name) — or map the current frame index back to a name via the loaded names array. Then `const sockets = registry.get(this.archetype).forFrame(frameName, this.facingLeft)`. For each visible worn layer, look up its socket via `socketKeyForShape(shape)`, fetch the worn art's pivot from the loaded `worn__index`, compute `placeLayer(...)`, and apply `setPosition/setAngle/setScale/setOrigin/setFlipX`. Boots use `footR`/`footL`.
 5. Pass the `HeroSocketRegistry` and `worn__index` JSON into the sprite — either via constructor args or by reading from `scene.cache.json` / a scene-level singleton. Prefer constructor injection for testability.
 6. `playAttack`/`playCast` simplify to `beginOneShot(ATK/CAST, prio)` only — the weapon now swings because `handR` moves across `act1..act3`. Keep an OPTIONAL tiny scale-pulse on the weapon for cast emphasis.
+7. **Ground Projection Shadow:** Add a shadow ellipse sprite. In `tick`, position it on the `shadow` socket, and scale its size/opacity dynamically depending on the vertical bounce height of the `torso` socket.
+8. **Dynamic Weapon Attack Sweep Trails:** Track the position of `handR` in the previous frame. During attack frames (`act1..act3`), draw a brief swipe trail using `Phaser.GameObjects.Graphics` connecting the current and previous weapon position, fading it out over 150ms.
+9. **Rarity Glint/Sparkle Particles:** Add a particle emitter helper. If the equipped weapon or armor is Legendary or Unique, emit slow-falling spark particles from their socket coordinates (`handR`, `head`, or `torso`).
 
 Because this is a large edit, split helpers into `heroLayout.ts` (done) and keep `HeroLayeredSprite.ts` under 500 lines (it is ~300 after removing the static-anchor machinery). VERIFY the file length after editing:
 
