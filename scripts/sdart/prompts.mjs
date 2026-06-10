@@ -67,10 +67,10 @@ export const TOWER_VISUAL = {
   "aquella-the-radiant": "a dazzling water-goddess with long blue hair and a water-ring halo, a blue-and-white goddess dress with detached sleeves, a glowing scrying orb floating at her hand",
   // tanker — front-line bulwarks (homage-inspired, original designs)
   "riku-ironhide": "a big-hearted rugged young guardsman with spiky crimson-red hair, a red-trimmed leather guard's harness over jagged hardened iron-grey skin, fists hardened like rough iron, a manly confident grin, bracing stance",
-  "garrek-ironscale": "a surly muscular drifter brawler with a wild black mane and a riveted studded brow, a dark studded long coat over metallic iron-scaled skin, one club-like dragon-iron forearm, scowling",
+  "garrek-ironscale": "a surly muscular drifter brawler with a wild black mane and a riveted studded brow, a dark studded long coat over metallic iron-scaled skin, one club-like dragon-iron forearm held close to the body, scowling, arms kept tucked in",
   "joro-diamondhide": "a towering broad-shouldered commander whose body is faceted like cut crystal diamond glinting with hard light, a heavy officer's coat over diamond-hard skin, massive crushing fists, stern",
   "reinhart-armored-wall": "a grim heavy soldier clad head to toe in interlocking bone-white armor plating over every limb, weathered battle-scarred plates, plated fists, stoic dutiful stance",
-  "garron-unbreaking-pillar": "a towering muscular heroic guardian with a huge broad frame, golden swept-back hair in two upswept spikes, a blue and gold heroic battle suit, an unshakeable bright grin, bare fists raised in a powerful stance",
+  "garron-unbreaking-pillar": "a towering muscular heroic guardian with a broad frame, golden swept-back hair in two upswept spikes, a blue and gold heroic battle suit, an unshakeable bright grin, a single bare fist raised, arms kept compact and close to the torso",
 };
 
 // ---- HERO weapon-variant looks (outlook changes with equipped weapon) ----
