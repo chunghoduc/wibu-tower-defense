@@ -95,6 +95,24 @@ export const CAMPAIGN_CHAPTERS: CampaignChapter[] = [
     //         drowned dead under the water — Nausicaä's Sea of Corruption x the Dead Marshes
     homage: "Inspired by a slow wade through a poison jungle that is swallowing the world.",
   },
+  {
+    chapter: 5,
+    id: "ch5",
+    title: "The Blight",
+    biome: "A crystalline wound in the world where reality itself is rotting.",
+    bgKey: bgKey("chapter-corrupted"),
+    blurb: "The final ascent — into the wound where the world is being unmade.",
+    lore:
+      "The rot was never the disease. It was a symptom. At the heart of the fens the " +
+      "ground gives way to a vast crystalline wound, and through it the world is " +
+      "quietly coming apart — colour drains, sound curdles, and the dead do not so " +
+      "much walk as remember walking. This is the source the demon-king was only ever " +
+      "feeding. Climb the last spires, hold the threshold of the wound, and end it " +
+      "where it began — or the unmaking spreads until there is nothing left to defend.",
+    // homage: a crystalline rot eating reality at the world's edge, a final ascent to
+    //         the source — Elden Ring's Lake of Rot x the cosmic corruption of Bloodborne
+    homage: "Inspired by a final ascent into a crystalline corruption that is unmaking the world.",
+  },
 ];
 
 const BY_NUMBER = new Map(CAMPAIGN_CHAPTERS.map((c) => [c.chapter, c]));

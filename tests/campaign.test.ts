@@ -13,6 +13,7 @@ describe("campaign chapters", () => {
     expect(playerChapterOf("ch2-s11")).toBe(2);
     expect(playerChapterOf("ch3-s20")).toBe(3);
     expect(playerChapterOf("ch4-s25")).toBe(4);
+    expect(playerChapterOf("ch5-s30")).toBe(5);
   });
 
   it("resolves region metadata for every campaign stage", () => {
@@ -38,8 +39,8 @@ describe("campaign chapters", () => {
 });
 
 describe("stage numbering continuity", () => {
-  it("numbers stages 1..25 with the right chapter prefixes", () => {
-    expect(STAGES.length).toBe(25);
+  it("numbers stages 1..30 with the right chapter prefixes", () => {
+    expect(STAGES.length).toBe(30);
     STAGES.forEach((s, i) => {
       expect(stageNumber(s.id)).toBe(i + 1);
     });
@@ -47,6 +48,7 @@ describe("stage numbering continuity", () => {
     expect(STAGES.slice(10, 15).every((s) => s.id.startsWith("ch2-"))).toBe(true);
     expect(STAGES.slice(15, 20).every((s) => s.id.startsWith("ch3-"))).toBe(true);
     expect(STAGES.slice(20, 25).every((s) => s.id.startsWith("ch4-"))).toBe(true);
+    expect(STAGES.slice(25, 30).every((s) => s.id.startsWith("ch5-"))).toBe(true);
   });
 
   it("gives every expansion stage the top loot-box tier", () => {
@@ -57,10 +59,11 @@ describe("stage numbering continuity", () => {
 });
 
 describe("difficulty-unlock bands for the expansion", () => {
-  it("groups Chapters 2, 3 and 4 into their own 5-stage bands", () => {
+  it("groups Chapters 2, 3, 4 and 5 into their own 5-stage bands", () => {
     expect(chapterStageIds("ch2-s11")).toEqual(["ch2-s11", "ch2-s12", "ch2-s13", "ch2-s14", "ch2-s15"]);
     expect(chapterStageIds("ch3-s16")).toEqual(["ch3-s16", "ch3-s17", "ch3-s18", "ch3-s19", "ch3-s20"]);
     expect(chapterStageIds("ch4-s21")).toEqual(["ch4-s21", "ch4-s22", "ch4-s23", "ch4-s24", "ch4-s25"]);
+    expect(chapterStageIds("ch5-s26")).toEqual(["ch5-s26", "ch5-s27", "ch5-s28", "ch5-s29", "ch5-s30"]);
   });
 });
 
@@ -76,9 +79,9 @@ describe("depth-scaled gold reward", () => {
 
   it("pays strictly more for a deeper stage on the same difficulty", () => {
     const early = processStageClear(createFreshSave(), "ch1-s1", "Normal", new Rng(7));
-    const deep = processStageClear(createFreshSave(), "ch4-s25", "Normal", new Rng(7));
+    const deep = processStageClear(createFreshSave(), "ch5-s30", "Normal", new Rng(7));
     expect(deep.goldAwarded).toBeGreaterThan(early.goldAwarded);
-    // Stage 25 ≈ 2.44× the base; both first clears so the bonus cancels in ratio.
+    // Stage 30 ≈ 2.74× the base; both first clears so the bonus cancels in ratio.
     expect(deep.goldAwarded).toBeGreaterThan(GOLD_REWARD.Normal * 2);
   });
 });

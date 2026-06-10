@@ -1,7 +1,7 @@
 /**
  * Campaign expansion — Chapter 2 "Sunscar Wastes" (desert, stages 11–15),
- * Chapter 3 "Emberfall" (volcanic, stages 16–20), and Chapter 4 "Mire Hollow"
- * (poison swamp, stages 21–25).
+ * Chapter 3 "Emberfall" (volcanic, stages 16–20), Chapter 4 "Mire Hollow"
+ * (poison swamp, stages 21–25), and Chapter 5 "The Blight" (corrupted, 26–30).
  *
  * Layouts + per-stage boss assignments live here to keep stage.ts focused (and
  * under the 500-line cap). stage.ts concatenates EXPANSION_LAYOUTS onto the
@@ -9,8 +9,9 @@
  * pipeline (continuous global numbering, wave builder, terrain, theming) is
  * shared — these stages are tougher purely by their deeper global stage number,
  * which the progression curve scales up (each new chapter adds a felt "wall"
- * step, so Chapter 4 lands ~1.5× the enemy HP of Chapter 3). See campaign.ts
- * for region lore.
+ * step, so Chapter 4 lands ~1.5× the enemy HP of Chapter 3, and Chapter 5 — the
+ * final region — lands ~1.5× again over Chapter 4). See campaign.ts for region
+ * lore.
  *
  * Coordinates are authored in the 960×540 logical space (scaled to the world by
  * stage.ts). Paths enter at x=-20 and end at the castle (last waypoint).
@@ -117,10 +118,44 @@ export const EXPANSION_LAYOUTS: Layout[] = [
     air: [{ x: -20, y: 210 }, { x: -20, y: 330 }],
     slots: [{ x: 360, y: 150 }, { x: 600, y: 150 }, { x: 460, y: 270 }, { x: 600, y: 390 }, { x: 360, y: 390 }, { x: 660, y: 270 }, { x: 840, y: 270 }, { x: 220, y: 450 }],
   },
+
+  // ── Chapter 5 — The Blight (corrupted) ───────────────────────────────────
+  // The final region. Lanes run longest and fold back hardest — fewer build
+  // slots sit on the killing line, so every placement has to earn its keep.
+  {
+    name: "Threshold of the Blight",
+    path: [{ x: -20, y: 160 }, { x: 300, y: 160 }, { x: 300, y: 440 }, { x: 540, y: 440 }, { x: 540, y: 120 }, { x: 780, y: 120 }, { x: 780, y: 400 }, { x: 900, y: 400 }],
+    air: [{ x: -20, y: 440 }, { x: -20, y: 80 }],
+    slots: [{ x: 150, y: 90 }, { x: 380, y: 260 }, { x: 420, y: 360 }, { x: 480, y: 500 }, { x: 660, y: 260 }, { x: 690, y: 120 }, { x: 860, y: 240 }, { x: 460, y: 200 }],
+  },
+  {
+    name: "Crystalweep Marches",
+    path: [{ x: -20, y: 480 }, { x: 180, y: 480 }, { x: 180, y: 100 }, { x: 420, y: 100 }, { x: 420, y: 420 }, { x: 640, y: 420 }, { x: 640, y: 100 }, { x: 860, y: 100 }, { x: 860, y: 360 }, { x: 900, y: 360 }],
+    air: [{ x: -20, y: 100 }, { x: -20, y: 300 }],
+    slots: [{ x: 90, y: 300 }, { x: 300, y: 230 }, { x: 320, y: 360 }, { x: 530, y: 250 }, { x: 540, y: 360 }, { x: 740, y: 240 }, { x: 760, y: 360 }, { x: 280, y: 90 }],
+  },
+  {
+    name: "The Hollow Choir",
+    path: [{ x: -20, y: 120 }, { x: 240, y: 120 }, { x: 240, y: 300 }, { x: 120, y: 300 }, { x: 120, y: 460 }, { x: 480, y: 460 }, { x: 480, y: 120 }, { x: 720, y: 120 }, { x: 720, y: 460 }, { x: 900, y: 460 }],
+    air: [{ x: -20, y: 300 }, { x: -20, y: 460 }],
+    slots: [{ x: 340, y: 210 }, { x: 360, y: 380 }, { x: 600, y: 220 }, { x: 600, y: 380 }, { x: 800, y: 240 }, { x: 820, y: 380 }, { x: 200, y: 200 }, { x: 240, y: 420 }],
+  },
+  {
+    name: "Spire of Unmaking",
+    path: [{ x: -20, y: 80 }, { x: 820, y: 80 }, { x: 820, y: 200 }, { x: 160, y: 200 }, { x: 160, y: 320 }, { x: 820, y: 320 }, { x: 820, y: 440 }, { x: 160, y: 440 }, { x: 160, y: 540 }],
+    air: [{ x: -20, y: 200 }, { x: -20, y: 320 }],
+    slots: [{ x: 360, y: 140 }, { x: 600, y: 140 }, { x: 460, y: 260 }, { x: 600, y: 380 }, { x: 360, y: 380 }, { x: 660, y: 260 }, { x: 300, y: 500 }, { x: 840, y: 260 }],
+  },
+  {
+    name: "The Wound at the World's End",
+    path: [{ x: -20, y: 300 }, { x: 140, y: 300 }, { x: 140, y: 100 }, { x: 820, y: 100 }, { x: 820, y: 440 }, { x: 260, y: 440 }, { x: 260, y: 260 }, { x: 600, y: 260 }, { x: 600, y: 380 }, { x: 440, y: 380 }, { x: 440, y: 540 }],
+    air: [{ x: -20, y: 100 }, { x: -20, y: 440 }],
+    slots: [{ x: 230, y: 200 }, { x: 480, y: 180 }, { x: 680, y: 180 }, { x: 760, y: 280 }, { x: 360, y: 340 }, { x: 520, y: 460 }, { x: 360, y: 200 }, { x: 700, y: 440 }],
+  },
 ];
 
 /**
- * Final boss for stages 11–25 (1-indexed continues from BOSS_BY_STAGE). Reuses
+ * Final boss for stages 11–30 (1-indexed continues from BOSS_BY_STAGE). Reuses
  * the existing roster, ordered to escalate within each chapter and climax at the
  * apex boss; the progression curve scales these into elite versions.
  */
@@ -131,4 +166,6 @@ export const BOSS_EXPANSION = [
   "zabro", "madarok", "mukade", "overlord", "meruon",
   // Chapter 4 — Mire Hollow (21–25)
   "akai", "ryomen", "mukade", "madarok", "meruon",
+  // Chapter 5 — The Blight (26–30) — the final ascent; ends at the apex boss
+  "ryomen", "mukade", "madarok", "overlord", "meruon",
 ];

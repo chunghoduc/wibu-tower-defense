@@ -83,6 +83,10 @@ const STAGE_BIOMES: Record<number, StageBiome> = {
   23: { terrainTint: 0xb6f0c2, groundOverlay: 0x10220f, block: ["crystal", "jungle", "water"], decor: ["grass", "crystal"] },
   // 25 — Heart of the Rot: the corruption's beating core
   25: { terrainTint: 0xc0e0a0, groundOverlay: 0x141f14, block: ["water", "jungle", "crystal", "water"], decor: ["crystal", "grass"] },
+  // 28 — Spire of Unmaking: jagged black-crystal ramparts climbing into the void
+  28: { terrainTint: 0xd8c8f0, groundOverlay: 0x1d1430, block: ["crystal", "mountain", "crystal", "stone"], decor: ["crystal", "stone"] },
+  // 30 — The Wound at the World's End: the source, where reality comes apart
+  30: { terrainTint: 0xe6d6ff, groundOverlay: 0x241038, block: ["crystal", "crystal", "stone", "mountain"], decor: ["crystal", "crystal"] },
 };
 
 const STAGES_PER_CHAPTER = 5;

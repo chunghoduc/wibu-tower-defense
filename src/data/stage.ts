@@ -85,7 +85,7 @@ const LAYOUTS: Layout[] = [
 
 /**
  * Final boss for each stage (1-indexed), escalating in difficulty. Chapter 1's
- * ten bosses, then the Chapter 2/3/4 expansion roster (stages 11–25) appended.
+ * ten bosses, then the Chapter 2/3/4/5 expansion roster (stages 11–30) appended.
  */
 export const BOSS_BY_STAGE = [
   "champion", "zabro", "ryomen", "kura", "warden",
@@ -93,12 +93,12 @@ export const BOSS_BY_STAGE = [
   ...BOSS_EXPANSION,
 ];
 
-/** Every campaign layout in stage order: Chapter 1, then the 2/3 expansion. */
+/** Every campaign layout in stage order: Chapter 1, then the 2–5 expansion. */
 const ALL_LAYOUTS: Layout[] = [...LAYOUTS, ...EXPANSION_LAYOUTS];
 
 /** Stage id (with the right `chN-` region prefix) for a global stage number. */
 function stageIdFor(n: number): string {
-  const chapter = n <= 10 ? 1 : n <= 15 ? 2 : n <= 20 ? 3 : 4;
+  const chapter = n <= 10 ? 1 : n <= 15 ? 2 : n <= 20 ? 3 : n <= 25 ? 4 : 5;
   return `ch${chapter}-s${n}`;
 }
 
