@@ -24,11 +24,10 @@ describe("resolveHeroLayers", () => {
     const result = resolveHeroLayers(makeInventory());
     expect(result).toEqual({
       weaponKey: null, weaponType: null, wingKey: null, petKey: null,
-      helmetKey: null, bodyKey: null, glovesKey: null, bootsKey: null,
     });
   });
 
-  it("returns icon keys for worn armour (helmet, body, gloves, boots)", () => {
+  it("does not surface worn armour — the battle hero only shows weapon/wings/pet", () => {
     const inv = makeInventory({
       items: [
         makeItem("h", "leather-cap"),
@@ -39,10 +38,9 @@ describe("resolveHeroLayers", () => {
       equipped: { Helmet: "h", BodyArmor: "b", Gloves: "g", Boots: "t" },
     });
     const result = resolveHeroLayers(inv);
-    expect(result.helmetKey).toBe("item__leather-cap");
-    expect(result.bodyKey).toBe("item__cloth-robe");
-    expect(result.glovesKey).toBe("item__worn-gloves");
-    expect(result.bootsKey).toBe("item__worn-boots");
+    // Armour icons are intentionally absent from the hero layer config.
+    expect(Object.keys(result)).toEqual(["weaponKey", "weaponType", "wingKey", "petKey"]);
+    expect(result.weaponKey).toBeNull();
   });
 
   it("returns weapon texture key and family when a weapon is equipped", () => {

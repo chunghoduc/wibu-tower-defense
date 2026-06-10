@@ -21,29 +21,18 @@ import type { InventorySave } from "../core/save.ts";
 
 type Pose = { x: number; y: number; angle: number; flipX: boolean };
 
-// Worn-armour layers, anchored on the battle body. Offsets/scale are fractions
-// of the hero's target height (the body origin sits low, near the feet, so head
-// gear is the most-negative oy). Tuned to sit the inventory icons on the body.
-type GearSlot = "body" | "boots" | "helmet" | "gloves";
-interface GearAnchor { ox: number; oy: number; scale: number }
-const GEAR_ANCHOR: Record<GearSlot, GearAnchor> = {
-  body:   { ox: 0.00, oy: -0.34, scale: 0.36 },
-  boots:  { ox: 0.00, oy: -0.05, scale: 0.26 },
-  helmet: { ox: 0.00, oy: -0.62, scale: 0.31 },
-  gloves: { ox: 0.19, oy: -0.28, scale: 0.22 },
-};
-
-// Resting hold pose per weapon family (right-hand side; y negative is up).
-// Anchored near the hero's holding hand (centre-ish, belt height) so the larger
-// equipped weapon sits over the base rig's hand rather than off to one side.
+// Resting hold pose per weapon family. The base hero rig already grips a sword in
+// its (viewer-)LEFT hand, so the equipped-weapon overlay is anchored over that
+// same hand (x negative) — a sword-type weapon reads as a clean swap rather than
+// a second blade floating off-centre. y negative is up; x flips with facing.
 const REST_POSE: Record<WeaponType, Pose> = {
-  Sword: { x: 4, y: -13, angle: 20, flipX: false },
-  Fist: { x: 7, y: -11, angle: 0, flipX: false },
-  Bow: { x: 3, y: -13, angle: -42, flipX: false },
-  Gun: { x: 8, y: -12, angle: -8, flipX: false },
-  Staff: { x: 7, y: -18, angle: 8, flipX: false },
-  Tome: { x: 6, y: -10, angle: 0, flipX: false },
-  Any: { x: 5, y: -12, angle: 16, flipX: false },
+  Sword: { x: -6, y: -12, angle: 18, flipX: false },
+  Fist: { x: -7, y: -8, angle: 0, flipX: false },
+  Bow: { x: -8, y: -12, angle: -32, flipX: false },
+  Gun: { x: -6, y: -9, angle: -8, flipX: false },
+  Staff: { x: -8, y: -15, angle: 10, flipX: false },
+  Tome: { x: -6, y: -8, angle: 0, flipX: false },
+  Any: { x: -6, y: -11, angle: 14, flipX: false },
 };
 const DEFAULT_POSE: Pose = REST_POSE.Any;
 
@@ -65,17 +54,12 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   private readonly weaponSprite: Phaser.GameObjects.Sprite;
   private readonly wingsSprite: Phaser.GameObjects.Sprite;
 
-  /** Worn-armour layers (helmet/body/gloves/boots), composited on the body. */
-  private readonly gear: Record<GearSlot, Phaser.GameObjects.Sprite>;
-  private gearScale: Record<GearSlot, number> = { body: 1, boots: 1, helmet: 1, gloves: 1 };
-  private bodyTargetH = 54;
 
   /** Pet wanders outside the container — managed here but positioned separately. */
   readonly petSprite: Phaser.GameObjects.Sprite;
 
   private _lastConfig: HeroLayerConfig = {
     weaponKey: null, weaponType: null, wingKey: null, petKey: null,
-    helmetKey: null, bodyKey: null, glovesKey: null, bootsKey: null,
   };
 
   // Base (un-flapped) scale/anchor captured from scaleToHeight, so the flap and
@@ -119,16 +103,11 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     this.bodySprite = scene.add.sprite(0, 0, "hero__hero").setOrigin(0.5, 0.78);
     this.weaponSprite = scene.add.sprite(DEFAULT_POSE.x, DEFAULT_POSE.y, "__missing").setVisible(false).setScale(0.22);
 
-    // Worn-armour layers — composited over the body, behind the held weapon.
-    const mkGear = () => scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.5);
-    this.gear = { body: mkGear(), boots: mkGear(), helmet: mkGear(), gloves: mkGear() };
-
-    // Back→front: wings · body · body-armour · boots · helmet · gloves · weapon.
-    this.add([
-      this.wingsSprite, this.bodySprite,
-      this.gear.body, this.gear.boots, this.gear.helmet, this.gear.gloves,
-      this.weaponSprite,
-    ]);
+    // Back→front: wings · body · weapon. (Worn armour isn't composited on the
+    // battle body — the rig already reads as a fully-armoured knight, and flat
+    // inventory icons pasted on top read as stickers; equipped gear is shown as
+    // icon tiles + stats on the equipment screen instead.)
+    this.add([this.wingsSprite, this.bodySprite, this.weaponSprite]);
 
     this.petSprite = scene.add.sprite(x + 30, y + 8, "__missing").setVisible(false).setScale(0.32);
 
@@ -175,35 +154,8 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     this.wingsSprite.y = this.wingBaseY + hover;
     this.bodySprite.setFlipX(this.facingLeft);
     if (!busy) this.applyWeaponPose(hover);
-    this.layoutGear(hover);
 
     this.updatePet(now, dt);
-  }
-
-  /** Position the worn-armour layers on the body for the current facing + hover. */
-  private layoutGear(hover: number): void {
-    const side = this.facingLeft ? -1 : 1;
-    const H = this.bodyTargetH;
-    for (const slot of Object.keys(this.gear) as GearSlot[]) {
-      const sp = this.gear[slot];
-      if (!sp.visible) continue;
-      const a = GEAR_ANCHOR[slot];
-      sp.setPosition(a.ox * H * side, a.oy * H + hover);
-      sp.setFlipX(this.facingLeft);
-    }
-  }
-
-  /** Swap a gear layer's texture (and recompute its on-body scale) when it changes. */
-  private syncGear(slot: GearSlot, key: string | null, prevKey: string | null): void {
-    if (key === prevKey) return;
-    const sp = this.gear[slot];
-    if (key && this.scene.textures.exists(key)) {
-      sp.setTexture(key).setVisible(true);
-      this.gearScale[slot] = (GEAR_ANCHOR[slot].scale * this.bodyTargetH) / sp.height;
-      sp.setScale(this.gearScale[slot]);
-    } else {
-      sp.setVisible(false);
-    }
   }
 
   /** Place the held weapon at its resting pose for the current weapon + facing. */
@@ -360,11 +312,10 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   }
 
   scaleToHeight(targetPx: number): this {
-    this.bodyTargetH = targetPx;
     const scale = targetPx / this.bodySprite.height;
-    // Held weapon reads clearly (the icon was previously a ~6px speck lost against
-    // the body) while staying small enough to sit over the hand, not dominate.
-    this.weaponScale = scale * 0.92;
+    // Held weapon is sized to sit over the rig's own sword in the hand so a swap
+    // reads as one weapon, not a small icon floating beside the baked blade.
+    this.weaponScale = scale * 1.15;
     this.wingScale = scale * 1.85;
     // Anchor the wing root at the hero's mid-back so the pair fans up-and-out
     // behind the shoulders instead of poking straight up like ears.
@@ -447,12 +398,6 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
         this.petSprite.setVisible(false);
       }
     }
-
-    this.syncGear("helmet", config.helmetKey, this._lastConfig.helmetKey);
-    this.syncGear("body", config.bodyKey, this._lastConfig.bodyKey);
-    this.syncGear("gloves", config.glovesKey, this._lastConfig.glovesKey);
-    this.syncGear("boots", config.bootsKey, this._lastConfig.bootsKey);
-    this.layoutGear(this.bodySprite.y);
 
     this._lastConfig = config;
   }

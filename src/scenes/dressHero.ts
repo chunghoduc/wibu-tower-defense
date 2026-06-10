@@ -1,10 +1,10 @@
 // src/scenes/dressHero.ts
 //
 // Overlay a hero figure with the player's equipped OUTFIT — weapon (held), wings
-// (back), helmet, body armour, gloves, boots and pet — at body-anchored
-// positions. Rings and the amulet are intentionally skipped (they don't read as
-// worn gear at a glance). Used on the main menu so the throne hero visibly wears
-// what the player has equipped.
+// (back) and pet — at body-anchored positions. Worn armour and accessories are
+// intentionally skipped: the hero figure is already drawn as an armoured knight,
+// so flat inventory icons pasted on top read as stickers. Used on the main menu
+// so the throne hero visibly wields its weapon, wings and companion.
 import Phaser from "phaser";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import type { InventorySave } from "../core/save.ts";
@@ -18,14 +18,13 @@ interface OutfitAnchor {
   depth: number; // relative to the hero sprite's depth
 }
 
-// Draw order back→front: wings behind the body, armour on the torso, weapon/pet
-// in front. Rings + Amulet are excluded by omission.
+// Draw order back→front: wings behind the body, then the held weapon and pet in
+// front. Worn armour (helmet/body/gloves/boots) is intentionally NOT overlaid:
+// the hero figure already reads as a fully-armoured knight, and pasting flat
+// inventory icons on top reads as stickers (helmet over the face, boots on the
+// thigh). Rings + Amulet are likewise excluded — they don't read at a glance.
 const OUTFIT: OutfitAnchor[] = [
   { slot: "Wing",      nx: 0.50, ny: 0.30, scale: 0.85, depth: -1 },
-  { slot: "BodyArmor", nx: 0.50, ny: 0.44, scale: 0.40, depth: 1 },
-  { slot: "Helmet",    nx: 0.50, ny: 0.11, scale: 0.27, depth: 2 },
-  { slot: "Boots",     nx: 0.50, ny: 0.92, scale: 0.28, depth: 2 },
-  { slot: "Gloves",    nx: 0.86, ny: 0.54, scale: 0.24, depth: 3 },
   { slot: "Weapon",    nx: 0.14, ny: 0.52, scale: 0.52, depth: 3 },
   { slot: "Pet",       nx: 0.92, ny: 0.84, scale: 0.42, depth: 4 },
 ];
