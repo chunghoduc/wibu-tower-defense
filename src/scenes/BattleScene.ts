@@ -22,6 +22,9 @@ import { BattleState } from "../core/battle.ts";
 import { loadCatalog, type Catalog } from "../data/catalog.ts";
 import { defaultHeroStats, STAGE_1, WORLD_WIDTH, WORLD_HEIGHT, stageNumber } from "../data/stage.ts";
 import { endlessArenaStage } from "../core/endlessArena.ts";
+import { bgKey } from "../data/bgManifest.ts";
+import { buildEndlessBackdrop } from "../core/endlessBackdrop.ts";
+import { EndlessBackdropFx } from "./endlessBackdropFx.ts";
 import type { CharacterDef, Difficulty, StageDef } from "../data/schema.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
@@ -69,6 +72,7 @@ export class BattleScene extends Phaser.Scene {
   avatarTiles: Phaser.GameObjects.Container[] = [];
   avatarPulses: Phaser.Tweens.Tween[] = [];   // breathing-glow tweens on rarer build-bar cards
   terrainSprites: Phaser.GameObjects.Image[] = [];
+  endlessBackdropFx: EndlessBackdropFx | null = null;
   placeGhost: Phaser.GameObjects.Container | null = null;
   gameSpeed = 1;
   speedBtn!: Phaser.GameObjects.Text;
@@ -131,6 +135,8 @@ export class BattleScene extends Phaser.Scene {
     this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
     this.avatarPulses = [];
     this.terrainSprites = [];
+    this.endlessBackdropFx?.destroy();
+    this.endlessBackdropFx = null;
     this.placeGhost = null;
 
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
@@ -268,17 +274,30 @@ export class BattleScene extends Phaser.Scene {
     // Prefer the design team's hand-painted per-stage backdrop; fall back to the
     // per-chapter SDXL backdrop, then a flat ground tint.
     const stageBg = stageBgKey(this.stage.id);
-    const bgKeyToUse = this.textures.exists(stageBg) ? stageBg : (this.textures.exists(theme.bgKey) ? theme.bgKey : null);
+    const endlessBg = bgKey("endless-siege");
+    const bgKeyToUse = this.stage.arena && this.textures.exists(endlessBg)
+      ? endlessBg
+      : this.textures.exists(stageBg) ? stageBg
+      : this.textures.exists(theme.bgKey) ? theme.bgKey : null;
     if (bgKeyToUse) {
       const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
       bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
       this.world.add(bg);
       this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
-      // Lighter veil for the painted per-stage art (it's already balanced).
-      const veil = bgKeyToUse === stageBg ? 0.22 : 0.4;
+      // Lighter veil for painted art; lighter still for endless (vignette darkens it).
+      const veil = bgKeyToUse === endlessBg ? 0.12 : bgKeyToUse === stageBg ? 0.22 : 0.4;
       g.fillStyle(theme.groundOverlay, veil).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     } else {
       g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    }
+    // Endless: build the animated siege-atmosphere layer over the base, centered on
+    // the arena castle (same stage-number seed as the maze). Rebuilt each drawStatic.
+    this.endlessBackdropFx?.destroy();
+    this.endlessBackdropFx = null;
+    if (this.stage.arena) {
+      const seed = stageNumber(this.stage.id) || 1;
+      const spec = buildEndlessBackdrop(this.stage.arena, { width: WORLD_WIDTH, height: WORLD_HEIGHT }, seed);
+      this.endlessBackdropFx = new EndlessBackdropFx(this, spec, this.world);
     }
     // terrain features (T13): SVG art authored by the svg-asset-gen skill, drawn
     // as images above the ground but below units (depth 1). Falls back to a
@@ -395,11 +414,12 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  update(_time: number, deltaMs: number): void {
+  update(time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.05);
     this.handleKeyboardHero();
     for (let i = 0; i < this.gameSpeed; i++) this.battle.tick(dt); // 0 = paused, 2/3 = fast-forward
     this.draw();
+    this.endlessBackdropFx?.update(time);
   }
 }
 
