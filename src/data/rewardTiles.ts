@@ -20,15 +20,18 @@ import { skillIconKey } from "./skillIconManifest.ts";
 import { TOWERS } from "./towers.ts";
 import { MATERIALS_MAP } from "./materials.ts";
 import { boxOdds, boxOddsText } from "../core/boxes.ts";
+import {
+  goldIcon, diamondIcon, xpIcon, itemIcon, jewelIcon, materialIcon,
+  RARITY_INT, GOLD_INT, DIAMOND_INT, MAT_INT, XP_INT,
+} from "./rewardIcon.ts";
 
-const RARITY_ORDER: Rarity[] = ["Common", "Magic", "Rare", "Legendary", "Unique"];
+// Color ints live in rewardIcon.ts (the single icon source of truth); re-export
+// for any external caller that imported them from here historically.
+export { GOLD_INT, DIAMOND_INT, MAT_INT, XP_INT };
+
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#c8d2dc", Magic: "#5fa8ff", Rare: "#c98bff", Legendary: "#ffb74d", Unique: "#ff7a7a",
 };
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
-};
-export const GOLD_INT = 0xffcf4d, DIAMOND_INT = 0x7ec8ff, MAT_INT = 0xa5d6a7, XP_INT = 0x9cc6ff;
 
 /** How a tile's hover detail should be rendered. */
 export type TileTooltip =
@@ -77,22 +80,25 @@ function hex(int: number): string {
 // ---- Per-kind tile builders --------------------------------------------------
 
 function goldTile(n: number): RewardTileSpec {
+  const v = goldIcon();
   return {
-    iconKey: "icon__gold", emoji: "🪙", label: `+${n}`, color: GOLD_INT,
+    iconKey: v.iconKey, emoji: v.emoji, label: `+${n}`, color: v.color,
     tooltip: { kind: "info", data: { title: "Gold", titleColor: hex(GOLD_INT), borderColor: GOLD_INT, subtitle: `+${n}`, body: "Everyday currency — spend it in the Shop and on upgrades." } },
   };
 }
 
 function diamondTile(n: number): RewardTileSpec {
+  const v = diamondIcon();
   return {
-    iconKey: "icon__gem", emoji: "💎", label: `+${n}`, color: DIAMOND_INT,
+    iconKey: v.iconKey, emoji: v.emoji, label: `+${n}`, color: v.color,
     tooltip: { kind: "info", data: { title: "Diamonds", titleColor: hex(DIAMOND_INT), borderColor: DIAMOND_INT, subtitle: `+${n}`, body: "Premium currency — used for summons and rare shop deals." } },
   };
 }
 
 function xpTile(n: number): RewardTileSpec {
+  const v = xpIcon();
   return {
-    iconKey: "icon__xp", emoji: "⭐", label: `+${n}`, color: XP_INT,
+    iconKey: v.iconKey, emoji: v.emoji, label: `+${n}`, color: v.color,
     tooltip: { kind: "info", data: { title: "Hero XP", titleColor: hex(XP_INT), borderColor: XP_INT, subtitle: `+${n} XP`, body: "Experience earned from kills — levels your hero up." } },
   };
 }
@@ -100,8 +106,9 @@ function xpTile(n: number): RewardTileSpec {
 function itemTile(inst: ItemInstanceSave): RewardTileSpec {
   const def = ITEM_CATALOG_MAP.get(inst.defId);
   const rarity = def?.rarity ?? "Common";
+  const v = itemIcon(rarity, inst.defId);
   return {
-    iconKey: `item__${inst.defId}`, emoji: "📦", label: rarity, color: RARITY_INT[rarity],
+    iconKey: v.iconKey, emoji: v.emoji, label: rarity, color: v.color,
     tooltip: { kind: "item", inst },
   };
 }
@@ -109,9 +116,10 @@ function itemTile(inst: ItemInstanceSave): RewardTileSpec {
 function jewelTile(inst: JewelInstanceSave): RewardTileSpec {
   const def = JEWEL_CATALOG_MAP.get(inst.defId);
   const rarity = def?.rarity ?? "Common";
+  const v = jewelIcon(rarity, inst.defId);
   return {
-    iconKey: `jewel__${inst.defId}`, emoji: "💠", label: rarity, color: RARITY_INT[rarity],
-    tooltip: { kind: "info", data: { title: def?.name ?? "Jewel", titleColor: RARITY_HEX[rarity], borderColor: RARITY_INT[rarity], subtitle: `${rarity} Jewel`, body: def?.description } },
+    iconKey: v.iconKey, emoji: v.emoji, label: rarity, color: v.color,
+    tooltip: { kind: "info", data: { title: def?.name ?? "Jewel", titleColor: RARITY_HEX[rarity], borderColor: v.color, subtitle: `${rarity} Jewel`, body: def?.description } },
   };
 }
 
@@ -141,15 +149,13 @@ function boxOddsBody(id: string, desc?: string): string {
 
 function materialTile(id: string, n: number): RewardTileSpec {
   const def = MATERIALS_MAP.get(id);
-  // Boxes only ship a `box__<id>` texture; other materials use `material__<id>`.
   const isBox = def?.kind === "box";
-  const iconKey = isBox ? `box__${id}` : `material__${id}`;
-  const color = isBox && def?.rarity ? RARITY_INT[RARITY_ORDER[def.rarity - 1] ?? "Common"] : MAT_INT;
+  const v = materialIcon(id); // box__<id>+rarity color, or material__<id>+MAT color
   const subtitle = isBox ? `Tier ${boxOdds(id).tier} Boss Chest · ×${n}` : `×${n}`;
   const body = isBox ? boxOddsBody(id, def?.description) : def?.description;
   return {
-    iconKey, emoji: isBox ? "🎁" : "💠", label: `×${n}`, color,
-    tooltip: { kind: "info", data: { title: def?.name ?? id, titleColor: hex(color), borderColor: color, subtitle, body } },
+    iconKey: v.iconKey, emoji: v.emoji, label: `×${n}`, color: v.color,
+    tooltip: { kind: "info", data: { title: def?.name ?? id, titleColor: hex(v.color), borderColor: v.color, subtitle, body } },
   };
 }
 
