@@ -4,13 +4,13 @@ import { performMultiSummon, performSummon, type SummonResult } from "./gacha.ts
 import { awardHeroXp } from "./hero.ts";
 import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
 import { ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, type PurchaseResult } from "./shop.ts";
-import { smeltItem, type SmeltResult } from "./smelt.ts";
+import { smeltItem, bulkSmelt, type SmeltResult, type BulkSmeltResult } from "./smelt.ts";
 import { reforgeItem, type ReforgeResult } from "./reforge.ts";
 import { SUMMON_SCROLL, OBLIVION_ORB } from "../data/materials.ts";
 import type { ShopStockEntry } from "./save.ts";
 import { attemptEnhance, type EnhanceResult } from "./enhance.ts";
 import { openBox, type BoxReward } from "./boxes.ts";
-import type { ItemSlot } from "../data/schema.ts";
+import type { ItemSlot, Rarity } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 import type { Difficulty } from "../data/schema.ts";
 import { createFreshSave, type GameSettings, type HeroSave, type SaveProvider } from "./save.ts";
@@ -336,6 +336,13 @@ export class SaveManagerCore {
   smeltItem(instanceId: string): SmeltResult {
     const r = smeltItem(this.save, instanceId);
     if (r.ok) this.persist();
+    return r;
+  }
+
+  /** Bulk-smelt every non-equipped item of the given rarities into chaos. */
+  bulkSmeltItems(rarities: Rarity[]): BulkSmeltResult {
+    const r = bulkSmelt(this.save, rarities);
+    if (r.count > 0) this.persist();
     return r;
   }
 
