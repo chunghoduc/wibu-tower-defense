@@ -17,6 +17,7 @@ import { renderItemTooltip } from "./itemTooltip.ts";
 import { renderInfoTooltip } from "./infoTooltip.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { battleLootTiles, type BattleLootSummary, type RewardTileSpec } from "../data/rewardTiles.ts";
+import { makeFitIcon } from "./itemIcon.ts";
 
 const TILE = 56, GAP = 8, PER_ROW = 8;
 const ROW_H = TILE + 22;     // tile + room for the count/rarity label
@@ -178,11 +179,9 @@ function buildTile(
   bg.lineStyle(2, spec.color, 1).strokeRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 8);
   c.add(bg);
 
-  if (scene.textures.exists(spec.iconKey)) {
-    c.add(scene.add.image(0, -4, spec.iconKey).setDisplaySize(36, 36));
-  } else {
-    c.add(scene.add.text(0, -4, spec.emoji, { fontSize: "24px" }).setOrigin(0.5));
-  }
+  // Scale-to-fill (TILE-aware) so a looted item reads the same size here as in
+  // the bag/shop — not the old tiny fixed 36px that made fresh loot look "off".
+  c.add(makeFitIcon(scene, 0, -4, spec.iconKey, TILE - 14, spec.emoji));
   c.add(crispText(scene, 0, TILE / 2 - 13, spec.label, { fontSize: "10px", color: hex(spec.color), fontStyle: "bold" }).setOrigin(0.5, 0));
 
   c.setSize(TILE, TILE).setInteractive({ useHandCursor: true });

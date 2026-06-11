@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { SaveManager } from "../core/saveManager.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import { jewelIconKey } from "../data/jewelIconManifest.ts";
+import { makeFitIcon } from "./itemIcon.ts";
 import type { Rarity } from "../data/schema.ts";
 
 const RARITY_TINT: Record<Rarity, number> = {
@@ -124,13 +125,9 @@ export class JewelOverlay {
     cell.on("pointerdown", onPick);
     c.add(cell);
 
-    const iconKey = jewelIconKey(defId);
-    if (this.scene.textures.exists(iconKey)) {
-      const img = this.scene.add.image(0, -14, iconKey).setDisplaySize(40, 40);
-      c.add(img);
-    } else {
-      c.add(this.scene.add.star(0, -14, 6, 7, 14, tint));
-    }
+    // Shared scale-to-fill rule (matches bag/shop/loot) so a jewel reads the
+    // same size everywhere; falls back to the emoji only if its art is missing.
+    c.add(makeFitIcon(this.scene, 0, -14, jewelIconKey(defId), 46, "💠"));
     c.add(this.scene.add.text(0, 20, name, {
       fontSize: "10px", color: "#dddddd", align: "center", wordWrap: { width: 82 },
     }).setOrigin(0.5, 0));

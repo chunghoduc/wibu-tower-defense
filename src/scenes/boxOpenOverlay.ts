@@ -3,6 +3,7 @@ import type { BoxReward } from "../core/boxes.ts";
 import { tierOfBox } from "../core/boxes.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { boxRewardEntries } from "../data/boxRewardView.ts";
+import { makeFitIcon } from "./itemIcon.ts";
 
 const ADD = Phaser.BlendModes.ADD;
 
@@ -120,11 +121,10 @@ export class BoxOpenOverlay {
       g.lineStyle(2, col, 1).strokeRoundedRect(-tw / 2, -36, tw, 72, 8);
       tile.add(g);
 
-      if (e.iconKey && s.textures.exists(e.iconKey)) {
-        tile.add(s.add.image(0, -8, e.iconKey).setDisplaySize(34, 34));
-      } else {
-        tile.add(s.add.text(0, -8, e.kind === "gold" ? "🪙" : e.kind === "item" ? "📦" : "💠", { fontSize: "24px" }).setOrigin(0.5));
-      }
+      // Same scale-to-fill rule as the bag/shop so a looted item looks identical
+      // to how it reads everywhere else (was a tiny fixed 34px → looked "old").
+      const fallback = e.kind === "gold" ? "🪙" : e.kind === "item" ? "📦" : "💠";
+      tile.add(makeFitIcon(s, 0, -8, e.iconKey ?? "", 50, fallback));
       const label = e.kind === "gold" || e.kind === "diamond" ? `+${e.count}` : e.count > 1 ? `${e.name} ×${e.count}` : e.name;
       tile.add(s.add.text(0, 22, label, { fontSize: "9px", color: e.color, align: "center", wordWrap: { width: tw - 8 }, fontStyle: "bold" }).setOrigin(0.5, 0));
       this.root!.add(tile);
