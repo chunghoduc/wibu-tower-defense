@@ -31,29 +31,29 @@ export function openAutoRecycleDialog(
   const c = scene.add.container(0, 0).setDepth(300);
 
   const dim = scene.add.graphics();
-  dim.fillStyle(0x000000, 0.55).fillRect(0, 0, W, H);
+  dim.fillStyle(0x000000, 0.74).fillRect(0, 0, W, H);
   const dimZone = scene.add.zone(W / 2, H / 2, W, H).setInteractive().on("pointerup", () => opts.onClose());
   c.add([dim, dimZone]);
 
-  const bw = 360, bh = 232, bx = (W - bw) / 2, by = (H - bh) / 2;
+  const bw = 384, bh = 248, bx = (W - bw) / 2, by = (H - bh) / 2;
   const panel = scene.add.graphics();
   panel.fillStyle(0x141c28, 0.99).fillRoundedRect(bx, by, bw, bh, 10);
   panel.lineStyle(2, CHAOS_COL, 1).strokeRoundedRect(bx, by, bw, bh, 10);
   const panelZone = scene.add.zone(bx + bw / 2, by + bh / 2, bw, bh).setInteractive(); // swallow clicks
   c.add([panel, panelZone]);
 
-  c.add(crispText(scene, W / 2, by + 14, "Auto Recycle", { fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0));
-  c.add(crispText(scene, W / 2, by + 38, "Smelt every spare item of the picked rarities", { fontSize: "11px", color: "#9fb0c4", align: "center" }).setOrigin(0.5, 0));
+  c.add(crispText(scene, W / 2, by + 16, "Auto Recycle", { fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0));
+  c.add(crispText(scene, W / 2, by + 40, "Pick rarities, then smelt them all", { fontSize: "11px", color: "#9fb0c4", align: "center" }).setOrigin(0.5, 0));
 
   // Live preview line; re-rendered on every toggle.
-  const previewText = crispText(scene, W / 2, by + 122, "", { fontSize: "13px", color: "#ffd6a0", align: "center" }).setOrigin(0.5, 0);
+  const previewText = crispText(scene, W / 2, by + 128, "", { fontSize: "13px", color: "#ffd6a0", align: "center" }).setOrigin(0.5, 0);
   c.add(previewText);
 
   const chipObjs: { r: Rarity; bg: Phaser.GameObjects.Graphics; label: Phaser.GameObjects.Text }[] = [];
-  const chipW = 96, chipH = 34, gap = 12;
+  const chipW = 96, chipH = 34, gap = 14;
   const totalW = AUTO_SMELT_RARITIES.length * chipW + (AUTO_SMELT_RARITIES.length - 1) * gap;
   let cx = (W - totalW) / 2;
-  const chipY = by + 64;
+  const chipY = by + 70;
   let smeltBtn!: Phaser.GameObjects.Text;
 
   function render(): void {
@@ -85,7 +85,7 @@ export function openAutoRecycleDialog(
     cx += chipW + gap;
   }
 
-  smeltBtn = crispText(scene, W / 2, by + 154, "🔨 Smelt All", { fontSize: "14px", color: "#fff", backgroundColor: "#7a3a5a", fixedWidth: bw - 60, align: "center" })
+  smeltBtn = crispText(scene, W / 2, by + 162, "🔨 Smelt All", { fontSize: "14px", color: "#fff", backgroundColor: "#7a3a5a", fixedWidth: bw - 72, align: "center" })
     .setOrigin(0.5, 0).setPadding(0, 9, 0, 9).setInteractive({ useHandCursor: true });
   smeltBtn.on("pointerup", () => {
     const sel = [...selected];
