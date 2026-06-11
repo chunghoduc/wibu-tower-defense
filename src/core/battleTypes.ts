@@ -43,7 +43,7 @@ export type FxEvent =
   | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
   | { type: "death"; at: Vec2; boss: boolean; elite: boolean; bounty: number }
   | { type: "enemyAttack"; uid: number; at: Vec2; targetAt: Vec2; target: "hero" | "tower" }
-  | { type: "cast"; uid: number; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
+  | { type: "cast"; uid: number; from: Vec2; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
   | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }

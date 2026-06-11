@@ -77,7 +77,7 @@ export class FxLayer {
         this.damageNumber(e.at, Math.round(e.amount), DMG_NUM_COLOR[e.damageType], e.aoe);
         break;
       case "cast":
-        this.skillVfx.cast(e.at, e.radius, e.skillId, e.source);
+        this.skillVfx.cast(e.from, e.at, e.radius, e.skillId, e.source);
         break;
       case "splash":
         this.ring(e.at, e.radius, DMG_COLOR[e.damageType], 320);

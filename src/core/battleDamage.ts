@@ -253,13 +253,14 @@ export const damageMethods = {
     effAtk: number,
     damageType: DamageType,
     center: Vec2,
+    from: Vec2,
     source: "tower" | "hero",
     uid: number,
     skillId?: string,
     defenseScale?: { armor?: number; magicResist?: number; maxHp?: number },
     powerMult = 2,
   ): void {
-    this.emit({ type: "cast", uid, at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
+    this.emit({ type: "cast", uid, from: { x: from.x, y: from.y }, at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
     const sp = Math.max(1, attacker.skillPower);
     let burst = effAtk * powerMult * sp;
     let detail = `atk ${effAtk.toFixed(1)} ×${powerMult.toFixed(2)} ×skillPower ${sp.toFixed(2)}`;

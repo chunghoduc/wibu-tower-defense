@@ -74,7 +74,7 @@ export const towerMethods = {
       if (t.def.role !== "support" && t.mana >= MANA_MAX) {
         // Skills may deal True damage (the only path to True).
         const activeType = t.behavior?.activeType ?? t.def.damageType;
-        this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
+        this.castActive(t.stats, effAtk, activeType, target.pos, t.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
         t.mana = 0;
       }
       t.attackCd = 1 / effAs;

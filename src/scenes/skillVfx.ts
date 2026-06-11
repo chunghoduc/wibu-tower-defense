@@ -33,7 +33,8 @@ export class SkillVfx {
   /** Render a skill cast. Hero active skills each have a UNIQUE bespoke signature
    *  (skillSignatures.ts); everything else (tower actives) falls back to the
    *  keyword-derived elemental style. */
-  cast(at: V, radius: number, skillId: string | undefined, source: "tower" | "hero"): void {
+  cast(from: V, at: V, radius: number, skillId: string | undefined, source: "tower" | "hero"): void {
+    void from;
     const spec = skillVfxSpec(skillId);
     if (spec) {
       // A unique per-skill set-piece. baseBurst carries the icon emblem flare;

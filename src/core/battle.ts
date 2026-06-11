@@ -479,7 +479,7 @@ export class BattleState {
       // The equipped active drives both the burst size (its levelled power) and
       // the damage type — a True/Magic skill casts True/Magic even on a Physical
       // weapon. Falls back to the legacy ×2 / weapon type when nothing is equipped.
-      this.castActive(h.stats, h.stats.atk, h.activeDamageType ?? h.damageType, target.pos, "hero", -1, h.equippedSkillId, undefined, h.activeMult ?? 2);
+      this.castActive(h.stats, h.stats.atk, h.activeDamageType ?? h.damageType, target.pos, h.pos, "hero", -1, h.equippedSkillId, undefined, h.activeMult ?? 2);
       h.mana = 0;
       // Skill leveling (spec: +1 use-XP per cast, capped at the hero's level).
       // Written straight into the live save like kill XP; the scene flushes after

@@ -110,6 +110,24 @@ describe("hero cast plumbing", () => {
     expect(entry.level > 1 || entry.useXp > 0).toBe(true);
   });
 
+  it("tags the cast event with the caster's position (fly-from-source plumbing)", () => {
+    const b = heroBattleCasting("execute-slash");
+    b.hero.stats.range = 400;
+    b.hero.stats.attackSpeed = 10;
+    let castFrom: { x: number; y: number } | null = null;
+    let heroPos: { x: number; y: number } | null = null;
+    for (let t = 0; t < 160 && castFrom === null; t++) {
+      b.hero.mana = MANA_MAX;
+      heroPos = { x: b.hero.pos.x, y: b.hero.pos.y };
+      b.tick(0.05);
+      for (const fx of b.fx) if (fx.type === "cast" && fx.source === "hero") castFrom = fx.from;
+    }
+    expect(castFrom).not.toBeNull();
+    // `from` is the hero's own position at cast time, distinct from the target `at`.
+    expect(castFrom!.x).toBeCloseTo(heroPos!.x, 1);
+    expect(castFrom!.y).toBeCloseTo(heroPos!.y, 1);
+  });
+
   it("casts the equipped skill's damage type, not the weapon's", () => {
     // true-strike deals True; the hero's weapon defaults to Physical. The cast
     // must come out True — the equipped skill drives the burst type.
