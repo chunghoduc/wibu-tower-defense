@@ -8,12 +8,13 @@ import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
-import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type Rarity } from "../data/schema.ts";
+import { renderCompareDialog } from "./itemCompareDialog.ts";
+import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type Rarity, type ItemDef } from "../data/schema.ts";
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
+import { renderHeroStats } from "./heroStatsPanel.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS, MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName, type MaterialKind } from "../data/materials.ts";
-import { enhanceChance, jewelForLevel, MAX_ENHANCE } from "../core/enhance.ts";
-import { enhancePreviewRows } from "../data/itemDisplay.ts";
+import { renderEnhanceDialog } from "./itemEnhanceDialog.ts";
 import { crispText, panelText } from "./ui.ts";
 import { drawScrollbar } from "./scrollbar.ts";
 import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
@@ -42,6 +43,8 @@ export class HeroScene extends Phaser.Scene {
   private slotZones = new Map<ItemSlot, Phaser.GameObjects.Zone>();
   private slotPos = new Map<ItemSlot, { x: number; y: number }>();
   private invRect = { x: 360, y: 96, w: 580, h: 380 };
+  private statsBox!: Phaser.GameObjects.Container;
+  private static readonly STATS_PANEL = { x: 26, y: 398, w: 300, h: 136 };
   private tooltip!: Phaser.GameObjects.Container;
   private toast!: Phaser.GameObjects.Text;
   private filter: InvFilter = "items";
@@ -126,6 +129,13 @@ export class HeroScene extends Phaser.Scene {
       .setOrigin(0).setRectangleDropZone(this.invRect.w, this.invRect.h);
     invZone.setData("inv", true);
 
+    // Hero total-stats panel — sits directly under the paper-doll (left column).
+    const sp = HeroScene.STATS_PANEL;
+    const spG = this.add.graphics();
+    spG.fillStyle(0x0e1622, 0.92).fillRoundedRect(sp.x, sp.y, sp.w, sp.h, 10);
+    spG.lineStyle(2, 0x2a3a56, 1).strokeRoundedRect(sp.x, sp.y, sp.w, sp.h, 10);
+    this.statsBox = this.add.container(0, 0).setDepth(6);
+
     this.tiles = this.add.container(0, 0).setDepth(10); // item tiles sit above the doll/base
     this.tooltip = this.add.container(0, 0).setDepth(200).setVisible(false);
     this.dialog = this.add.container(0, 0).setDepth(240).setVisible(false);
@@ -204,6 +214,8 @@ export class HeroScene extends Phaser.Scene {
   private refresh(): void {
     this.tiles.removeAll(true);
     const save = this.mgr.getSave();
+    this.statsBox.removeAll(true);
+    renderHeroStats(this, this.statsBox, HeroScene.STATS_PANEL, save);
     this.catChips.setVisible(this.filter === "items");
     this.catChips.update(this.itemCategory);
 
@@ -323,7 +335,7 @@ export class HeroScene extends Phaser.Scene {
     c.add(glow);
     c.on("pointerover", () => { this.showTooltip(inst, x, y); glow.setVisible(true); c.setDepth(30); this.tweens.add({ targets: c, scaleX: 1.12, scaleY: 1.12, duration: 90, ease: "Back.easeOut" }); });
     c.on("pointerout", () => { this.hideTooltip(); glow.setVisible(false); c.setDepth(8); this.tweens.add({ targets: c, scaleX: 1, scaleY: 1, duration: 120, ease: "Quad.easeOut" }); });
-    c.on("pointerup", () => { if (!this.didDrag && !this.invDrag.didScroll()) this.openEnhance(inst.id); }); // tap = enhance
+    c.on("pointerup", () => { if (!this.didDrag && !this.invDrag.didScroll()) this.openItemAction(inst, fromSlot); }); // tap = compare-to-replace or enhance
     return c;
   }
 
@@ -371,81 +383,79 @@ export class HeroScene extends Phaser.Scene {
     this.boxOverlay.play(boxId, reward);
   }
 
-  /** The MU-style enhance dialog for an item (T13). */
-  private openEnhance(instanceId: string): void {
+  /**
+   * Tapping an item decides between two flows: a bag item whose equip slot is
+   * already full opens the compare-and-replace dialog; otherwise (slot free, or
+   * the tile is already equipped) we go straight to enhance.
+   */
+  private openItemAction(inst: ItemInstanceSave, fromSlot: ItemSlot | null): void {
     const save = this.mgr.getSave();
-    const inst = save.inventory.items.find((it) => it.id === instanceId);
-    const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
-    if (!inst || !def) return;
+    const def = ITEM_CATALOG_MAP.get(inst.defId);
+    if (!def) return;
+    if (!fromSlot) {
+      const candidates = equipSlotsFor(def.slot);
+      const freeSlot = candidates.find((s) => !save.inventory.equipped[s]);
+      if (freeSlot === undefined) {
+        // Every fitting slot is full → compare against the item we'd displace.
+        const targetSlot = candidates[0];   // equipItem replaces the first slot too
+        const eqInst = save.inventory.items.find((it) => it.id === save.inventory.equipped[targetSlot]);
+        const eqDef = eqInst ? ITEM_CATALOG_MAP.get(eqInst.defId) : undefined;
+        if (eqInst && eqDef && eqInst.id !== inst.id) {
+          this.openCompare(inst, def, eqInst, eqDef, targetSlot);
+          return;
+        }
+      } else {
+        // A slot is open → enhance dialog with an Equip button that fills it.
+        this.openEnhance(inst.id, freeSlot);
+        return;
+      }
+    }
+    this.openEnhance(inst.id);
+  }
+
+  /** Side-by-side compare of a bag item against the equipped item it would replace. */
+  private openCompare(bagInst: ItemInstanceSave, bagDef: ItemDef, eqInst: ItemInstanceSave, eqDef: ItemDef, slot: ItemSlot): void {
     this.hideTooltip();
     this.dialog.removeAll(true);
+    renderCompareDialog(this, this.dialog, { inst: bagInst, def: bagDef }, { inst: eqInst, def: eqDef }, slot, {
+      onReplace: () => {
+        if (this.mgr.equipItem(bagInst.id, slot)) {
+          this.dialog.setVisible(false);
+          this.showToast(`Equipped ${bagDef.name}`);
+          this.refresh();
+        } else {
+          this.showToast(`Requires level ${bagInst.requiredLevel ?? bagDef.requiredLevel}`);
+        }
+      },
+      onEnhance: () => { this.dialog.setVisible(false); this.openEnhance(bagInst.id); },
+      onClose: () => this.dialog.setVisible(false),
+    });
+  }
 
-    const numStats = Object.values(inst.rolledStats).filter((v) => typeof v === "number").length;
-    const ROW_H = 20, STATS_TOP = 44;
-    const W = 360, dx = (this.scale.width - W) / 2;
-    // Height grows with the stat list so every stat's before/after is visible.
-    const H = STATS_TOP + Math.max(1, numStats) * ROW_H + 96;
-    const dy = Math.max(80, (this.scale.height - H) / 2 - 20);
-    const g = this.add.graphics();
-    g.fillStyle(0x070b12, 0.6).fillRect(0, 0, this.scale.width, this.scale.height); // scrim
-    g.fillStyle(0x141c28, 1).fillRoundedRect(dx, dy, W, H, 10);
-    g.lineStyle(2, RARITY_INT[def.rarity], 1).strokeRoundedRect(dx, dy, W, H, 10);
-    const scrim = this.add.zone(0, 0, this.scale.width, this.scale.height).setOrigin(0).setInteractive();
-    scrim.on("pointerup", () => this.dialog.setVisible(false));
-    this.dialog.add(g); this.dialog.add(scrim);
-
-    const render = () => {
-      // remove all but scrim+bg (first two)
-      while (this.dialog.length > 2) this.dialog.removeAt(2, true);
-      const cur = inst.enhanceLevel ?? 0;
-      const jewel = jewelForLevel(cur);
-      const have = save.materials[jewel] ?? 0;
-      const chance = enhanceChance(cur);
-      const maxed = cur >= MAX_ENHANCE;
-      const next = Math.min(MAX_ENHANCE, cur + 1);
-      const add = (xx: number, yy: number, txt: string, style: Phaser.Types.GameObjects.Text.TextStyle = {}) =>
-        this.dialog.add(crispText(this, dx + xx, dy + yy, txt, { fontSize: "13px", color: "#dfe8f3", ...style }));
-      add(16, 14, `${def.name}  +${cur}${maxed ? "" : `  →  +${next}`}`,
-        { fontSize: "16px", color: RARITY_HEX[def.rarity], fontStyle: "bold" });
-
-      // Per-stat before → after (no multiplier shown). Only base stats scale.
-      const rows = enhancePreviewRows(inst, def, cur, next);
-      rows.forEach((row, i) => {
-        const ry = STATS_TOP + i * ROW_H;
-        add(20, ry, row.label, { fontSize: "12px", color: "#9fb2c8" });
-        add(150, ry, row.before, { fontSize: "13px", color: "#dfe8f3" });
-        add(220, ry, "→", { fontSize: "12px", color: "#7e8ea3" });
-        add(244, ry, row.after, { fontSize: "13px", color: maxed ? "#dfe8f3" : "#6ee06e", fontStyle: "bold" });
-      });
-      if (rows.length === 0) add(20, STATS_TOP, "No scaling stats.", { fontSize: "12px", color: "#9fb2c8" });
-
-      const infoY = STATS_TOP + Math.max(1, rows.length) * ROW_H + 6;
-      add(16, infoY, maxed ? "Maxed (+15)." : `Needs: ${MATERIALS_MAP.get(jewel)?.name} (you have ${have})`);
-      add(16, infoY + 24, maxed ? "" : `Success: ${Math.round(chance * 100)}%${cur >= 6 ? "  ·  on failure the item loses 1–5 levels" : ""}`,
-        { fontSize: "11px", color: cur >= 6 ? "#ffb38a" : "#a5d6a7" });
-
-      const canDo = !maxed && have > 0;
-      const btn = crispText(this, dx + W / 2, dy + H - 50, maxed ? "MAX" : (canDo ? "⚒  Enhance" : "Need jewel"), {
-        fontSize: "15px", color: "#fff", backgroundColor: canDo ? "#1565c0" : "#444",
-      }).setOrigin(0.5, 0).setPadding(16, 8, 16, 8).setAlpha(canDo ? 1 : 0.6);
-      if (canDo) {
-        btn.setInteractive({ useHandCursor: true });
-        btn.on("pointerup", () => {
-          const r = this.mgr.enhanceItem(instanceId);
-          if (r.ok) {
-            this.showToast(r.success ? `Success! +${r.to}` : `Failed… dropped to +${r.to}`);
-            render(); this.refresh();
+  /**
+   * The MU-style enhance dialog for an item (T13). When `equipSlot` is given (a
+   * bag item with that slot free), the dialog also offers an Equip button.
+   */
+  private openEnhance(instanceId: string, equipSlot?: ItemSlot): void {
+    this.hideTooltip();
+    const def = equipSlot ? ITEM_CATALOG_MAP.get(this.mgr.getSave().inventory.items.find((it) => it.id === instanceId)?.defId ?? "") : undefined;
+    renderEnhanceDialog(this, this.dialog, this.mgr, instanceId, {
+      onChange: () => this.refresh(),
+      onToast: (m) => this.showToast(m),
+      onClose: () => this.dialog.setVisible(false),
+      onEquip: equipSlot
+        ? () => {
+            const inst = this.mgr.getSave().inventory.items.find((it) => it.id === instanceId);
+            if (this.mgr.equipItem(instanceId, equipSlot)) {
+              this.dialog.setVisible(false);
+              this.showToast(`Equipped ${def?.name ?? "item"}`);
+              this.refresh();
+            } else {
+              this.showToast(`Requires level ${inst?.requiredLevel ?? def?.requiredLevel}`);
+            }
           }
-        });
-      }
-      this.dialog.add(btn);
-      const close = crispText(this, dx + W - 14, dy + 10, "✕", { fontSize: "16px", color: "#ef9a9a" })
-        .setOrigin(1, 0).setInteractive({ useHandCursor: true });
-      close.on("pointerup", () => this.dialog.setVisible(false));
-      this.dialog.add(close);
-    };
-    render();
-    this.dialog.setVisible(true);
+        : undefined,
+    });
   }
 
   private showTextTooltip(title: string, desc: string, x: number, y: number): void {
@@ -468,7 +478,7 @@ export class HeroScene extends Phaser.Scene {
   private showTooltip(inst: ItemInstanceSave, x: number, y: number): void {
     const def = ITEM_CATALOG_MAP.get(inst.defId);
     if (!def) return;
-    renderItemTooltip(this, this.tooltip, inst, def, x, y);
+    renderItemTooltip(this, this.tooltip, inst, def, x, y, this.mgr.getSave().hero.level);
   }
 
   private hideTooltip(): void { this.tooltip.setVisible(false); }
