@@ -11,6 +11,7 @@ export const BG_IMAGES = [
   "chapter-volcanic",
   "chapter-swamp",
   "chapter-corrupted",
+  "endless-siege",
 ] as const;
 
 export const bgKey = (id: string): string => `bg__${id}`;
