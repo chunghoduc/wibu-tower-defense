@@ -27,9 +27,23 @@ function i(def: ItemDef): ItemDef {
   return validateItemDef(def);
 }
 
-const AFFIX_COUNT: Record<string, number> = {
+export const AFFIX_COUNT: Record<string, number> = {
   Common: 0, Magic: 1, Rare: 2, Legendary: 3, Unique: 3,
 };
+
+/**
+ * Roll a fresh set of secondary affixes for `def`: shuffle its pool, take the
+ * rarity's affix count, and roll each value in its range (×apexMult). Shared by
+ * the initial drop (rollItem) and the Reforge re-roll so the two can't drift.
+ */
+export function rollAffixes(def: ItemDef, rng: Rng, apexMult = 1): RolledAffix[] {
+  const affixCount = AFFIX_COUNT[def.rarity] ?? 0;
+  const shuffled = [...def.affixPool].sort(() => rng.next() - 0.5);
+  return shuffled.slice(0, affixCount).map((type) => {
+    const [lo, hi] = AFFIX_RANGE[type] ?? DEFAULT_AFFIX_RANGE;
+    return { type, value: (lo + rng.next() * (hi - lo)) * apexMult };
+  });
+}
 
 export const ITEM_CATALOG: ItemDef[] = [
   i({ id: "iron-sword", name: "Iron Sword", slot: "Weapon", weaponType: "Sword",
@@ -317,13 +331,26 @@ export function instanceReqLevel(inst: { requiredLevel?: number }, def: ItemDef)
  * the resulting required level, so the SAME named item is stronger when it drops
  * at a higher required level. A copy that lands at level 90 gains the Apex
  * effect: every rolled stat/affix gets an extra +25%.
+ *
+ * `opts.ignoreFloor` decouples level from rarity: the copy clamps to [1, 90]
+ * instead of [def floor, 90], so any rarity can roll at any level (e.g. a
+ * level-1 Unique). Rarity stays the quality axis (stat multiplier + affix
+ * count); level is purely the scalar-scaling axis. Used by context-driven rolls
+ * (boss boxes) where the level should track the hero, not the item's rarity.
  */
-export function rollItem(def: ItemDef, heroLevel: number, seed: number, reqLevel?: number): ItemInstance {
+export function rollItem(
+  def: ItemDef,
+  heroLevel: number,
+  seed: number,
+  reqLevel?: number,
+  opts?: { ignoreFloor?: boolean },
+): ItemInstance {
   const rng = new Rng(seed);
 
+  const floor = opts?.ignoreFloor ? 1 : def.requiredLevel;
   const required = Math.min(
     MAX_ITEM_REQ_LEVEL,
-    Math.max(def.requiredLevel, Math.round(reqLevel ?? def.requiredLevel)),
+    Math.max(floor, Math.round(reqLevel ?? def.requiredLevel)),
   );
   const apex = required >= APEX_REQ_LEVEL;
   const apexMult = apex ? APEX_STAT_MULT : 1;
@@ -339,12 +366,7 @@ export function rollItem(def: ItemDef, heroLevel: number, seed: number, reqLevel
 
   const rolledPrimaryAffix = def.primaryAffix.baseValue * (0.9 + rng.next() * 0.2) * apexMult;
 
-  const affixCount = AFFIX_COUNT[def.rarity] ?? 0;
-  const shuffled = [...def.affixPool].sort(() => rng.next() - 0.5);
-  const rolledAffixes: RolledAffix[] = shuffled.slice(0, affixCount).map((type) => {
-    const [lo, hi] = AFFIX_RANGE[type] ?? DEFAULT_AFFIX_RANGE;
-    return { type, value: (lo + rng.next() * (hi - lo)) * apexMult };
-  });
+  const rolledAffixes = rollAffixes(def, rng, apexMult);
 
   return {
     id: `item-${def.id}-${seed}`,
@@ -365,8 +387,4 @@ const RARITY_BASE_PRICE: Record<Rarity, number> = {
 };
 export function itemValue(def: ItemDef): number {
   return Math.round((RARITY_BASE_PRICE[def.rarity] ?? 120) * (1 + 0.02 * def.requiredLevel));
-}
-/** Crystals refunded when selling an item back to the shop (75% of value). */
-export function itemSellValue(def: ItemDef): number {
-  return Math.round(itemValue(def) * 0.75);
 }

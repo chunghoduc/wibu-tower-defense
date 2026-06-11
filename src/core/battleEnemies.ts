@@ -10,6 +10,7 @@ import { slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pointAtDistance } from "./path.ts";
 import { computeAuraMods, NEUTRAL_AURA } from "./enemyAuras.ts";
 import { enemyTowerAttack } from "./enemyCombat.ts";
+import { castleLeakDamage } from "../data/enemies.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type EnemyRuntime, type TowerRuntime,
@@ -235,7 +236,7 @@ export const enemyMethods = {
   },
 
   reachCastle(this: BattleState, e: EnemyRuntime): void {
-    this.castleHp -= e.def.castleDamage;
+    this.castleHp -= castleLeakDamage(e.def);
     e.alive = false;
     // F14: a leak voids this wave's (and the stage's) flawless bonus.
     this.waveLeaked = true;

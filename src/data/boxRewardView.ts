@@ -9,7 +9,7 @@ import { ITEM_CATALOG_MAP } from "./items.ts";
 import type { Rarity } from "./schema.ts";
 
 export interface BoxRewardEntry {
-  kind: "gold" | "material" | "item";
+  kind: "gold" | "diamond" | "material" | "item";
   name: string;
   count: number;
   color: string;       // hex string for the tile tint / border
@@ -24,18 +24,21 @@ export function boxRewardEntries(reward: BoxReward): BoxRewardEntry[] {
   const entries: BoxRewardEntry[] = [
     { kind: "gold", name: "Gold", count: reward.crystals, color: "#ffcf4d", iconKey: "icon__gold" },
   ];
+  if (reward.diamonds > 0) {
+    entries.push({ kind: "diamond", name: "Diamonds", count: reward.diamonds, color: "#4dd0e1", iconKey: "icon__gem" });
+  }
   for (const [mid, n] of Object.entries(reward.materials)) {
     if (!n) continue;
     entries.push({ kind: "material", name: MATERIALS_MAP.get(mid)?.name ?? mid, count: n, color: "#a5d6a7", iconKey: `material__${mid}` });
   }
-  if (reward.item) {
-    const def = ITEM_CATALOG_MAP.get(reward.item.defId);
+  for (const item of reward.items) {
+    const def = ITEM_CATALOG_MAP.get(item.defId);
     entries.push({
       kind: "item",
       name: def?.name ?? "Item",
       count: 1,
       color: def ? RARITY_HEX[def.rarity] : "#ffd34d",
-      iconKey: `item__${reward.item.defId}`,
+      iconKey: `item__${item.defId}`,
     });
   }
   return entries;

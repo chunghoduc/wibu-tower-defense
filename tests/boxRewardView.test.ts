@@ -3,7 +3,7 @@ import { boxRewardEntries } from "../src/data/boxRewardView.ts";
 import { BLESS_JEWEL } from "../src/data/materials.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 
-const baseReward = { opened: true as const, crystals: 80, materials: {}, item: null };
+const baseReward = { opened: true as const, crystals: 80, diamonds: 0, materials: {}, items: [] };
 
 describe("boxRewardEntries", () => {
   it("always leads with a gold entry carrying the rolled amount + gold icon", () => {
@@ -11,6 +11,17 @@ describe("boxRewardEntries", () => {
     expect(entries[0].kind).toBe("gold");
     expect(entries[0].count).toBe(120);
     expect(entries[0].iconKey).toBe("icon__gold");
+  });
+
+  it("emits a diamond entry after gold when diamonds dropped", () => {
+    const entries = boxRewardEntries({ ...baseReward, diamonds: 8 });
+    const dia = entries.find((e) => e.kind === "diamond")!;
+    expect(dia.count).toBe(8);
+    expect(dia.iconKey).toBe("icon__gem");
+  });
+
+  it("emits no diamond entry when none dropped", () => {
+    expect(boxRewardEntries(baseReward).some((e) => e.kind === "diamond")).toBe(false);
   });
 
   it("emits one entry per material, resolving its display name + icon key", () => {
@@ -25,7 +36,7 @@ describe("boxRewardEntries", () => {
     const def = ITEM_CATALOG[0];
     const entries = boxRewardEntries({
       ...baseReward,
-      item: { id: "x", defId: def.id, acquiredLevel: 1, rolledStats: {}, rolledPrimaryAffix: 0, rolledAffixes: [], enhanceLevel: 0 },
+      items: [{ id: "x", defId: def.id, acquiredLevel: 1, rolledStats: {}, rolledPrimaryAffix: 0, rolledAffixes: [], enhanceLevel: 0 }],
     });
     const item = entries.find((e) => e.kind === "item")!;
     expect(item.name).toBe(def.name);

@@ -7,6 +7,10 @@ export const BLESS_JEWEL = "bless-jewel";
 export const SOUL_JEWEL = "soul-jewel";
 export const SUMMON_SCROLL = "summon-scroll";
 export const OBLIVION_ORB = "oblivion-orb";
+/** Reforge material — the ONLY source is smelting gear (no drops, no shop). Spent
+ *  to re-roll a Rare+ item's affixes, so surplus gear becomes fuel to perfect the
+ *  gear you keep. A closed loop: gear → chaos → better gear. */
+export const CHAOS_JEWEL = "chaos-jewel";
 /** F7 Awakening — the top-end sink material. Earned from streak/bounty/endless,
  *  not stage drops, so it stays an aspirational late-game currency. */
 export const AWAKENING_CRYSTAL = "awakening-crystal";
@@ -42,6 +46,10 @@ export const MATERIALS: MaterialDef[] = [
   {
     id: OBLIVION_ORB, name: "Oblivion Orb", kind: "consumable", icon: "oblivion",
     description: "A rare orb that unwinds a single memory. Spend it in the Passive Tree to forget one allocated skill and refund its point.",
+  },
+  {
+    id: CHAOS_JEWEL, name: "Jewel of Chaos", kind: "jewel", icon: "chaos",
+    description: "Smelted from gear you no longer need. Spend it (with gold) to Reforge a Rare or better item — re-rolling all of its affixes at once.",
   },
   {
     id: AWAKENING_CRYSTAL, name: "Awakening Crystal", kind: "consumable", icon: "awaken",

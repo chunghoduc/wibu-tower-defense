@@ -45,6 +45,7 @@ export const renderMethods = {
         `Hero ${Math.max(0, Math.ceil(b.hero.hp))}/${b.hero.stats.maxHp}   ` +
         `Wave ${Math.max(0, b.waveIndex + 1)}/${this.stage.waves.length}`,
     );
+    this.refreshCallWaveBtn();
 
     this.drawHeroSaveHUD(this.uiGfx);
 

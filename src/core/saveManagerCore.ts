@@ -3,7 +3,9 @@ import { processStageClear, type DropResult } from "./drops.ts";
 import { performMultiSummon, performSummon, type SummonResult } from "./gacha.ts";
 import { awardHeroXp } from "./hero.ts";
 import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
-import { ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, sellItem, type PurchaseResult } from "./shop.ts";
+import { ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, type PurchaseResult } from "./shop.ts";
+import { smeltItem, type SmeltResult } from "./smelt.ts";
+import { reforgeItem, type ReforgeResult } from "./reforge.ts";
 import { SUMMON_SCROLL, OBLIVION_ORB } from "../data/materials.ts";
 import type { ShopStockEntry } from "./save.ts";
 import { attemptEnhance, type EnhanceResult } from "./enhance.ts";
@@ -330,10 +332,17 @@ export class SaveManagerCore {
     return r;
   }
 
-  /** Sell an inventory item for 75% of its value. */
-  sellItem(instanceId: string): PurchaseResult & { refund: number } {
-    const r = sellItem(this.save, instanceId);
-    if (r.success) this.persist();
+  /** Smelt an inventory item into Jewels of Chaos (rarity-scaled). */
+  smeltItem(instanceId: string): SmeltResult {
+    const r = smeltItem(this.save, instanceId);
+    if (r.ok) this.persist();
+    return r;
+  }
+
+  /** Re-roll a Rare+ item's affixes, spending gold + Jewels of Chaos. */
+  reforgeItem(instanceId: string, rng: Rng = new Rng((Math.random() * 1e9) | 0)): ReforgeResult {
+    const r = reforgeItem(this.save, instanceId, rng);
+    if (r.ok) this.persist();
     return r;
   }
 

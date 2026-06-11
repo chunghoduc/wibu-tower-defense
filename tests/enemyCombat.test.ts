@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeStats } from "../src/data/schema.ts";
 import { enemyTowerAttack } from "../src/core/enemyCombat.ts";
-import { MELEE_TOWER_RANGE } from "../src/core/battleTypes.ts";
+import { MELEE_TOWER_RANGE, RUSHER_BYPASS_SPEED } from "../src/core/battleTypes.ts";
 import { weaponBaseRange } from "../src/data/weaponFamily.ts";
 import {
   mkEnemy,
@@ -34,6 +34,31 @@ describe("enemyTowerAttack profile", () => {
       mkEnemy({ flying: true, special: { attacksTowers: { range: 120 } } }),
     )!;
     expect(p.whileMoving).toBe(true);
+  });
+
+  it("returns null for a stealthed infiltrator (slips past towers to the castle)", () => {
+    expect(
+      enemyTowerAttack(mkEnemy({ archetype: "Phantom", special: { stealth: true } })),
+    ).toBeNull();
+  });
+
+  it("returns null for a high-speed rusher (blows past the lane)", () => {
+    expect(
+      enemyTowerAttack(
+        mkEnemy({ baseStats: makeStats({ moveSpeed: RUSHER_BYPASS_SPEED }) }),
+      ),
+    ).toBeNull();
+  });
+
+  it("still lets a fast DEDICATED tower-killer demolish (authored range wins)", () => {
+    const p = enemyTowerAttack(
+      mkEnemy({
+        baseStats: makeStats({ moveSpeed: 90 }),
+        special: { attacksTowers: { range: 110 } },
+      }),
+    )!;
+    expect(p.range).toBe(110);
+    expect(p.whileMoving).toBe(false);
   });
 
   it("derives a boss's reach from its weapon and never halts it", () => {

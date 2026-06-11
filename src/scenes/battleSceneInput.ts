@@ -34,6 +34,25 @@ export const inputMethods = {
     this.speedBtn.setText(label).setBackgroundColor(this.gameSpeed === 0 ? "#5a3a2a" : "#243a5a");
   },
 
+  /** Refresh the call-wave-early button each frame: show countdown + skip bounty. */
+  refreshCallWaveBtn(this: BattleScene): void {
+    const secs = this.battle.getNextWaveIn();
+    if (secs < 0) { this.callWaveBtn.setVisible(false); return; }
+    this.callWaveBtn.setVisible(true).setText(`⏩ Wave in ${Math.ceil(secs)}s  +${this.battle.skipReward()}g`);
+  },
+
+  /** Player tapped "call wave": spawn the next wave now, float the bonus gold. */
+  onCallWave(this: BattleScene): void {
+    const bonus = this.battle.callNextWave();
+    if (bonus <= 0) return;
+    this.sfx.coin();
+    const pop = crispText(this, this.scale.width - 14, 56, `+${bonus}g`, { fontSize: "16px", color: "#ffe27a", fontStyle: "bold" })
+      .setOrigin(1, 0).setDepth(60);
+    this.ui.add(pop);
+    this.tweens.add({ targets: pop, y: 38, alpha: 0, duration: 800, ease: "Cubic.out", onComplete: () => pop.destroy() });
+    this.refreshCallWaveBtn();
+  },
+
   /** WASD / arrow keys steer the hero (held = continuous movement). */
   handleKeyboardHero(this: BattleScene): void {
     const k = this.keys;

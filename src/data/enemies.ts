@@ -450,3 +450,16 @@ export const ENEMIES: EnemyDef[] = [
     artRef: "placeholder",
   },
 ];
+
+/**
+ * Damage a boss inflicts on the castle when it leaks through — a flat 10, i.e.
+ * 10× a normal enemy's 1-point hit. With the castle holding only 15 HP, letting
+ * a single boss reach the gate is very nearly a loss, which is the whole point:
+ * the wave-5 and wave-10 bosses are the moments that decide a stage.
+ */
+export const BOSS_CASTLE_DAMAGE = 10;
+
+/** Castle damage for one leaked enemy: bosses hit for {@link BOSS_CASTLE_DAMAGE}, everyone else for their own value. */
+export function castleLeakDamage(def: EnemyDef): number {
+  return def.archetype === "Boss" ? BOSS_CASTLE_DAMAGE : def.castleDamage;
+}

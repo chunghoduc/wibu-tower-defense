@@ -1,7 +1,8 @@
 /**
  * Chapter 1 — "Greywood Pass" — 10 stages. Same region, ten distinct lane
  * layouts. Waves scale with stage number and progressively introduce the enemy
- * archetypes; every stage ends in a boss (a mid-boss appears from stage 4).
+ * archetypes; every stage is ten waves with a mid-boss on wave 5 and the
+ * stage's themed boss on wave 10.
  *
  * Logical play area is 960x540; the scene scales this to the screen.
  */
@@ -9,6 +10,7 @@ import { makeStats, type SpawnEntry, type StageDef, type TerrainFeature, type Te
 import { Rng } from "../core/rng.ts";
 import { stageThemeForStage } from "./chapters.ts";
 import { EXPANSION_LAYOUTS, BOSS_EXPANSION } from "./stagesExpansion.ts";
+import { buildChapter1Waves } from "./chapter1Waves.ts";
 
 export const GAME_WIDTH = 960;
 export const GAME_HEIGHT = 540;
@@ -120,57 +122,97 @@ const spawn = (enemyId: string, count: number, interval = 0.8, delay = 0): Spawn
   delay,
 });
 
-/** Build the wave list for stage number n (1-based), scaling with progression. */
+/**
+ * Build the wave list for stage number n (1-based). EVERY stage is exactly ten
+ * waves with the same shape: waves 1–4 build pressure, wave 5 is a mid-boss,
+ * waves 6–9 escalate, and wave 10 is the stage's themed final boss. Bosses
+ * appear ONLY on waves 5 and 10 (they leak for 10 damage into a 15-HP castle —
+ * see {@link castleLeakDamage}). Enemy density/variety still scales with n, so
+ * later stages fill the same ten slots with denser, meaner waves.
+ */
 function buildWaves(n: number): WaveDef[] {
+  // Wave 10 is the stage's themed boss; wave 5's mid-boss is the previous tier
+  // (always a notch easier than the finale, and never the silent fallback).
+  const finalBoss = BOSS_BY_STAGE[n - 1] ?? "overlord";
+  const midBoss = BOSS_BY_STAGE[Math.max(0, n - 2)] ?? "champion";
+  const heavy = n >= 8; // late stages get an extra flyer/wall layer
   const w: WaveDef[] = [];
 
-  // Wave 1 — rushers. (Cadence tightens on later stages so more enemies overlap.)
+  // 1 — rushers. (Cadence tightens on later stages so more enemies overlap.)
   w.push({ spawns: [spawn("grunt", 5 + n, n >= 6 ? 0.7 : 0.9), spawn("runner", Math.min(2 + n, 8), 0.6, 4)] });
 
-  // Wave 2 — flyers and the first armor.
-  const w2: SpawnEntry[] = [spawn("grunt", 6 + n, n >= 6 ? 0.55 : 0.7)];
-  if (n >= 2) w2.push(spawn("gargoyle", 2 + Math.floor(n / 2), 1.2, 3));
-  if (n >= 2) w2.push(spawn("brute", Math.max(1, Math.floor(n / 2)), 1.5, 6));
-  w.push({ spawns: w2 });
+  // 2 — flyers and the first armor.
+  w.push({ spawns: [
+    spawn("grunt", 6 + n, n >= 6 ? 0.55 : 0.7),
+    spawn("gargoyle", 2 + Math.floor(n / 2), 1.2, 3),
+    spawn("brute", Math.max(1, Math.floor(n / 2)), 1.5, 6),
+  ] });
 
-  // Wave 3 — archetype mix that grows with the stage.
-  const w3: SpawnEntry[] = [];
-  if (n >= 3) w3.push(spawn("bulwark", 1 + Math.floor(n / 3), 1.5));
-  if (n >= 3) w3.push(spawn("slime", 1 + Math.floor(n / 3), 1.5, 2));
-  if (n >= 3) w3.push(spawn("herald", 1, 1, 3)); // rally support — kill it first
-  if (n >= 4) w3.push(spawn("regenerator", Math.floor(n / 3), 2, 3));
-  if (n >= 4) w3.push(spawn("mender", 1, 1, 4));
-  if (n >= 4) w3.push(spawn("golem", 1, 2.5, 5)); // physical-immune wall
-  if (n >= 5) w3.push(spawn("phantom", Math.floor(n / 2), 1.2, 5));
-  if (n >= 5) w3.push(spawn("sapper", 1, 1, 6));
-  if (n >= 5) w3.push(spawn("monolith", 1, 2.5, 6)); // magic-immune wall
-  if (n >= 6) w3.push(spawn("stormflyer", 1 + Math.floor(n / 4), 1.5, 4));
-  if (w3.length === 0) w3.push(spawn("grunt", 9, 0.6));
+  // 3 — armored archetype mix that grows with the stage.
+  const w3: SpawnEntry[] = [
+    spawn("bulwark", 1 + Math.floor(n / 3), 1.5),
+    spawn("slime", 1 + Math.floor(n / 3), 1.5, 2),
+    spawn("herald", 1, 1, 3), // rally support — kill it first
+  ];
+  if (n >= 4) w3.push(spawn("regenerator", 1 + Math.floor(n / 3), 2, 3));
   w.push({ spawns: w3 });
 
-  // Mid-boss wave (from stage 4).
-  if (n >= 4) w.push({ spawns: [spawn("grunt", 4, 0.5), spawn("champion", 1, 1, 4)] });
+  // 4 — swarm pressure + first healer.
+  const w4: SpawnEntry[] = [
+    spawn("runner", 6 + n, n >= 6 ? 0.35 : 0.5),
+    spawn("gargoyle", 1 + Math.floor(n / 3), 0.9, 2),
+  ];
+  if (n >= 5) w4.push(spawn("mender", 1, 1, 4));
+  w.push({ spawns: w4 });
 
-  // Escalating pressure wave — appears from stage 3 so even early stages ramp
-  // toward a climax instead of plateauing. The swarm gets denser and gains
-  // priority-kill supports / walls as the stage number climbs.
-  if (n >= 3) {
-    const wx: SpawnEntry[] = [spawn("runner", 6 + n, n >= 6 ? 0.35 : 0.5)];
-    if (n >= 4) wx.push(spawn("gargoyle", 1 + Math.floor(n / 3), 0.9, 2));
-    if (n >= 6) wx.push(spawn("summoner", 1, 1, 5));
-    if (n >= 6) wx.push(spawn("hexer", 1, 1, 6)); // tower-slowing healer — a priority kill
-    if (n >= 7) wx.push(spawn("raider", 1 + Math.floor(n / 4), 2, 3));
-    if (n >= 7) wx.push(spawn("courier", 1, 1, 2));
-    if (n >= 8) wx.push(spawn(n % 2 === 0 ? "golem" : "monolith", 1 + Math.floor(n / 6), 2.5, 4));
-    w.push({ spawns: wx });
-  }
+  // 5 — MID-BOSS. Hold the line: a leak here costs 10 of your 15 castle HP.
+  w.push({ spawns: [
+    spawn("grunt", 5, 0.5),
+    spawn("brute", 1 + Math.floor(n / 4), 1.5, 2),
+    spawn(midBoss, 1, 1, 6),
+  ] });
 
-  // Each stage ends in a distinct themed boss (anime-homage), escalating.
-  const finalBoss = BOSS_BY_STAGE[n - 1] ?? "overlord";
-  const wb: SpawnEntry[] = [spawn("grunt", 6, 0.6), spawn("brute", 2, 2, 3)];
-  if (n >= 8) wb.push(spawn("stormflyer", 2, 1.5, 4));
-  wb.push(spawn(finalBoss, 1, 1, 10));
-  w.push({ spawns: wb });
+  // 6 — heavier mix with walls.
+  const w6: SpawnEntry[] = [
+    spawn("grunt", 7 + n, 0.5),
+    spawn("golem", 1 + Math.floor(n / 5), 2.5, 3), // physical-immune wall
+  ];
+  if (n >= 5) w6.push(spawn("phantom", 1 + Math.floor(n / 2), 1.2, 4));
+  if (n >= 6) w6.push(spawn("monolith", 1, 2.5, 5)); // magic-immune wall
+  w.push({ spawns: w6 });
+
+  // 7 — fast raiders and couriers.
+  const w7: SpawnEntry[] = [
+    spawn("runner", 8 + n, 0.35),
+    spawn("raider", 1 + Math.floor(n / 3), 2, 2),
+  ];
+  if (n >= 5) w7.push(spawn("sapper", 1, 1, 5));
+  if (n >= 6) w7.push(spawn("courier", 1, 1, 3));
+  w.push({ spawns: w7 });
+
+  // 8 — flyer storm with priority-kill supports.
+  const w8: SpawnEntry[] = [
+    spawn("gargoyle", 3 + Math.floor(n / 2), 0.8),
+    spawn("stormflyer", 1 + Math.floor(n / 3), 1.2, 2),
+  ];
+  if (n >= 6) w8.push(spawn("summoner", 1, 1, 4));
+  if (n >= 6) w8.push(spawn("hexer", 1, 1, 5)); // tower-slowing healer — a priority kill
+  w.push({ spawns: w8 });
+
+  // 9 — pre-finale gauntlet: dense elites.
+  const w9: SpawnEntry[] = [
+    spawn("brute", 2 + Math.floor(n / 2), 1.2),
+    spawn("regenerator", 1 + Math.floor(n / 3), 1.5, 2),
+    spawn("bulwark", 1 + Math.floor(n / 4), 1.5, 3),
+  ];
+  if (heavy) w9.push(spawn("golem", 1, 2.5, 4), spawn("monolith", 1, 2.5, 5));
+  w.push({ spawns: w9 });
+
+  // 10 — FINAL BOSS: the stage's distinct themed boss, escalating.
+  const w10: SpawnEntry[] = [spawn("grunt", 6, 0.6), spawn("brute", 2, 2, 3)];
+  if (heavy) w10.push(spawn("stormflyer", 2, 1.5, 4));
+  w10.push(spawn(finalBoss, 1, 1, 10));
+  w.push({ spawns: w10 });
 
   return w;
 }
@@ -232,11 +274,15 @@ export const STAGES: StageDef[] = ALL_LAYOUTS.map((l, i) => {
     name: l.name,
     path,
     airSpawns: l.air.map(scaleV),
-    castleHp: 28 + i * 2,
+    castleHp: 15,
     startingGold: 170 + i * 10,
     towerSlots: l.slots.map(scaleV),
     terrain: generateTerrain(path, i + 1, theme.block, theme.decor),
-    waves: buildWaves(i + 1),
+    // Chapter 1 (stages 1–10) uses the hand-tuned per-stage arc; chapters 2–5
+    // keep the procedural builder.
+    waves: i < 10
+      ? buildChapter1Waves(i + 1, BOSS_BY_STAGE[i] ?? "overlord", BOSS_BY_STAGE[Math.max(0, i - 1)] ?? "champion")
+      : buildWaves(i + 1),
   };
 });
 

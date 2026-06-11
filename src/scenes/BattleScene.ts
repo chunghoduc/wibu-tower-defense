@@ -71,6 +71,7 @@ export class BattleScene extends Phaser.Scene {
   placeGhost: Phaser.GameObjects.Container | null = null;
   gameSpeed = 1;
   speedBtn!: Phaser.GameObjects.Text;
+  callWaveBtn!: Phaser.GameObjects.Text;
   sfx = new Sfx();
   hudLevelText!: Phaser.GameObjects.Text;
   hudSkillText!: Phaser.GameObjects.Text;
@@ -182,7 +183,11 @@ export class BattleScene extends Phaser.Scene {
     const muteBtn = crispText(this, this.scale.width - 64, 8, "🔊", { fontSize: "13px", backgroundColor: "#243a5a" })
       .setOrigin(1, 0).setPadding(6, 4, 6, 4).setDepth(50).setInteractive({ useHandCursor: true });
     muteBtn.on("pointerdown", () => muteBtn.setText(this.sfx.toggleMute() ? "🔇" : "🔊"));
-    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn]);
+    // Call-wave-early skip: spawn the next wave now for bonus gold (campaign only).
+    this.callWaveBtn = crispText(this, this.scale.width - 12, 34, "", { fontSize: "13px", color: "#fff5cc", backgroundColor: "#5a4a18", fontStyle: "bold" })
+      .setOrigin(1, 0).setPadding(8, 4, 8, 4).setDepth(50).setInteractive({ useHandCursor: true }).setVisible(false);
+    this.callWaveBtn.on("pointerdown", () => this.onCallWave());
+    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn, this.callWaveBtn]);
 
     this.panel = new BattleInfoPanel(this, this.ui, this.scale.width, this.scale.height, () => this.togglePanel());
 

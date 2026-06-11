@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { generateShopStock, ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, sellItem, SHOP_SIZE, SHOP_FREE_REFRESHES, SHOP_REFRESH_STEP, SCROLL_SHOP_COST, SCROLL_SLOT_CHANCE } from "../src/core/shop.ts";
+import { generateShopStock, ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, SHOP_SIZE, SHOP_FREE_REFRESHES, SHOP_REFRESH_STEP, SCROLL_SHOP_COST, SCROLL_SLOT_CHANCE } from "../src/core/shop.ts";
 import { SINGLE_PULL_COST } from "../src/core/gacha.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { rollItem, ITEM_CATALOG } from "../src/data/items.ts";
-import { equipSlotsFor } from "../src/data/schema.ts";
 import { toItemInstanceSave } from "../src/core/itemDrop.ts";
 import { SUMMON_SCROLL } from "../src/data/materials.ts";
 import { Rng } from "../src/core/rng.ts";
@@ -68,7 +67,7 @@ describe("shop stock", () => {
   });
 });
 
-describe("buy + sell", () => {
+describe("buy", () => {
   it("buying an item slot adds it to inventory and removes the slot", () => {
     const save = createFreshSave();
     save.shop.stock = generateShopStock(save, new Rng(7)).map((s, i) => i === 0
@@ -89,23 +88,5 @@ describe("buy + sell", () => {
     save.currency.diamonds = 50; // scrolls cost diamonds
     buyShopSlot(save, "sc");
     expect(save.materials[SUMMON_SCROLL]).toBe(1);
-  });
-
-  it("selling refunds 75% and removes the item; equipped items can't be sold", () => {
-    const save = createFreshSave();
-    const inst = toItemInstanceSave(rollItem(ITEM_CATALOG[0], 5, 2));
-    save.inventory.items.push(inst);
-    save.currency.gold = 0;
-    const r = sellItem(save, inst.id);
-    expect(r.success).toBe(true);
-    expect(r.refund).toBeGreaterThan(0);
-    expect(save.currency.gold).toBe(r.refund);
-    expect(save.inventory.items.find((i) => i.id === inst.id)).toBeUndefined();
-
-    // equipped item can't be sold
-    const inst2 = toItemInstanceSave(rollItem(ITEM_CATALOG[0], 5, 3));
-    save.inventory.items.push(inst2);
-    save.inventory.equipped[equipSlotsFor(ITEM_CATALOG[0].slot)[0]] = inst2.id;
-    expect(sellItem(save, inst2.id).success).toBe(false);
   });
 });

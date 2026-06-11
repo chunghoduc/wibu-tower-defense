@@ -105,8 +105,10 @@ export class BattleState {
 
   /** @internal */ schedule: ScheduledSpawn[] = [];
   /** @internal */ schedulePtr = 0;
-  /** @internal */ waveActive = false;
-  /** @internal */ interWaveTimer = INTER_WAVE_DELAY;
+  /** @internal True while the current wave still has un-spawned enemies pending. */
+  waveActive = false;
+  /** @internal Seconds until the next wave launches (campaign cadence / inter-wave delay). */
+  nextWaveTimer = INTER_WAVE_DELAY;
   /** @internal */ allWavesStarted = false;
   /** @internal */ nextUid = 1;
   /** @internal Mid-tick spawn queue (summons/splits) flushed after all updates. */
@@ -422,6 +424,9 @@ export class BattleState {
     this.updateHero(dt);
     this.flushPending();
     this.cleanupDead();
+    // Campaign clear-credit runs post-cleanup so a wave wiped out this tick pays
+    // its perfect-wave bonus before checkOutcome can declare victory.
+    if (this.usesCadence()) this.creditClearedWaves();
     this.checkOutcome();
   }
 

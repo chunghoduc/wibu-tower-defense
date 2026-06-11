@@ -3,7 +3,7 @@
  *  - Gold: refresh cost, Common/Magic/Rare items, item sell refunds.
  *  - Diamonds: Legendary/Unique items and Summoning Scrolls (premium-gated).
  */
-import { ITEM_CATALOG, ITEM_CATALOG_MAP, rollItem, itemValue, itemSellValue } from "../data/items.ts";
+import { ITEM_CATALOG, ITEM_CATALOG_MAP, rollItem, itemValue } from "../data/items.ts";
 import { toItemInstanceSave } from "./itemDrop.ts";
 import { SUMMON_SCROLL } from "../data/materials.ts";
 import { SINGLE_PULL_COST } from "./gacha.ts";
@@ -103,17 +103,4 @@ export function buyShopSlot(save: HeroSave, slotId: string): PurchaseResult {
   }
   save.shop.stock.splice(idx, 1);
   return { success: true, message: `Purchased ${name}` };
-}
-
-export function sellItem(save: HeroSave, instanceId: string): PurchaseResult & { refund: number } {
-  if (Object.values(save.inventory.equipped).includes(instanceId)) {
-    return { success: false, message: "Unequip the item first", refund: 0 };
-  }
-  const idx = save.inventory.items.findIndex((it) => it.id === instanceId);
-  if (idx < 0) return { success: false, message: "Item not found", refund: 0 };
-  const def = ITEM_CATALOG_MAP.get(save.inventory.items[idx].defId);
-  const refund = def ? itemSellValue(def) : 0;
-  save.inventory.items.splice(idx, 1);
-  save.currency.gold += refund;
-  return { success: true, message: `Sold for ${refund} 🪙`, refund };
 }

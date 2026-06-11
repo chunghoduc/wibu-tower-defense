@@ -104,7 +104,7 @@ describe("battleLootTiles", () => {
       const body = tip.data.body ?? "";
       expect(body).toContain("Opening odds:");
       expect(body).toContain("Bless Jewel");
-      expect(body).toMatch(/% Soul Jewel/);
+      expect(body).toMatch(/% Jewel of Soul/);
       expect(body).toMatch(/% gear drop/);
     }
   });

@@ -73,6 +73,14 @@ export const HERO_BLOCK_RANGE = 28;
 export const MELEE_TOWER_RANGE = 40;
 /** Fallback tower-attack reach for a boss that authors no weapon. */
 export const BOSS_DEFAULT_TOWER_RANGE = 70;
+/**
+ * Ground enemies at or above this base moveSpeed are treated as high-speed
+ * rushers: they blow past the lane and beeline the castle instead of stopping to
+ * swipe at towers (like flyers and stealthed infiltrators). Set above the
+ * ordinary melee band (grunt 44) but at/below the fast rushers (runner 92,
+ * courier 72). Dedicated tower-killers (authored `attacksTowers`) override this.
+ */
+export const RUSHER_BYPASS_SPEED = 70;
 /** Default radius of splash / active-skill AoE bursts. */
 export const SPLASH_RADIUS = 60;
 /** Mana is a fixed charge bar: every caster fills the same 0..100 pool. */
@@ -85,8 +93,19 @@ export const MANA_ON_HIT_CAP = 15;
 export function manaGainOnHit(stats: Stats): number {
   return MANA_PER_HIT + Math.min(MANA_ON_HIT_CAP, Math.max(0, stats.manaOnHit));
 }
-/** Pause between waves once the current wave is fully cleared. */
+/** Endless / boss-rush pause between waves once the current wave is fully cleared. */
 export const INTER_WAVE_DELAY = 3;
+/**
+ * Campaign cadence: a stage launches its next wave this many seconds after the
+ * previous one *spawned* — not when it clears. Stall and waves stack up on you.
+ */
+export const WAVE_INTERVAL = 30;
+/**
+ * Skip reward: calling the next wave early pays this much in-battle gold per
+ * second still on the countdown (a full 30s skip ≈ 60g, about one cheap tower).
+ * The earlier you call, the more you earn — trading safety for tempo + gold.
+ */
+export const SKIP_COIN_PER_SEC = 2;
 /** F13 combo: seconds a streak survives without a kill before it resets. */
 export const COMBO_DECAY = 2.5;
 /** F13 combo: gold multiplier caps at this value (×3 at full streak). */

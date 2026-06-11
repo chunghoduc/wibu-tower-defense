@@ -125,7 +125,7 @@ export class BoxOpenOverlay {
       } else {
         tile.add(s.add.text(0, -8, e.kind === "gold" ? "🪙" : e.kind === "item" ? "📦" : "💠", { fontSize: "24px" }).setOrigin(0.5));
       }
-      const label = e.kind === "gold" ? `+${e.count}` : e.count > 1 ? `${e.name} ×${e.count}` : e.name;
+      const label = e.kind === "gold" || e.kind === "diamond" ? `+${e.count}` : e.count > 1 ? `${e.name} ×${e.count}` : e.name;
       tile.add(s.add.text(0, 22, label, { fontSize: "9px", color: e.color, align: "center", wordWrap: { width: tw - 8 }, fontStyle: "bold" }).setOrigin(0.5, 0));
       this.root!.add(tile);
       s.tweens.add({ targets: tile, alpha: 1, scale: 1, duration: 280, delay: i * 110, ease: "Back.easeOut" });

@@ -1,15 +1,19 @@
 /**
- * ShopScene — buy rolled gear (and the occasional Summoning Scroll) and sell
- * unwanted items back for 75%. Items show as icon + price (name on hover); a
- * crystal-paid Refresh rerolls the stock. Purchases persist (the slot is removed
- * from stock), so bought items no longer "vanish". Selling asks for confirmation
- * (it's irreversible) and the sell grid hides equipped items — unequip first.
+ * ShopScene — buy rolled gear (and the occasional Summoning Scroll), or recycle
+ * unwanted gear. Recycling has two paths: Smelt (destroy → Jewels of Chaos, the
+ * only source of that material) and Reforge (Rare+ only: re-roll all affixes for
+ * gold + chaos). Items show as icon + value (name on hover); a crystal-paid
+ * Refresh rerolls the buy stock. Smelt asks for confirmation (irreversible); the
+ * recycle grid hides equipped items — unequip first.
  */
 import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import type { ShopStockEntry, ItemInstanceSave } from "../core/save.ts";
-import { ITEM_CATALOG_MAP, itemSellValue } from "../data/items.ts";
+import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { smeltYield } from "../core/smelt.ts";
+import { reforgeCost, canReforge } from "../core/reforge.ts";
+import { CHAOS_JEWEL } from "../data/materials.ts";
 import { crispText, hoverGlowRect, hoverPop } from "./ui.ts";
 import { drawScrollbar } from "./scrollbar.ts";
 import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
@@ -21,10 +25,11 @@ const RARITY_INT: Record<Rarity, number> = {
   Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
 };
 const SCROLL_GOLD = 0xffcf4a;
+const CHAOS_COL = 0xe0457a;   // crimson-magenta — matches the Jewel of Chaos icon
 
 export class ShopScene extends Phaser.Scene {
   private mgr!: SaveManager;
-  private mode: "buy" | "sell" = "buy";
+  private mode: "buy" | "recycle" = "buy";
   private crystalText!: Phaser.GameObjects.Text;
   private feedback!: Phaser.GameObjects.Text;
   private hoverLabel!: Phaser.GameObjects.Text;
@@ -34,10 +39,10 @@ export class ShopScene extends Phaser.Scene {
   private tabSell!: Phaser.GameObjects.Text;
   private refreshBtn!: Phaser.GameObjects.Text;
   private confirmDialog: Phaser.GameObjects.Container | null = null;
-  private sellOffset = 0;       // sell grid scroll position, in rows
+  private sellOffset = 0;       // recycle grid scroll position, in rows
   private sellMaxOffset = 0;
-  private sellCategory: ItemCategory = "all";   // slot-family sub-filter (Sell view)
-  private sellDrag!: DragScrollHandle;          // touch/drag scrolling for the sell grid
+  private sellCategory: ItemCategory = "all";   // slot-family sub-filter (Recycle view)
+  private sellDrag!: DragScrollHandle;          // touch/drag scrolling for the recycle grid
   private catChips!: CategoryChips;
 
   constructor() { super("ShopScene"); }
@@ -58,8 +63,8 @@ export class ShopScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true }).on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
     this.crystalText = this.add.text(W - 20, 14, "", { fontSize: "16px", color: "#bfe4ff" }).setOrigin(1, 0);
 
-    this.tabBuy = this.tab(W / 2 - 86, "Buy", () => this.setMode("buy"));
-    this.tabSell = this.tab(W / 2 + 6, "Sell", () => this.setMode("sell"));
+    this.tabBuy = this.tab(W / 2 - 96, "Buy", () => this.setMode("buy"));
+    this.tabSell = this.tab(W / 2 + 6, "Recycle", () => this.setMode("recycle"));
 
     this.refreshBtn = crispText(this, W - 20, 46, this.refreshLabel(), { fontSize: "12px", color: "#fff", backgroundColor: "#243a5a" })
       .setOrigin(1, 0).setPadding(8, 4, 8, 4).setInteractive({ useHandCursor: true });
@@ -81,13 +86,13 @@ export class ShopScene extends Phaser.Scene {
 
     // Mouse wheel scrolls the sell grid one row per notch.
     this.input.on("wheel", (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
-      if (this.mode !== "sell" || this.sellMaxOffset <= 0) return;
+      if (this.mode !== "recycle" || this.sellMaxOffset <= 0) return;
       const next = Phaser.Math.Clamp(this.sellOffset + (dy > 0 ? 1 : -1), 0, this.sellMaxOffset);
       if (next !== this.sellOffset) { this.sellOffset = next; this.redraw(); }
     });
 
     // Touch/drag scrolling for the sell grid (mobile has no wheel). Rect matches
-    // the grid laid out in drawSell(); cards suppress their tap when a drag moved.
+    // the grid laid out in drawRecycle(); cards suppress their tap when a drag moved.
     this.sellDrag = attachDragScroll(this, {
       rect: () => ({ x: 24, y: 84, w: 7 * (124 + 6), h: 466 - 84 }),
       rowH: 96 + 8,
@@ -95,7 +100,7 @@ export class ShopScene extends Phaser.Scene {
       getOffset: () => this.sellOffset,
       setOffset: (n) => { this.sellOffset = n; },
       onChange: () => this.redraw(),
-      enabled: () => this.mode === "sell",
+      enabled: () => this.mode === "recycle",
     });
 
     this.redraw();
@@ -108,7 +113,7 @@ export class ShopScene extends Phaser.Scene {
     return t;
   }
 
-  private setMode(m: "buy" | "sell"): void { this.mode = m; this.redraw(); }
+  private setMode(m: "buy" | "recycle"): void { this.mode = m; this.redraw(); }
 
   /** Refresh button caption — shows "free" while today's free rerolls remain, else the cost. */
   private refreshLabel(): string {
@@ -120,15 +125,16 @@ export class ShopScene extends Phaser.Scene {
     this.grid.removeAll(true);
     this.tooltip?.setVisible(false);
     const save = this.mgr.getSave();
-    this.crystalText.setText(`🪙 ${save.currency.gold}  💎 ${save.currency.diamonds}`);
+    const chaos = save.materials[CHAOS_JEWEL] ?? 0;
+    this.crystalText.setText(`🪙 ${save.currency.gold}  💎 ${save.currency.diamonds}  ❖ ${chaos}`);
     this.tabBuy.setBackgroundColor(this.mode === "buy" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "buy" ? 1 : 0.7);
-    this.tabSell.setBackgroundColor(this.mode === "sell" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "sell" ? 1 : 0.7);
+    this.tabSell.setBackgroundColor(this.mode === "recycle" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "recycle" ? 1 : 0.7);
     this.refreshBtn.setVisible(this.mode === "buy").setText(this.refreshLabel());
-    this.catChips.setVisible(this.mode === "sell");
+    this.catChips.setVisible(this.mode === "recycle");
     this.catChips.update(this.sellCategory);
 
     if (this.mode === "buy") this.drawBuy();
-    else this.drawSell(save.inventory.items, save.inventory.equipped);
+    else this.drawRecycle(save.inventory.items, save.inventory.equipped);
   }
 
   // ── Buy: 8 stock slots in a 4×2 grid ──
@@ -187,9 +193,9 @@ export class ShopScene extends Phaser.Scene {
     this.grid.add(z);
   }
 
-  // ── Sell: inventory grid (equipped items are hidden — unequip them first) ──
+  // ── Recycle: inventory grid (equipped items are hidden — unequip them first) ──
   // Overflowing rows scroll via the mouse wheel; only on-screen cards are drawn.
-  private drawSell(items: ItemInstanceSave[], equipped: Record<string, string | undefined>): void {
+  private drawRecycle(items: ItemInstanceSave[], equipped: Record<string, string | undefined>): void {
     const equippedIds = new Set(Object.values(equipped).filter(Boolean) as string[]);
     const sellable = items.filter((inst) => {
       if (equippedIds.has(inst.id)) return false;
@@ -198,7 +204,7 @@ export class ShopScene extends Phaser.Scene {
     });
     this.sellMaxOffset = 0;
     if (sellable.length === 0) {
-      const msg = this.sellCategory === "all" ? "No items to sell." : "No items in this category.";
+      const msg = this.sellCategory === "all" ? "No spare items to recycle." : "No items in this category.";
       this.grid.add(crispText(this, this.scale.width / 2, 220, msg, { fontSize: "14px", color: "#90a4bb" }).setOrigin(0.5));
       return;
     }
@@ -213,7 +219,7 @@ export class ShopScene extends Phaser.Scene {
       for (let c = 0; c < COLS; c++) {
         const idx = (this.sellOffset + r) * COLS + c;
         if (idx >= sellable.length) break;
-        this.drawSellCard(sellable[idx], X0 + c * (CW + GX), Y0 + r * rowH, CW, CH);
+        this.drawRecycleCard(sellable[idx], X0 + c * (CW + GX), Y0 + r * rowH, CW, CH);
       }
     }
     drawScrollbar(this, this.grid, {
@@ -222,10 +228,11 @@ export class ShopScene extends Phaser.Scene {
     });
   }
 
-  private drawSellCard(inst: ItemInstanceSave, x: number, y: number, w: number, h: number): void {
+  private drawRecycleCard(inst: ItemInstanceSave, x: number, y: number, w: number, h: number): void {
     const def = ITEM_CATALOG_MAP.get(inst.defId);
     const col = def ? RARITY_INT[def.rarity] : 0x888888;
-    const sell = def ? itemSellValue(def) : 0;
+    const chaos = def ? smeltYield(def.rarity) : 1;
+    const reforgeable = def ? canReforge(def.rarity) : false;
     const g = this.add.graphics();
     g.fillStyle(0x141c28, 1).fillRoundedRect(x, y, w, h, 6);
     g.lineStyle(1.5, col, 1).strokeRoundedRect(x, y, w, h, 6);
@@ -237,7 +244,9 @@ export class ShopScene extends Phaser.Scene {
       this.grid.add(icon);
     }
     if ((inst.enhanceLevel ?? 0) > 0) this.grid.add(crispText(this, x + w - 4, y + 3, `+${inst.enhanceLevel}`, { fontSize: "9px", color: "#ffe07a", fontStyle: "bold" }).setOrigin(1, 0));
-    this.grid.add(crispText(this, x + w / 2, y + h - 16, `🪙 +${sell}`, { fontSize: "11px", color: "#8be06a", fontStyle: "bold" }).setOrigin(0.5));
+    // Reforge badge marks Rare+ items (the only ones whose affixes can be re-rolled).
+    if (reforgeable) this.grid.add(crispText(this, x + 4, y + 3, "⟳", { fontSize: "11px", color: "#ff9ec4", fontStyle: "bold" }).setOrigin(0, 0));
+    this.grid.add(crispText(this, x + w / 2, y + h - 16, `❖ ${chaos}`, { fontSize: "11px", color: "#ff9ec4", fontStyle: "bold" }).setOrigin(0.5));
 
     const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
     hoverGlowRect(this, z, this.grid, x, y, w, h, { color: col });
@@ -247,14 +256,21 @@ export class ShopScene extends Phaser.Scene {
       if (def) renderItemTooltip(this, this.tooltip, inst, def, x + w, y);
     });
     z.on("pointerout", () => { this.hoverLabel.setText(""); this.tooltip.setVisible(false); });
-    z.on("pointerup", () => { if (!this.sellDrag.didScroll()) this.confirmSell(inst, def?.name ?? "Item", sell); });
+    z.on("pointerup", () => { if (!this.sellDrag.didScroll()) this.openRecycle(inst, def?.name ?? "Item", def?.rarity); });
     this.grid.add(z);
   }
 
-  /** Ask before selling — selling is irreversible. */
-  private confirmSell(inst: ItemInstanceSave, name: string, sell: number): void {
+  /**
+   * Recycle dialog: Smelt (destroy → chaos) and, for Rare+ items, Reforge (re-roll
+   * all affixes for gold + chaos). Smelting is irreversible, so this dialog is the
+   * confirmation step.
+   */
+  private openRecycle(inst: ItemInstanceSave, name: string, rarity: Rarity | undefined): void {
     this.confirmDialog?.destroy(true);
     this.tooltip.setVisible(false);
+    const save = this.mgr.getSave();
+    const chaos = rarity ? smeltYield(rarity) : 1;
+    const cost = rarity ? reforgeCost(rarity) : null;
     const W = this.scale.width, H = this.scale.height;
     const c = this.add.container(0, 0).setDepth(300);
 
@@ -263,28 +279,46 @@ export class ShopScene extends Phaser.Scene {
     const dimZone = this.add.zone(W / 2, H / 2, W, H).setInteractive().on("pointerup", () => this.closeConfirm());
     c.add([dim, dimZone]);
 
-    const bw = 300, bh = 136, bx = (W - bw) / 2, by = (H - bh) / 2;
+    const bw = 340, bh = cost ? 188 : 150, bx = (W - bw) / 2, by = (H - bh) / 2;
     const panel = this.add.graphics();
     panel.fillStyle(0x141c28, 0.99).fillRoundedRect(bx, by, bw, bh, 10);
-    panel.lineStyle(2, 0x7a2e2e, 1).strokeRoundedRect(bx, by, bw, bh, 10);
+    panel.lineStyle(2, CHAOS_COL, 1).strokeRoundedRect(bx, by, bw, bh, 10);
     const panelZone = this.add.zone(bx + bw / 2, by + bh / 2, bw, bh).setInteractive(); // swallow clicks
     c.add([panel, panelZone]);
 
-    c.add(crispText(this, W / 2, by + 18, "Sell this item?", { fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0));
-    c.add(crispText(this, W / 2, by + 46, `${name}\n🪙 +${sell}`, { fontSize: "12px", color: "#ffd6a0", align: "center" }).setOrigin(0.5, 0));
+    c.add(crispText(this, W / 2, by + 16, "Recycle", { fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0));
+    c.add(crispText(this, W / 2, by + 40, name, { fontSize: "12px", color: "#ffd6a0", align: "center" }).setOrigin(0.5, 0));
 
-    const yes = crispText(this, bx + bw / 2 - 70, by + bh - 36, "Sell", { fontSize: "14px", color: "#fff", backgroundColor: "#7a2e2e", fixedWidth: 96, align: "center" })
-      .setOrigin(0.5, 0).setPadding(0, 8, 0, 8).setInteractive({ useHandCursor: true });
-    yes.on("pointerup", () => {
+    // Smelt — destroys the item for chaos.
+    const smelt = crispText(this, W / 2, by + 66, `🔨 Smelt  →  ❖ ${chaos} Chaos`, { fontSize: "13px", color: "#fff", backgroundColor: "#7a3a5a", fixedWidth: bw - 48, align: "center" })
+      .setOrigin(0.5, 0).setPadding(0, 9, 0, 9).setInteractive({ useHandCursor: true });
+    smelt.on("pointerup", () => {
       this.closeConfirm();
-      const r = this.mgr.sellItem(inst.id);
-      this.flash(r.message, r.success);
+      const r = this.mgr.smeltItem(inst.id);
+      this.flash(r.ok ? `Smelted → ❖ ${r.chaos} Chaos` : "Couldn't smelt", r.ok);
       this.redraw();
     });
-    const no = crispText(this, bx + bw / 2 + 70, by + bh - 36, "Cancel", { fontSize: "14px", color: "#fff", backgroundColor: "#33415a", fixedWidth: 96, align: "center" })
-      .setOrigin(0.5, 0).setPadding(0, 8, 0, 8).setInteractive({ useHandCursor: true });
+    c.add(smelt);
+
+    // Reforge — Rare+ only, re-rolls all affixes for gold + chaos.
+    if (cost) {
+      const have = (save.materials[CHAOS_JEWEL] ?? 0) >= cost.chaos && save.currency.gold >= cost.gold;
+      const reforge = crispText(this, W / 2, by + 108, `⟳ Reforge affixes\n🪙 ${cost.gold} + ❖ ${cost.chaos}`, { fontSize: "12px", color: have ? "#fff" : "#9aa6b8", backgroundColor: have ? "#3a4a7a" : "#2a3142", fixedWidth: bw - 48, align: "center" })
+        .setOrigin(0.5, 0).setPadding(0, 7, 0, 7).setInteractive({ useHandCursor: true });
+      reforge.on("pointerup", () => {
+        if (!have) { this.flash("Not enough gold or chaos", false); return; }
+        const r = this.mgr.reforgeItem(inst.id);
+        this.flash(r.ok ? "Reforged — new affixes rolled" : "Couldn't reforge", r.ok);
+        if (r.ok) { this.closeConfirm(); this.redraw(); }
+      });
+      c.add(reforge);
+    }
+
+    const closeY = by + bh - 30;
+    const no = crispText(this, W / 2, closeY, "Cancel", { fontSize: "13px", color: "#cdd6e4" })
+      .setOrigin(0.5, 0).setPadding(0, 4, 0, 4).setInteractive({ useHandCursor: true });
     no.on("pointerup", () => this.closeConfirm());
-    c.add([yes, no]);
+    c.add(no);
 
     this.confirmDialog = c;
   }

@@ -13,38 +13,55 @@ import { bossRushWave, BOSS_RUSH_TIERS } from "./bossRush.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type Catalogs, type ScheduledSpawn, type SpawnRequest,
-  INTER_WAVE_DELAY, PERFECT_WAVE_BONUS_FRAC,
+  INTER_WAVE_DELAY, WAVE_INTERVAL, SKIP_COIN_PER_SEC, PERFECT_WAVE_BONUS_FRAC,
 } from "./battleTypes.ts";
 
 export const waveMethods = {
+  /** Campaign stages run the fixed 30s cadence + skip; endless/boss-rush don't. */
+  usesCadence(this: BattleState): boolean {
+    return !this.endless && !this.bossRush;
+  },
+
+  /** How many waves this run has in total (∞ for endless → Infinity). */
+  totalWaves(this: BattleState): number {
+    return this.bossRush ? BOSS_RUSH_TIERS : this.endless ? Infinity : this.stage.waves.length;
+  },
+
   updateWaves(this: BattleState, dt: number): void {
-    // Boss rush runs a fixed gauntlet (BOSS_RUSH_TIERS waves); endless never ends;
-    // a normal stage runs its authored count.
-    const totalWaves = this.bossRush ? BOSS_RUSH_TIERS : this.stage.waves.length;
-    if (!this.waveActive) {
-      // Endless never runs out of waves — it keeps generating them until the
-      // castle falls, so allWavesStarted (the "won" gate) is never tripped.
-      if (!this.endless && this.waveIndex + 1 >= totalWaves) {
+    if (this.usesCadence()) {
+      // Campaign cadence: the next wave launches WAVE_INTERVAL after the LAST one
+      // spawned, regardless of whether it's been cleared — so a stalled wave gets
+      // reinforced and the player feels time pressure. Until the final wave is
+      // out, run the clock; once it's out, trip the "won" gate.
+      if (this.waveIndex + 1 < this.totalWaves()) {
+        this.nextWaveTimer -= dt;
+        if (this.nextWaveTimer <= 0) this.startNextWave();
+      } else {
         this.allWavesStarted = true;
-        return;
       }
-      this.interWaveTimer -= dt;
-      if (this.interWaveTimer <= 0) this.startNextWave();
+      this.drainSchedule();
+      this.waveActive = this.schedulePtr < this.schedule.length;
+      // Clear-credit (perfect bonus + cleared count) is run in tick() AFTER kills
+      // resolve, so the final wave's bonus lands on the same tick it's cleared.
       return;
     }
 
-    while (
-      this.schedulePtr < this.schedule.length &&
-      this.schedule[this.schedulePtr].at <= this.time
-    ) {
-      this.spawnEnemy({ enemyId: this.schedule[this.schedulePtr].enemyId, fromWave: true });
-      this.schedulePtr++;
+    // Endless / boss rush: one wave at a time — advance only once it's cleared,
+    // after a short INTER_WAVE_DELAY breather.
+    const total = this.totalWaves();
+    if (!this.waveActive) {
+      if (!this.endless && this.waveIndex + 1 >= total) {
+        this.allWavesStarted = true;
+        return;
+      }
+      this.nextWaveTimer -= dt;
+      if (this.nextWaveTimer <= 0) this.startNextWave();
+      return;
     }
-
-    const fullySpawned = this.schedulePtr >= this.schedule.length;
-    if (fullySpawned && this.enemies.length === 0) {
+    this.drainSchedule();
+    if (this.schedulePtr >= this.schedule.length && this.enemies.length === 0) {
       this.waveActive = false;
-      this.interWaveTimer = INTER_WAVE_DELAY;
+      this.nextWaveTimer = INTER_WAVE_DELAY;
       // A wave is fully cleared here — drives the boss-rush tier (bosses defeated).
       this.wavesCleared++;
       // F14: wave cleared — if nothing leaked, pay a perfect-wave bonus.
@@ -53,8 +70,36 @@ export const waveMethods = {
         if (bonus > 0) this.gold += bonus;
         this.emit({ type: "perfect", waveIndex: this.waveIndex, bonus });
       }
-      if (!this.endless && this.waveIndex + 1 >= totalWaves) this.allWavesStarted = true;
+      if (!this.endless && this.waveIndex + 1 >= total) this.allWavesStarted = true;
     }
+  },
+
+  /** Spawn every scheduled enemy whose time has come. */
+  drainSchedule(this: BattleState): void {
+    while (
+      this.schedulePtr < this.schedule.length &&
+      this.schedule[this.schedulePtr].at <= this.time
+    ) {
+      this.spawnEnemy({ enemyId: this.schedule[this.schedulePtr].enemyId, fromWave: true });
+      this.schedulePtr++;
+    }
+  },
+
+  /**
+   * Cadence-mode clear handling: when every wave launched so far is fully
+   * cleared (no pending spawns, no live enemies), pay the perfect-wave bonus
+   * once and advance the cleared-wave counter. Fires once per lull — it can't
+   * re-fire until another wave launches and bumps waveIndex.
+   */
+  creditClearedWaves(this: BattleState): void {
+    if (this.waveActive || this.enemies.length > 0) return;
+    if (this.wavesCleared >= this.waveIndex + 1) return;
+    if (!this.waveLeaked) {
+      const bonus = Math.round(this.waveGold * PERFECT_WAVE_BONUS_FRAC);
+      if (bonus > 0) this.gold += bonus;
+      this.emit({ type: "perfect", waveIndex: this.waveIndex, bonus });
+    }
+    this.wavesCleared = this.waveIndex + 1;
   },
 
   startNextWave(this: BattleState): void {
@@ -69,19 +114,57 @@ export const waveMethods = {
       : this.bossRush
         ? bossRushWave(this.waveIndex + 1)
         : this.stage.waves[this.waveIndex];
-    const schedule: ScheduledSpawn[] = [];
+    // Merge the new wave into the live schedule: drop the already-spawned prefix,
+    // append the new spawns, and re-sort. In endless/boss-rush the previous wave
+    // is always drained first, so this is just a fresh list; in cadence mode it
+    // lets a new wave overlap one still spilling enemies onto the field.
+    const merged: ScheduledSpawn[] = this.schedule.slice(this.schedulePtr);
     for (const group of wave.spawns) {
       for (let i = 0; i < group.count; i++) {
-        schedule.push({
-          at: this.time + group.delay + i * group.interval,
-          enemyId: group.enemyId,
-        });
+        merged.push({ at: this.time + group.delay + i * group.interval, enemyId: group.enemyId });
       }
     }
-    schedule.sort((a, b) => a.at - b.at);
-    this.schedule = schedule;
+    merged.sort((a, b) => a.at - b.at);
+    this.schedule = merged;
     this.schedulePtr = 0;
     this.waveActive = true;
+    // Restart the cadence clock from this launch (campaign); endless/boss-rush
+    // overwrite it with INTER_WAVE_DELAY when the wave clears.
+    this.nextWaveTimer = this.usesCadence() ? WAVE_INTERVAL : INTER_WAVE_DELAY;
+  },
+
+  // ---- Call-wave-early skip (campaign only) -------------------------------
+
+  /** Is an early wave-call available right now (campaign, mid-run, more waves left)? */
+  canCallWave(this: BattleState): boolean {
+    return (
+      this.usesCadence() &&
+      this.outcome === "ongoing" &&
+      this.waveIndex + 1 < this.totalWaves()
+    );
+  },
+
+  /** Seconds left on the next-wave countdown, or -1 when no skip is offered. */
+  getNextWaveIn(this: BattleState): number {
+    return this.canCallWave() ? Math.max(0, this.nextWaveTimer) : -1;
+  },
+
+  /** Gold a skip would pay right now (0 when unavailable) — scales with time left. */
+  skipReward(this: BattleState): number {
+    if (!this.canCallWave()) return 0;
+    return Math.round(Math.max(0, this.nextWaveTimer) * SKIP_COIN_PER_SEC);
+  },
+
+  /**
+   * Skip the countdown: spawn the next wave immediately and bank the bonus gold
+   * for the time skipped. Returns the gold paid (0 if no skip was available).
+   */
+  callNextWave(this: BattleState): number {
+    if (!this.canCallWave()) return 0;
+    const bonus = this.skipReward();
+    this.gold += bonus;
+    this.startNextWave();
+    return bonus;
   },
 
   /** Total non-boss enemies scheduled across all waves — the elite-target pool. */

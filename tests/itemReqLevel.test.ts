@@ -34,6 +34,18 @@ describe("per-instance required level", () => {
     expect(instanceReqLevel({}, def)).toBe(def.requiredLevel);
     expect(instanceReqLevel({ requiredLevel: 42 }, def)).toBe(42);
   });
+
+  it("rolls any rarity at any level when the floor is bypassed (level-1 Unique)", () => {
+    const def = ITEM_CATALOG_MAP.get("mythic-warblade")!; // Unique, rarity floor 60
+    expect(def.rarity).toBe("Unique");
+    expect(def.requiredLevel).toBe(60);
+    // Rarity and level are orthogonal: a Unique can drop at the hero's level.
+    const low = rollItem(def, 1, 99, 1, { ignoreFloor: true });
+    expect(low.requiredLevel).toBe(1); // below the rarity floor, as intended
+    // Still clamped to the [1, 90] hard range.
+    expect(rollItem(def, 1, 99, 0, { ignoreFloor: true }).requiredLevel).toBe(1);
+    expect(rollItem(def, 1, 99, 999, { ignoreFloor: true }).requiredLevel).toBe(MAX_ITEM_REQ_LEVEL);
+  });
 });
 
 describe("apex (level-90) special effect", () => {
@@ -71,22 +83,48 @@ describe("chapter drop bands", () => {
   });
 });
 
-describe("box items track hero level (±30%, cap 90)", () => {
-  it("a level-50 hero pulls box items within ~35–65 required level", () => {
-    const rng = new Rng(9);
+describe("box gear level tracks the hero, rarity tracks the box", () => {
+  it("a level-50 hero pulls box gear around their own level from any tier", () => {
+    const lo = Math.round(50 * 0.85), hi = Math.round(50 * 1.15); // ±15% around hero level
     let seen = 0;
-    for (let i = 0; i < 200; i++) {
-      const save = createFreshSave();
-      save.hero.level = 50;
-      save.materials["boss-box-t5"] = 1;
-      const reward = openBox(save, "boss-box-t5", rng);
-      if (!reward.item) continue;
-      seen++;
-      const req = reward.item.requiredLevel!;
-      // floor of the picked item can be below the band, but the rolled value is
-      // bounded by hero*1.3 = 65 on the high end.
-      expect(req).toBeLessThanOrEqual(65);
+    for (const tier of [1, 5]) {
+      const rng = new Rng(9 + tier);
+      for (let i = 0; i < 150; i++) {
+        const save = createFreshSave();
+        save.hero.level = 50;
+        const id = `boss-box-t${tier}`;
+        save.materials[id] = 1;
+        for (const item of openBox(save, id, rng).items) {
+          seen++;
+          expect(item.requiredLevel!).toBeGreaterThanOrEqual(lo);
+          expect(item.requiredLevel!).toBeLessThanOrEqual(hi);
+        }
+      }
     }
     expect(seen).toBeGreaterThan(0);
+  });
+
+  it("a maxed hero gets the box's rarity band regardless of tier", () => {
+    const rarityCounts = (tier: number) => {
+      const counts: Record<string, number> = {};
+      for (let s = 1; s <= 200; s++) {
+        const save = createFreshSave();
+        save.hero.level = 90; // can equip every rarity
+        const id = `boss-box-t${tier}`;
+        save.materials[id] = 1;
+        for (const item of openBox(save, id, new Rng(s * 13 + 1)).items) {
+          const def = ITEM_CATALOG_MAP.get(item.defId)!;
+          counts[def.rarity] = (counts[def.rarity] ?? 0) + 1;
+        }
+      }
+      return counts;
+    };
+    // Common box ⇒ overwhelmingly Common; Unique box ⇒ only Legendary/Unique.
+    const t1 = rarityCounts(1);
+    expect(t1["Common"]).toBeGreaterThan((t1["Magic"] ?? 0) * 5);
+    const t5 = rarityCounts(5);
+    expect(t5["Common"] ?? 0).toBe(0);
+    expect(t5["Rare"] ?? 0).toBe(0);
+    expect(t5["Legendary"]).toBeGreaterThan(t5["Unique"]); // lower side favored
   });
 });

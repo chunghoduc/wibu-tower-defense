@@ -14,7 +14,7 @@
  */
 import type { EnemyDef } from "../data/schema.ts";
 import { weaponBaseRange } from "../data/weaponFamily.ts";
-import { MELEE_TOWER_RANGE, BOSS_DEFAULT_TOWER_RANGE } from "./battleTypes.ts";
+import { MELEE_TOWER_RANGE, BOSS_DEFAULT_TOWER_RANGE, RUSHER_BYPASS_SPEED } from "./battleTypes.ts";
 
 export interface TowerAttackProfile {
   /** How close (world units) a tower must be for this enemy to hit it. */
@@ -35,11 +35,18 @@ export function enemyTowerAttack(def: EnemyDef): TowerAttackProfile | null {
   }
   const authored = def.special?.attacksTowers;
   if (authored) {
-    // Dedicated tower-killers: ground ones stop to demolish; flyers strike in passing.
+    // Dedicated tower-killers: ground ones stop to demolish; flyers strike in
+    // passing. These override the bypass rules below — sappers/raiders are MEANT
+    // to chew towers even when fast.
     return { range: authored.range, whileMoving: def.flying };
   }
-  // Plain flyers beeline the castle and never bother with towers.
+  // Infiltrators beeline the castle and never bother with towers:
+  //   - flyers pass overhead,
+  //   - stealthed enemies slip through unseen,
+  //   - high-speed rushers blow past the lane before they can stop to swing.
   if (def.flying) return null;
+  if (def.special?.stealth) return null;
+  if (def.baseStats.moveSpeed >= RUSHER_BYPASS_SPEED) return null;
   // Every other ground ("on road") enemy swipes at towers hugging the lane.
   return { range: MELEE_TOWER_RANGE, whileMoving: true };
 }
