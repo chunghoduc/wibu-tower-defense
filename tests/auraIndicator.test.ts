@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { auraRadiusOf, auraPulse, AURA_RING_COLOR } from "../src/core/auraIndicator.ts";
 import type { TowerRuntime } from "../src/core/battleTypes.ts";
+import { TOWERS } from "../src/data/towers.ts";
 
 // Minimal TowerRuntime stub — only the fields auraRadiusOf reads.
 function tower(role: string, buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number }): TowerRuntime {
@@ -53,5 +54,16 @@ describe("AURA_RING_COLOR", () => {
   it("is the aquamarine indicator color, distinct from gold 0xffd34d", () => {
     expect(AURA_RING_COLOR).toBe(0x66ffcc);
     expect(AURA_RING_COLOR).not.toBe(0xffd34d);
+  });
+});
+
+describe("buffAura data integrity", () => {
+  it("every tower def with a buffAura is role 'support' (else its aura never applies)", () => {
+    const offenders = TOWERS.filter((d) => d.behavior?.buffAura && d.role !== "support").map((d) => d.id);
+    expect(offenders).toEqual([]);
+  });
+
+  it("at least one tower actually projects a buffAura (the feature has subjects)", () => {
+    expect(TOWERS.some((d) => d.behavior?.buffAura && d.role === "support")).toBe(true);
   });
 });
