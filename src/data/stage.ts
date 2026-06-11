@@ -213,6 +213,8 @@ function buildWaves(n: number): WaveDef[] {
   ];
   if (n >= 5) w6.push(spawn("phantom", 1 + Math.floor(n / 2), 1.2, 4));
   if (n >= 6) w6.push(spawn("monolith", 1, 2.5, 5)); // magic-immune wall
+  if (n >= 12) w6.push(spawn("carrier", 1 + Math.floor(n / 5), 1.5, 4)); // Bloomrot Carrier — space your towers
+  if (n >= 14) w6.push(spawn("prism", 1, 2.5, 6));                        // Prism Behemoth — dual-type wall
   w.push({ spawns: w6 });
 
   // 7 — fast raiders and couriers.
@@ -222,6 +224,7 @@ function buildWaves(n: number): WaveDef[] {
   ];
   if (n >= 5) w7.push(spawn("sapper", 1, 1, 5));
   if (n >= 6) w7.push(spawn("courier", 1, 1, 3));
+  if (n >= 11) w7.push(spawn("reaver", 1 + Math.floor(n / 4), 2, 4)); // Bloodmad Reaver — burst it
   w.push({ spawns: w7 });
 
   // 8 — flyer storm with priority-kill supports.
@@ -231,6 +234,8 @@ function buildWaves(n: number): WaveDef[] {
   ];
   if (n >= 6) w8.push(spawn("summoner", 1, 1, 4));
   if (n >= 6) w8.push(spawn("hexer", 1, 1, 5)); // tower-slowing healer — a priority kill
+  if (n >= 11) w8.push(spawn("dreadwing", 1 + Math.floor(n / 5), 1.5, 3)); // Iron Dreadwing — heavy anti-air
+  if (n >= 13) w8.push(spawn("cantor", 1, 1, 6));                          // Gravewail Cantor — priority kill
   w.push({ spawns: w8 });
 
   // 9 — pre-finale gauntlet: dense elites.
@@ -240,6 +245,7 @@ function buildWaves(n: number): WaveDef[] {
     spawn("bulwark", 1 + Math.floor(n / 4), 1.5, 3),
   ];
   if (heavy) w9.push(spawn("golem", 1, 2.5, 4), spawn("monolith", 1, 2.5, 5));
+  if (n >= 14) w9.push(spawn("prism", 1, 2.5, 6)); // capstone gauntlet wall
   w.push({ spawns: w9 });
 
   // 10 — FINAL BOSS: the stage's distinct themed boss, escalating.

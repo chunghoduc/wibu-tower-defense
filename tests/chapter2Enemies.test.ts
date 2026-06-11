@@ -3,6 +3,7 @@ import { world, mkEnemy, mkTower, mkStage, runFor } from "./fixtures.ts";
 import { adaptiveImmuneType } from "../src/core/enemyAdaptive.ts";
 import { ENEMIES } from "../src/data/enemies.ts";
 import { enemyTags } from "../src/data/enemyInfo.ts";
+import { STAGES } from "../src/data/stage.ts";
 import type { BattleState } from "../src/core/battle.ts";
 
 /** Tick (dt 0.05) until the first enemy spawns; returns it. */
@@ -158,5 +159,36 @@ describe("Escalation Five — catalog integrity", () => {
     expect(enemyTags(byId("reaver"))).toContain("Frenzies");
     expect(enemyTags(byId("dreadwing"))).toContain("Flying");
     expect(enemyTags(byId("cantor"))).toContain("Disables towers");
+  });
+});
+
+describe("Escalation Five — chapter-2 gating", () => {
+  /** All enemy ids spawned anywhere in a stage's waves (0-based index: 10 = stage 11). */
+  function stageEnemyIds(stageIndex: number): Set<string> {
+    const ids = new Set<string>();
+    for (const w of STAGES[stageIndex].waves) for (const sp of w.spawns) ids.add(sp.enemyId);
+    return ids;
+  }
+  const five = ["reaver", "prism", "carrier", "dreadwing", "cantor"];
+
+  it("never appears in any Chapter 1 stage (stages 1-10)", () => {
+    for (let i = 0; i < 10; i++) {
+      const ids = stageEnemyIds(i);
+      for (const f of five) expect(ids.has(f), `stage ${i + 1} should not have ${f}`).toBe(false);
+    }
+  });
+  it("introduces Reaver + Dreadwing from stage 11", () => {
+    const ids = stageEnemyIds(10);
+    expect(ids.has("reaver")).toBe(true);
+    expect(ids.has("dreadwing")).toBe(true);
+  });
+  it("introduces Carrier by stage 12, Cantor by 13, Prism by 14", () => {
+    expect(stageEnemyIds(11).has("carrier")).toBe(true);
+    expect(stageEnemyIds(12).has("cantor")).toBe(true);
+    expect(stageEnemyIds(13).has("prism")).toBe(true);
+  });
+  it("by Chapter 3 (stage 16) all five are in rotation", () => {
+    const ids = stageEnemyIds(15);
+    for (const f of five) expect(ids.has(f), f).toBe(true);
   });
 });
