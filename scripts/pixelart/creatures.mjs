@@ -49,37 +49,50 @@ function mix(a, b, t) {
   return "#" + ((1 << 24) | (m(16) << 16) | (m(8) << 8) | m(0)).toString(16).slice(1);
 }
 
-// Re-pose a finished creature canvas: bob/lunge/recoil so the same art reads as
-// a 6-frame loop. `dx`,`dy` translate the whole body; `lean` shears the top
-// rows horizontally (feet stay planted); `tint` reddens for the hurt flash.
-function pose(src, { dx = 0, dy = 0, lean = 0, tint = 0 } = {}) {
-  const S = src.w, out = canvas(S, S), hurt = "#ff5a5a";
+// Re-pose a finished creature canvas into one gait frame. Articulates the LEG
+// BAND (bottom ~28%) per leg so the forward leg lifts/steps while the other
+// plants — real alternating locomotion, not a whole-body nudge. `dx`/`bob`
+// translate the whole body; `lean` shears the upper rows (feet planted);
+// `legL`/`legR` = {dx,dy} offsets applied only to that half's leg-band pixels;
+// `tint` reddens for the hurt flash.
+function reposeFrame(base, g = {}) {
+  const S = base.w, out = canvas(S, S), hurt = "#ff5a5a";
+  const dx = g.dx || 0, bob = g.bob || 0, lean = g.lean || 0, tint = g.tint || 0;
+  const legL = g.legL || { dx: 0, dy: 0 }, legR = g.legR || { dx: 0, dy: 0 };
+  const legTop = S - Math.max(7, Math.round(S * 0.28));
   for (let y = 0; y < S; y++) {
-    const sh = Math.round(lean * (S - 1 - y) / (S - 1)); // more shift up top
+    const sh = Math.round(lean * (S - 1 - y) / (S - 1)); // more shear up top
     for (let x = 0; x < S; x++) {
-      const c = src.d[y * S + x];
+      const c = base.d[y * S + x];
       if (!c) continue;
-      set(out, x + dx + sh, y + dy, tint ? mix(c, hurt, tint) : c);
+      let nx = x + dx + sh, ny = y + bob;
+      if (y >= legTop) {                 // leg band: each leg moves on its own
+        const leg = x < S / 2 ? legL : legR;
+        nx += leg.dx; ny += leg.dy;
+      }
+      set(out, nx, ny, tint ? mix(c, hurt, tint) : c);
     }
   }
   return out;
 }
 
-// The six-frame enemy loop: idle, two walk bobs, a wind-up + strike, and a hurt
-// recoil. Mirrors the design team's [idle,walk1,walk2,atk1,atk2,hurt] layout so
-// procedurally-added enemies animate identically to the hand-drawn roster.
+// Eight-frame enemy loop: idle, a 4-key WALK cycle with alternating legs
+// (contact-left -> passing -> contact-right -> passing), a wind-up + strike,
+// and a hurt recoil. `/walk/` (PreloadScene) spans walk1..walk4 at 7fps.
 const ENEMY_POSES = [
-  { name: "idle", t: {} },
-  { name: "walk1", t: { dy: -1, lean: 1 } },
-  { name: "walk2", t: { dy: 1, lean: -1 } },
-  { name: "atk1", t: { dy: -1, lean: -2 } },
-  { name: "atk2", t: { dx: 2, lean: 3 } },
-  { name: "hurt", t: { dx: -2, dy: 1, tint: 0.5 } },
+  { name: "idle",  g: {} },
+  { name: "walk1", g: { lean: 1,  legL: { dx: 0, dy: -2 }, legR: { dx: 0, dy: 0 } } },
+  { name: "walk2", g: { bob: -1, lean: 1,  legL: { dx: 0, dy: -1 }, legR: { dx: 0, dy: -1 } } },
+  { name: "walk3", g: { lean: -1, legL: { dx: 0, dy: 0 }, legR: { dx: 0, dy: -2 } } },
+  { name: "walk4", g: { bob: -1, lean: -1, legL: { dx: 0, dy: -1 }, legR: { dx: 0, dy: -1 } } },
+  { name: "atk1",  g: { bob: -1, lean: -2 } },
+  { name: "atk2",  g: { dx: 2, lean: 3 } },
+  { name: "hurt",  g: { dx: -2, bob: 1, tint: 0.5 } },
 ];
 
 export function composeEnemyFrames(spec) {
   const base = composeEnemy(spec);
-  return { names: ENEMY_POSES.map((p) => p.name), frames: ENEMY_POSES.map((p) => pose(base, p.t)) };
+  return { names: ENEMY_POSES.map((p) => p.name), frames: ENEMY_POSES.map((p) => reposeFrame(base, p.g)) };
 }
 
 export function composeEnemy(spec) {
