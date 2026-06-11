@@ -213,7 +213,13 @@ export const spritesMethods = {
         (cur === `${key}_attack` || cur === `${key}_skill` || cur === `${key}_hurt`);
       if (!inOneShot) {
         if (frozen) { if (s.anims.isPlaying) s.anims.pause(); }
-        else if (cur !== `${key}_walk` || !s.anims.isPlaying) s.play(`${key}_walk`);
+        else {
+          if (cur !== `${key}_walk` || !s.anims.isPlaying) s.play(`${key}_walk`);
+          // Couple step cadence to actual ground speed: ~1x at a brisk walk,
+          // slower when slowed, up to ~1.8x for fast "runners".
+          const spd = (s.getData("recentMoved") as number) ?? 0;
+          s.anims.timeScale = Math.max(0.35, Math.min(1.8, spd / 3));
+        }
       }
     }
 
@@ -223,6 +229,8 @@ export const spritesMethods = {
     const ly = s.getData("lastPosY") as number | undefined;
     const moved = lx === undefined ? 0 : Math.min(20, Math.hypot(px - lx, py - (ly as number)));
     s.setData("lastPosX", px); s.setData("lastPosY", py);
+    const prevMoved = (s.getData("recentMoved") as number) ?? moved;
+    s.setData("recentMoved", prevMoved * 0.8 + moved * 0.2); // smoothed travel → walk timeScale
 
     let scaleX = base, scaleY = base, angle = 0, yOff = 0, xOff = 0;
 

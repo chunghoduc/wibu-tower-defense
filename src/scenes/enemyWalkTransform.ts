@@ -25,11 +25,14 @@ export interface WalkOpts {
   lean?: number;
 }
 
-const BOB = 5;       // body-bob amplitude (px) — legs are no longer authored
+// Baked walk frames (enemyWalkBake.ts) now carry the vertical step + leg motion,
+// so the procedural layer only adds a faint weight-shift on top — otherwise the
+// body double-bobs over the frame motion.
+const BOB = 1.5;     // was 5 — frames carry the step; keep a faint settle
 const WADDLE = 1.5;  // lateral sway (px)
-const ROCK = 4;      // body rock (deg)
-const SQUASH = 0.12; // scaleY drop at full foot-plant
-const STRETCH = 0.08; // scaleX rise at full foot-plant
+const ROCK = 1.5;    // was 4 — frames carry the body rock; keep a faint rock
+const SQUASH = 0.06; // was 0.12 — lighter contact squash over the frame motion
+const STRETCH = 0.04; // was 0.08
 
 export function enemyWalkTransform(phase: number, opts: WalkOpts = {}): WalkTransform {
   const amp = opts.amp ?? 1;
