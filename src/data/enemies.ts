@@ -9,6 +9,7 @@
  */
 import { makeStats, type EnemyDef } from "./schema.ts";
 import { HOMAGE_BOSSES } from "./enemiesBosses.ts";
+import { ANTIHERO_BOSSES } from "./enemiesAntiheroes.ts";
 
 export const ENEMIES: EnemyDef[] = [
   // --- Rushers (fast ground swarm) ---
@@ -436,6 +437,9 @@ export const ENEMIES: EnemyDef[] = [
   // Anime-homage bosses (zabro … meruon) live in ./enemiesBosses.ts to keep this
   // file under the 500-line cap. They append after the original/expansion roster.
   ...HOMAGE_BOSSES,
+  // The Antihero Gallery (gravemourn … ashghost) — 10 anti-hero homages, in
+  // ./enemiesAntiheroes.ts for the same reason. See the 2026-06-12 design spec.
+  ...ANTIHERO_BOSSES,
 ];
 
 /**
