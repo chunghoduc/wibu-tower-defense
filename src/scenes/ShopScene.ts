@@ -11,7 +11,8 @@ import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import type { ShopStockEntry, ItemInstanceSave } from "../core/save.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
-import { smeltYield } from "../core/smelt.ts";
+import { smeltYield, bulkSmeltPreview } from "../core/smelt.ts";
+import { openAutoRecycleDialog } from "./autoRecycleDialog.ts";
 import { reforgeCost, canReforge } from "../core/reforge.ts";
 import { CHAOS_JEWEL } from "../data/materials.ts";
 import { crispText, hoverGlowRect, hoverPop } from "./ui.ts";
@@ -38,6 +39,7 @@ export class ShopScene extends Phaser.Scene {
   private tabBuy!: Phaser.GameObjects.Text;
   private tabSell!: Phaser.GameObjects.Text;
   private refreshBtn!: Phaser.GameObjects.Text;
+  private autoBtn!: Phaser.GameObjects.Text;
   private confirmDialog: Phaser.GameObjects.Container | null = null;
   private sellOffset = 0;       // recycle grid scroll position, in rows
   private sellMaxOffset = 0;
@@ -73,6 +75,12 @@ export class ShopScene extends Phaser.Scene {
       this.flash(r.message, r.success);
       this.redraw();
     });
+
+    // Recycle-only: bulk-smelt by rarity. Shares the top-right slot with Refresh
+    // (the two views are mutually exclusive, so only one shows at a time).
+    this.autoBtn = crispText(this, W - 20, 46, "♻ Auto", { fontSize: "12px", color: "#fff", backgroundColor: "#5a2a4a" })
+      .setOrigin(1, 0).setPadding(8, 4, 8, 4).setInteractive({ useHandCursor: true }).setVisible(false);
+    this.autoBtn.on("pointerup", () => this.openAutoRecycle());
 
     this.hoverLabel = this.add.text(W / 2, 478, "", { fontSize: "13px", color: "#e8eef6" }).setOrigin(0.5);
     this.feedback = this.add.text(W / 2, 500, "", { fontSize: "13px", color: "#a5d6a7" }).setOrigin(0.5);
@@ -130,6 +138,7 @@ export class ShopScene extends Phaser.Scene {
     this.tabBuy.setBackgroundColor(this.mode === "buy" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "buy" ? 1 : 0.7);
     this.tabSell.setBackgroundColor(this.mode === "recycle" ? "#2a4a6a" : "#1a2a3a").setAlpha(this.mode === "recycle" ? 1 : 0.7);
     this.refreshBtn.setVisible(this.mode === "buy").setText(this.refreshLabel());
+    this.autoBtn.setVisible(this.mode === "recycle");
     this.catChips.setVisible(this.mode === "recycle");
     this.catChips.update(this.sellCategory);
 
@@ -258,6 +267,22 @@ export class ShopScene extends Phaser.Scene {
     z.on("pointerout", () => { this.hoverLabel.setText(""); this.tooltip.setVisible(false); });
     z.on("pointerup", () => { if (!this.sellDrag.didScroll()) this.openRecycle(inst, def?.name ?? "Item", def?.rarity); });
     this.grid.add(z);
+  }
+
+  /** Bulk-smelt by rarity. Reuses the confirmDialog slot for scene-reentry cleanup. */
+  private openAutoRecycle(): void {
+    this.confirmDialog?.destroy(true);
+    this.tooltip.setVisible(false);
+    this.confirmDialog = openAutoRecycleDialog(this, {
+      preview: (rarities) => bulkSmeltPreview(this.mgr.getSave(), rarities),
+      confirm: (rarities) => {
+        const r = this.mgr.bulkSmeltItems(rarities);
+        this.closeConfirm();
+        this.flash(r.count > 0 ? `Recycled ${r.count} items → ❖ ${r.chaos} Chaos` : "Nothing to recycle", r.count > 0);
+        this.redraw();
+      },
+      onClose: () => this.closeConfirm(),
+    });
   }
 
   /**
