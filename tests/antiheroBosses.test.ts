@@ -3,6 +3,7 @@ import { world, mkTower, mkStage, runFor } from "./fixtures.ts";
 import { ENEMIES, castleLeakDamage, BOSS_CASTLE_DAMAGE } from "../src/data/enemies.ts";
 import { ANTIHERO_BOSSES } from "../src/data/enemiesAntiheroes.ts";
 import { validateEnemy } from "../src/data/schema.ts";
+import { SPRITE_MANIFEST } from "../src/data/spriteManifest.ts";
 
 const IDS = [
   "gravemourn", "vindicator", "sundermark", "crownfall", "unkilling",
@@ -28,6 +29,10 @@ describe("Antihero Gallery — catalog integrity", () => {
       expect(def.immunity, id).toBeNull();          // bosses must always be answerable
       expect(castleLeakDamage(def), id).toBe(BOSS_CASTLE_DAMAGE);
     }
+  });
+  it("each boss has a boss__<id> sprite-manifest entry (so it renders)", () => {
+    const keys = new Set(SPRITE_MANIFEST.map((m: { key: string }) => m.key));
+    for (const id of IDS) expect(keys.has(`boss__${id}`), id).toBe(true);
   });
   it("carries each boss's designed signature mechanic", () => {
     expect(byId("gravemourn").boss?.enrage).toBeDefined();

@@ -115,6 +115,17 @@ export const BOSS_VISUAL = {
   champion: "an imposing armored boss knight in ornate silver plate armor with gold trim, a flowing cape and a huge greatsword, glowing red eyes, intimidating",
   warden: "a massive fortress warden boss in heavy dark steel armor carrying a giant battle axe and a tower shield, glowing blue visor",
   overlord: "a towering dark sorcerer-lord boss with a purple skull-like face, ornate black and purple robes with a high collar and cape, a dark crown and floating dark magic orbs",
+  // The Antihero Gallery — name-free, visually recognizable anti-hero homages.
+  gravemourn: "a towering grim black-armored swordsman boss with a single scarred eye and a prosthetic iron forearm, wielding a colossal slab-like greatsword as tall as himself, tattered dark cloak, brooding rage",
+  vindicator: "a hardened militant vigilante boss in black tactical body armor bearing a stark white skull emblem across the chest, draped in ammunition belts, gripping heavy military firearms, grim and merciless",
+  sundermark: "a wandering scarred warrior-assassin boss with a large X-shaped facial scar, dark dreadlocked hair and small round sunglasses, one arm wrapped in glowing red destruction sigils, flowing grey traveler's robes",
+  crownfall: "a proud armored warrior-prince boss with spiked black flame-shaped hair, royal blue battle armor over a white bodysuit with white gloves and boots, crackling golden energy aura, arrogant scowl",
+  unkilling: "a feral muscular berserker boss with wild dark hair drawn into two points and thick sideburns, a yellow and blue armored bodysuit, three gleaming metal claws extending from each fist, savage snarl",
+  mawborn: "a hulking pitch-black symbiote monster boss with a huge fanged maw and bulging white eyes, long writhing tendrils and a massive lashing tongue, glistening alien ooze",
+  devourer: "a colossal skinless titan boss of exposed steaming red musculature, long flowing dark hair framing a gaunt determined face with glowing eyes, towering and unstoppable",
+  crimsonlord: "a lean aristocratic vampire gunslinger boss in a bright crimson red long coat and a matching red wide-brimmed hat, pale white skin, neat black hair, round orange glasses, holding a long silver pistol, dramatic clearly-separated full-body poses",
+  fallenward: "a dread armored dark warlord boss in a flowing black cape and full obsidian plate armor, an intimidating skull-like helmet with a breathing mask, wielding a humming crimson energy blade",
+  ashghost: "a vengeful pale ash-skinned spartan warrior boss with a bold red tattoo across one eye, a short dark beard and a scarred muscular body, twin chained blades wreathed in fire, cold fury",
 };
 
 // ---- ITEMS (icon style) ----
