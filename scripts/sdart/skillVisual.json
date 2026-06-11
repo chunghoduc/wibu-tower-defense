@@ -82,5 +82,860 @@
     "name": "Void Palm",
     "rarity": "Unique",
     "look": "A black void-rift tears open with a glowing violet rim; cracks in space radiate outward, then the rift collapses to a point and snaps shut in a white reality-tear flash. The most dramatic cast."
+  },
+  {
+    "id": "spirit-ball",
+    "name": "Spirit Ball",
+    "look": "Hurls a sphere of ki that bursts for area damage."
+  },
+  {
+    "id": "dimensional-slash",
+    "name": "Dimensional Slash",
+    "look": "A spirit-blade rift that cleaves a line of foes."
+  },
+  {
+    "id": "iaido-slash",
+    "name": "Three-Blade Iaido",
+    "look": "A blinding draw-cut dealing heavy single-target damage."
+  },
+  {
+    "id": "final-flash",
+    "name": "Final Flash",
+    "look": "A devastating beam that ignores all defenses (True damage)."
+  },
+  {
+    "id": "kamefist-wave",
+    "name": "Wave Fist",
+    "look": "A charged energy wave washing over everything ahead."
+  },
+  {
+    "id": "hollow-purple",
+    "name": "Hollow Clash",
+    "look": "Collides two opposing forces into one annihilating blast."
+  },
+  {
+    "id": "serious-punch",
+    "name": "Serious Punch",
+    "look": "One punch — colossal True damage to a single target."
+  },
+  {
+    "id": "frag-toss",
+    "name": "Frag Toss",
+    "look": "Lobs an explosive for a wide, hard-hitting blast."
+  },
+  {
+    "id": "coup-de-burst",
+    "name": "Coup de Burst",
+    "look": "A point-blank cannon shot with a huge area."
+  },
+  {
+    "id": "petal-storm",
+    "name": "Petal Storm",
+    "look": "A swirling storm of blades striking all nearby."
+  },
+  {
+    "id": "great-eruption",
+    "name": "Great Eruption",
+    "look": "Calls down a volcanic blast that burns the ground."
+  },
+  {
+    "id": "explosion",
+    "name": "Explosion",
+    "look": "A single, enormous magical detonation."
+  },
+  {
+    "id": "double-skip",
+    "name": "Double Skip",
+    "look": "A skipping shot that bounces between many foes."
+  },
+  {
+    "id": "chain-lightning",
+    "name": "Chain Lightning",
+    "look": "Forked lightning leaping across the lane."
+  },
+  {
+    "id": "glacial-chain",
+    "name": "Glacial Chain",
+    "look": "Bouncing ice that freezes each target it touches."
+  },
+  {
+    "id": "thunderbolt",
+    "name": "Thunderbolt",
+    "look": "A heavy bolt that stuns where it strikes."
+  },
+  {
+    "id": "kirin",
+    "name": "Kirin",
+    "look": "Summons a pillar of lightning for massive damage."
+  },
+  {
+    "id": "bramble",
+    "name": "Bramble Burst",
+    "look": "Thorns erupt, poisoning everything around the target."
+  },
+  {
+    "id": "wildfire",
+    "name": "Wildfire",
+    "look": "Spreads fire that keeps burning across the wave."
+  },
+  {
+    "id": "plague-cloud",
+    "name": "Plague Cloud",
+    "look": "A toxic cloud that poisons all who linger."
+  },
+  {
+    "id": "inferno-snap",
+    "name": "Inferno Snap",
+    "look": "Instantly detonates all burns for a fiery payoff."
+  },
+  {
+    "id": "black-rot",
+    "name": "Black Rot",
+    "look": "Spreading decay that amplifies damage to the rotten."
+  },
+  {
+    "id": "tar-pit",
+    "name": "Tar Pit",
+    "look": "Mires the lane, rooting and slowing all caught."
+  },
+  {
+    "id": "shadow-stitch",
+    "name": "Shadow Stitch",
+    "look": "Pins enemies' shadows, stunning a whole group."
+  },
+  {
+    "id": "ice-geyser",
+    "name": "Ice Geyser",
+    "look": "A burst of ice that freezes a cluster solid."
+  },
+  {
+    "id": "blizzard",
+    "name": "Blizzard",
+    "look": "A sustained snowstorm that deeply chills the field."
+  },
+  {
+    "id": "sand-burial",
+    "name": "Sand Burial",
+    "look": "Crushing sand that binds and grinds down foes."
+  },
+  {
+    "id": "pep-talk",
+    "name": "Pep Talk",
+    "look": "A rallying cry boosting all allied towers' attack."
+  },
+  {
+    "id": "crescendo",
+    "name": "Crescendo",
+    "look": "A swelling tempo that hastens nearby allies."
+  },
+  {
+    "id": "reject-fate",
+    "name": "Reject Fate",
+    "look": "Shields and revitalizes wounded allies."
+  },
+  {
+    "id": "war-cry",
+    "name": "War Cry",
+    "look": "An empowering roar — allies hit harder and faster."
+  },
+  {
+    "id": "creation-rebirth",
+    "name": "Creation Rebirth",
+    "look": "Restores allies and cleanses their afflictions."
+  },
+  {
+    "id": "ironhide-slam",
+    "name": "Ironhide Slam",
+    "look": "Hardens and slams the ground for area damage scaled by its armor."
+  },
+  {
+    "id": "scaleguard-crash",
+    "name": "Scaleguard Crash",
+    "look": "A club-like forearm smashes the lane, fueled by its bulk."
+  },
+  {
+    "id": "adamant-burst",
+    "name": "Adamant Burst",
+    "look": "Crystalline fists shatter outward for armor-scaled damage."
+  },
+  {
+    "id": "armored-charge",
+    "name": "Armored Charge",
+    "look": "Barrels through the front line, its plating turned to a weapon."
+  },
+  {
+    "id": "fortress-smash",
+    "name": "Fortress Smash",
+    "look": "An earth-shaking blow whose force is drawn from its defenses."
+  },
+  {
+    "id": "rapid-volley",
+    "name": "Rapid Volley",
+    "look": "Looses a flurry of arrows at the strongest foe in range."
+  },
+  {
+    "id": "skipping-volley",
+    "name": "Skipping Volley",
+    "look": "A trick arrow that ricochets across a string of enemies."
+  },
+  {
+    "id": "meteor-volley",
+    "name": "Meteor Volley",
+    "look": "Fires into the sky to rain a falling storm of arrows over an area."
+  },
+  {
+    "id": "siege-bolt",
+    "name": "Siege Bolt",
+    "look": "A massive crossbow bolt that skewers through armor for heavy damage."
+  },
+  {
+    "id": "plague-quiver",
+    "name": "Plague Quiver",
+    "look": "Empties a quiver of venom bolts, poisoning everything they strike."
+  },
+  {
+    "id": "spin-shot",
+    "name": "Spin Shot",
+    "look": "A whirling burst of trick shots peppering all nearby foes."
+  },
+  {
+    "id": "grenade-barrage",
+    "name": "Grenade Barrage",
+    "look": "Lobs a salvo of explosive shells that bloom into fire."
+  },
+  {
+    "id": "phantom-fusillade",
+    "name": "Phantom Fusillade",
+    "look": "Curving rounds that rebound from foe to foe across the lane."
+  },
+  {
+    "id": "bola-storm",
+    "name": "Bola Storm",
+    "look": "A hail of weighted wire that tangles and slows a whole group."
+  },
+  {
+    "id": "ruinous-passage",
+    "name": "Ruinous Passage",
+    "look": "Scribes a killing verse, rotting all caught in the page's curse."
+  },
+  {
+    "id": "errata-curse",
+    "name": "Errata Curse",
+    "look": "Strikes a passage from reality — weakens and may stun a cluster."
+  },
+  {
+    "id": "coronation-ward",
+    "name": "Coronation Ward",
+    "look": "Crowns the line in golden light, shielding and empowering allies."
+  },
+  {
+    "id": "tempest-scepter",
+    "name": "Tempest Scepter",
+    "look": "Unleashes a forking tempest that leaps between many foes."
+  },
+  {
+    "id": "zap-nova",
+    "name": "Zap Nova",
+    "look": "A crackling nova of sparks bursting over a small area."
+  },
+  {
+    "id": "missile-salvo",
+    "name": "Missile Salvo",
+    "look": "Looses a volley of unerring arcane darts at a single target."
+  },
+  {
+    "id": "sacred-renewal",
+    "name": "Sacred Renewal",
+    "look": "Pours blessing over the whole line, healing and hastening allies."
+  },
+  {
+    "id": "wolf-fang",
+    "name": "Wolf Fang Fist",
+    "look": "Rapid strikes that ramp up attack speed the longer it fights."
+  },
+  {
+    "id": "spirit-sword",
+    "name": "Spirit Sword",
+    "look": "Conjured energy blade — attacks ignore a portion of armor."
+  },
+  {
+    "id": "street-code",
+    "name": "Street Code",
+    "look": "Gains attack when allies nearby are hurt."
+  },
+  {
+    "id": "three-sword-style",
+    "name": "Three-Sword Style",
+    "look": "Three blades strike as one — bonus crit damage."
+  },
+  {
+    "id": "first-strike",
+    "name": "First Strike",
+    "look": "The first hit on a fresh target always crits."
+  },
+  {
+    "id": "royal-pride",
+    "name": "Royal Pride",
+    "look": "Deals more damage to the strongest enemy in range."
+  },
+  {
+    "id": "galick-surge",
+    "name": "Galick Surge",
+    "look": "Periodic charged blast that pierces armor."
+  },
+  {
+    "id": "perfect-form",
+    "name": "Perfect Form",
+    "look": "Scales attack with its own missing health — fiercer when wounded."
+  },
+  {
+    "id": "boundless-ki",
+    "name": "Boundless Ki",
+    "look": "Attack scales with skill power; spells hit harder."
+  },
+  {
+    "id": "instinct",
+    "name": "Instinct",
+    "look": "Chance to dodge an attacker's retaliation."
+  },
+  {
+    "id": "second-wind",
+    "name": "Second Wind",
+    "look": "Heals a burst the first time it drops below half HP."
+  },
+  {
+    "id": "infinity",
+    "name": "Infinity",
+    "look": "A fraction of incoming damage is nullified."
+  },
+  {
+    "id": "six-eyes",
+    "name": "Six Eyes",
+    "look": "Greatly reduced skill mana cost; casts more often."
+  },
+  {
+    "id": "domain",
+    "name": "Domain",
+    "look": "Nearby enemies take increased damage from all sources."
+  },
+  {
+    "id": "no-limiter",
+    "name": "No Limiter",
+    "look": "Removes its own attack cap at the cost of defense."
+  },
+  {
+    "id": "deadpan",
+    "name": "Deadpan",
+    "look": "Immune to being slowed or stunned by enemy auras."
+  },
+  {
+    "id": "casual-stride",
+    "name": "Casual Stride",
+    "look": "Always acts unhurried — steady, unshakeable attack rhythm."
+  },
+  {
+    "id": "loose-pin",
+    "name": "Loose Pin",
+    "look": "Explosives have a chance to detonate twice."
+  },
+  {
+    "id": "siege-payload",
+    "name": "Siege Payload",
+    "look": "Bonus splash damage versus armored foes."
+  },
+  {
+    "id": "cola-boost",
+    "name": "Cola Boost",
+    "look": "Occasional super-charged shot with a huge blast."
+  },
+  {
+    "id": "wide-bloom",
+    "name": "Wide Bloom",
+    "look": "Enlarged area of effect on every hit."
+  },
+  {
+    "id": "fuse-master",
+    "name": "Fuse Master",
+    "look": "Blasts also briefly slow everything they catch."
+  },
+  {
+    "id": "eruption",
+    "name": "Eruption",
+    "look": "Splash leaves a lingering burning patch."
+  },
+  {
+    "id": "molten-core",
+    "name": "Molten Core",
+    "look": "Hits apply stacking burn to all caught enemies."
+  },
+  {
+    "id": "aftershock",
+    "name": "Aftershock",
+    "look": "A second, smaller blast follows each shot."
+  },
+  {
+    "id": "explosion-only",
+    "name": "Explosion Connoisseur",
+    "look": "All damage is converted to area blasts."
+  },
+  {
+    "id": "crimson-pride",
+    "name": "Crimson Pride",
+    "look": "Blast radius and damage grow as the wave goes on."
+  },
+  {
+    "id": "overflow",
+    "name": "Overflow",
+    "look": "Overkill damage splashes onto nearby enemies."
+  },
+  {
+    "id": "bounce",
+    "name": "Bounce",
+    "look": "Attacks ricochet to an extra enemy."
+  },
+  {
+    "id": "conduit",
+    "name": "Conduit",
+    "look": "Each bounce loses less damage."
+  },
+  {
+    "id": "thunderclap",
+    "name": "Thunderclap",
+    "look": "The final bounce briefly stuns."
+  },
+  {
+    "id": "cold-snap",
+    "name": "Cold Snap",
+    "look": "Chained targets are chilled and slowed."
+  },
+  {
+    "id": "ricochet",
+    "name": "Ricochet",
+    "look": "Can bounce back to a target already hit."
+  },
+  {
+    "id": "godspeed",
+    "name": "Godspeed",
+    "look": "Lightning-fast attacks with extra chain range."
+  },
+  {
+    "id": "whirlwind",
+    "name": "Whirlwind",
+    "look": "Bounces form a spinning arc, hitting clusters harder."
+  },
+  {
+    "id": "assassin-instinct",
+    "name": "Assassin's Instinct",
+    "look": "Bonus damage to the lowest-health bounce target."
+  },
+  {
+    "id": "sharingan",
+    "name": "Mirror Eye",
+    "look": "Copies and predicts foes — bounces never miss."
+  },
+  {
+    "id": "chidori-stream",
+    "name": "Lightning Stream",
+    "look": "A continuous arc that keeps chaining while channeling."
+  },
+  {
+    "id": "vengeance",
+    "name": "Vengeance",
+    "look": "Gains attack each time an ally tower is disabled."
+  },
+  {
+    "id": "barbs",
+    "name": "Barbs",
+    "look": "Attacks plant thorns that bleed over time."
+  },
+  {
+    "id": "smolder",
+    "name": "Smolder",
+    "look": "Damage-over-time ticks faster."
+  },
+  {
+    "id": "foxfire",
+    "name": "Foxfire",
+    "look": "Burns spread to a nearby enemy on death."
+  },
+  {
+    "id": "virulence",
+    "name": "Virulence",
+    "look": "Poison stacks more potent on the same target."
+  },
+  {
+    "id": "lingering-toxin",
+    "name": "Lingering Toxin",
+    "look": "Damage-over-time lasts noticeably longer."
+  },
+  {
+    "id": "ignition",
+    "name": "Ignition",
+    "look": "Refreshing a burn deals an instant flare of damage."
+  },
+  {
+    "id": "pinpoint-flame",
+    "name": "Pinpoint Flame",
+    "look": "Critical hits double the applied burn."
+  },
+  {
+    "id": "ambition",
+    "name": "Ambition",
+    "look": "Power grows for every enemy currently afflicted by it."
+  },
+  {
+    "id": "corrosion",
+    "name": "Corrosion",
+    "look": "Its damage-over-time also shreds armor."
+  },
+  {
+    "id": "epidemic",
+    "name": "Epidemic",
+    "look": "Killing a poisoned enemy spreads the poison."
+  },
+  {
+    "id": "necrosis",
+    "name": "Necrosis",
+    "look": "Afflicted enemies take increased damage from everyone."
+  },
+  {
+    "id": "sticky-mud",
+    "name": "Sticky Mud",
+    "look": "Slowed enemies are also rooted briefly."
+  },
+  {
+    "id": "shadow-bind",
+    "name": "Shadow Bind",
+    "look": "Chance to fully bind (stun) on hit."
+  },
+  {
+    "id": "two-hundred-iq",
+    "name": "200 IQ",
+    "look": "Targets the most dangerous enemy and amplifies its debuff."
+  },
+  {
+    "id": "ice-make",
+    "name": "Ice-Make",
+    "look": "Builds icy terrain that slows everything that crosses it."
+  },
+  {
+    "id": "freezing-touch",
+    "name": "Freezing Touch",
+    "look": "Stacks chill until the target freezes solid."
+  },
+  {
+    "id": "deep-chill",
+    "name": "Deep Chill",
+    "look": "Slows are stronger and resist tenacity."
+  },
+  {
+    "id": "hoarfrost",
+    "name": "Hoarfrost",
+    "look": "Frozen enemies take bonus damage."
+  },
+  {
+    "id": "absolute-zero",
+    "name": "Absolute Zero",
+    "look": "Periodically flash-freezes everything in range."
+  },
+  {
+    "id": "sand-armor",
+    "name": "Sand Armor",
+    "look": "Heavily armored — shrugs off enemy attacks while it debuffs."
+  },
+  {
+    "id": "iron-grip",
+    "name": "Iron Grip",
+    "look": "Debuffs cannot be cleansed by enemy healers."
+  },
+  {
+    "id": "tailed-rage",
+    "name": "Tailed Rage",
+    "look": "The longer it lives, the harsher its debuffs."
+  },
+  {
+    "id": "cheer",
+    "name": "Cheer",
+    "look": "Boosts the attack of nearby allied towers."
+  },
+  {
+    "id": "allegro",
+    "name": "Allegro",
+    "look": "Boosts the attack speed of nearby allies."
+  },
+  {
+    "id": "blessing",
+    "name": "Blessing",
+    "look": "Slowly heals nearby allied towers."
+  },
+  {
+    "id": "shun-shield",
+    "name": "Shun Shield",
+    "look": "Grants a brief shield to a low-health ally."
+  },
+  {
+    "id": "rally",
+    "name": "Rally",
+    "look": "Aura strengthens as more allies stand nearby."
+  },
+  {
+    "id": "vanguard",
+    "name": "Vanguard",
+    "look": "Allies near it take reduced damage."
+  },
+  {
+    "id": "last-charge",
+    "name": "Last Charge",
+    "look": "On death, leaves a powerful farewell buff to allies."
+  },
+  {
+    "id": "hundred-healings",
+    "name": "Hundred Healings",
+    "look": "Its healing scales with skill power and never overheals to waste."
+  },
+  {
+    "id": "monster-strength",
+    "name": "Monster Strength",
+    "look": "Massive raw power that also lifts allied attack."
+  },
+  {
+    "id": "sannin-resolve",
+    "name": "Sage's Resolve",
+    "look": "Veteran poise — auras persist briefly even after it falls."
+  },
+  {
+    "id": "ironhide",
+    "name": "Ironhide",
+    "look": "Hardens its body — part of its armor is folded into its skill damage."
+  },
+  {
+    "id": "guts",
+    "name": "Guts",
+    "look": "Refuses to fall; survives a lethal blow at 1 HP once per battle."
+  },
+  {
+    "id": "iron-scales",
+    "name": "Iron Scales",
+    "look": "Metal scales turn a share of its bulk into retaliating force."
+  },
+  {
+    "id": "counter-stance",
+    "name": "Counter Stance",
+    "look": "Answers each blow it tanks with a punishing strike."
+  },
+  {
+    "id": "diamond-body",
+    "name": "Diamond Body",
+    "look": "Crystalline skin reflects a portion of melee damage back."
+  },
+  {
+    "id": "unbreakable",
+    "name": "Unbreakable",
+    "look": "The more armor it stacks, the harder its skill strikes."
+  },
+  {
+    "id": "plated-hide",
+    "name": "Plated Hide",
+    "look": "Layered plating soaks hits and stores them as power."
+  },
+  {
+    "id": "bulwark",
+    "name": "Bulwark",
+    "look": "Stands as a wall — nearby allies take reduced damage."
+  },
+  {
+    "id": "last-bastion",
+    "name": "Last Bastion",
+    "look": "Grows mightier as its own health drops."
+  },
+  {
+    "id": "indomitable",
+    "name": "Indomitable",
+    "look": "Cannot be stunned while above half health."
+  },
+  {
+    "id": "symbol-of-peace",
+    "name": "Symbol of Defense",
+    "look": "Its mere presence steels every ally's resolve."
+  },
+  {
+    "id": "quick-draw",
+    "name": "Quick Draw",
+    "look": "Looses arrows in a rapid rhythm — faster the longer it fires."
+  },
+  {
+    "id": "keen-eye",
+    "name": "Keen Eye",
+    "look": "Never wastes a shot — bonus crit against the same target."
+  },
+  {
+    "id": "trick-shot",
+    "name": "Trick Shot",
+    "look": "Angles every loose so arrows skip onward after a hit."
+  },
+  {
+    "id": "far-sight",
+    "name": "Far Sight",
+    "look": "Extreme reach — strikes the lane long before others can."
+  },
+  {
+    "id": "arcing-loose",
+    "name": "Arcing Loose",
+    "look": "Lofts shafts over cover to rain down on a wide area."
+  },
+  {
+    "id": "last-shot",
+    "name": "Last Shot",
+    "look": "Each volley is offered like a final arrow — extra armor pierce."
+  },
+  {
+    "id": "armor-piercer",
+    "name": "Armor Piercer",
+    "look": "Heavy bolts punch clean through plate, ignoring much armor."
+  },
+  {
+    "id": "steady-aim",
+    "name": "Steady Aim",
+    "look": "A slow, deliberate draw — every bolt lands for heavy damage."
+  },
+  {
+    "id": "envenom",
+    "name": "Envenom",
+    "look": "Coats each bolt in slow rot — hits seed a lingering poison."
+  },
+  {
+    "id": "barbed-bolt",
+    "name": "Barbed Bolt",
+    "look": "Hooked heads tear on impact, deepening the venom's bite."
+  },
+  {
+    "id": "gun-kata",
+    "name": "Gun Kata",
+    "look": "A flowing shooting form — chains rapid trick shots together."
+  },
+  {
+    "id": "fan-the-hammer",
+    "name": "Fan the Hammer",
+    "look": "Empties the cylinder in a blur of point-blank rounds."
+  },
+  {
+    "id": "incendiary-rounds",
+    "name": "Incendiary Rounds",
+    "look": "Shells burst into fire, scorching the ground they land on."
+  },
+  {
+    "id": "wide-blast",
+    "name": "Wide Blast",
+    "look": "Over-charged charges detonate across a larger radius."
+  },
+  {
+    "id": "high-ground",
+    "name": "High Ground",
+    "look": "Fires from a vantage — bonus damage to distant foes."
+  },
+  {
+    "id": "homing-rounds",
+    "name": "Homing Rounds",
+    "look": "Will-guided bullets curve around cover to find their mark."
+  },
+  {
+    "id": "perfect-cadence",
+    "name": "Perfect Cadence",
+    "look": "An unbroken firing rhythm that ramps damage as it sustains."
+  },
+  {
+    "id": "weighted-net",
+    "name": "Weighted Net",
+    "look": "Bolas and wire tangle struck foes, slowing their advance."
+  },
+  {
+    "id": "pinning-throw",
+    "name": "Pinning Throw",
+    "look": "A precise hail of blades that staggers grouped enemies."
+  },
+  {
+    "id": "festering-script",
+    "name": "Festering Script",
+    "look": "Inked hexes rot the target over time, scaling with skill power."
+  },
+  {
+    "id": "spreading-curse",
+    "name": "Spreading Curse",
+    "look": "The decay leaps to nearby foes as the page is finished."
+  },
+  {
+    "id": "weakening-word",
+    "name": "Weakening Word",
+    "look": "Strikes out an enemy's strength — slows and softens them."
+  },
+  {
+    "id": "ink-shackle",
+    "name": "Ink Shackle",
+    "look": "Binding script seizes a target, with a chance to stun."
+  },
+  {
+    "id": "royal-decree",
+    "name": "Royal Decree",
+    "look": "Commands the field — boosts the attack of every nearby ally."
+  },
+  {
+    "id": "aegis-blessing",
+    "name": "Aegis Blessing",
+    "look": "Wards allies so the first blow against them is turned aside."
+  },
+  {
+    "id": "dawns-favor",
+    "name": "Dawn's Favor",
+    "look": "Radiant light quickens allied strikes across the aura."
+  },
+  {
+    "id": "arc-conduct",
+    "name": "Arc Conduct",
+    "look": "Lets the lightning choose its path, leaping between foes."
+  },
+  {
+    "id": "storm-link",
+    "name": "Storm Link",
+    "look": "Each chained target takes more as the storm builds."
+  },
+  {
+    "id": "static-burst",
+    "name": "Static Burst",
+    "look": "Sparks scatter on impact, zapping a small cluster."
+  },
+  {
+    "id": "spark-scatter",
+    "name": "Spark Scatter",
+    "look": "Wild discharge spreads the shock to extra nearby enemies."
+  },
+  {
+    "id": "arcane-focus",
+    "name": "Arcane Focus",
+    "look": "Channels raw magic into unerring, armor-piercing darts."
+  },
+  {
+    "id": "mana-bolt",
+    "name": "Mana Bolt",
+    "look": "Converts surplus mana into bonus bolt damage on hit."
+  },
+  {
+    "id": "true-aim",
+    "name": "True Aim",
+    "look": "Darts never miss — bonus crit against full-health targets."
+  },
+  {
+    "id": "benediction",
+    "name": "Benediction",
+    "look": "A standing blessing that raises all nearby allies' power."
+  },
+  {
+    "id": "goddess-favor",
+    "name": "Goddess Favor",
+    "look": "Sacred grace hastens every ally caught in the halo."
+  },
+  {
+    "id": "purify",
+    "name": "Purify",
+    "look": "Cleanses afflictions from allies within the orb's light."
   }
 ]
