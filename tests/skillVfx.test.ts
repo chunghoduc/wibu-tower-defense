@@ -1,10 +1,65 @@
 import { describe, expect, it } from "vitest";
 import { ACTIVE_SKILLS } from "../src/data/skills.ts";
-import { SKILL_VFX, skillVfxSpec, DELIVERY_KINDS, deliveryForStyle } from "../src/data/skillVfxMeta.ts";
+import { SKILL_VFX, skillVfxSpec, DELIVERY_KINDS, deliveryForStyle, deliveryForShape } from "../src/data/skillVfxMeta.ts";
+import { towerSkillShape, SKILL_SHAPES } from "../src/data/attackStyle.ts";
+import { SKILL_SHAPE, skillShapeFor } from "../src/data/towerSkillShapeIndex.ts";
+import { TOWERS } from "../src/data/towers.ts";
 import { BattleState, MANA_MAX } from "../src/core/battle.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { makeStats } from "../src/data/schema.ts";
+import type { CharacterDef } from "../src/data/schema.ts";
 import { mkEnemy, mkStage, oneWave } from "./fixtures.ts";
+
+// minimal def factory — only the fields towerSkillShape reads (role + active).
+const defOf = (role: CharacterDef["role"], active: string | null): CharacterDef =>
+  ({ role, active } as unknown as CharacterDef);
+
+describe("tower skill shape", () => {
+  it("maps each role to its base shape", () => {
+    expect(towerSkillShape(defOf("splash", "explosion"))).toBe("nova");
+    expect(towerSkillShape(defOf("chain", "chain-lightning"))).toBe("chain");
+    expect(towerSkillShape(defOf("dot", "plague-cloud"))).toBe("cloud");
+    expect(towerSkillShape(defOf("debuff", "blizzard"))).toBe("cloud");
+    expect(towerSkillShape(defOf("support", "war-cry"))).toBe("aura");
+    expect(towerSkillShape(defOf("tanker", "fortress-smash"))).toBe("slam");
+  });
+
+  it("refines the damage role by keyword into beam / barrage / bolt", () => {
+    expect(towerSkillShape(defOf("damage", "kamefist-wave"))).toBe("beam");
+    expect(towerSkillShape(defOf("damage", "hollow-purple"))).toBe("beam");
+    expect(towerSkillShape(defOf("damage", "serious-punch"))).toBe("beam");
+    expect(towerSkillShape(defOf("damage", "rapid-volley"))).toBe("barrage");
+    expect(towerSkillShape(defOf("damage", "missile-salvo"))).toBe("barrage");
+    expect(towerSkillShape(defOf("damage", "siege-bolt"))).toBe("barrage");
+    expect(towerSkillShape(defOf("damage", "spirit-ball"))).toBe("beam");
+    expect(towerSkillShape(defOf("damage", "final-flash"))).toBe("beam");
+  });
+
+  it("deliveryForShape returns a known delivery kind for every shape", () => {
+    for (const shape of SKILL_SHAPES) {
+      expect(DELIVERY_KINDS).toContain(deliveryForShape(shape));
+    }
+  });
+});
+
+describe("tower skill shape index", () => {
+  it("resolves a known shape for every tower active id (no surprise default)", () => {
+    const actives = [...new Set(TOWERS.map((t) => t.active).filter((a): a is string => !!a))];
+    for (const id of actives) {
+      expect(SKILL_SHAPES).toContain(SKILL_SHAPE[id]);
+    }
+  });
+
+  it("exercises at least 6 of the 8 shapes across the live roster (de-collapsed)", () => {
+    const used = new Set(Object.values(SKILL_SHAPE));
+    expect(used.size).toBeGreaterThanOrEqual(6);
+  });
+
+  it("falls back to bolt for unknown / undefined ids", () => {
+    expect(skillShapeFor(undefined)).toBe("bolt");
+    expect(skillShapeFor("not-a-real-skill")).toBe("bolt");
+  });
+});
 
 // NOTE: renderer coverage (every `signature` has a draw function) is enforced at
 // COMPILE TIME by the `Record<SkillSignature, SigFn>` in skillSignatures.ts, so

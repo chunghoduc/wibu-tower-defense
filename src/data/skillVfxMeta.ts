@@ -14,7 +14,7 @@
 // The colours are deliberately distinct per skill so two skills never read the
 // same — that's the whole point of "easily see the differences".
 
-import type { SkillStyle } from "./attackStyle.ts";
+import type { SkillStyle, SkillShape } from "./attackStyle.ts";
 
 /** A single skill's cast-effect identity. */
 export interface SkillVfxSpec {
@@ -182,4 +182,18 @@ export function deliveryForStyle(style: SkillStyle): DeliveryKind {
   if (style === "lightning") return "skyfall";
   if (style === "slash") return "cast";
   return "bolt";
+}
+
+/** Source-delivery for a tower-skill SHAPE (the "fly-from-source" beat). */
+export function deliveryForShape(shape: SkillShape): DeliveryKind {
+  switch (shape) {
+    case "nova": return "skyfall";
+    case "beam": return "beam";
+    case "cloud": return "ground";
+    case "slam": return "ground";
+    case "aura": return "cast";
+    case "chain": return "bolt";
+    case "barrage": return "bolt";
+    case "bolt": return "bolt";
+  }
 }

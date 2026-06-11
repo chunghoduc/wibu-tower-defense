@@ -129,3 +129,36 @@ export function skillStyleFor(skillId: string | undefined): SkillStyle {
 export const SKILL_STYLE_COLOR: Record<SkillStyle, number> = {
   fire: 0xff6a2a, ice: 0x6fc6ff, lightning: 0x9fe6ff, heal: 0x8be06a, slash: 0xffe07a, poison: 0x9ccc65, arcane: 0xc77dde,
 };
+
+/**
+ * Mechanical-motion archetype for a tower ACTIVE skill — orthogonal to the
+ * element (`SkillStyle`). Element = substance + colour; shape = how it moves and
+ * arrives. Together they de-collapse the 52 tower actives from 7 looks into many.
+ */
+export type SkillShape = "nova" | "chain" | "barrage" | "beam" | "cloud" | "slam" | "aura" | "bolt";
+
+/** Runtime list of every shape (keep in sync with `SkillShape`). */
+export const SKILL_SHAPES: readonly SkillShape[] = ["nova", "chain", "barrage", "beam", "cloud", "slam", "aura", "bolt"];
+
+/**
+ * Shape for a tower's active skill, derived from its ROLE (reliable structured
+ * data). Only the `damage` role is ambiguous, so it's refined by skill-name
+ * keyword into a focused beam, a rapid barrage, or a plain charged bolt.
+ */
+export function towerSkillShape(def: CharacterDef): SkillShape {
+  switch (def.role) {
+    case "splash": return "nova";
+    case "chain": return "chain";
+    case "dot": return "cloud";
+    case "debuff": return "cloud";
+    case "support": return "aura";
+    case "tanker": return "slam";
+    case "damage": {
+      const s = (def.active ?? "").toLowerCase();
+      if (has(s, "wave", "flash", "hollow", "purple", "palm", "kame", "serious", "punch", "fist", "ki", "ball", "spirit", "beam", "ray", "dimensional")) return "beam";
+      if (has(s, "volley", "salvo", "missile", "rapid", "spin", "siege", "shot", "barrage", "fusillade")) return "barrage";
+      return "bolt";
+    }
+    default: return "bolt";
+  }
+}
