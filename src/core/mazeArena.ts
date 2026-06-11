@@ -12,7 +12,10 @@ import { Rng } from "./rng.ts";
 export interface MazeOpts {
   cols: number; rows: number; margin: number; braid: number; gatesPerEdge: number;
 }
-const DEFAULTS: MazeOpts = { cols: 9, rows: 7, margin: 60, braid: 0.25, gatesPerEdge: 2 };
+// Braid heavily (≈45% of interior walls knocked out) so loops are common and most
+// gates offer more than one corridor to the center — the "walk any way they want"
+// feel. Lower values leave a near-perfect maze with a single path per gate.
+const DEFAULTS: MazeOpts = { cols: 9, rows: 7, margin: 60, braid: 0.45, gatesPerEdge: 2 };
 
 /** Sorted-pair key for the undirected passage between two cell indices. */
 const edgeKey = (a: number, b: number): string => (a < b ? `${a}:${b}` : `${b}:${a}`);
