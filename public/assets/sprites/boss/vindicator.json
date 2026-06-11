@@ -1,1 +1,1 @@
-{"frameWidth": 160, "frameHeight": 160, "frames": 6, "names": ["idle1", "idle2", "atk1", "atk2", "skill1", "skill2"]}
+{"frameWidth": 160, "frameHeight": 160, "frames": 3, "names": ["idle1", "atk1", "skill1"]}

@@ -11,13 +11,26 @@ import sys, json, numpy as np
 from collections import deque
 from PIL import Image
 
-_SESS = None
-def _session():
-    global _SESS
-    if _SESS is None:
+_SESS = {}
+def _session(model="u2net"):
+    if model not in _SESS:
         from rembg import new_session
-        _SESS = new_session("u2net")
-    return _SESS
+        _SESS[model] = new_session(model)
+    return _SESS[model]
+
+def _cutout(im):
+    """Background-remove with u2net; if it segments almost nothing (very dark or
+    aura-heavy boss art defeats u2net), retry with the stronger isnet model and
+    keep whichever cut covers more of the sheet."""
+    from rembg import remove
+    import numpy as _np
+    cut = remove(im, session=_session("u2net"))
+    cov = (_np.asarray(cut)[:, :, 3] > 30).mean()
+    if cov < 0.02:
+        alt = remove(im, session=_session("isnet-general-use"))
+        if (_np.asarray(alt)[:, :, 3] > 30).mean() > cov:
+            return alt
+    return cut
 
 def components(mask, step=2, min_px=2000):
     H, W = mask.shape
@@ -56,23 +69,30 @@ def _frame_names(n):
             + [f"skill{i+1}" for i in range(skill)])
 
 def main(inp, outp, cell=128, max_frames=12):
-    from rembg import remove
     im = Image.open(inp).convert("RGBA")
-    cut = remove(im, session=_session())
+    cut = _cutout(im)
     alpha = np.asarray(cut)[:, :, 3]
     H, W = alpha.shape
     mask = alpha > 30
-    boxes = components(mask, step=2, min_px=int(0.006 * H * W))
-    if not boxes:
+    raw = components(mask, step=2, min_px=int(0.006 * H * W))
+    if not raw:
         print("NO FRAMES"); return 0
 
     # figure heights; keep near-median-tall figures (drop fragments / partials)
-    heights = sorted(b[3] - b[1] for b in boxes)
+    heights = sorted(b[3] - b[1] for b in raw)
     med_h = heights[len(heights) // 2]
-    boxes = [b for b in boxes
+    boxes = [b for b in raw
              if (b[3] - b[1]) >= 0.55 * med_h            # tall enough (full body)
              and (b[2] - b[0]) >= 0.18 * med_h            # not a thin sliver
              and (b[3] - b[1]) >= 1.05 * (b[2] - b[0])]   # portrait: drops merged side-by-side pairs
+    # Single-frame fallback: a dramatic boss with a full-bleed aura/glow can merge
+    # its poses into one wide blob that the portrait filter rejects, yielding zero
+    # frames. Rather than lose the (cinematic) art entirely, keep the largest raw
+    # figure as ONE frame — the preload walk-bake synthesizes the stride from it.
+    if not boxes:
+        big = max(raw, key=lambda b: (b[2] - b[0]) * (b[3] - b[1]))
+        boxes = [big]
+        print("fallback: 1 merged frame")
     # reading order (row bands then x)
     band = max(1, H // 3)
     boxes.sort(key=lambda b: (b[1] // band, b[0]))
