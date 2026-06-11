@@ -172,6 +172,8 @@ export interface EnemyRuntime {
   bossSummonTimer: number;
   bossDisableTimer: number;
   enraged: boolean;
+  /** Berserker: latched into frenzy (one-way, like `enraged`). */
+  frenzied: boolean;
   /** Elite (T17): a promoted normal enemy — boosted stats, bigger, guaranteed box drop. */
   elite: boolean;
   /** Elite-only damage-type immunity (Physical or Magic); null for normal enemies. */

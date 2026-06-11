@@ -308,6 +308,7 @@ export const waveMethods = {
       bossSummonTimer: def.boss?.summon?.interval ?? 0,
       bossDisableTimer: def.boss?.towerDisable?.interval ?? 0,
       enraged: false,
+      frenzied: false,
       elite,
       eliteImmunity,
       aura: { moveMult: 1, drAdd: 0, armorAdd: 0, magicResistAdd: 0 },

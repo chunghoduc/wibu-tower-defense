@@ -10,6 +10,7 @@ import { slowedSpeed, type Dot } from "./effects.ts";
 import { dist, lerp, pointAtDistance } from "./path.ts";
 import { computeAuraMods, NEUTRAL_AURA } from "./enemyAuras.ts";
 import { enemyTowerAttack } from "./enemyCombat.ts";
+import { shouldFrenzy, frenzyMods } from "./enemyFrenzy.ts";
 import { castleLeakDamage } from "../data/enemies.ts";
 import type { BattleState } from "./battle.ts";
 import {
@@ -28,6 +29,7 @@ export const enemyMethods = {
       if (e.stats.hpRegen > 0) e.hp = Math.min(e.stats.maxHp, e.hp + e.stats.hpRegen * dt);
       if (e.def.special?.healAura) this.applyHealAura(e, dt);
       if (e.def.boss) this.updateBoss(e, dt);
+      if (shouldFrenzy(e.def.special, e.hp / e.stats.maxHp, e.frenzied)) e.frenzied = true;
       if (e.def.special?.summon) {
         e.summonTimer -= dt;
         if (e.summonTimer <= 0) {
@@ -208,11 +210,13 @@ export const enemyMethods = {
 
   enemySpeed(this: BattleState, e: EnemyRuntime): number {
     const base = slowedSpeed(e.stats.moveSpeed, e.slowPct) * e.aura.moveMult;
-    return e.enraged && e.def.boss?.enrage ? base * e.def.boss.enrage.speedMult : base;
+    const enrage = e.enraged && e.def.boss?.enrage ? e.def.boss.enrage.speedMult : 1;
+    return base * enrage * frenzyMods(e.def.special, e.frenzied).speedMult;
   },
 
   enemyAtk(this: BattleState, e: EnemyRuntime): number {
-    return e.enraged && e.def.boss?.enrage ? e.stats.atk * e.def.boss.enrage.atkMult : e.stats.atk;
+    const enrage = e.enraged && e.def.boss?.enrage ? e.def.boss.enrage.atkMult : 1;
+    return e.stats.atk * enrage * frenzyMods(e.def.special, e.frenzied).atkMult;
   },
 
   advanceEnemy(this: BattleState, e: EnemyRuntime, dt: number): void {
