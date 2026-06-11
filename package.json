@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen:art-prompts": "vite-node scripts/genArtPrompts.ts",
-    "gen:sprites": "vite-node scripts/genSprites.ts",
+    "gen:sprites": "vite-node scripts/sdart/sdgen.mjs",
+    "gen:sprites:anim": "vite-node scripts/sdart/animgen.mjs",
     "gen:item-visual": "vite-node scripts/genItemVisual.ts",
     "gen:skill-visual": "vite-node scripts/genSkillVisual.ts"
   },
