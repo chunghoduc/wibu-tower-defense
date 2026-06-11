@@ -52,11 +52,10 @@ export const renderMethods = {
     this.info.setText("Drag a character onto the field to deploy (avoid obstacles).  ·  WASD / arrows or tap to move your hero.  ·  Tap a tower to upgrade/sell.");
 
     if (b.outcome === "won") {
-      this.banner.setText("VICTORY").setColor("#a5d6a7");
+      // The loot panel renders the VICTORY title itself; the transient banner stays clear.
       if (!this._victoryProcessed) this.sfx.win();
       this.showBattleRewards("won");
     } else if (b.outcome === "lost") {
-      this.banner.setText("DEFEAT").setColor("#ef9a9a");
       if (!this._defeatPlayed) { this._defeatPlayed = true; this.sfx.lose(); }
       this.showBattleRewards("lost");
     }

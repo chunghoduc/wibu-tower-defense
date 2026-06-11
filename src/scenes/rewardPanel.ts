@@ -26,9 +26,14 @@ function hex(int: number): string {
   return "#" + int.toString(16).padStart(6, "0");
 }
 
+const TITLE_H = 40;       // headroom reserved above the grid for the result title
+const PANEL_PAD = 18;     // inset between the backing panel edge and its contents
+
 /**
- * Build the post-battle loot panel at (centerX, topY): a centred grid of icon
- * tiles with hover tooltips, shown on win OR loss. Tiles beyond MAX_VISIBLE_ROWS
+ * Build the post-battle loot panel at (centerX, topY): a result title
+ * (VICTORY / DEFEATED) over a centred grid of icon tiles with hover tooltips,
+ * shown on win OR loss, all sitting on a dark backing panel so the loot reads
+ * clearly against the battlefield behind it. Tiles beyond MAX_VISIBLE_ROWS
  * scroll within a masked viewport. Returns the root container (already added to
  * the scene at depth 25). The caller owns its lifetime.
  */
@@ -38,20 +43,48 @@ export function showBattleLootPanel(
   const specs = battleLootTiles(summary);
   const root = scene.add.container(0, 0).setDepth(25);
   const tooltip = scene.add.container(0, 0).setDepth(120).setVisible(false);
+  const won = summary.outcome === "won";
 
-  // The scene already shows a big VICTORY/DEFEAT banner above this; we add only
-  // a small caption (first-clear flourish, or an empty-state on a barren loss).
-  let gridTop = topY;
+  // The result title owns the top strip; the grid (and caption) sit below it.
+  const titleY = topY;
+  let gridTop = topY + TITLE_H;
+
   const caption = summary.isFirstClear
     ? "★ First Clear bonus!"
     : specs.length === 0
-      ? (summary.outcome === "lost" ? "No loot this run." : "")
+      ? "No loot this run."
       : "";
+
+  // Grid metrics up front so the backing panel can be sized to wrap everything.
+  const cols = specs.length ? Math.min(PER_ROW, specs.length) : 0;
+  const rows = Math.ceil(specs.length / PER_ROW);
+  const visRows = Math.min(rows, MAX_VISIBLE_ROWS);
+  const gridW = cols ? cols * (TILE + GAP) - GAP : 0;
+  const gridH = visRows * ROW_H;
+  const scrollable = rows * ROW_H > gridH;
+
+  // Backing panel: tinted by outcome, drawn first so it sits behind everything.
+  const captionH = caption ? 20 : 0;
+  const contentBottom = gridTop + captionH + gridH + (scrollable ? 16 : 0);
+  const panelW = Math.max(gridW, 240) + PANEL_PAD * 2;
+  const panelTop = topY - 12;
+  const panelH = contentBottom - panelTop + PANEL_PAD;
+  const panelLeft = Math.round(centerX - panelW / 2);
+  const bg = scene.add.graphics();
+  bg.fillStyle(0x0a1018, 0.88).fillRoundedRect(panelLeft, panelTop, panelW, panelH, 14);
+  bg.lineStyle(2, won ? 0x6fbf73 : 0xc16b6b, 0.9).strokeRoundedRect(panelLeft, panelTop, panelW, panelH, 14);
+  root.add(bg);
+
+  // Result title — the clear WIN/DEFEAT verdict, above the looted items.
+  root.add(crispText(scene, centerX, titleY, won ? "VICTORY" : "DEFEATED", {
+    fontSize: "30px", color: won ? "#a5d6a7" : "#ef9a9a", fontStyle: "bold", stroke: "#0a1420", strokeThickness: 6,
+  }).setOrigin(0.5, 0));
+
   if (caption) {
-    root.add(crispText(scene, centerX, topY, caption, {
+    root.add(crispText(scene, centerX, gridTop, caption, {
       fontSize: "13px", color: summary.isFirstClear ? "#ffe07a" : "#9fb0c0", fontStyle: "bold", stroke: "#0a1420", strokeThickness: 4,
     }).setOrigin(0.5, 0));
-    gridTop = topY + 20;
+    gridTop += captionH;
   }
 
   if (specs.length > 0) {
@@ -173,7 +206,8 @@ function showTileTooltip(
   if (spec.tooltip.kind === "item") {
     const def = ITEM_CATALOG_MAP.get(spec.tooltip.inst.defId);
     if (!def) return;
-    renderItemTooltip(scene, tooltip, spec.tooltip.inst, def, x, y);
+    const heroLevel = scene.registry.get("saveManager")?.getSave()?.hero?.level;
+    renderItemTooltip(scene, tooltip, spec.tooltip.inst, def, x, y, heroLevel);
   } else {
     renderInfoTooltip(scene, tooltip, spec.tooltip.data, x, y);
   }
