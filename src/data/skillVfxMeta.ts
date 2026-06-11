@@ -14,10 +14,14 @@
 // The colours are deliberately distinct per skill so two skills never read the
 // same — that's the whole point of "easily see the differences".
 
+import type { SkillStyle } from "./attackStyle.ts";
+
 /** A single skill's cast-effect identity. */
 export interface SkillVfxSpec {
   /** Which bespoke set-piece the renderer draws (1:1 with a skill). */
   signature: SkillSignature;
+  /** How the cast arrives — caster→target, sky-fall, ground-erupt, etc. */
+  delivery: DeliveryKind;
   /** Tints layered over the set-piece. `core` is the dominant hue. */
   palette: { core: number; hot: number; deep: number };
   /** Plain-language description of the look — art brief + in-game codex blurb. */
@@ -41,6 +45,12 @@ export type SkillSignature =
   | "pure-technique"
   | "void-rift";
 
+/** How a cast travels from its origin to the impact point (the "fly-from-source" beat). */
+export type DeliveryKind = "bolt" | "beam" | "skyfall" | "ground" | "cast";
+
+/** Runtime-checkable list of every delivery kind (keep in sync with DeliveryKind). */
+export const DELIVERY_KINDS: readonly DeliveryKind[] = ["bolt", "beam", "skyfall", "ground", "cast"];
+
 /**
  * Map of active-skill id → its cast-effect identity. MUST stay 1:1 with
  * ACTIVE_SKILLS in skills.ts (a test enforces full coverage + uniqueness).
@@ -48,6 +58,7 @@ export type SkillSignature =
 export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   "valiant-strike": {
     signature: "valiant-sweep",
+    delivery: "cast",
     palette: { core: 0xffe07a, hot: 0xffffff, deep: 0xc8962a },
     appearance:
       "A radiant golden crescent sweeps a full half-circle around the hero, " +
@@ -56,6 +67,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "spirit-bolt": {
     signature: "spirit-comet",
+    delivery: "bolt",
     palette: { core: 0x6fe9ff, hot: 0xffffff, deep: 0x2a8fc0 },
     appearance:
       "A cyan spirit-orb implodes to a pinpoint then erupts into a ghost-flame " +
@@ -64,6 +76,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "iron-cleave": {
     signature: "steel-cross",
+    delivery: "cast",
     palette: { core: 0xcfe2f0, hot: 0xffffff, deep: 0x6f87a0 },
     appearance:
       "Two broad steel blade-arcs slash across each other in a hard X, throwing a " +
@@ -71,6 +84,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "stone-bash": {
     signature: "earthshatter",
+    delivery: "ground",
     palette: { core: 0xd2a86a, hot: 0xffe6b0, deep: 0x7a5230 },
     appearance:
       "An overhead slam drives a heavy dust shock outward; jagged stone shards erupt " +
@@ -78,6 +92,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "execute-slash": {
     signature: "guillotine",
+    delivery: "skyfall",
     palette: { core: 0xff3a3a, hot: 0xffffff, deep: 0x8c0a0a },
     appearance:
       "A single massive vertical guillotine slash drops straight down with a crimson " +
@@ -85,6 +100,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "tri-shot": {
     signature: "triple-volley",
+    delivery: "bolt",
     palette: { core: 0x5fe08a, hot: 0xd8ffcf, deep: 0x2f8a4a },
     appearance:
       "Three glowing emerald arrows fan outward in a wide spread, each leaving a " +
@@ -92,6 +108,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "piercing-arrow": {
     signature: "piercing-lance",
+    delivery: "beam",
     palette: { core: 0xbfe6ff, hot: 0xffffff, deep: 0x4f9fd8 },
     appearance:
       "One long, thin azure lance-beam shoots out in a straight line, punching through " +
@@ -99,6 +116,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "mana-burst": {
     signature: "mana-detonation",
+    delivery: "bolt",
     palette: { core: 0x5a8cff, hot: 0xcfe0ff, deep: 0x2a4fc0 },
     appearance:
       "Concentric sapphire mana-rings pulse outward while glowing rune-motes orbit and " +
@@ -106,6 +124,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "arcane-nova": {
     signature: "arcane-supernova",
+    delivery: "skyfall",
     palette: { core: 0xc77dde, hot: 0xf0d4ff, deep: 0x7a2fd0 },
     appearance:
       "A huge violet supernova: a double expanding ring blasts out, two counter-rotating " +
@@ -113,6 +132,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "rapid-fire": {
     signature: "muzzle-barrage",
+    delivery: "bolt",
     palette: { core: 0xffae3a, hot: 0xffe08a, deep: 0xc85a10 },
     appearance:
       "Five staccato orange muzzle-flashes stamp out in a line, each spitting a bullet " +
@@ -120,6 +140,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "concussion-round": {
     signature: "concussion-blast",
+    delivery: "skyfall",
     palette: { core: 0xffc46a, hot: 0xfff0c0, deep: 0x8a6a30 },
     appearance:
       "One heavy shell lands with a thick amber shockwave ring, a billow of grey smoke, " +
@@ -127,6 +148,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "shadow-curse": {
     signature: "hex-sigil",
+    delivery: "ground",
     palette: { core: 0x9a4fd0, hot: 0xd8a8ff, deep: 0x3a1060 },
     appearance:
       "A dark pentacle hex-sigil blooms on the ground, purple glyphs orbit it, and creeping " +
@@ -134,6 +156,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "true-strike": {
     signature: "pure-technique",
+    delivery: "beam",
     palette: { core: 0xffffff, hot: 0xffffff, deep: 0xffe9a8 },
     appearance:
       "A blinding pure-white slash with no colour to it — a stark flash, golden filament " +
@@ -141,6 +164,7 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
   },
   "void-palm": {
     signature: "void-rift",
+    delivery: "beam",
     palette: { core: 0x2a0a40, hot: 0xd8a8ff, deep: 0x000000 },
     appearance:
       "A black void-rift tears open with a glowing violet rim; cracks in space radiate outward, " +
@@ -151,4 +175,11 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
 /** Lookup helper — returns the spec for a skill id, or undefined for non-hero casts. */
 export function skillVfxSpec(skillId: string | undefined): SkillVfxSpec | undefined {
   return skillId ? SKILL_VFX[skillId] : undefined;
+}
+
+/** Fallback delivery for tower/elemental casts that have no bespoke signature. */
+export function deliveryForStyle(style: SkillStyle): DeliveryKind {
+  if (style === "lightning") return "skyfall";
+  if (style === "slash") return "cast";
+  return "bolt";
 }

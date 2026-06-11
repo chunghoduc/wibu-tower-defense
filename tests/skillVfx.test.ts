@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ACTIVE_SKILLS } from "../src/data/skills.ts";
-import { SKILL_VFX, skillVfxSpec } from "../src/data/skillVfxMeta.ts";
+import { SKILL_VFX, skillVfxSpec, DELIVERY_KINDS, deliveryForStyle } from "../src/data/skillVfxMeta.ts";
 import { BattleState, MANA_MAX } from "../src/core/battle.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { makeStats } from "../src/data/schema.ts";
@@ -50,6 +50,27 @@ describe("skill VFX metadata", () => {
     expect(skillVfxSpec(undefined)).toBeUndefined();
     expect(skillVfxSpec("not-a-skill")).toBeUndefined();
     expect(skillVfxSpec("burst")).toBeUndefined(); // a tower active — keyword fallback path
+  });
+});
+
+describe("skill VFX delivery", () => {
+  it("gives every active skill a known delivery archetype", () => {
+    for (const s of ACTIVE_SKILLS) {
+      const spec = SKILL_VFX[s.id];
+      expect(DELIVERY_KINDS.includes(spec.delivery), `${s.id}.delivery="${spec.delivery}"`).toBe(true);
+    }
+  });
+
+  it("maps every elemental tower style to a known delivery", () => {
+    const styles = ["fire", "ice", "lightning", "heal", "slash", "poison", "arcane"] as const;
+    for (const st of styles) {
+      expect(DELIVERY_KINDS.includes(deliveryForStyle(st)), `style ${st}`).toBe(true);
+    }
+  });
+
+  it("uses more than one delivery archetype across the roster (variety)", () => {
+    const used = new Set(ACTIVE_SKILLS.map((s) => SKILL_VFX[s.id].delivery));
+    expect(used.size).toBeGreaterThanOrEqual(4);
   });
 });
 
