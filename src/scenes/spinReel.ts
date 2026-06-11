@@ -14,9 +14,8 @@
 import Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { SPIN_WHEEL, type SpinPrize } from "../core/spin.ts";
-import {
-  BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, AWAKENING_CRYSTAL,
-} from "../data/materials.ts";
+import { rewardPrimaryIcon } from "../data/rewardIcon.ts";
+import { makeFitIcon } from "./itemIcon.ts";
 
 const DEPTH = 150;
 const CELL_W = 132;
@@ -25,38 +24,22 @@ const WIN_CELLS = 3; // visible cells across the window
 const TARGET_INDEX = 46; // which strip cell the winner lands on (long scroll)
 const STRIP_LEN = 54;
 
-/** A single representative glyph per prize for the reel cell. */
-function prizeGlyph(prize: SpinPrize): string {
-  if (prize.reward.diamonds) return "💎";
-  if (prize.reward.gold) return "🪙";
-  const mats = prize.reward.materials ?? {};
-  if (mats[AWAKENING_CRYSTAL]) return "💠";
-  if (mats[SOUL_JEWEL]) return "🔷";
-  if (mats[SUMMON_SCROLL]) return "📜";
-  if (mats[BLESS_JEWEL]) return "🔹";
-  return "✨";
-}
-
-/** Border / glow colour for a cell. Rare prizes shine magenta-gold. */
-function cellAccent(prize: SpinPrize): number {
-  if (prize.rare) return 0xff5bd0;
-  if (prize.reward.diamonds) return 0x6fd6ff;
-  if (prize.reward.gold) return 0xffd24d;
-  return 0x9fe0a0;
-}
-
-/** Build one prize cell (bg + glyph + label) into the strip container. */
+/** Build one prize cell (bg + real reward icon + label) into the strip container. */
 function buildCell(
   scene: Phaser.Scene, strip: Phaser.GameObjects.Container,
   prize: SpinPrize, cx: number,
 ): Phaser.GameObjects.Container {
-  const accent = cellAccent(prize);
+  // Same resolver the post-battle reward panel uses, so the wheel shows the real
+  // gold/diamond/material/jewel texture (emoji fallback only when un-arted).
+  const view = rewardPrimaryIcon(prize.reward);
+  // Rare prizes keep the signature magenta glow; others use the reward's own accent.
+  const accent = prize.rare ? 0xff5bd0 : view.color;
   const cell = scene.add.container(cx, 0);
   const g = scene.add.graphics();
   g.fillStyle(0x10151f, 1).fillRoundedRect(-CELL_W / 2, -52, CELL_W, 104, 12);
   g.lineStyle(2, accent, prize.rare ? 1 : 0.6).strokeRoundedRect(-CELL_W / 2, -52, CELL_W, 104, 12);
   cell.add(g);
-  cell.add(scene.add.text(0, -14, prizeGlyph(prize), { fontSize: "40px" }).setOrigin(0.5));
+  cell.add(makeFitIcon(scene, 0, -14, view.iconKey, 56, view.emoji));
   cell.add(crispText(scene, 0, 30, prize.label, {
     fontSize: "12px", color: "#ffe9b0", fontStyle: "bold", align: "center",
     stroke: "#0a0d14", strokeThickness: 3, wordWrap: { width: CELL_W - 12 },
