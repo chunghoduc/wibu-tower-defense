@@ -13,11 +13,11 @@ export interface BandWarp {
 }
 
 export interface WarpOpts {
-  /** Max foot shear in px (alternating legs). Default 9. */
+  /** Max foot shear in px (alternating legs). Default 20. */
   legSwing?: number;
-  /** Body lift between footfalls, px. Default 4. */
+  /** Body lift between footfalls, px. Default 6. */
   bob?: number;
-  /** Wing-beat travel for flyers, px. Default 7. */
+  /** Wing-beat travel for flyers, px. Default 16. */
   flap?: number;
 }
 
