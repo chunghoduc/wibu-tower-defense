@@ -38,6 +38,21 @@ export const enemyMethods = {
           e.summonTimer = e.def.special.summon.interval;
         }
       }
+      if (e.def.special?.towerDisablePulse) {
+        const p = e.def.special.towerDisablePulse;
+        e.disablePulseTimer -= dt;
+        if (e.disablePulseTimer <= 0) {
+          let hit = false;
+          for (const t of this.towers) {
+            if (t.alive && dist(e.pos, t.pos) <= p.radius) {
+              t.disabledTimer = Math.max(t.disabledTimer, p.duration);
+              hit = true;
+            }
+          }
+          if (hit) this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: p.radius, damageType: "Magic" });
+          e.disablePulseTimer = p.interval;
+        }
+      }
 
       if (e.stunTimer > 0) {
         this.updateEnemyThreat(e);

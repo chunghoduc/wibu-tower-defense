@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { world, mkEnemy, mkTower, mkStage, runFor } from "./fixtures.ts";
 import { adaptiveImmuneType } from "../src/core/enemyAdaptive.ts";
+import { ENEMIES } from "../src/data/enemies.ts";
+import { enemyTags } from "../src/data/enemyInfo.ts";
 import type { BattleState } from "../src/core/battle.ts";
 
 /** Tick (dt 0.05) until the first enemy spawns; returns it. */
@@ -115,5 +117,46 @@ describe("Bloomrot Carrier — death nova", () => {
     runFor(b, 5);
     expect(b.enemies.length).toBe(0); // carrier dead
     expect(tower.hp).toBe(hp0); // untouched — nova radius didn't reach it
+  });
+});
+
+describe("Gravewail Cantor — tower-disable pulse", () => {
+  it("periodically disables towers within its radius", () => {
+    const cantor = mkEnemy({
+      id: "cantor", name: "Gravewail Cantor", archetype: "Disruptor",
+      baseStats: { ...mkEnemy().baseStats, maxHp: 1e9, moveSpeed: 0, atk: 0 },
+      special: { towerDisablePulse: { radius: 120, duration: 1.6, interval: 7 } },
+    });
+    const tower = mkTower({ baseStats: { ...mkTower().baseStats, atk: 1, attackSpeed: 1, range: 9999, maxHp: 1e9 } });
+    const stage = mkStage([{ spawns: [{ enemyId: "cantor", count: 1, interval: 1, delay: 0 }] }],
+      { slots: [{ x: 30, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] });
+    const b = world([cantor], [tower], stage, { seed: 1 });
+    b.placeTower("turret", 0);
+    spawnFirst(b);
+    expect(b.towers[0].disabledTimer).toBeLessThanOrEqual(0); // not disabled yet
+    runFor(b, 7.1); // first pulse fires once the 7s timer elapses
+    expect(b.towers[0].disabledTimer).toBeGreaterThan(0);
+  });
+});
+
+describe("Escalation Five — catalog integrity", () => {
+  const ids = ["reaver", "prism", "carrier", "dreadwing", "cantor"];
+  const byId = (id: string) => ENEMIES.find((e) => e.id === id)!;
+
+  it("all five are present with their signature special", () => {
+    for (const id of ids) expect(byId(id), id).toBeDefined();
+    expect(byId("reaver").special?.frenzy).toBeDefined();
+    expect(byId("prism").special?.adaptiveImmunity).toBeDefined();
+    expect(byId("carrier").special?.deathNova).toBeDefined();
+    expect(byId("dreadwing").flying).toBe(true);
+    expect(byId("cantor").special?.towerDisablePulse).toBeDefined();
+  });
+  it("none are bosses (they must never trigger boss-only wave/castle logic)", () => {
+    for (const id of ids) expect(byId(id).archetype).not.toBe("Boss");
+  });
+  it("surfaces player-facing tags", () => {
+    expect(enemyTags(byId("reaver"))).toContain("Frenzies");
+    expect(enemyTags(byId("dreadwing"))).toContain("Flying");
+    expect(enemyTags(byId("cantor"))).toContain("Disables towers");
   });
 });

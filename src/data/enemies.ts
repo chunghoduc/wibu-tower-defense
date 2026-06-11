@@ -279,6 +279,78 @@ export const ENEMIES: EnemyDef[] = [
     special: { supportAura: { radius: 125, healPerSec: 14, armorAdd: 25, magicResistAdd: 25, towerAttackSpeedMult: 0.75 } },
     artRef: "placeholder",
   },
+  // --- Chapter 2+ elites ("The Escalation Five") — debut from stages 11+ via buildWaves.
+  //     Authored at the Chapter-1 power tier; the progression curve scales them per chapter.
+  {
+    // Berserker: a tower-smasher that turns lethal once wounded — burst it, don't chip it.
+    id: "reaver",
+    name: "Bloodmad Reaver",
+    archetype: "Berserker",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 22,
+    castleDamage: 3,
+    baseStats: makeStats({ maxHp: 170, armor: 10, moveSpeed: 60, atk: 30, attackSpeed: 1 }),
+    special: { attacksTowers: { range: 95 }, frenzy: { belowHpPct: 0.5, speedMult: 1.8, atkMult: 1.6 } },
+    artRef: "placeholder",
+  },
+  {
+    // Adapter: alternates Physical/Magic immunity — needs both damage types, True, or penetration.
+    id: "prism",
+    name: "Prism Behemoth",
+    archetype: "Adapter",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 40,
+    castleDamage: 5,
+    baseStats: makeStats({ maxHp: 360, armor: 35, magicResist: 35, damageReduction: 0.4, moveSpeed: 16, atk: 22, attackSpeed: 0.6 }),
+    special: { adaptiveImmunity: { types: ["Physical", "Magic"], switchIntervalSec: 3.5 } },
+    artRef: "placeholder",
+  },
+  {
+    // Burster: detonates on death, splashing your towers — kill at range or space your line.
+    id: "carrier",
+    name: "Bloomrot Carrier",
+    archetype: "Burster",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 14,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 130, moveSpeed: 40, atk: 6, attackSpeed: 0.8 }),
+    special: { deathNova: { radius: 110, damage: 45, type: "Magic" } },
+    artRef: "placeholder",
+  },
+  {
+    // Dreadnought: an armored flyer that bombards towers — demands heavy anti-air.
+    id: "dreadwing",
+    name: "Iron Dreadwing",
+    archetype: "Dreadnought",
+    flying: true,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 22,
+    castleDamage: 3,
+    baseStats: makeStats({ maxHp: 220, armor: 30, moveSpeed: 40, atk: 18, attackSpeed: 0.7 }),
+    special: { attacksTowers: { range: 130 } },
+    artRef: "placeholder",
+  },
+  {
+    // Disruptor: a keening cantor that periodically silences nearby towers — priority-kill it.
+    id: "cantor",
+    name: "Gravewail Cantor",
+    archetype: "Disruptor",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 24,
+    castleDamage: 2,
+    baseStats: makeStats({ maxHp: 130, magicResist: 30, moveSpeed: 30, atk: 6, attackSpeed: 0.8 }),
+    special: { towerDisablePulse: { radius: 120, duration: 1.6, interval: 7 } },
+    artRef: "placeholder",
+  },
   // --- Mid-boss: a teaching enrager ---
   {
     id: "champion",

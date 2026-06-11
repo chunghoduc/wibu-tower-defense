@@ -177,6 +177,8 @@ export interface EnemyRuntime {
   /** Adapter: countdown to the next immunity switch, and the current phase index. */
   adaptPhaseTimer: number;
   adaptPhaseIndex: number;
+  /** Disruptor: countdown to the next tower-disable pulse. */
+  disablePulseTimer: number;
   /** Elite (T17): a promoted normal enemy — boosted stats, bigger, guaranteed box drop. */
   elite: boolean;
   /** Elite-only damage-type immunity (Physical or Magic); null for normal enemies. */

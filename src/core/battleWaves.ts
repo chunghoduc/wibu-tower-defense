@@ -311,6 +311,7 @@ export const waveMethods = {
       frenzied: false,
       adaptPhaseTimer: def.special?.adaptiveImmunity?.switchIntervalSec ?? 0,
       adaptPhaseIndex: 0,
+      disablePulseTimer: def.special?.towerDisablePulse?.interval ?? 0,
       elite,
       eliteImmunity,
       aura: { moveMult: 1, drAdd: 0, armorAdd: 0, magicResistAdd: 0 },
