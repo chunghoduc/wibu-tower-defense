@@ -38,7 +38,7 @@ This is the enabling change: without `from`, "fly from source" cannot be rendere
 - Modify: `src/scenes/fx.ts:79-81`
 - Test: `tests/skillVfx.test.ts`
 
-- [ ] **Step 1: Write the failing test** — append to the `hero cast plumbing` describe block in `tests/skillVfx.test.ts` (before its closing `});`):
+- [x] **Step 1: Write the failing test** — append to the `hero cast plumbing` describe block in `tests/skillVfx.test.ts` (before its closing `});`):
 
 ```ts
   it("tags the cast event with the caster's position (fly-from-source plumbing)", () => {
@@ -60,12 +60,12 @@ This is the enabling change: without `from`, "fly from source" cannot be rendere
   });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `npx vitest run tests/skillVfx.test.ts -t "fly-from-source"`
 Expected: FAIL — `fx.from` is `undefined` (TS error or `castFrom` stays null).
 
-- [ ] **Step 3: Add `from` to the cast event type** — in `src/core/battleTypes.ts` line 46, change:
+- [x] **Step 3: Add `from` to the cast event type** — in `src/core/battleTypes.ts` line 46, change:
 
 ```ts
   | { type: "cast"; uid: number; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
@@ -77,7 +77,7 @@ to:
   | { type: "cast"; uid: number; from: Vec2; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
 ```
 
-- [ ] **Step 4: Add the `from` parameter to `castActive` and emit it** — in `src/core/battleDamage.ts`, change the signature (lines 250-261) so `from: Vec2` is inserted right after `center: Vec2`:
+- [x] **Step 4: Add the `from` parameter to `castActive` and emit it** — in `src/core/battleDamage.ts`, change the signature (lines 250-261) so `from: Vec2` is inserted right after `center: Vec2`:
 
 ```ts
   castActive(
@@ -98,7 +98,7 @@ to:
 
 (Only the signature + the `emit` line change; the rest of the method body is untouched.)
 
-- [ ] **Step 5: Pass `h.pos` at the hero call site** — in `src/core/battle.ts` line 482, change:
+- [x] **Step 5: Pass `h.pos` at the hero call site** — in `src/core/battle.ts` line 482, change:
 
 ```ts
       this.castActive(h.stats, h.stats.atk, h.activeDamageType ?? h.damageType, target.pos, "hero", -1, h.equippedSkillId, undefined, h.activeMult ?? 2);
@@ -110,7 +110,7 @@ to (insert `h.pos` after `target.pos`):
       this.castActive(h.stats, h.stats.atk, h.activeDamageType ?? h.damageType, target.pos, h.pos, "hero", -1, h.equippedSkillId, undefined, h.activeMult ?? 2);
 ```
 
-- [ ] **Step 6: Pass `t.pos` at the tower call site** — in `src/core/battleTowers.ts` line 77, change:
+- [x] **Step 6: Pass `t.pos` at the tower call site** — in `src/core/battleTowers.ts` line 77, change:
 
 ```ts
         this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
@@ -122,7 +122,7 @@ to (insert `t.pos` after `target.pos`):
         this.castActive(t.stats, effAtk, activeType, target.pos, t.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
 ```
 
-- [ ] **Step 7: Forward `from` in the FX dispatcher** — in `src/scenes/fx.ts` line 80, change:
+- [x] **Step 7: Forward `from` in the FX dispatcher** — in `src/scenes/fx.ts` line 80, change:
 
 ```ts
         this.skillVfx.cast(e.at, e.radius, e.skillId, e.source);
@@ -134,7 +134,7 @@ to:
         this.skillVfx.cast(e.from, e.at, e.radius, e.skillId, e.source);
 ```
 
-- [ ] **Step 8: Update `SkillVfx.cast` to accept `from`** — in `src/scenes/skillVfx.ts`, change the method signature (line 36) only — body unchanged for now:
+- [x] **Step 8: Update `SkillVfx.cast` to accept `from`** — in `src/scenes/skillVfx.ts`, change the method signature (line 36) only — body unchanged for now:
 
 ```ts
   cast(from: V, at: V, radius: number, skillId: string | undefined, source: "tower" | "hero"): void {
@@ -142,17 +142,17 @@ to:
 
 The existing body still ignores `from`; Task 4 wires it. This keeps Task 1 a pure-plumbing, compiling change.
 
-- [ ] **Step 9: Run the test to verify it passes**
+- [x] **Step 9: Run the test to verify it passes**
 
 Run: `npx vitest run tests/skillVfx.test.ts -t "fly-from-source"`
 Expected: PASS.
 
-- [ ] **Step 10: Typecheck + full suite**
+- [x] **Step 10: Typecheck + full suite**
 
 Run: `npx tsc --noEmit && npx vitest run`
 Expected: tsc clean; all tests pass (the old cast tests still pass — `from` is additive).
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add src/core/battleTypes.ts src/core/battleDamage.ts src/core/battle.ts src/core/battleTowers.ts src/scenes/fx.ts src/scenes/skillVfx.ts tests/skillVfx.test.ts
@@ -171,7 +171,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Create: `src/scenes/vfxDraw.ts`
 - Modify: `src/scenes/skillSignatures.ts:9-149` (remove the inline `VfxDraw`, import it)
 
-- [ ] **Step 1: Create `src/scenes/vfxDraw.ts`** with the existing `VfxDraw` class moved verbatim out of `skillSignatures.ts` (lines 15-149: the class plus its `type V`/`type Fac` aliases), exported, then append the 5 new travel primitives as methods inside the class (before its closing `}`):
+- [x] **Step 1: Create `src/scenes/vfxDraw.ts`** with the existing `VfxDraw` class moved verbatim out of `skillSignatures.ts` (lines 15-149: the class plus its `type V`/`type Fac` aliases), exported, then append the 5 new travel primitives as methods inside the class (before its closing `}`):
 
 ```ts
 // src/scenes/vfxDraw.ts
@@ -252,7 +252,7 @@ export class VfxDraw {
 
 > Note: `go` is `private`. The new methods call `this.go(...)` from inside the class, which is allowed. Keep `go` exactly as it was (`private go(...)`).
 
-- [ ] **Step 2: Replace the inline class in `skillSignatures.ts` with an import** — in `src/scenes/skillSignatures.ts`, delete lines 12-149 (the `type V` / `type Fac` aliases and the entire `class VfxDraw { ... }`) and replace the import region near the top so it reads:
+- [x] **Step 2: Replace the inline class in `skillSignatures.ts` with an import** — in `src/scenes/skillSignatures.ts`, delete lines 12-149 (the `type V` / `type Fac` aliases and the entire `class VfxDraw { ... }`) and replace the import region near the top so it reads:
 
 ```ts
 import Phaser from "phaser";
@@ -264,22 +264,22 @@ type Fac = Phaser.GameObjects.GameObjectFactory;
 
 The `SigFn` type and all `const xxxSweep: SigFn = ...` signatures below stay exactly as they are (they already use `d: VfxDraw`, `at: V`). `renderSignature` still does `new VfxDraw(scene, fac, depth)` — now from the import.
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: clean (the moved class is identical; only its home changed).
 
-- [ ] **Step 4: Run the suite to prove no behavioral regression**
+- [x] **Step 4: Run the suite to prove no behavioral regression**
 
 Run: `npx vitest run`
 Expected: all pass (rendering is unchanged; signatures still compile against the same kit).
 
-- [ ] **Step 5: Confirm file sizes are under the limit**
+- [x] **Step 5: Confirm file sizes are under the limit**
 
 Run: `wc -l src/scenes/vfxDraw.ts src/scenes/skillSignatures.ts`
 Expected: both well under 500 (vfxDraw ~210, skillSignatures ~220).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/scenes/vfxDraw.ts src/scenes/skillSignatures.ts
@@ -296,7 +296,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Modify: `src/data/skillVfxMeta.ts`
 - Test: `tests/skillVfx.test.ts`
 
-- [ ] **Step 1: Write the failing tests** — append a new describe block to `tests/skillVfx.test.ts` (after the `skill VFX metadata` block). Import additions go at the top of the file:
+- [x] **Step 1: Write the failing tests** — append a new describe block to `tests/skillVfx.test.ts` (after the `skill VFX metadata` block). Import additions go at the top of the file:
 
 ```ts
 // add to the existing import from skillVfxMeta.ts:
@@ -326,12 +326,12 @@ describe("skill VFX delivery", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/skillVfx.test.ts -t "delivery"`
 Expected: FAIL — `DELIVERY_KINDS` / `deliveryForStyle` not exported; `spec.delivery` undefined.
 
-- [ ] **Step 3: Add the type, constant, and fallback map** — in `src/data/skillVfxMeta.ts`, add after the `SkillSignature` type union (after line 42) and import `SkillStyle`:
+- [x] **Step 3: Add the type, constant, and fallback map** — in `src/data/skillVfxMeta.ts`, add after the `SkillSignature` type union (after line 42) and import `SkillStyle`:
 
 ```ts
 import type { SkillStyle } from "./attackStyle.ts";
@@ -350,7 +350,7 @@ Add `delivery` to the `SkillVfxSpec` interface (inside it, after `signature`):
   delivery: DeliveryKind;
 ```
 
-- [ ] **Step 4: Set `delivery` on each of the 14 specs** — add the field to every entry in `SKILL_VFX` per this mapping (place it right after each `signature:` line):
+- [x] **Step 4: Set `delivery` on each of the 14 specs** — add the field to every entry in `SKILL_VFX` per this mapping (place it right after each `signature:` line):
 
 ```
 valiant-strike   → delivery: "cast"
@@ -379,7 +379,7 @@ For example the first entry becomes:
     appearance: /* unchanged */
 ```
 
-- [ ] **Step 5: Add `deliveryForStyle`** — append near the bottom of `src/data/skillVfxMeta.ts` (after `skillVfxSpec`):
+- [x] **Step 5: Add `deliveryForStyle`** — append near the bottom of `src/data/skillVfxMeta.ts` (after `skillVfxSpec`):
 
 ```ts
 /** Fallback delivery for tower/elemental casts that have no bespoke signature. */
@@ -390,17 +390,17 @@ export function deliveryForStyle(style: SkillStyle): DeliveryKind {
 }
 ```
 
-- [ ] **Step 6: Run the delivery tests to verify they pass**
+- [x] **Step 6: Run the delivery tests to verify they pass**
 
 Run: `npx vitest run tests/skillVfx.test.ts -t "delivery"`
 Expected: PASS.
 
-- [ ] **Step 7: Typecheck (proves the spec literal still satisfies the interface everywhere)**
+- [x] **Step 7: Typecheck (proves the spec literal still satisfies the interface everywhere)**
 
 Run: `npx tsc --noEmit`
 Expected: clean.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/data/skillVfxMeta.ts tests/skillVfx.test.ts
@@ -417,7 +417,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Create: `src/scenes/skillDelivery.ts`
 - Modify: `src/scenes/skillVfx.ts`
 
-- [ ] **Step 1: Create `src/scenes/skillDelivery.ts`**:
+- [x] **Step 1: Create `src/scenes/skillDelivery.ts`**:
 
 ```ts
 // src/scenes/skillDelivery.ts
@@ -485,7 +485,7 @@ export function renderDelivery(
 }
 ```
 
-- [ ] **Step 2: Wire `SkillVfx.cast` to play delivery → impact** — in `src/scenes/skillVfx.ts`, update the imports and the `cast` body. Add imports:
+- [x] **Step 2: Wire `SkillVfx.cast` to play delivery → impact** — in `src/scenes/skillVfx.ts`, update the imports and the `cast` body. Add imports:
 
 ```ts
 import { skillVfxSpec, deliveryForStyle } from "../data/skillVfxMeta.ts";
@@ -531,22 +531,22 @@ Replace the entire `cast(...)` method body with:
 
 (`ACCENT` already exists in this file; `skillStyleFor` / `SKILL_STYLE_COLOR` are already imported.)
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: clean.
 
-- [ ] **Step 4: Run the full suite**
+- [x] **Step 4: Run the full suite**
 
 Run: `npx vitest run`
 Expected: all pass (the plumbing + metadata tests now exercise the wired path; rendering itself is presentation, asserted via playtest).
 
-- [ ] **Step 5: Confirm file sizes**
+- [x] **Step 5: Confirm file sizes**
 
 Run: `wc -l src/scenes/skillDelivery.ts src/scenes/skillVfx.ts`
 Expected: both under 500.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/scenes/skillDelivery.ts src/scenes/skillVfx.ts
@@ -564,7 +564,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Files:**
 - Modify: `src/scenes/skillSignatures.ts`
 
-- [ ] **Step 1: Add an aftermath beat to `tripleVolley`** — in `src/scenes/skillSignatures.ts`, change the `tripleVolley` body to append rising motes + a lingering ring after the arrows land:
+- [x] **Step 1: Add an aftermath beat to `tripleVolley`** — in `src/scenes/skillSignatures.ts`, change the `tripleVolley` body to append rising motes + a lingering ring after the arrows land:
 
 ```ts
 const tripleVolley: SigFn = (d, at, s, radius) => {
@@ -580,7 +580,7 @@ const tripleVolley: SigFn = (d, at, s, radius) => {
 };
 ```
 
-- [ ] **Step 2: Add an aftermath beat to `piercingLance`** — append a recoil smoke + lingering ring:
+- [x] **Step 2: Add an aftermath beat to `piercingLance`** — append a recoil smoke + lingering ring:
 
 ```ts
 const piercingLance: SigFn = (d, at, s, radius) => {
@@ -594,7 +594,7 @@ const piercingLance: SigFn = (d, at, s, radius) => {
 };
 ```
 
-- [ ] **Step 3: Add an aftermath beat to `muzzleBarrage`** — append a final shell-casing spark + drifting smoke after the 5 shots:
+- [x] **Step 3: Add an aftermath beat to `muzzleBarrage`** — append a final shell-casing spark + drifting smoke after the 5 shots:
 
 ```ts
 const muzzleBarrage: SigFn = (d, at, s, radius) => {
@@ -609,12 +609,12 @@ const muzzleBarrage: SigFn = (d, at, s, radius) => {
 };
 ```
 
-- [ ] **Step 4: Typecheck + suite**
+- [x] **Step 4: Typecheck + suite**
 
 Run: `npx tsc --noEmit && npx vitest run`
 Expected: clean + all pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/scenes/skillSignatures.ts
@@ -630,24 +630,24 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Files:**
 - Modify: memory `project_skill_vfx_signatures.md` (+ MEMORY.md pointer if needed)
 
-- [ ] **Step 1: Production build**
+- [x] **Step 1: Production build**
 
 Run: `npm run build`
 Expected: succeeds, no type errors.
 
-- [ ] **Step 2: Full suite once more**
+- [x] **Step 2: Full suite once more**
 
 Run: `npx vitest run`
 Expected: all pass (count ≥ previous total + the new delivery/plumbing tests).
 
-- [ ] **Step 3: Playtest several casts via CDP** — capture a hero casting a `skyfall`, a `bolt`, a `beam`, and a `ground` skill mid-delivery and at impact:
+- [x] **Step 3: Playtest several casts via CDP** — capture a hero casting a `skyfall`, a `bolt`, a `beam`, and a `ground` skill mid-delivery and at impact:
 
 Run: `bash scripts/playtest/snap.sh --scene BattleScene --wait 4000 --out /tmp/vfx-delivery.png --eval "(()=>{const g=window.__game;return 'ok';})()"`
 Expected: screenshot written, console reports 0 runtime errors. Inspect that casts visibly travel from the hero / fall from sky / erupt from ground before bursting.
 
-- [ ] **Step 4: Update memory** — prepend a dated paragraph to `project_skill_vfx_signatures.md` describing: the `from`-plumbed cast event, the `delivery` field + `DeliveryKind` (`bolt`/`beam`/`skyfall`/`ground`/`cast`), `renderDelivery` + the extracted `vfxDraw.ts` kit, `deliveryForStyle` for tower fallback, and that each cast is now a ≥4-beat sequence (charge → travel → impact → aftermath). Keep it to a few sentences; update the MEMORY.md hook line if the summary changed.
+- [x] **Step 4: Update memory** — prepend a dated paragraph to `project_skill_vfx_signatures.md` describing: the `from`-plumbed cast event, the `delivery` field + `DeliveryKind` (`bolt`/`beam`/`skyfall`/`ground`/`cast`), `renderDelivery` + the extracted `vfxDraw.ts` kit, `deliveryForStyle` for tower fallback, and that each cast is now a ≥4-beat sequence (charge → travel → impact → aftermath). Keep it to a few sentences; update the MEMORY.md hook line if the summary changed.
 
-- [ ] **Step 5: Final commit**
+- [x] **Step 5: Final commit**
 
 ```bash
 git add -A
