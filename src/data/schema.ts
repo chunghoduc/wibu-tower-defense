@@ -279,6 +279,14 @@ export interface EnemySpecial {
     /** Nearby towers' attack-speed multiplier (e.g. 0.75 = −25%, a tower slow). */
     towerAttackSpeedMult?: number;
   };
+  /** Berserker: latches into a frenzy (faster + harder hits) once HP drops below the threshold. One-way, like boss enrage. */
+  frenzy?: { belowHpPct: number; speedMult: number; atkMult: number };
+  /** Adapter: rotates its immune damage type through `types` every `switchIntervalSec`. True damage and the off-type always land. */
+  adaptiveImmunity?: { types: DamageType[]; switchIntervalSec: number };
+  /** Burster: on death, deals one burst of `damage` (`type`) to towers within `radius`. */
+  deathNova?: { radius: number; damage: number; type: DamageType };
+  /** Disruptor: every `interval`s, disables towers within `radius` for `duration`s (a normal-enemy tower-disable). */
+  towerDisablePulse?: { radius: number; duration: number; interval: number };
 }
 
 /** Boss-only mechanics. Composable: a boss may use several. */

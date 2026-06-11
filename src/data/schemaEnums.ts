@@ -52,6 +52,11 @@ export const ENEMY_ARCHETYPES = [
   "Juggernaut",
   "Herald",
   "Hexer",
+  "Berserker",
+  "Adapter",
+  "Burster",
+  "Dreadnought",
+  "Disruptor",
   "Boss",
 ] as const;
 export type EnemyArchetype = (typeof ENEMY_ARCHETYPES)[number];

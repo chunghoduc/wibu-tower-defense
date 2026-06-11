@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ENEMIES } from "../src/data/enemies.ts";
 import { ARCHETYPE_INFO, enemySpecialty, enemyTags } from "../src/data/enemyInfo.ts";
+import { ENEMY_ARCHETYPES } from "../src/data/schemaEnums.ts";
 
 describe("enemy info", () => {
   it("every enemy has a non-empty specialty line", () => {
@@ -26,5 +27,13 @@ describe("enemy info", () => {
   it("bosses are tagged with their mechanics", () => {
     const enrager = ENEMIES.find((e) => e.boss?.enrage)!;
     expect(enemyTags(enrager)).toContain("Enrages");
+  });
+
+  it("registers the five new chapter-2 elite archetypes with intel blurbs", () => {
+    for (const a of ["Berserker", "Adapter", "Burster", "Dreadnought", "Disruptor"] as const) {
+      expect(ENEMY_ARCHETYPES).toContain(a);
+      expect(ARCHETYPE_INFO[a]).toBeTruthy();
+      expect(ARCHETYPE_INFO[a].length).toBeGreaterThan(10);
+    }
   });
 });

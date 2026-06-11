@@ -22,6 +22,11 @@ export const ARCHETYPE_INFO: Record<EnemyArchetype, string> = {
   Juggernaut: "Slow, halves all damage and is immune to one type — answer with the other type, True, or penetration.",
   Herald: "Rallies nearby allies (speed + toughness) — kill it first.",
   Hexer: "Heals and armors allies and slows your towers — a priority kill.",
+  Berserker: "Frenzies when wounded — gets faster and deadlier; burst it down before it snaps.",
+  Adapter: "Alternates immunity between Physical and Magic — bring both types, True damage, or penetration.",
+  Burster: "Detonates on death, damaging nearby towers — kill it at range or spread your towers.",
+  Dreadnought: "Armored flyer that bombards your towers — needs heavy, dedicated anti-air.",
+  Disruptor: "Periodically silences nearby towers — kill it first or spread your defenses.",
   Boss: "Boss — enrages, summons, or disables your towers.",
 };
 
@@ -49,6 +54,10 @@ export function enemyTags(def: EnemyDef): string[] {
   if (def.boss?.enrage) tags.push("Enrages");
   if (def.boss?.towerDisable) tags.push("Disables towers");
   if (def.baseStats.hpRegen >= 10) tags.push("Regenerates");
+  if (def.special?.frenzy) tags.push("Frenzies");
+  if (def.special?.adaptiveImmunity) tags.push("Adaptive immunity");
+  if (def.special?.deathNova) tags.push("Death nova");
+  if (def.special?.towerDisablePulse) tags.push("Disables towers");
   return tags;
 }
 
