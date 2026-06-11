@@ -1,7 +1,8 @@
 import Phaser from "phaser";
 import type { SaveManager } from "../core/saveManager.ts";
 import { music } from "./audio.ts";
-import { dressHero } from "./dressHero.ts";
+import { hangerLayout, equippedHangers, squadStand, squadStandPoints, petWander } from "./homeRoom.ts";
+import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { bgKey } from "../data/bgManifest.ts";
 import { crispText } from "./ui.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
@@ -34,6 +35,8 @@ const BTN = 58; // icon button size
 
 export class MainMenuScene extends Phaser.Scene {
   private badges: Record<string, number> = {};
+  private pet?: Phaser.GameObjects.Image; // re-init in create() (scene reuse)
+  private elapsed = 0;
 
   constructor() {
     super("MainMenuScene");
@@ -46,6 +49,8 @@ export class MainMenuScene extends Phaser.Scene {
     const save = mgr.getSave();
     this.badges = { quests: claimableQuestCount(save), activities: mgr.activityBadgeCount() };
     const W = this.scale.width, H = this.scale.height;
+    this.pet = undefined; // scene instances are reused — reset per-entry state
+    this.elapsed = 0;
     fadeIn(this);
 
     // Start the ambient music bed on the first gesture (Web Audio needs one).
@@ -53,9 +58,22 @@ export class MainMenuScene extends Phaser.Scene {
     if (set.musicEnabled && !set.muted) this.input.once("pointerdown", () => music.start());
 
     this.drawBackdrop(W, H);
-    this.drawHeroAndSquad(save, W, H);
+    this.drawThrone(W, H);
+    this.drawHero(W, H);
+    this.drawHangers(save, W, H);
+    this.drawSquad(save, W, H);
+    this.drawPet(save, W, H);
     this.drawHeader(mgr, save, W);
     this.drawMenu(W, H);
+  }
+
+  /** Pet wanders above the throne each frame (see homeRoom.petWander). */
+  update(_t: number, dtMs: number): void {
+    if (!this.pet) return;
+    this.elapsed += dtMs;
+    const p = petWander(this.elapsed, this.scale.width, this.scale.height);
+    this.pet.setPosition(p.x, p.y);
+    this.pet.setFlipX(p.faceLeft);
   }
 
   // ── backdrop ──────────────────────────────────────────────────────────────
@@ -70,32 +88,90 @@ export class MainMenuScene extends Phaser.Scene {
     v.fillStyle(0x05070c, 0.35).fillRect(0, 0, W, 70).fillRect(0, H - 96, W, 96);
   }
 
-  // ── hero on the throne + squad standing in the hall ─────────────────────────
-  private drawHeroAndSquad(save: ReturnType<SaveManager["getSave"]>, W: number, H: number): void {
-    // Hero on the throne (centre dais), wearing the player's equipped outfit.
-    if (this.textures.exists("hero__hero")) {
-      const HERO_H = 104, cy = H * 0.45, originY = 0.8;
-      const hero = this.add.sprite(W / 2, cy, "hero__hero").setOrigin(0.5, originY).setDepth(2);
-      hero.setScale(HERO_H / hero.height);
-      if (this.anims.exists("hero__hero_idle")) hero.play("hero__hero_idle");
-      // Overlay equipped weapon / wings / armour / boots / gloves / pet on the body.
-      dressHero(this, save.inventory, W / 2, cy - HERO_H * originY, HERO_H, 2);
-    }
+  // ── procedural king's chair + dais ("the stage") ─────────────────────────────
+  private drawThrone(W: number, H: number): void {
+    const cx = W / 2, seatY = H * 0.50;
+    const g = this.add.graphics().setDepth(1);
+    // dais slab (the stage the squad stands on)
+    g.fillStyle(0x2a2030, 1).fillRoundedRect(cx - 150, H * 0.70, 300, 30, 8);
+    g.fillStyle(0x3a2c44, 1).fillRoundedRect(cx - 130, H * 0.685, 260, 16, 6);
+    // chair back
+    g.fillStyle(0x6a4a1c, 1).fillRoundedRect(cx - 46, seatY - 132, 92, 150, 10);
+    g.fillStyle(0x8a6526, 1).fillRoundedRect(cx - 38, seatY - 124, 76, 134, 8);
+    g.fillStyle(0x7a1f2a, 1).fillRoundedRect(cx - 30, seatY - 116, 60, 118, 6); // cushion
+    // crown finials
+    g.fillStyle(0xe8c44c, 1);
+    for (const ox of [-46, 0, 46]) g.fillTriangle(cx + ox - 9, seatY - 132, cx + ox + 9, seatY - 132, cx + ox, seatY - 156);
+    // seat + arms
+    g.fillStyle(0x8a6526, 1).fillRoundedRect(cx - 52, seatY - 8, 104, 22, 6);
+    g.fillStyle(0x6a4a1c, 1).fillRoundedRect(cx - 56, seatY - 30, 12, 44, 4).fillRoundedRect(cx + 44, seatY - 30, 12, 44, 4);
+  }
 
-    // Up to 7 squad members in a shallow arc across the foreground hall.
-    const owned = Object.keys(save.collection);
-    const squad = (save.squad?.length ? save.squad : owned).slice(0, 7);
-    const n = squad.length;
-    squad.forEach((id, i) => {
+  private drawHero(W: number, H: number): void {
+    if (!this.textures.exists("hero__hero")) return;
+    const HERO_H = 104, cy = H * 0.50;
+    const hero = this.add.sprite(W / 2, cy, "hero__hero").setOrigin(0.5, 0.85).setDepth(2);
+    hero.setScale(HERO_H / hero.height);
+    if (this.anims.exists("hero__hero_idle")) hero.play("hero__hero_idle");
+    // NOTE: bare hero — no dressHero. Equipped gear is shown on the wall hangers.
+  }
+
+  // ── equipped gear hanging on the two side walls ─────────────────────────────
+  private drawHangers(save: ReturnType<SaveManager["getSave"]>, W: number, H: number): void {
+    const cells = hangerLayout(W, H);
+    const items = equippedHangers(save.inventory);
+    cells.forEach((cell, i) => {
+      const g = this.add.graphics().setDepth(3);
+      g.fillStyle(0x4a3a2a, 1).fillRoundedRect(cell.x - 16, cell.y - 6, 32, 6, 3); // wall bar
+      g.fillStyle(0x6a5238, 1).fillCircle(cell.x, cell.y - 3, 3);                    // hook
+      const it = items[i];
+      if (!it || !this.textures.exists(it.iconKey)) return; // empty peg
+      g.lineStyle(2, 0x9a8a6a, 1).lineBetween(cell.x, cell.y, cell.x, cell.y + 14);  // rope
+      const img = this.add.image(cell.x, cell.y + 14, it.iconKey).setOrigin(0.5, 0).setDepth(4);
+      img.setScale(Math.min(34 / img.width, 34 / img.height));
+      this.tweens.add({ targets: img, angle: { from: -4, to: 4 }, duration: 1600 + i * 90, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    });
+  }
+
+  // ── selected squad on the stage, or a Set Squad call-to-action ───────────────
+  private drawSquad(save: ReturnType<SaveManager["getSave"]>, W: number, H: number): void {
+    const stand = squadStand(save);
+    if (stand.showSetSquad) {
+      const c = this.add.container(W / 2, H * 0.74).setDepth(6);
+      const g = this.add.graphics();
+      g.fillStyle(0x1c2740, 0.95).fillRoundedRect(-92, -22, 184, 44, 10);
+      g.lineStyle(2, 0x4f7bd6, 1).strokeRoundedRect(-92, -22, 184, 44, 10);
+      c.add(g);
+      c.add(crispText(this, 0, 0, "⚔ Set Squad", { fontSize: "16px", color: "#cfe0ff", fontStyle: "bold" }).setOrigin(0.5));
+      const z = this.add.zone(0, 0, 184, 44).setInteractive({ useHandCursor: true });
+      c.add(z);
+      z.on("pointerover", () => this.tweens.add({ targets: c, scale: 1.08, duration: 120 }));
+      z.on("pointerout", () => this.tweens.add({ targets: c, scale: 1, duration: 120 }));
+      z.on("pointerdown", () => this.tweens.add({ targets: c, scale: 0.92, duration: 70, yoyo: true, onComplete: () => fadeToScene(this, "SquadScene") }));
+      return;
+    }
+    const pts = squadStandPoints(stand.members.length, W, H);
+    stand.members.forEach((id, i) => {
       const key = `tower__${id}`;
       if (!this.textures.exists(key)) return;
-      const tt = n > 1 ? i / (n - 1) : 0.5;          // 0..1 across the row
-      const x = W * 0.16 + tt * W * 0.68;
-      const y = H * 0.74 + Math.sin(tt * Math.PI) * -10; // slight arc
-      const s = this.add.sprite(x, y, key).setOrigin(0.5, 0.85).setDepth(3);
+      const p = pts[i];
+      const s = this.add.sprite(p.x, p.y, key).setOrigin(0.5, 0.85).setDepth(5);
       s.setScale(54 / s.height);
       if (this.anims.exists(`${key}_idle`)) s.play(`${key}_idle`);
     });
+  }
+
+  // ── equipped pet flying above the throne ─────────────────────────────────────
+  private drawPet(save: ReturnType<SaveManager["getSave"]>, W: number, H: number): void {
+    const instId = save.inventory.equipped["Pet"];
+    if (!instId) return;
+    const inst = save.inventory.items.find((it) => it.id === instId);
+    const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
+    const key = def ? `item__${def.id}` : "";
+    if (!def || !this.textures.exists(key)) return;
+    const p = petWander(0, W, H);
+    this.pet = this.add.image(p.x, p.y, key).setOrigin(0.5).setDepth(7);
+    this.pet.setScale(Math.min(40 / this.pet.width, 40 / this.pet.height));
   }
 
   // ── title + crystals ────────────────────────────────────────────────────────
