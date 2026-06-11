@@ -90,6 +90,7 @@ const tripleVolley: SigFn = (d, at, s, radius) => {
     d.spark(tip, hot, 5, 12);
   }));
   d.ring(at, radius * 0.7, deep, 360, 2);
+  d.after(180, () => d.motes(at, radius, 8, () => (Math.random() < 0.5 ? core : hot), -1)); // verdant drift settles
 };
 
 const piercingLance: SigFn = (d, at, s, radius) => {
@@ -99,6 +100,7 @@ const piercingLance: SigFn = (d, at, s, radius) => {
   d.beam(at, 0, radius * 2.2, hot, 2, 220);
   d.after(40, () => d.beam(at, Math.PI, radius * 0.4, deep, 3, 200)); // recoil flick
   d.spark(at, hot, 7, 16);
+  d.after(200, () => { d.ring(at, radius * 1.1, core, 320, 2); d.smoke(at, deep, 8); }); // pierce-wake
 };
 
 const manaDetonation: SigFn = (d, at, s, radius) => {
@@ -131,6 +133,7 @@ const muzzleBarrage: SigFn = (d, at, s, radius) => {
     d.beam(off, Phaser.Math.FloatBetween(-0.15, 0.15), radius, core, 3, 200); // tracer
     d.smoke({ x: off.x, y: off.y }, deep, 6);
   });
+  d.after(320, () => { d.spark(at, hot, 8, 20); d.smoke(at, deep, 12); }); // gunsmoke settles
 };
 
 const concussionBlast: SigFn = (d, at, s, radius) => {
