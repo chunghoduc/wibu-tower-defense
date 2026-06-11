@@ -177,8 +177,8 @@ export const spritesMethods = {
   /**
    * Procedural enemy animation driving the single SDXL creature sprite so it
    * reads as real locomotion instead of sliding ("floating") along the lane.
-   * The 2-frame SDXL `_walk` sheet (frames near-identical) keeps cycling for a
-   * touch of limb variation, but the *transform* is what sells movement:
+   * The 4-frame articulated `_walk` sheet (alternating legs, see creatures.mjs)
+   * now carries the stride; the *transform* adds weight and ground contact:
    *  - GROUND enemies get a 2-beat step cycle whose phase advances with the
    *    distance actually travelled — so footfalls stay glued to the ground and
    *    a slowed/stopped enemy steps slower/stops (the core fix for floating).
@@ -241,9 +241,9 @@ export const spritesMethods = {
       s.setData("gaitPhase", c);
       const swing = Math.abs(Math.sin(c));               // 0 at foot-plant, 1 mid-swing
       const plant = 1 - swing;                           // weight settling on the planted foot
-      yOff = -swing * 5 * A;                             // body lifts clear off the ground between footfalls
-      xOff = Math.sin(c) * 1.6 * A;                      // lateral weight-shift waddle as it strides
-      angle = -Math.cos(c) * 4.5 * A;                    // waddle rock toward the planted foot
+      yOff = -swing * 3 * A;                             // gentle body bob; the stride legs carry the step now
+      xOff = Math.sin(c) * 1.2 * A;                      // lateral weight-shift waddle as it strides
+      angle = -Math.cos(c) * 3.5 * A;                    // waddle rock toward the planted foot
       scaleY = base * (1 - 0.10 * plant * A);            // firm squash + settle on each foot-plant
       scaleX = base * (1 + 0.07 * plant * A);
       if (moved > 0.2 && lx !== undefined) angle += Math.sign(px - lx) * 2; // lean into travel
@@ -274,7 +274,7 @@ export const spritesMethods = {
         shadow.setScale(0.62);
         shadow.setAlpha(0.16 * s.alpha);
       } else {
-        const lift = Math.max(0, -yOff) / (5 * (boss ? 0.6 : 1)); // 0 planted → 1 airborne
+        const lift = Math.max(0, -yOff) / (3 * (boss ? 0.6 : 1)); // 0 planted → 1 airborne
         shadow.setScale(1 - 0.42 * lift);
         shadow.setAlpha((0.34 - 0.16 * lift) * s.alpha);
       }

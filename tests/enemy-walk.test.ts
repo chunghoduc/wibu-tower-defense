@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+// @ts-expect-error — art-pipeline JS module (scripts/ is outside the TS project), no .d.ts
 import { composeEnemyFrames, ENEMY_SPECS } from "../scripts/pixelart/creatures.mjs";
 
 // Lowest (max) filled y on a canvas half. left=true → x < S/2, else x >= S/2.
