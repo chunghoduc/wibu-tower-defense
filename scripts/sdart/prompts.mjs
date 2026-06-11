@@ -101,6 +101,10 @@ export const ENEMY_VISUAL = {
   imp: "a small red devil imp with horns, bat wings and a pitchfork, yellow eyes, mischievous",
   raider: "a hulking scarred berserker raider with war paint, fur armor and a huge battle axe, roaring",
   courier: "a sneaky small goblin coin-runner carrying a heavy bulging money bag, shifty eyes",
+  golem: "a massive lumbering iron golem built of riveted dark metal plates, a glowing orange furnace core in its chest, huge heavy fists, blank slit eyes",
+  monolith: "a towering walking stone monolith with a cracked grey granite body carved with glowing blue runes, stubby stone limbs, a single glowing rune-eye",
+  herald: "an undead skeletal standard-bearer in tattered armor holding aloft a ragged glowing war banner, rallying pose, eerie green light",
+  hexer: "a sinister hooded grave-witch hexbinder in a dark tattered shroud, pale bony clawed hands weaving glowing purple hex sigils, hollow glowing eyes",
 };
 export const BOSS_VISUAL = {
   champion: "an imposing armored boss knight in ornate silver plate armor with gold trim, a flowing cape and a huge greatsword, glowing red eyes, intimidating",
