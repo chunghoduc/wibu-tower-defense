@@ -14,6 +14,7 @@ import { UI_SVGS, UI_IMAGES } from "../data/uiManifest.ts";
 import { FX_IDS } from "../data/fxManifest.ts";
 import { ITEM_CATALOG } from "../data/items.ts";
 import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
+import { bakeEnemyWalks } from "./enemyWalkBake.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -91,6 +92,7 @@ export class PreloadScene extends Phaser.Scene {
       mk("skill", idx(/skill/), 10, 0);      // active-skill frames
       mk("hurt", idx(/hurt/), 8, 0);
     }
+    bakeEnemyWalks(this); // synthesize 4-frame walk/flap cycles from each enemy sprite
     this.scene.start("MainMenuScene");
   }
 }
