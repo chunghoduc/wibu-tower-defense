@@ -321,7 +321,9 @@ export const ENEMIES: EnemyDef[] = [
     bounty: 14,
     castleDamage: 2,
     baseStats: makeStats({ maxHp: 130, moveSpeed: 40, atk: 6, attackSpeed: 0.8 }),
-    special: { deathNova: { radius: 110, damage: 45, type: "Magic" } },
+    // damage 180 ≈ 40-45% of a real in-battle tower's HP floor (~400): threatens a
+    // clustered tower without one-shotting a healthy one; stacked deaths punish packing.
+    special: { deathNova: { radius: 110, damage: 180, type: "Magic" } },
     artRef: "placeholder",
   },
   {

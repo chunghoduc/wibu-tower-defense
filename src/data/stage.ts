@@ -213,7 +213,7 @@ function buildWaves(n: number): WaveDef[] {
   ];
   if (n >= 5) w6.push(spawn("phantom", 1 + Math.floor(n / 2), 1.2, 4));
   if (n >= 6) w6.push(spawn("monolith", 1, 2.5, 5)); // magic-immune wall
-  if (n >= 12) w6.push(spawn("carrier", 1 + Math.floor(n / 5), 1.5, 4)); // Bloomrot Carrier — space your towers
+  if (n >= 12) w6.push(spawn("carrier", 1 + Math.floor(n / 8), 1.5, 4)); // Bloomrot Carrier — space your towers
   if (n >= 14) w6.push(spawn("prism", 1, 2.5, 6));                        // Prism Behemoth — dual-type wall
   w.push({ spawns: w6 });
 

@@ -116,7 +116,7 @@ debut to a player who already owns a Chapter-1-cleared roster.
 | maxHp | 130 | soft-ish — it *wants* to die near you |
 | moveSpeed | 40 | average; it must reach the cluster to matter |
 | atk / attackSpeed | 6 / 0.8 | negligible on its own — the corpse is the weapon |
-| deathNova | radius 110, damage 45, type Magic | ~half a fresh tower's HP on a hit (threat, not delete) |
+| deathNova | radius 110, damage 180, type Magic | ~40-45% of a real tower's in-battle HP floor (~400): threat, not delete. (Playtest-tuned up from 45 — see §6.) |
 | bounty / castleDamage | 14 / 2 | modest |
 
 ### 3.4 Iron Dreadwing — `Dreadnought` (flying) — escalates the **StormFlyer**
