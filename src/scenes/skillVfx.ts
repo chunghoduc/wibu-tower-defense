@@ -7,8 +7,10 @@
 // delegates the "cast" event here; everything is pure presentation.
 import Phaser from "phaser";
 import { SKILL_STYLE_COLOR, skillStyleFor, type SkillStyle } from "../data/attackStyle.ts";
-import { skillVfxSpec, deliveryForStyle } from "../data/skillVfxMeta.ts";
+import { skillVfxSpec, deliveryForShape } from "../data/skillVfxMeta.ts";
+import { skillShapeFor } from "../data/towerSkillShapeIndex.ts";
 import { renderSignature } from "./skillSignatures.ts";
+import { renderTowerShape } from "./towerSkillFx.ts";
 import { renderDelivery } from "./skillDelivery.ts";
 import { VfxDraw } from "./vfxDraw.ts";
 
@@ -47,12 +49,17 @@ export class SkillVfx {
       });
       return;
     }
+    // Tower active (or any id without a bespoke hero signature): element × shape.
+    // element → palette + substance particles; shape → delivery + motion flourish.
     const style = skillStyleFor(skillId);
     const color = SKILL_STYLE_COLOR[style];
     const accent = ACCENT[style];
-    renderDelivery(draw, deliveryForStyle(style), from, at, { core: color, hot: accent.hot, deep: accent.deep }, radius, () => {
+    const palette = { core: color, hot: accent.hot, deep: accent.deep };
+    const shape = skillShapeFor(skillId);
+    renderDelivery(draw, deliveryForShape(shape), from, at, palette, radius, () => {
       this.baseBurst(at, color, radius, skillId);
-      switch (style) {
+      renderTowerShape(draw, shape, at, palette, radius); // structural motion (under particles)
+      switch (style) {                                    // elemental substance (on top)
         case "fire": this.fire(at, color, radius); break;
         case "ice": this.ice(at, color, radius); break;
         case "lightning": this.lightning(at, color, radius); break;
@@ -61,9 +68,11 @@ export class SkillVfx {
         case "heal": this.heal(at, color, radius); break;
         case "slash": this.slash(at, color, radius); break;
       }
-      // A bigger cast deserves a bit of weight: shake for the hero + heavy elements.
-      if (source === "hero" || style === "lightning" || style === "fire") {
-        this.scene.cameras.main.shake(style === "lightning" ? 200 : 130, style === "lightning" ? 0.007 : 0.004);
+      // One weighted shake by SHAPE (heavy blasts/slams shake hardest); never double.
+      const heavy = shape === "nova" || shape === "slam";
+      const med = shape === "chain" || shape === "beam";
+      if (source === "hero" || heavy || med || style === "lightning") {
+        this.scene.cameras.main.shake(heavy ? 200 : 130, heavy ? 0.007 : 0.004);
       }
     });
   }
