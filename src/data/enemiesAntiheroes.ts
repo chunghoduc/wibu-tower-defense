@@ -31,6 +31,7 @@ export const ANTIHERO_BOSSES: EnemyDef[] = [
     weapon: { family: "thrown", display: "a relentless barrage of gunfire" },
     special: { attacksTowers: { range: 170 } }, // outranges the line — a race to kill
     boss: {
+      enrage: { belowHpPct: 0.35, atkMult: 1.5, speedMult: 1.4 }, // "you can't kill me fast enough"
       skill: { id: "vindicator-barrage", name: "Suppressing Fire", description: "Rakes the line with fire — stuns nearby towers and batters the hero.", manaCost: 100, type: "quake", radius: 160, power: 0.18 },
     },
     artRef: "placeholder",

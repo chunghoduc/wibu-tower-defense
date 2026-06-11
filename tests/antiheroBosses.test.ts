@@ -32,8 +32,7 @@ describe("Antihero Gallery — catalog integrity", () => {
   it("carries each boss's designed signature mechanic", () => {
     expect(byId("gravemourn").boss?.enrage).toBeDefined();
     expect(byId("gravemourn").special?.frenzy).toBeDefined();   // double sub-50% spike
-    expect(byId("vindicator").special?.attacksTowers).toBeDefined();
-    expect(byId("vindicator").boss?.enrage).toBeUndefined();     // the cold gunman never enrages
+    expect(byId("vindicator").special?.attacksTowers?.range).toBeGreaterThanOrEqual(160); // outranges the line
     expect(byId("sundermark").boss?.towerDisable).toBeDefined();
     expect(byId("crownfall").boss?.enrage?.atkMult).toBeGreaterThanOrEqual(1.9);
     expect(byId("crownfall").boss?.skill?.type).toBe("barrier");

@@ -155,20 +155,20 @@ export const EXPANSION_LAYOUTS: Layout[] = [
 ];
 
 /**
- * Final boss for stages 11–30 (1-indexed continues from BOSS_BY_STAGE). Reuses
- * the existing roster; each chapter's five bosses are ordered ASCENDING by base
- * HP so the boss spike climbs stage-by-stage and the chapter climaxes on its apex
- * boss (meruon for Ch3–5, overlord for Ch2). The progression curve then scales
- * these into elite versions. Base HP: zabro 1000 < ryomen 1200 < kura 1450 <
- * warden 1700 < akai 2000 < mukade 2200 ≈ overlord 2200 < madarok 2700 < meruon 3800.
+ * Final boss for stages 11–30 (1-indexed continues from BOSS_BY_STAGE). The
+ * Antihero Gallery (10 new bosses) headlines most stages, with a few classic
+ * apex bosses kept as chapter climaxes. Each chapter's five finals are ordered
+ * ASCENDING by base HP so the boss spike climbs stage-by-stage and the chapter
+ * climaxes on its hardest boss; the progression curve then scales these by depth.
+ * Base HP rank lives in BOSS_HP_RANK (stage.ts). See the 2026-06-12 antihero spec.
  */
 export const BOSS_EXPANSION = [
-  // Chapter 2 — Sunscar Wastes (11–15) → climax: overlord
-  "ryomen", "kura", "akai", "mukade", "overlord",
-  // Chapter 3 — Emberfall (16–20) → climax: meruon
-  "zabro", "mukade", "overlord", "madarok", "meruon",
-  // Chapter 4 — Mire Hollow (21–25) → climax: meruon
-  "ryomen", "akai", "mukade", "madarok", "meruon",
-  // Chapter 5 — The Blight (26–30) — the final ascent; ends at the apex boss
-  "ryomen", "mukade", "overlord", "madarok", "meruon",
+  // Chapter 2 — Sunscar Wastes (11–15) → climax: overlord (2200)
+  "gravemourn", "vindicator", "sundermark", "crownfall", "overlord",
+  // Chapter 3 — Emberfall (16–20) → climax: madarok (2700)
+  "unkilling", "mukade", "mawborn", "devourer", "madarok",
+  // Chapter 4 — Mire Hollow (21–25) → climax: meruon (3800)
+  "akai", "crimsonlord", "madarok", "fallenward", "meruon",
+  // Chapter 5 — The Blight (26–30) → climax: ashghost (4200), the final boss
+  "devourer", "crimsonlord", "fallenward", "meruon", "ashghost",
 ];

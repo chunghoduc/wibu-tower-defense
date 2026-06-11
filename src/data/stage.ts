@@ -104,8 +104,27 @@ export const BOSS_BY_STAGE = [
  * by listed order, which is fine for the ≤ comparison.
  */
 const BOSS_HP_RANK = [
-  "champion", "zabro", "ryomen", "kura", "warden",
-  "akai", "mukade", "overlord", "madarok", "meruon",
+  // Ascending base HP — the canonical difficulty rank (keeps wave-5 ≤ wave-10).
+  "champion",    // 700
+  "zabro",       // 1000
+  "gravemourn",  // 1150
+  "ryomen",      // 1200
+  "vindicator",  // 1350
+  "kura",        // 1450
+  "sundermark",  // 1500
+  "crownfall",   // 1650
+  "warden",      // 1700
+  "unkilling",   // 1950
+  "akai",        // 2000
+  "mukade",      // 2200
+  "overlord",    // 2200
+  "mawborn",     // 2250
+  "devourer",    // 2400
+  "crimsonlord", // 2600
+  "madarok",     // 2700
+  "fallenward",  // 3100
+  "meruon",      // 3800
+  "ashghost",    // 4200
 ];
 const bossRank = (id: string): number => {
   const r = BOSS_HP_RANK.indexOf(id);
