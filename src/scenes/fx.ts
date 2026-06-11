@@ -14,6 +14,7 @@ import { ImpactFx } from "./impactFx.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { tierOfBox } from "../core/boxes.ts";
 import { LootFlyFx } from "./lootFlyFx.ts";
+import { BossSkillFx } from "./bossSkillSignatures.ts";
 
 const DMG_COLOR: Record<DamageType, number> = {
   Physical: 0xe9eef7,
@@ -38,6 +39,8 @@ export class FxLayer {
   private readonly impact: ImpactFx;
   /** Loot-magnet VFX: dropped rewards fly from the kill into the hero. */
   private readonly lootFly: LootFlyFx;
+  /** Bespoke per-skill boss cast set-pieces (quake/rally/barrier/summon-surge). */
+  private readonly bossFx: BossSkillFx;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -61,6 +64,7 @@ export class FxLayer {
     this.melee = new MeleeFx(scene, this.fac, this.depth);
     this.impact = new ImpactFx(scene, this.fac, this.depth);
     this.lootFly = new LootFlyFx(scene, this.fac, this.depth);
+    this.bossFx = new BossSkillFx(scene, this.fac, this.depth);
   }
 
   play(e: FxEvent): void {
@@ -124,23 +128,9 @@ export class FxLayer {
     }
   }
 
-  /** A menacing boss-skill cast: dark expanding shock ring + colored core + name. */
+  /** A menacing boss-skill cast — dispatched to its bespoke signature. */
   private bossCast(at: Vec2, skill: string, radius: number, name: string): void {
-    const color = skill === "barrier" ? 0x8ad8ff : skill === "rally" ? 0x9ccc65 : skill === "summon-surge" ? 0xb085f5 : 0xff5a4a;
-    this.ring(at, radius, color, 600);
-    this.scene.time.delayedCall(80, () => this.ring(at, radius * 0.7, 0xffffff, 420));
-    const core = this.fac.circle(at.x, at.y, 18, color, 0.6).setDepth(this.depth + 2);
-    this.scene.tweens.add({ targets: core, scale: 2.4, alpha: 0, duration: 460, ease: "Cubic.easeOut", onComplete: () => core.destroy() });
-    for (let i = 0; i < 14; i++) {
-      const a = (Math.PI * 2 * i) / 14;
-      const p = this.fac.circle(at.x, at.y, 3, color).setDepth(this.depth + 1);
-      this.scene.tweens.add({ targets: p, x: at.x + Math.cos(a) * radius * 0.8, y: at.y + Math.sin(a) * radius * 0.8, alpha: 0, scale: 0.2, duration: 520, ease: "Quad.easeOut", onComplete: () => p.destroy() });
-    }
-    const label = makeCrisp(this.fac.text(at.x, at.y - 34, name, {
-      fontFamily: '"Trebuchet MS", system-ui, sans-serif', fontSize: "13px", color: "#ffd2cc", fontStyle: "bold", stroke: "#1a0808", strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(this.depth + 4));
-    this.scene.tweens.add({ targets: label, y: at.y - 54, alpha: 0, duration: 1100, ease: "Quad.easeOut", onComplete: () => label.destroy() });
-    this.scene.cameras.main.shake(180, 0.006);
+    this.bossFx.cast(at, skill, radius, name);
   }
 
   /** A quick enemy strike: a streak toward the target + an impact at the target. */
