@@ -224,15 +224,15 @@ export const enemyMethods = {
       e.pos = lerp(e.airStart, this.castlePos, e.airProgress);
     } else {
       e.distanceAlong += step;
-      if (e.distanceAlong >= this.totalPathLen) return this.reachCastle(e);
-      e.pos = pointAtDistance(this.stage.path, e.distanceAlong);
+      if (e.distanceAlong >= e.routeLen) return this.reachCastle(e);
+      e.pos = pointAtDistance(e.route, e.distanceAlong);
     }
   },
 
   updateEnemyThreat(this: BattleState, e: EnemyRuntime): void {
     e.threat = e.flying
       ? Math.min(1, e.airProgress)
-      : Math.min(1, this.totalPathLen === 0 ? 1 : e.distanceAlong / this.totalPathLen);
+      : Math.min(1, e.routeLen === 0 ? 1 : e.distanceAlong / e.routeLen);
   },
 
   reachCastle(this: BattleState, e: EnemyRuntime): void {
@@ -291,7 +291,7 @@ export const enemyMethods = {
       this.pending.push(
         parent.flying
           ? { enemyId, airProgress: parent.airProgress, airStart: parent.airStart }
-          : { enemyId, distanceAlong: parent.distanceAlong },
+          : { enemyId, distanceAlong: parent.distanceAlong, route: parent.route },
       );
     }
   },

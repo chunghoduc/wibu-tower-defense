@@ -442,6 +442,8 @@ export interface StageDef {
   towerSlots: Vec2[];
   /** Terrain features for rendering + obstacle-based free placement. */
   terrain?: TerrainFeature[];
+  /** Endless maze arena (center castle, multi-gate roads). Campaign stages omit it. */
+  arena?: ArenaDef;
   waves: WaveDef[];
 }
 

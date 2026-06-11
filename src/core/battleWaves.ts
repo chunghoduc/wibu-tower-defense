@@ -4,7 +4,7 @@
  */
 import { DIFFICULTY_SCALING, type Immunity, type StageDef, type Stats } from "../data/schema.ts";
 import { stageNumber } from "../data/stage.ts";
-import { lerp, pointAtDistance } from "./path.ts";
+import { lerp, pathLength, pointAtDistance } from "./path.ts";
 import { applyEliteBoost, rollEliteImmunity } from "./elite.ts";
 import { waveScaling } from "./waveScaling.ts";
 import { progressionScaling } from "./progressionScaling.ts";
@@ -265,14 +265,22 @@ export const waveMethods = {
       if (def.immunity === null) eliteImmunity = rollEliteImmunity(this.rng);
     }
     const flying = def.flying;
+    const arena = this.stage.arena;
+    // Arena: ground enemies pick a random precomputed corridor; flyers beeline the
+    // center from a random gate. Campaign: the single shared lane / round-robin air.
+    const route = req.route ??
+      (arena ? arena.routes[Math.floor(this.rng.next() * arena.routes.length)] : this.stage.path);
     const airStart =
       req.airStart ??
-      (this.stage.airSpawns.length > 0
-        ? this.stage.airSpawns[this.nextUid % this.stage.airSpawns.length]
-        : this.stage.path[0]);
+      (arena
+        ? arena.gates[Math.floor(this.rng.next() * arena.gates.length)]
+        : this.stage.airSpawns.length > 0
+          ? this.stage.airSpawns[this.nextUid % this.stage.airSpawns.length]
+          : this.stage.path[0]);
+    const routeLen = pathLength(route);
     const distanceAlong = req.distanceAlong ?? 0;
     const airProgress = req.airProgress ?? 0;
-    const pos = flying ? lerp(airStart, this.castlePos, airProgress) : pointAtDistance(this.stage.path, distanceAlong);
+    const pos = flying ? lerp(airStart, this.castlePos, airProgress) : pointAtDistance(route, distanceAlong);
 
     this.enemies.push({
       uid: this.nextUid++,
@@ -284,6 +292,8 @@ export const waveMethods = {
       stealth: def.special?.stealth ?? false,
       revealed: !(def.special?.stealth ?? false),
       distanceAlong,
+      route,
+      routeLen,
       airProgress,
       airStart,
       pos,

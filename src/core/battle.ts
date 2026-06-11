@@ -160,7 +160,7 @@ export class BattleState {
     this.endless = opts.endless ?? false;
     this.bossRush = opts.bossRush ?? false;
     this.totalPathLen = pathLength(stage.path);
-    this.castlePos = stage.path[stage.path.length - 1];
+    this.castlePos = stage.arena ? stage.arena.center : stage.path[stage.path.length - 1];
     this.castleHp = stage.castleHp;
     this.gold = stage.startingGold;
     this.hero = {
@@ -242,9 +242,12 @@ export class BattleState {
   /** Whether a free-placement position is buildable (bounds, lane, obstacles, spacing). */
   canPlaceAt(pos: Vec2): boolean {
     if (pos.x < PLACE_MARGIN || pos.y < PLACE_MARGIN || pos.x > WORLD_WIDTH - PLACE_MARGIN || pos.y > WORLD_HEIGHT - PLACE_MARGIN) return false;
-    const path = this.stage.path;
-    for (let i = 1; i < path.length; i++) {
-      if (segDist(pos, path[i - 1], path[i]) < LANE_CLEARANCE) return false;
+    // Block placement on ANY road: the single campaign lane, or every arena corridor.
+    const roads = this.stage.arena ? this.stage.arena.routes : [this.stage.path];
+    for (const road of roads) {
+      for (let i = 1; i < road.length; i++) {
+        if (segDist(pos, road[i - 1], road[i]) < LANE_CLEARANCE) return false;
+      }
     }
     for (const f of this.stage.terrain ?? []) {
       if (f.blocks && dist(pos, f) < f.r) return false;

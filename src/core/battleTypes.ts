@@ -152,6 +152,10 @@ export interface EnemyRuntime {
   /** A stealthed enemy is revealed (and tower-targetable) while in hero range (T9). */
   revealed: boolean;
   distanceAlong: number;
+  /** The polyline this enemy walks (campaign: stage.path; arena: a chosen corridor). */
+  route: Vec2[];
+  /** Cached length of `route` (== totalPathLen for campaign). */
+  routeLen: number;
   airProgress: number;
   airStart: Vec2;
   pos: Vec2;
@@ -257,6 +261,8 @@ export interface ScheduledSpawn {
 export interface SpawnRequest {
   enemyId: string;
   distanceAlong?: number;
+  /** Override the polyline this spawn walks (summons inherit the parent's route). */
+  route?: Vec2[];
   airProgress?: number;
   airStart?: Vec2;
   /** True for scheduled wave spawns (eligible for elite promotion); false for summons/splits. */
