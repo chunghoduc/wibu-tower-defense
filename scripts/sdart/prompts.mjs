@@ -105,6 +105,11 @@ export const ENEMY_VISUAL = {
   monolith: "a towering walking stone monolith with a cracked grey granite body carved with glowing blue runes, stubby stone limbs, a single glowing rune-eye",
   herald: "an undead skeletal standard-bearer in tattered armor holding aloft a ragged glowing war banner, rallying pose, eerie green light",
   hexer: "a sinister hooded grave-witch hexbinder in a dark tattered shroud, pale bony clawed hands weaving glowing purple hex sigils, hollow glowing eyes",
+  reaver: "a frenzied bloodmad berserker reaver in spiked dark armor streaked with blood-red war paint, wielding twin jagged cleavers, hunched in an aggressive charging lunge, glowing red eyes",
+  prism: "a massive crystalline behemoth golem with a faceted translucent prism body refracting shifting blue and red light, heavy crystal limbs, slow and immense, a glowing core",
+  carrier: "a bloated rotting plague-carrier monster, a swollen sickly green sac of spores straining to burst, oozing pustules, stubby limbs, dripping toxic ichor",
+  dreadwing: "an armored iron-plated winged drake gunship, riveted dark metal battle-plating over heavy bomber wings, menacing glowing slit eyes, bristling with rivets and spikes",
+  cantor: "a robed skeletal cantor priest wailing a dirge, mouth agape, tattered grey grave vestments, raised bony hands radiating a ghostly translucent sonic aura, hollow glowing eyes",
 };
 export const BOSS_VISUAL = {
   champion: "an imposing armored boss knight in ornate silver plate armor with gold trim, a flowing cape and a huge greatsword, glowing red eyes, intimidating",
