@@ -20,7 +20,8 @@
 import Phaser from "phaser";
 import { BattleState } from "../core/battle.ts";
 import { loadCatalog, type Catalog } from "../data/catalog.ts";
-import { defaultHeroStats, STAGE_1, WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
+import { defaultHeroStats, STAGE_1, WORLD_WIDTH, WORLD_HEIGHT, stageNumber } from "../data/stage.ts";
+import { endlessArenaStage } from "../core/endlessArena.ts";
 import type { CharacterDef, Difficulty, StageDef } from "../data/schema.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
@@ -139,6 +140,13 @@ export class BattleScene extends Phaser.Scene {
     // Activities hub; cleared after reading so it doesn't leak into the next battle.
     this.battleMode = (this.registry.get("battleMode") as BattleMode | undefined) ?? { kind: "normal" };
     this.registry.set("battleMode", undefined);
+
+    // Endless mode fights on a generated maze arena (central castle, multi-gate
+    // roads) instead of reusing the cleared stage's single lane. Seeded by stage
+    // number so each endless stage has a stable, learnable battlefield.
+    if (this.battleMode.kind === "endless") {
+      this.stage = endlessArenaStage(this.stage, stageNumber(this.stage.id) || 1);
+    }
 
     this.catalog = loadCatalog();
     this.buildOrder = buildSquad(save, this.catalog);
@@ -293,13 +301,27 @@ export class BattleScene extends Phaser.Scene {
       g.lineStyle(2, Phaser.Display.Color.IntegerToColor(col).darken(30).color, f.blocks ? 0.9 : 0.4).strokeCircle(f.x, f.y, f.r);
       if (f.type === "mountain") { g.fillStyle(0xe8eef4, 0.5).fillTriangle(f.x - f.r * 0.4, f.y + f.r * 0.2, f.x, f.y - f.r * 0.5, f.x + f.r * 0.4, f.y + f.r * 0.2); }
     }
-    // lane
+    // roads: the single campaign lane, or every corridor of the maze arena.
+    const roads = this.stage.arena ? this.stage.arena.routes : [this.stage.path];
     g.lineStyle(36, 0x3a4458, 1);
-    const p = this.stage.path;
-    g.beginPath();
-    g.moveTo(p[0].x, p[0].y);
-    for (let i = 1; i < p.length; i++) g.lineTo(p[i].x, p[i].y);
-    g.strokePath();
+    for (const road of roads) {
+      if (road.length < 2) continue;
+      g.beginPath();
+      g.moveTo(road[0].x, road[0].y);
+      for (let i = 1; i < road.length; i++) g.lineTo(road[i].x, road[i].y);
+      g.strokePath();
+    }
+    // arena gates: red mouths where each siege column enters the map.
+    if (this.stage.arena) {
+      g.fillStyle(0x7a2a2a, 1);
+      g.lineStyle(2, 0xd06060, 1);
+      for (const gp of this.stage.arena.gates) {
+        const x = Math.max(10, Math.min(WORLD_WIDTH - 10, gp.x));
+        const y = Math.max(10, Math.min(WORLD_HEIGHT - 10, gp.y));
+        g.fillCircle(x, y, 13);
+        g.strokeCircle(x, y, 13);
+      }
+    }
     // castle
     const c = this.battle.castlePos;
     g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 24, c.y - 24, 48, 48);
