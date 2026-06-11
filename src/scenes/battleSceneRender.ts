@@ -11,6 +11,7 @@ import { totalXpForLevel } from "../core/hero.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { crispText } from "./ui.ts";
 import { ROLE_COLOR, KIND_COLOR, towerKind, starPoints } from "./battleSceneHelpers.ts";
+import { auraRadiusOf, auraPulse, AURA_RING_COLOR } from "../core/auraIndicator.ts";
 import type { BattleScene } from "./BattleScene.ts";
 
 export const renderMethods = {
@@ -33,6 +34,7 @@ export const renderMethods = {
     this.manageSprites();
     for (const ev of this.battle.fx) this.playFx(ev);
     this.maybeFlushKillRewards();
+    for (const t of this.battle.towers) this.drawAuraRing(g, t);
     for (const t of this.battle.towers) this.drawTower(g, t);
     for (const e of this.battle.enemies) this.drawEnemy(g, e);
     this.drawHero(g);
@@ -111,6 +113,22 @@ export const renderMethods = {
     this.drawStarPips(g, t.pos.x, t.pos.y - 30, t.battleLevel + 1);
     // Type badge — melee vs ranged + role colour, upper-right of the avatar (T5).
     this.drawTypeBadge(g, t.pos.x + 13, t.pos.y - 16, t.def);
+  },
+
+  // Aura range indicator — a softly pulsing aquamarine ring + fill at the TRUE
+  // tower-buff aura radius (behavior.buffAura.radius, already upgrade-scaled), drawn
+  // under the tower bodies. Dimmed while the tower is disabled (its aura is inactive).
+  drawAuraRing(this: BattleScene, g: Phaser.GameObjects.Graphics, t: TowerRuntime): void {
+    if (!t.alive) return;
+    const radius = auraRadiusOf(t);
+    if (radius == null) return;
+    const disabled = t.disabledTimer > 0;
+    const pulse = auraPulse(this.time.now, t.uid);
+    const fillA = (disabled ? 0.015 : 0.04) + pulse * (disabled ? 0.01 : 0.03);
+    const ringA = (disabled ? 0.1 : 0.28) + pulse * (disabled ? 0.05 : 0.2);
+    g.fillStyle(AURA_RING_COLOR, fillA).fillCircle(t.pos.x, t.pos.y, radius);
+    g.lineStyle(1.5, AURA_RING_COLOR, ringA).strokeCircle(t.pos.x, t.pos.y, radius);
+    g.lineStyle(1, AURA_RING_COLOR, ringA * 0.5).strokeCircle(t.pos.x, t.pos.y, radius - 4);
   },
 
   /** A row of small gold stars marking a tower's in-battle upgrade level. */
