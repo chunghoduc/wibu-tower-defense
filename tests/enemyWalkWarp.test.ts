@@ -43,6 +43,46 @@ describe("bandWarp — walk", () => {
   });
 });
 
+describe("bandWarp — stomp (boss gait)", () => {
+  it("alternates legs at the feet, opposite per side mid-stride", () => {
+    const l = bandWarp("stomp", 1, -1, HALF_PI);
+    const r = bandWarp("stomp", 1, 1, HALF_PI);
+    expect(Math.sign(l.dx)).toBe(-Math.sign(r.dx));
+    expect(l.dx).not.toBe(0);
+  });
+
+  it("leg swing grows from waist (~0) to feet (max)", () => {
+    const waist = Math.abs(bandWarp("stomp", 0.5, 1, HALF_PI).dx);
+    const feet = Math.abs(bandWarp("stomp", 1, 1, HALF_PI).dx);
+    expect(waist).toBeLessThan(feet);
+    expect(waist).toBeCloseTo(0, 5);
+  });
+
+  it("neutral foot contact at phase 0 (feet do not shear)", () => {
+    expect(bandWarp("stomp", 1, -1, 0).dx).toBeCloseTo(0, 6);
+    expect(bandWarp("stomp", 1, 1, 0).dx).toBeCloseTo(0, 6);
+  });
+
+  it("is heavier than a normal walk: bigger bob and stride", () => {
+    const sBob = Math.abs(bandWarp("stomp", 0.2, 1, HALF_PI).dy);
+    const wBob = Math.abs(bandWarp("walk", 0.2, 1, HALF_PI).dy);
+    expect(sBob).toBeGreaterThan(wBob);
+    const sStride = Math.abs(bandWarp("stomp", 1, 1, HALF_PI).dx);
+    const wStride = Math.abs(bandWarp("walk", 1, 1, HALF_PI).dx);
+    expect(sStride).toBeGreaterThan(wStride);
+  });
+
+  it("all stomp outputs finite over a full cycle", () => {
+    for (let p = 0; p <= Math.PI * 2; p += 0.3)
+      for (const y of [0, 0.25, 0.5, 0.75, 1])
+        for (const s of [-1, 1] as const) {
+          const w = bandWarp("stomp", y, s, p);
+          expect(Number.isFinite(w.dx)).toBe(true);
+          expect(Number.isFinite(w.dy)).toBe(true);
+        }
+  });
+});
+
 describe("bandWarp — flap", () => {
   it("no horizontal shear; wings oscillate vertically with phase", () => {
     expect(bandWarp("flap", 0.2, 1, HALF_PI).dx).toBe(0);

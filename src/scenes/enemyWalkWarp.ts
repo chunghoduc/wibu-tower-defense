@@ -3,7 +3,7 @@
 // the unit test and the preload canvas baker (enemyWalkBake.ts). Synthesizes a
 // real, silhouette-changing gait from a single static sprite — no diffusion.
 
-export type MotionProfile = "walk" | "flap";
+export type MotionProfile = "walk" | "flap" | "stomp";
 
 export interface BandWarp {
   /** Horizontal pixel offset for this band. */
@@ -19,6 +19,8 @@ export interface WarpOpts {
   bob?: number;
   /** Wing-beat travel for flyers, px. Default 16. */
   flap?: number;
+  /** Upper-torso lateral lumber for the boss stomp, px. Default 2.5. */
+  sway?: number;
 }
 
 const WAIST = 0.5; // yNorm above which there are no legs
@@ -48,6 +50,19 @@ export function bandWarp(
     // wings = upper body; weight ramps from mid-line upward
     const w = yNorm >= 0.5 ? 0 : (0.5 - yNorm) / 0.5;
     return { dx: 0, dy: -flap * w * s };
+  }
+  if (profile === "stomp") {
+    const legSwing = opts.legSwing ?? 12;   // wider stride than walk's 9
+    const bob = opts.bob ?? 8;              // heavier lift than walk's 4
+    const sway = opts.sway ?? 2.5;
+    const lw = legWeight(yNorm);
+    const tw = yNorm >= WAIST ? 0 : (WAIST - yNorm) / WAIST;
+    // legs shear opposite per side; torso counter-leads AND sways side-to-side
+    // (sway rides cos(phase) and is weighted to the torso only, so the feet — tw=0 —
+    // still rest neutral at phase 0, keeping the contact pose clean).
+    const dx = side * legSwing * lw * s - 0.25 * legSwing * tw * s + sway * tw * Math.cos(phase);
+    const dy = -bob * Math.abs(s);
+    return { dx, dy };
   }
   const legSwing = opts.legSwing ?? 9;
   const bob = opts.bob ?? 4;
