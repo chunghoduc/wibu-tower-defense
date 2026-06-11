@@ -1,0 +1,98 @@
+/**
+ * Anime-homage bosses (original). Each evokes an iconic anime antagonist WITHOUT
+ * copying name/likeness. Split out of `enemies.ts` to keep that file under the
+ * 500-line cap; spread into `ENEMIES` there. See [[project_homage_field_shipped]].
+ */
+import { makeStats, type EnemyDef } from "./schema.ts";
+
+export const HOMAGE_BOSSES: EnemyDef[] = [
+  {
+    id: "zabro", name: "Zabro the Mist Demon", // homage: Zabuza Momochi (Naruto)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
+    bounty: 80, castleDamage: 7,
+    baseStats: makeStats({ maxHp: 1000, armor: 28, moveSpeed: 32, atk: 36, attackSpeed: 1.1, tenacity: 0.45 }),
+    weapon: { family: "sword", display: "an enormous executioner's blade", heavy: true },
+    boss: {
+      enrage: { belowHpPct: 0.5, atkMult: 1.5, speedMult: 1.7 },
+      skill: { id: "zabro-rally", name: "Hidden Mist", description: "Veils allies in healing mist.", manaCost: 90, type: "rally", radius: 180, power: 0.16 },
+    },
+    artRef: "placeholder",
+  },
+  {
+    id: "ryomen", name: "Ryomen the Cursed King", // homage: Ryomen Sukuna (Jujutsu Kaisen)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
+    bounty: 95, castleDamage: 9,
+    baseStats: makeStats({ maxHp: 1200, armor: 36, moveSpeed: 26, atk: 50, attackSpeed: 1.0, tenacity: 0.55 }),
+    weapon: { family: "spear", display: "long, unseen cursed slashes" },
+    boss: {
+      enrage: { belowHpPct: 0.45, atkMult: 1.8, speedMult: 1.5 },
+      skill: { id: "ryomen-cleave", name: "Cursed Cleave", description: "An unseen slash stuns towers and rends the hero.", manaCost: 100, type: "quake", radius: 160, power: 0.18 },
+    },
+    artRef: "placeholder",
+  },
+  {
+    id: "kura", name: "Kura the Tailed Calamity", // homage: Kurama / the Nine-Tails (Naruto)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
+    bounty: 105, castleDamage: 10,
+    baseStats: makeStats({ maxHp: 1450, magicResist: 40, moveSpeed: 24, atk: 44, attackSpeed: 0.9, tenacity: 0.5 }),
+    weapon: { family: "fist", display: "rending claws and lashing tails" },
+    boss: {
+      summon: { enemyId: "imp", count: 2, interval: 6 },
+      enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 },
+      skill: { id: "kura-cloak", name: "Tailed Cloak", description: "A roaring chakra cloak shields the Calamity and its brood.", manaCost: 105, type: "barrier", radius: 180, power: 0.32 },
+    },
+    artRef: "placeholder",
+  },
+  {
+    id: "akai", name: "Akai the Magma Admiral", // homage: Akainu / magma-logia admiral (One Piece)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
+    bounty: 140, castleDamage: 12,
+    baseStats: makeStats({ maxHp: 2000, armor: 40, magicResist: 22, moveSpeed: 22, atk: 52, attackSpeed: 0.85, tenacity: 0.6 }),
+    weapon: { family: "thrown", display: "hurled fists of molten magma", element: "fire", enchanted: true },
+    boss: {
+      towerDisable: { radius: 110, duration: 2.5, interval: 10 },
+      enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 },
+      skill: { id: "akai-eruption", name: "Magma Eruption", description: "Erupting magma melts towers and scorches the hero.", manaCost: 115, type: "quake", radius: 165, power: 0.2 },
+    },
+    artRef: "placeholder",
+  },
+  {
+    id: "mukade", name: "Mukade the Undying", // homage: regenerating immortals (e.g. Mahito / Kabuto)
+    archetype: "Boss", flying: false, immunity: null, damageType: "True",
+    bounty: 155, castleDamage: 13,
+    baseStats: makeStats({ maxHp: 2200, armor: 30, moveSpeed: 20, atk: 48, attackSpeed: 0.9, hpRegen: 32, tenacity: 0.6 }),
+    weapon: { family: "fist", display: "reshaped, killing limbs" },
+    boss: {
+      enrage: { belowHpPct: 0.35, atkMult: 1.7, speedMult: 1.5 },
+      skill: { id: "mukade-mend", name: "Undying Mend", description: "Reknits its flesh and that of its kin.", manaCost: 90, type: "rally", radius: 190, power: 0.2 },
+    },
+    artRef: "placeholder",
+  },
+  {
+    id: "madarok", name: "Madarok the Eternal Eye", // homage: Madara Uchiha (Naruto)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
+    bounty: 180, castleDamage: 15,
+    baseStats: makeStats({ maxHp: 2700, armor: 40, magicResist: 40, moveSpeed: 20, atk: 54, attackSpeed: 0.85, tenacity: 0.65 }),
+    weapon: { family: "thrown", display: "a great war-fan and spectral blades" },
+    boss: {
+      summon: { enemyId: "imp", count: 3, interval: 6 },
+      towerDisable: { radius: 140, duration: 3, interval: 11 },
+      enrage: { belowHpPct: 0.4, atkMult: 1.7, speedMult: 1.5 },
+      skill: { id: "madarok-susano", name: "Spectral Ribs", description: "A spectral guardian shields the Eternal Eye and its host.", manaCost: 110, type: "barrier", radius: 200, power: 0.35 },
+    },
+    artRef: "placeholder",
+  },
+  {
+    id: "meruon", name: "Meruon the Ant Sovereign", // homage: Meruem the Chimera Ant King (Hunter x Hunter)
+    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
+    bounty: 260, castleDamage: 18,
+    baseStats: makeStats({ maxHp: 3800, armor: 55, magicResist: 35, moveSpeed: 22, atk: 66, attackSpeed: 1.0, hpRegen: 14, tenacity: 0.75 }),
+    weapon: { family: "fist", display: "world-ending sovereign fists" },
+    boss: {
+      summon: { enemyId: "imp", count: 2, interval: 8 },
+      enrage: { belowHpPct: 0.35, atkMult: 2.0, speedMult: 1.7 },
+      skill: { id: "meruon-rage", name: "Sovereign's Wrath", description: "An overwhelming shockwave devastates the hero and silences towers.", manaCost: 120, type: "quake", radius: 190, power: 0.24 },
+    },
+    artRef: "placeholder",
+  },
+];
