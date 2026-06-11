@@ -14,6 +14,9 @@ import Phaser from "phaser";
 import { crispText, panelText } from "./ui.ts";
 import { compareItems, type ItemRef, type CompareRow } from "../data/itemCompare.ts";
 import { makeFitIcon } from "./itemIcon.ts";
+import { addGatedButton } from "./gatedButton.ts";
+import { equipLevelGate } from "../data/equipGate.ts";
+import { instanceReqLevel } from "../data/items.ts";
 import type { Rarity, ItemSlot } from "../data/schema.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
@@ -50,6 +53,7 @@ export function renderCompareDialog(
   bag: ItemRef,
   equipped: ItemRef,
   slot: ItemSlot,
+  heroLevel: number,
   cb: CompareCallbacks,
 ): void {
   dialog.removeAll(true);
@@ -131,11 +135,11 @@ export function renderCompareDialog(
   enhance.on("pointerup", cb.onEnhance);
   dialog.add(enhance);
 
-  const replace = crispText(scene, dx + rightX + colW / 2, btnY, "⇄  Replace", {
-    fontSize: "14px", color: "#fff", backgroundColor: "#1565c0",
-  }).setOrigin(0.5, 0).setPadding(14, 8, 14, 8).setInteractive({ useHandCursor: true });
-  replace.on("pointerup", cb.onReplace);
-  dialog.add(replace);
+  addGatedButton(scene, dialog, {
+    x: dx + rightX + colW / 2, y: btnY, label: "⇄  Replace", bg: "#1565c0",
+    gate: equipLevelGate(heroLevel, instanceReqLevel(bag.inst, bag.def)),
+    onClick: cb.onReplace,
+  });
 
   const close = crispText(scene, dx + W - 14, dy + 8, "✕", { fontSize: "16px", color: "#ef9a9a" })
     .setOrigin(1, 0).setInteractive({ useHandCursor: true });

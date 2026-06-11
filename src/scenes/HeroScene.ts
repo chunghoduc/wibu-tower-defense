@@ -417,7 +417,7 @@ export class HeroScene extends Phaser.Scene {
   private openCompare(bagInst: ItemInstanceSave, bagDef: ItemDef, eqInst: ItemInstanceSave, eqDef: ItemDef, slot: ItemSlot): void {
     this.hideTooltip();
     this.dialog.removeAll(true);
-    renderCompareDialog(this, this.dialog, { inst: bagInst, def: bagDef }, { inst: eqInst, def: eqDef }, slot, {
+    renderCompareDialog(this, this.dialog, { inst: bagInst, def: bagDef }, { inst: eqInst, def: eqDef }, slot, this.mgr.getSave().hero.level, {
       onReplace: () => {
         if (this.mgr.equipItem(bagInst.id, slot)) {
           this.dialog.setVisible(false);
