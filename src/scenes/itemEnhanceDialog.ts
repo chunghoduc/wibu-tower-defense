@@ -11,6 +11,9 @@ import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";
 import { enhanceChance, jewelForLevel, MAX_ENHANCE } from "../core/enhance.ts";
 import { enhancePreviewRows } from "../data/itemDisplay.ts";
+import { instanceReqLevel } from "../data/items.ts";
+import { equipLevelGate } from "../data/equipGate.ts";
+import { addGatedButton } from "./gatedButton.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import type { Rarity } from "../data/schema.ts";
 
@@ -105,11 +108,11 @@ export function renderEnhanceDialog(
     }
     dialog.add(btn);
     if (cb.onEquip) {
-      const equip = crispText(scene, dx + W * 0.34, dy + H - 50, "✓  Equip", {
-        fontSize: "15px", color: "#fff", backgroundColor: "#2e7d32",
-      }).setOrigin(0.5, 0).setPadding(16, 8, 16, 8).setInteractive({ useHandCursor: true });
-      equip.on("pointerup", cb.onEquip);
-      dialog.add(equip);
+      addGatedButton(scene, dialog, {
+        x: dx + W * 0.34, y: dy + H - 50, label: "✓  Equip", bg: "#2e7d32",
+        gate: equipLevelGate(save.hero.level, instanceReqLevel(inst, def)),
+        onClick: cb.onEquip,
+      });
     }
     const close = crispText(scene, dx + W - 14, dy + 10, "✕", { fontSize: "16px", color: "#ef9a9a" })
       .setOrigin(1, 0).setInteractive({ useHandCursor: true });
