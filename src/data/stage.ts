@@ -90,10 +90,44 @@ const LAYOUTS: Layout[] = [
  * ten bosses, then the Chapter 2/3/4/5 expansion roster (stages 11–30) appended.
  */
 export const BOSS_BY_STAGE = [
+  // Ordered weakest→strongest so the boss spike climbs with the stage (overlord
+  // 2200 before madarok 2700 — base HP, before the progression curve scales it).
   "champion", "zabro", "ryomen", "kura", "warden",
-  "akai", "mukade", "madarok", "overlord", "meruon",
+  "akai", "mukade", "overlord", "madarok", "meruon",
   ...BOSS_EXPANSION,
 ];
+
+/**
+ * The boss roster in ascending base-HP order — the canonical difficulty rank used
+ * to keep wave 5's mid-boss from ever out-ranking wave 10's finale (see
+ * {@link midBossFor}). Bosses share base HP in a couple of spots; ties are broken
+ * by listed order, which is fine for the ≤ comparison.
+ */
+const BOSS_HP_RANK = [
+  "champion", "zabro", "ryomen", "kura", "warden",
+  "akai", "mukade", "overlord", "madarok", "meruon",
+];
+const bossRank = (id: string): number => {
+  const r = BOSS_HP_RANK.indexOf(id);
+  return r < 0 ? BOSS_HP_RANK.length : r; // unknown ids sort last (treated as hardest)
+};
+
+/**
+ * Mid-boss (wave 5) for global stage `n`: the previous stage's boss — a notch
+ * easier than the wave-10 finale, so the stage climbs to its climax on wave 10.
+ *
+ * At a chapter opener the "previous stage" is the prior chapter's APEX boss, which
+ * would out-rank the new chapter's intro boss and make wave 5 harder than wave 10
+ * (a felt anticlimax). In that case we drop to the strongest boss still weaker than
+ * the finale, so the run's peak always lands on the final wave.
+ */
+export function midBossFor(n: number): string {
+  const finalBoss = BOSS_BY_STAGE[n - 1] ?? "overlord";
+  const prev = BOSS_BY_STAGE[Math.max(0, n - 2)] ?? "champion";
+  if (bossRank(prev) <= bossRank(finalBoss)) return prev;
+  const fr = bossRank(finalBoss);
+  return fr > 0 ? BOSS_HP_RANK[fr - 1] : finalBoss; // chapter-opener guard
+}
 
 /** Every campaign layout in stage order: Chapter 1, then the 2–5 expansion. */
 const ALL_LAYOUTS: Layout[] = [...LAYOUTS, ...EXPANSION_LAYOUTS];
@@ -134,7 +168,7 @@ function buildWaves(n: number): WaveDef[] {
   // Wave 10 is the stage's themed boss; wave 5's mid-boss is the previous tier
   // (always a notch easier than the finale, and never the silent fallback).
   const finalBoss = BOSS_BY_STAGE[n - 1] ?? "overlord";
-  const midBoss = BOSS_BY_STAGE[Math.max(0, n - 2)] ?? "champion";
+  const midBoss = midBossFor(n);
   const heavy = n >= 8; // late stages get an extra flyer/wall layer
   const w: WaveDef[] = [];
 
@@ -281,7 +315,7 @@ export const STAGES: StageDef[] = ALL_LAYOUTS.map((l, i) => {
     // Chapter 1 (stages 1–10) uses the hand-tuned per-stage arc; chapters 2–5
     // keep the procedural builder.
     waves: i < 10
-      ? buildChapter1Waves(i + 1, BOSS_BY_STAGE[i] ?? "overlord", BOSS_BY_STAGE[Math.max(0, i - 1)] ?? "champion")
+      ? buildChapter1Waves(i + 1, BOSS_BY_STAGE[i] ?? "overlord", midBossFor(i + 1))
       : buildWaves(i + 1),
   };
 });

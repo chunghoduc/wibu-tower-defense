@@ -156,16 +156,19 @@ export const EXPANSION_LAYOUTS: Layout[] = [
 
 /**
  * Final boss for stages 11–30 (1-indexed continues from BOSS_BY_STAGE). Reuses
- * the existing roster, ordered to escalate within each chapter and climax at the
- * apex boss; the progression curve scales these into elite versions.
+ * the existing roster; each chapter's five bosses are ordered ASCENDING by base
+ * HP so the boss spike climbs stage-by-stage and the chapter climaxes on its apex
+ * boss (meruon for Ch3–5, overlord for Ch2). The progression curve then scales
+ * these into elite versions. Base HP: zabro 1000 < ryomen 1200 < kura 1450 <
+ * warden 1700 < akai 2000 < mukade 2200 ≈ overlord 2200 < madarok 2700 < meruon 3800.
  */
 export const BOSS_EXPANSION = [
-  // Chapter 2 — Sunscar Wastes (11–15)
+  // Chapter 2 — Sunscar Wastes (11–15) → climax: overlord
   "ryomen", "kura", "akai", "mukade", "overlord",
-  // Chapter 3 — Emberfall (16–20)
-  "zabro", "madarok", "mukade", "overlord", "meruon",
-  // Chapter 4 — Mire Hollow (21–25)
-  "akai", "ryomen", "mukade", "madarok", "meruon",
+  // Chapter 3 — Emberfall (16–20) → climax: meruon
+  "zabro", "mukade", "overlord", "madarok", "meruon",
+  // Chapter 4 — Mire Hollow (21–25) → climax: meruon
+  "ryomen", "akai", "mukade", "madarok", "meruon",
   // Chapter 5 — The Blight (26–30) — the final ascent; ends at the apex boss
-  "ryomen", "mukade", "madarok", "overlord", "meruon",
+  "ryomen", "mukade", "overlord", "madarok", "meruon",
 ];
