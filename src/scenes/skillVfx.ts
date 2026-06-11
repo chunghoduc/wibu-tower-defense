@@ -7,8 +7,10 @@
 // delegates the "cast" event here; everything is pure presentation.
 import Phaser from "phaser";
 import { SKILL_STYLE_COLOR, skillStyleFor, type SkillStyle } from "../data/attackStyle.ts";
-import { skillVfxSpec } from "../data/skillVfxMeta.ts";
+import { skillVfxSpec, deliveryForStyle } from "../data/skillVfxMeta.ts";
 import { renderSignature } from "./skillSignatures.ts";
+import { renderDelivery } from "./skillDelivery.ts";
+import { VfxDraw } from "./vfxDraw.ts";
 
 type V = { x: number; y: number };
 
@@ -34,31 +36,36 @@ export class SkillVfx {
    *  (skillSignatures.ts); everything else (tower actives) falls back to the
    *  keyword-derived elemental style. */
   cast(from: V, at: V, radius: number, skillId: string | undefined, source: "tower" | "hero"): void {
-    void from;
+    const draw = new VfxDraw(this.scene, this.fac, this.depth);
     const spec = skillVfxSpec(skillId);
     if (spec) {
-      // A unique per-skill set-piece. baseBurst carries the icon emblem flare;
-      // the signature draws its own shake where it wants weight.
-      this.baseBurst(at, spec.palette.core, radius, skillId);
-      renderSignature(this.scene, this.fac, this.depth, at, spec, radius);
+      // Hero skill: deliver from the source (fly / fall / erupt / beam), then fire
+      // the bespoke impact set-piece on arrival. baseBurst carries the icon emblem.
+      renderDelivery(draw, spec.delivery, from, at, spec.palette, radius, () => {
+        this.baseBurst(at, spec.palette.core, radius, skillId);
+        renderSignature(this.scene, this.fac, this.depth, at, spec, radius);
+      });
       return;
     }
     const style = skillStyleFor(skillId);
     const color = SKILL_STYLE_COLOR[style];
-    this.baseBurst(at, color, radius, skillId);
-    switch (style) {
-      case "fire": this.fire(at, color, radius); break;
-      case "ice": this.ice(at, color, radius); break;
-      case "lightning": this.lightning(at, color, radius); break;
-      case "arcane": this.arcane(at, color, radius); break;
-      case "poison": this.poison(at, color, radius); break;
-      case "heal": this.heal(at, color, radius); break;
-      case "slash": this.slash(at, color, radius); break;
-    }
-    // A bigger cast deserves a bit of weight: shake for the hero + heavy elements.
-    if (source === "hero" || style === "lightning" || style === "fire") {
-      this.scene.cameras.main.shake(style === "lightning" ? 200 : 130, style === "lightning" ? 0.007 : 0.004);
-    }
+    const accent = ACCENT[style];
+    renderDelivery(draw, deliveryForStyle(style), from, at, { core: color, hot: accent.hot, deep: accent.deep }, radius, () => {
+      this.baseBurst(at, color, radius, skillId);
+      switch (style) {
+        case "fire": this.fire(at, color, radius); break;
+        case "ice": this.ice(at, color, radius); break;
+        case "lightning": this.lightning(at, color, radius); break;
+        case "arcane": this.arcane(at, color, radius); break;
+        case "poison": this.poison(at, color, radius); break;
+        case "heal": this.heal(at, color, radius); break;
+        case "slash": this.slash(at, color, radius); break;
+      }
+      // A bigger cast deserves a bit of weight: shake for the hero + heavy elements.
+      if (source === "hero" || style === "lightning" || style === "fire") {
+        this.scene.cameras.main.shake(style === "lightning" ? 200 : 130, style === "lightning" ? 0.007 : 0.004);
+      }
+    });
   }
 
   // ── base burst (shared) ───────────────────────────────────────────────────
