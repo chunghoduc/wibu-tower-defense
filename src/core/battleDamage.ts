@@ -291,7 +291,7 @@ export const damageMethods = {
     this.waveGold += reward;
     const boss = e.def.archetype === "Boss";
     this.emit({ type: "death", at: { x: e.pos.x, y: e.pos.y }, boss, elite: e.elite, bounty: e.def.bounty });
-    this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, gold: reward });
+    this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, to: { x: this.hero.pos.x, y: this.hero.pos.y }, gold: reward });
     if (this.combo >= 3) this.emit({ type: "combo", at: { x: e.pos.x, y: e.pos.y - 22 }, count: this.combo, mult: this.comboMult() });
     // Per-kill XP + loot persist immediately (kept even if the stage is abandoned).
     if (this._heroSave) {
@@ -300,7 +300,7 @@ export const damageMethods = {
       this.battleLoot.xp += kr.xp;
       if (kr.itemDropped) this.battleLoot.items.push(kr.itemDropped);
       if (kr.boxDropped) this.battleLoot.boxes[kr.boxDropped] = (this.battleLoot.boxes[kr.boxDropped] ?? 0) + 1;
-      this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, xp: kr.xp, item: kr.itemDropped !== null, box: kr.boxDropped });
+      this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, to: { x: this.hero.pos.x, y: this.hero.pos.y }, xp: kr.xp, item: kr.itemDropped !== null, itemDefId: kr.itemDropped?.defId ?? null, box: kr.boxDropped });
       const today = new Date().toISOString().slice(0, 10);
       incrementQuestKey(this._heroSave, boss ? "kill_bosses" : "kill_enemies", 1, today);
       incrementBountyEvent(this._heroSave, "kill", 1, isoWeekKey(new Date()));

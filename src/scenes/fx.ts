@@ -13,6 +13,7 @@ import { MeleeFx } from "./meleeFx.ts";
 import { ImpactFx } from "./impactFx.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { tierOfBox } from "../core/boxes.ts";
+import { LootFlyFx } from "./lootFlyFx.ts";
 
 const DMG_COLOR: Record<DamageType, number> = {
   Physical: 0xe9eef7,
@@ -26,8 +27,6 @@ const DMG_NUM_COLOR: Record<DamageType, string> = {
 };
 
 export class FxLayer {
-  /** World anchor of the gold counter; dropped coins fly here. */
-  private readonly goldAnchor: { x: number; y: number };
   /** Factory that creates objects and (if a parent layer is given) parents them
    *  to it, so the battle camera renders FX in world space. */
   private readonly fac: Phaser.GameObjects.GameObjectFactory;
@@ -37,14 +36,14 @@ export class FxLayer {
   private readonly melee: MeleeFx;
   /** Per-element projectile contact VFX (fire/ice/shock/arcane/poison/…). */
   private readonly impact: ImpactFx;
+  /** Loot-magnet VFX: dropped rewards fly from the kill into the hero. */
+  private readonly lootFly: LootFlyFx;
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly depth = 6,
     layer?: Phaser.GameObjects.Layer,
-    goldAnchor?: { x: number; y: number },
   ) {
-    this.goldAnchor = goldAnchor ?? { x: 472, y: 20 };
     this.fac = layer
       ? new Proxy(scene.add, {
           get(target, prop, recv) {
@@ -61,6 +60,7 @@ export class FxLayer {
     this.skillVfx = new SkillVfx(scene, this.fac, this.depth);
     this.melee = new MeleeFx(scene, this.fac, this.depth);
     this.impact = new ImpactFx(scene, this.fac, this.depth);
+    this.lootFly = new LootFlyFx(scene, this.fac, this.depth);
   }
 
   play(e: FxEvent): void {
@@ -85,10 +85,12 @@ export class FxLayer {
         this.deathBurst(e.at, e.boss, e.elite);
         break;
       case "loot":
-        this.coinPop(e.at, e.gold);
+        this.coinPop(e.at, e.to, e.gold);
         break;
       case "killReward":
         this.xpPop(e.at, e.xp, e.item, e.box);
+        if (e.itemDefId) this.lootFly.fly(e.at, e.to, "icon", { iconKey: `item__${e.itemDefId}`, fallbackColor: 0xffe07a });
+        if (e.box) this.lootFly.fly(e.at, e.to, "icon", { iconKey: `box__${e.box}`, fallbackColor: 0xd9a441, delay: 90 });
         break;
       case "enemyAttack":
         this.lunge(e.at, e.targetAt);
@@ -313,20 +315,12 @@ export class FxLayer {
     this.scene.tweens.add({ targets: flash, scale: 1.8, alpha: 0, duration: 260, onComplete: () => flash.destroy() });
   }
 
-  private coinPop(at: Vec2, gold: number): void {
+  private coinPop(at: Vec2, to: Vec2, gold: number): void {
     if (gold <= 0) return;
-    const anchor = this.goldAnchor;
+    // The coins now arc into the hero (the loot-magnet), not the HUD counter.
     const n = Math.min(4, 1 + Math.floor(gold / 12));
     for (let i = 0; i < n; i++) {
-      const coin = this.fac.circle(at.x, at.y, 4, 0xffd34d).setStrokeStyle(1, 0xa9722a).setDepth(this.depth + 2);
-      const bx = at.x + Phaser.Math.Between(-16, 16), by = at.y - Phaser.Math.Between(8, 22);
-      this.scene.tweens.add({
-        targets: coin, x: bx, y: by, duration: 170, ease: "Quad.easeOut",
-        onComplete: () => this.scene.tweens.add({
-          targets: coin, x: anchor.x, y: anchor.y, scale: 0.35, alpha: 0.15,
-          duration: 400, delay: i * 35, ease: "Cubic.easeIn", onComplete: () => coin.destroy(),
-        }),
-      });
+      this.lootFly.fly(at, to, "coin", { fallbackColor: 0xffd34d, delay: i * 45 });
     }
     const txt = this.fac.text(at.x, at.y - 6, `+${gold}`, {
       fontSize: "11px", color: "#ffd86a", fontStyle: "bold", stroke: "#10131c", strokeThickness: 3,

@@ -47,8 +47,8 @@ export type FxEvent =
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
   | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
-  | { type: "loot"; at: Vec2; gold: number }
-  | { type: "killReward"; at: Vec2; xp: number; item: boolean; box: string | null }
+  | { type: "loot"; at: Vec2; to: Vec2; gold: number }
+  | { type: "killReward"; at: Vec2; to: Vec2; xp: number; item: boolean; itemDefId: string | null; box: string | null }
   // F13 combo: rapid-kill streak feedback. `mult` is the current gold multiplier.
   | { type: "combo"; at: Vec2; count: number; mult: number }
   // F14 perfect wave: a wave cleared with zero leaks. `bonus` is the bonus gold.
