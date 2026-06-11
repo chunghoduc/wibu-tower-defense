@@ -182,7 +182,7 @@ export class ShopScene extends Phaser.Scene {
     z.on("pointerover", () => {
       this.hoverLabel.setText(name).setColor(isScroll ? "#ffe07a" : "#e8eef6");
       // Item slots get a full stat tooltip (scrolls have no stats).
-      if (slot.item && def) renderItemTooltip(this, this.tooltip, slot.item, def, x + w, y); else this.tooltip.setVisible(false);
+      if (slot.item && def) renderItemTooltip(this, this.tooltip, slot.item, def, x + w, y, this.mgr.getSave().hero.level); else this.tooltip.setVisible(false);
     });
     z.on("pointerout", () => { this.hoverLabel.setText(""); this.tooltip.setVisible(false); });
     z.on("pointerup", () => {
@@ -253,7 +253,7 @@ export class ShopScene extends Phaser.Scene {
     if (icon) hoverPop(this, z, icon, 1.12);
     z.on("pointerover", () => {
       this.hoverLabel.setText(def?.name ?? "Item");
-      if (def) renderItemTooltip(this, this.tooltip, inst, def, x + w, y);
+      if (def) renderItemTooltip(this, this.tooltip, inst, def, x + w, y, this.mgr.getSave().hero.level);
     });
     z.on("pointerout", () => { this.hoverLabel.setText(""); this.tooltip.setVisible(false); });
     z.on("pointerup", () => { if (!this.sellDrag.didScroll()) this.openRecycle(inst, def?.name ?? "Item", def?.rarity); });

@@ -41,7 +41,7 @@ export const QUALITY_COLOR: Record<Quality, string> = {
   worse: "#ff7a7a",    // rolled below base
 };
 
-const STAT_LABEL: Record<string, string> = {
+export const STAT_LABEL: Record<string, string> = {
   atk: "ATK", maxHp: "HP", range: "Range", attackSpeed: "Atk Spd", critRate: "Crit",
   critDamage: "Crit Dmg", armor: "Armor", magicResist: "M.Resist", moveSpeed: "Move",
   hpRegen: "HP Regen", skillPower: "Skill Pwr", omnivamp: "Omnivamp", goldFind: "Gold",
@@ -78,7 +78,7 @@ const AFFIX_PHRASE: Record<string, [string, string]> = {
 };
 
 // Stat keys whose value is a small fraction shown as a percentage.
-const FRACTION = new Set<keyof Stats | string>([
+export const FRACTION = new Set<keyof Stats | string>([
   "critRate", "critDamage", "armorPen", "magicPen", "damageReduction", "critDefense",
   "tenacity", "omnivamp", "goldFind", "skillPower", "attackSpeed",
 ]);
@@ -88,13 +88,13 @@ function label(key: string): string {
 }
 
 /** A positive bonus must never read as 0 — show one decimal for tiny rolls. */
-function pctStr(v: number): string {
+export function pctStr(v: number): string {
   const p = v * 100;
   return p > 0 && Math.round(p) === 0 ? `${p.toFixed(1)}%` : `${Math.round(p)}%`;
 }
 
 /** Base/intrinsic stats: fractional stats as %, scalar stats as a flat number. */
-function fmtBaseValue(key: string, v: number): string {
+export function fmtBaseValue(key: string, v: number): string {
   if (FRACTION.has(key) || key === "physicalDamage" || key === "magicDamage") return pctStr(v);
   return v > 0 && Math.round(v) === 0 ? v.toFixed(1) : `${Math.round(v)}`;
 }
