@@ -11,6 +11,7 @@ import { ELITE_SIZE_MULT } from "../core/elite.ts";
 import { crispText } from "./ui.ts";
 import { enemyStatusTint } from "./battleSceneHelpers.ts";
 import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
+import { enemyWalkTransform } from "./enemyWalkTransform.ts";
 import type { BattleScene } from "./BattleScene.ts";
 
 /** Duration (ms) of a tower's procedural strike-recoil punch. */
@@ -33,13 +34,13 @@ export const spritesMethods = {
       this.sfx.hit();
       const e = this.enemySprites.get(ev.uid);
       if (e) { this.flash(e, 0xffffff); e.setData("hurtUntil", this.time.now + 160); } // hurt squash (procedural fallback)
-      this.playSpriteOneShot(e ?? null, ["hurt"], "walk");    // enemy/boss recoil frames
+      this.playSpriteOneShot(e ?? null, ["hurt"], "idle");    // single SDXL frame: hurt anim absent → safe no-op, procedural squash carries it
     } else if (ev.type === "enemyAttack") {
       this.sfx.enemyHit();
       const victim = ev.target === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : this.towerNear(ev.targetAt);
       if (victim) this.flash(victim, 0xff4444);
       if (ev.target === "hero") this.heroSprite?.playHurt();   // recoil + hurt frames
-      this.playSpriteOneShot(this.enemySprites.get(ev.uid) ?? null, ["attack"], "walk"); // enemy/boss attack swing (atk1/atk2 frames)
+      this.playSpriteOneShot(this.enemySprites.get(ev.uid) ?? null, ["attack"], "idle"); // single SDXL frame: attack anim absent → safe no-op
     } else if (ev.type === "death") {
       this.sfx.death();
     } else if (ev.type === "cast") {
@@ -177,8 +178,8 @@ export const spritesMethods = {
   /**
    * Procedural enemy animation driving the single SDXL creature sprite so it
    * reads as real locomotion instead of sliding ("floating") along the lane.
-   * The 4-frame articulated `_walk` sheet (alternating legs, see creatures.mjs)
-   * now carries the stride; the *transform* adds weight and ground contact:
+   * Enemies are a SINGLE z-image (SDXL) sprite; ALL ground locomotion is the
+   * transform (see enemyWalkTransform.ts) — there are no authored walk frames:
    *  - GROUND enemies get a 2-beat step cycle whose phase advances with the
    *    distance actually travelled — so footfalls stay glued to the ground and
    *    a slowed/stopped enemy steps slower/stops (the core fix for floating).
@@ -239,14 +240,11 @@ export const spritesMethods = {
       let c = (s.getData("gaitPhase") as number) ?? e.uid * 1.3;
       c += moved * 0.16 * (boss ? 0.7 : 1);              // ~one step per ~20px; longer boss stride
       s.setData("gaitPhase", c);
-      const swing = Math.abs(Math.sin(c));               // 0 at foot-plant, 1 mid-swing
-      const plant = 1 - swing;                           // weight settling on the planted foot
-      yOff = -swing * 3 * A;                             // gentle body bob; the stride legs carry the step now
-      xOff = Math.sin(c) * 1.2 * A;                      // lateral weight-shift waddle as it strides
-      angle = -Math.cos(c) * 3.5 * A;                    // waddle rock toward the planted foot
-      scaleY = base * (1 - 0.10 * plant * A);            // firm squash + settle on each foot-plant
-      scaleX = base * (1 + 0.07 * plant * A);
-      if (moved > 0.2 && lx !== undefined) angle += Math.sign(px - lx) * 2; // lean into travel
+      const lean = moved > 0.2 && lx !== undefined ? Math.sign(px - lx) * 2 : 0; // lean into travel
+      const t = enemyWalkTransform(c, { amp: A, lean });
+      yOff = t.yOff; xOff = t.xOff; angle = t.angle;
+      scaleX = base * t.scaleMulX; scaleY = base * t.scaleMulY;
+      s.setData("liftNorm", t.liftNorm);
     }
 
     // Hurt squash overlays the base motion (set on the hit FX, decays ~160ms).
@@ -274,7 +272,7 @@ export const spritesMethods = {
         shadow.setScale(0.62);
         shadow.setAlpha(0.16 * s.alpha);
       } else {
-        const lift = Math.max(0, -yOff) / (3 * (boss ? 0.6 : 1)); // 0 planted → 1 airborne
+        const lift = (s.getData("liftNorm") as number) ?? 0; // 0 planted → 1 airborne
         shadow.setScale(1 - 0.42 * lift);
         shadow.setAlpha((0.34 - 0.16 * lift) * s.alpha);
       }
