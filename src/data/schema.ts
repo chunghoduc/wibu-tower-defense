@@ -412,6 +412,23 @@ export interface TerrainFeature {
   blocks: boolean; // true = towers cannot be placed here
 }
 
+/**
+ * A maze-arena battlefield (endless mode): a central castle besieged from many
+ * directions through a braided road network. When a stage carries this, the
+ * battle uses the arena's center as the castle and `routes` as the roads enemies
+ * walk; campaign stages leave it undefined and use the single `path` lane.
+ */
+export interface ArenaDef {
+  /** The castle — the world middle. */
+  center: Vec2;
+  /** Ground spawn points just outside the map edges (multi-direction siege). */
+  gates: Vec2[];
+  /** Flyer spawn points (the gate mouths); flyers beeline the center from here. */
+  airSpawns: Vec2[];
+  /** Precomputed corridor polylines, each running from a gate to the center. */
+  routes: Vec2[][];
+}
+
 export interface StageDef {
   id: string;
   name: string;
