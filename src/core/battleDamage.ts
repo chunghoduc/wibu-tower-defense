@@ -321,6 +321,17 @@ export const damageMethods = {
         );
       }
     }
+    const nova = e.def.special?.deathNova;
+    if (nova) {
+      this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: nova.radius, damageType: nova.type });
+      const packet: DamagePacket = { amount: nova.damage, type: nova.type, armorPen: 0, magicPen: 0 };
+      for (const t of this.towers) {
+        if (t.alive && dist(e.pos, t.pos) <= nova.radius) {
+          t.hp -= mitigatedDamage(packet, t.stats);
+          if (t.hp <= 0) t.alive = false;
+        }
+      }
+    }
   },
 };
 

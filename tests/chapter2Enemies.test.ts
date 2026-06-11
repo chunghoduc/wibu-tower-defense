@@ -78,3 +78,42 @@ describe("Prism Behemoth — adaptive immunity", () => {
     expect(b.isImmune(e, "Magic", false)).toBe(true);
   });
 });
+
+describe("Bloomrot Carrier — death nova", () => {
+  it("damages towers within the nova radius when it dies", () => {
+    const carrier = mkEnemy({
+      id: "carrier", name: "Bloomrot Carrier", archetype: "Burster",
+      baseStats: { ...mkEnemy().baseStats, maxHp: 30, moveSpeed: 0, atk: 0 },
+      special: { deathNova: { radius: 110, damage: 45, type: "Magic" } },
+    });
+    // Low-HP, no-mitigation tower so the nova is observable; high atk to kill the carrier fast.
+    const near = mkTower({ baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999, maxHp: 100, magicResist: 0 } });
+    const stage = mkStage([{ spawns: [{ enemyId: "carrier", count: 1, interval: 1, delay: 0 }] }],
+      { slots: [{ x: 20, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] });
+    const b = world([carrier], [near], stage, { seed: 1 });
+    b.placeTower("turret", 0);
+    const tower = b.towers[0];
+    const hp0 = tower.hp;
+    runFor(b, 5); // carrier spawns, the tower kills it, the nova fires
+    expect(b.enemies.length).toBe(0); // carrier dead + cleaned up
+    expect(tower.hp).toBeLessThan(hp0); // nova hit the nearby tower (carrier deals no melee dmg)
+  });
+
+  it("spares towers outside the nova radius", () => {
+    const carrier = mkEnemy({
+      id: "carrier2", archetype: "Burster",
+      baseStats: { ...mkEnemy().baseStats, maxHp: 30, moveSpeed: 0, atk: 0 },
+      special: { deathNova: { radius: 50, damage: 45, type: "Magic" } },
+    });
+    const far = mkTower({ baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999, maxHp: 100, magicResist: 0 } });
+    const stage = mkStage([{ spawns: [{ enemyId: "carrier2", count: 1, interval: 1, delay: 0 }] }],
+      { slots: [{ x: 400, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] }); // tower 400u away (> radius 50)
+    const b = world([carrier], [far], stage, { seed: 1 });
+    b.placeTower("turret", 0);
+    const tower = b.towers[0];
+    const hp0 = tower.hp;
+    runFor(b, 5);
+    expect(b.enemies.length).toBe(0); // carrier dead
+    expect(tower.hp).toBe(hp0); // untouched — nova radius didn't reach it
+  });
+});
