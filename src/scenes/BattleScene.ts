@@ -72,6 +72,7 @@ export class BattleScene extends Phaser.Scene {
   gameSpeed = 1;
   speedBtn!: Phaser.GameObjects.Text;
   callWaveBtn!: Phaser.GameObjects.Text;
+  autoSkipText!: Phaser.GameObjects.Text;
   sfx = new Sfx();
   hudLevelText!: Phaser.GameObjects.Text;
   hudSkillText!: Phaser.GameObjects.Text;
@@ -86,6 +87,8 @@ export class BattleScene extends Phaser.Scene {
   // Pixel-art sprite pools (keyed by entity uid); fall back to shapes if missing.
   towerSprites = new Map<number, Phaser.GameObjects.Sprite>();
   enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
+  enemyShadows = new Map<number, Phaser.GameObjects.Ellipse>(); // ground-contact anchors
+
   heroSprite: HeroLayeredSprite | null = null;
   fx!: FxLayer;
   camCtl?: BattleCameraController;
@@ -118,6 +121,7 @@ export class BattleScene extends Phaser.Scene {
     this._menuBtn = null;
     this.towerSprites.clear();
     this.enemySprites.clear();
+    this.enemyShadows.clear();
     this.heroSprite = null;
     this.selectedTowerUid = -1;
     this.quickActions = null;
@@ -187,7 +191,11 @@ export class BattleScene extends Phaser.Scene {
     this.callWaveBtn = crispText(this, this.scale.width - 12, 34, "", { fontSize: "13px", color: "#fff5cc", backgroundColor: "#5a4a18", fontStyle: "bold" })
       .setOrigin(1, 0).setPadding(8, 4, 8, 4).setDepth(50).setInteractive({ useHandCursor: true }).setVisible(false);
     this.callWaveBtn.on("pointerdown", () => this.onCallWave());
-    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn, this.callWaveBtn]);
+    // Early-clear auto-skip: a centered "Next wave in N…" countdown shown after the
+    // field is wiped out before its cadence elapses (driven by refreshCallWaveBtn).
+    this.autoSkipText = crispText(this, this.scale.width / 2, 92, "", { fontSize: "20px", color: "#ffe27a", fontStyle: "bold", stroke: "#1a1206", strokeThickness: 5 })
+      .setOrigin(0.5, 0).setDepth(55).setVisible(false);
+    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn, this.callWaveBtn, this.autoSkipText]);
 
     this.panel = new BattleInfoPanel(this, this.ui, this.scale.width, this.scale.height, () => this.togglePanel());
 

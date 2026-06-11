@@ -109,6 +109,8 @@ export class BattleState {
   waveActive = false;
   /** @internal Seconds until the next wave launches (campaign cadence / inter-wave delay). */
   nextWaveTimer = INTER_WAVE_DELAY;
+  /** @internal Campaign auto-skip countdown: >0 while an early-cleared wave is counting down to its auto-launch (0 = inactive). */
+  autoSkipTimer = 0;
   /** @internal */ allWavesStarted = false;
   /** @internal */ nextUid = 1;
   /** @internal Mid-tick spawn queue (summons/splits) flushed after all updates. */

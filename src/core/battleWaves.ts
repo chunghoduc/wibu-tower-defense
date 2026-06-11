@@ -14,6 +14,7 @@ import type { BattleState } from "./battle.ts";
 import {
   type Catalogs, type ScheduledSpawn, type SpawnRequest,
   INTER_WAVE_DELAY, WAVE_INTERVAL, SKIP_COIN_PER_SEC, PERFECT_WAVE_BONUS_FRAC,
+  AUTO_SKIP_COUNTDOWN,
 } from "./battleTypes.ts";
 
 export const waveMethods = {
@@ -31,11 +32,31 @@ export const waveMethods = {
     if (this.usesCadence()) {
       // Campaign cadence: the next wave launches WAVE_INTERVAL after the LAST one
       // spawned, regardless of whether it's been cleared — so a stalled wave gets
-      // reinforced and the player feels time pressure. Until the final wave is
-      // out, run the clock; once it's out, trip the "won" gate.
+      // reinforced and the player feels time pressure. BUT if the player wipes the
+      // wave out early (no live enemies, no pending spawns), don't make them wait
+      // the rest of the cadence: bank the time-saved bonus and auto-launch the next
+      // wave after a short on-screen countdown. Until the final wave is out, run
+      // one of those clocks; once it's out, trip the "won" gate.
       if (this.waveIndex + 1 < this.totalWaves()) {
-        this.nextWaveTimer -= dt;
-        if (this.nextWaveTimer <= 0) this.startNextWave();
+        // Only after a wave has actually launched — at battle start the schedule is
+        // empty and the field is bare, which must run the opening timer, not auto-skip.
+        const fieldClear = this.waveIndex >= 0 && this.schedulePtr >= this.schedule.length && this.enemies.length === 0;
+        if (this.autoSkipTimer > 0) {
+          // An early-clear countdown is running — tick it down to the auto-launch.
+          this.autoSkipTimer -= dt;
+          if (this.autoSkipTimer <= 0) this.startNextWave();
+        } else if (fieldClear) {
+          // Just cleared early: pay the remaining-time bonus once, then start the
+          // countdown. `skipReward` reads the cadence time still on the clock, so
+          // this is exactly what tapping ⏩ at this instant would have paid.
+          const bonus = this.skipReward();
+          if (bonus > 0) this.gold += bonus;
+          this.emit({ type: "autoskip", bonus });
+          this.autoSkipTimer = AUTO_SKIP_COUNTDOWN;
+        } else {
+          this.nextWaveTimer -= dt;
+          if (this.nextWaveTimer <= 0) this.startNextWave();
+        }
       } else {
         this.allWavesStarted = true;
       }
@@ -128,6 +149,8 @@ export const waveMethods = {
     this.schedule = merged;
     this.schedulePtr = 0;
     this.waveActive = true;
+    // A wave is launching — any pending early-clear countdown is consumed.
+    this.autoSkipTimer = 0;
     // Restart the cadence clock from this launch (campaign); endless/boss-rush
     // overwrite it with INTER_WAVE_DELAY when the wave clears.
     this.nextWaveTimer = this.usesCadence() ? WAVE_INTERVAL : INTER_WAVE_DELAY;
@@ -135,11 +158,16 @@ export const waveMethods = {
 
   // ---- Call-wave-early skip (campaign only) -------------------------------
 
-  /** Is an early wave-call available right now (campaign, mid-run, more waves left)? */
+  /**
+   * Is a manual early wave-call available right now (campaign, mid-run, more waves
+   * left)? Suppressed while an auto-skip countdown is running — that path already
+   * launches the next wave (and paid the bonus), so the ⏩ button steps aside.
+   */
   canCallWave(this: BattleState): boolean {
     return (
       this.usesCadence() &&
       this.outcome === "ongoing" &&
+      this.autoSkipTimer <= 0 &&
       this.waveIndex + 1 < this.totalWaves()
     );
   },
@@ -147,6 +175,11 @@ export const waveMethods = {
   /** Seconds left on the next-wave countdown, or -1 when no skip is offered. */
   getNextWaveIn(this: BattleState): number {
     return this.canCallWave() ? Math.max(0, this.nextWaveTimer) : -1;
+  },
+
+  /** Seconds left on the early-clear auto-skip countdown, or -1 when not counting down. */
+  getAutoSkipIn(this: BattleState): number {
+    return this.autoSkipTimer > 0 ? this.autoSkipTimer : -1;
   },
 
   /** Gold a skip would pay right now (0 when unavailable) — scales with time left. */

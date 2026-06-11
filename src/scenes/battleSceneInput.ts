@@ -36,6 +36,12 @@ export const inputMethods = {
 
   /** Refresh the call-wave-early button each frame: show countdown + skip bounty. */
   refreshCallWaveBtn(this: BattleScene): void {
+    // Early-clear auto-skip countdown takes the screen while it's running; the
+    // manual ⏩ button is suppressed (getNextWaveIn returns -1) during it.
+    const auto = this.battle.getAutoSkipIn();
+    if (auto >= 0) this.autoSkipText.setVisible(true).setText(`Next wave in ${Math.ceil(auto)}…`);
+    else this.autoSkipText.setVisible(false);
+
     const secs = this.battle.getNextWaveIn();
     if (secs < 0) { this.callWaveBtn.setVisible(false); return; }
     this.callWaveBtn.setVisible(true).setText(`⏩ Wave in ${Math.ceil(secs)}s  +${this.battle.skipReward()}g`);

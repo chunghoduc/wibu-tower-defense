@@ -52,7 +52,10 @@ export type FxEvent =
   // F13 combo: rapid-kill streak feedback. `mult` is the current gold multiplier.
   | { type: "combo"; at: Vec2; count: number; mult: number }
   // F14 perfect wave: a wave cleared with zero leaks. `bonus` is the bonus gold.
-  | { type: "perfect"; waveIndex: number; bonus: number };
+  | { type: "perfect"; waveIndex: number; bonus: number }
+  // Wave wiped out before the cadence elapsed: a short auto-skip countdown begins
+  // and `bonus` (the time-saved gold) is banked immediately.
+  | { type: "autoskip"; bonus: number };
 
 /** Debug context threaded into applyDamage so the combat logger can print the
  * full per-hit formula (only built when logging is on). */
@@ -95,6 +98,13 @@ export function manaGainOnHit(stats: Stats): number {
 }
 /** Endless / boss-rush pause between waves once the current wave is fully cleared. */
 export const INTER_WAVE_DELAY = 3;
+/**
+ * Campaign auto-skip: when a wave is wiped out before its cadence elapses, the
+ * next wave auto-launches after this short on-screen countdown (and the player
+ * banks the time-saved bonus gold immediately) — clearing fast is rewarded with
+ * tempo instead of forcing a tap on the ⏩ button.
+ */
+export const AUTO_SKIP_COUNTDOWN = 3;
 /**
  * Campaign cadence: a stage launches its next wave this many seconds after the
  * previous one *spawned* — not when it clears. Stall and waves stack up on you.

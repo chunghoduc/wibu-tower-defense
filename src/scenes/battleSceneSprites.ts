@@ -70,6 +70,15 @@ export const spritesMethods = {
       // F14: brief center banner + sting for a flawless wave.
       this.flashBanner(`PERFECT WAVE!  +${ev.bonus}🪙`, "#9fe0b0");
       this.sfx.coin();
+    } else if (ev.type === "autoskip") {
+      // Early clear: chime + float the banked time-saved bonus near the HUD gold.
+      if (ev.bonus > 0) {
+        this.sfx.coin();
+        const pop = crispText(this, this.scale.width - 14, 56, `+${ev.bonus}g`, { fontSize: "16px", color: "#ffe27a", fontStyle: "bold" })
+          .setOrigin(1, 0).setDepth(60);
+        this.ui.add(pop);
+        this.tweens.add({ targets: pop, y: 38, alpha: 0, duration: 800, ease: "Cubic.out", onComplete: () => pop.destroy() });
+      }
     }
   },
 
@@ -150,6 +159,22 @@ export const spritesMethods = {
   },
 
   /**
+   * Acquire/update a pooled ground-contact shadow ellipse for an enemy. Sized to
+   * the sprite's footprint and parked just under the depth of the sprite (1 vs 2)
+   * so it always renders on the ground beneath the creature. `animateEnemy` then
+   * pins and modulates it each frame (it stays on the ground while the body bobs).
+   */
+  ensureShadow(this: BattleScene, uid: number, x: number, y: number, displayH: number): Phaser.GameObjects.Ellipse {
+    let sh = this.enemyShadows.get(uid);
+    if (!sh) {
+      sh = this.add.ellipse(x, y, displayH * 0.6, displayH * 0.24, 0x000000, 0.34).setDepth(1);
+      this.world.add(sh);
+      this.enemyShadows.set(uid, sh);
+    }
+    return sh;
+  },
+
+  /**
    * Procedural enemy animation driving the single SDXL creature sprite so it
    * reads as real locomotion instead of sliding ("floating") along the lane.
    * The 2-frame SDXL `_walk` sheet (frames near-identical) keeps cycling for a
@@ -166,7 +191,13 @@ export const spritesMethods = {
    * Bosses use the same gait at reduced amplitude + longer stride (heavy).
    * Frozen / stunned enemies hold still with a faint shiver, no stepping.
    */
-  animateEnemy(this: BattleScene, s: Phaser.GameObjects.Sprite, e: EnemyRuntime, key: string): void {
+  animateEnemy(
+    this: BattleScene,
+    s: Phaser.GameObjects.Sprite,
+    e: EnemyRuntime,
+    key: string,
+    shadow: Phaser.GameObjects.Ellipse | null,
+  ): void {
     const now = this.time.now;
     const boss = e.def.archetype === "Boss";
     const frozen = e.slowPct >= 0.6 || e.stunTimer > 0;
@@ -192,7 +223,7 @@ export const spritesMethods = {
     const moved = lx === undefined ? 0 : Math.min(20, Math.hypot(px - lx, py - (ly as number)));
     s.setData("lastPosX", px); s.setData("lastPosY", py);
 
-    let scaleX = base, scaleY = base, angle = 0, yOff = 0;
+    let scaleX = base, scaleY = base, angle = 0, yOff = 0, xOff = 0;
 
     if (e.flying) {
       const w = now * 0.017 + e.uid * 1.7;              // ~2.7 wing-beats/sec
@@ -210,10 +241,11 @@ export const spritesMethods = {
       s.setData("gaitPhase", c);
       const swing = Math.abs(Math.sin(c));               // 0 at foot-plant, 1 mid-swing
       const plant = 1 - swing;                           // weight settling on the planted foot
-      yOff = -swing * 3.2 * A;                           // body rises between footfalls
+      yOff = -swing * 5 * A;                             // body lifts clear off the ground between footfalls
+      xOff = Math.sin(c) * 1.6 * A;                      // lateral weight-shift waddle as it strides
       angle = -Math.cos(c) * 4.5 * A;                    // waddle rock toward the planted foot
-      scaleY = base * (1 - 0.07 * plant * A);            // squash + settle on each step
-      scaleX = base * (1 + 0.05 * plant * A);
+      scaleY = base * (1 - 0.10 * plant * A);            // firm squash + settle on each foot-plant
+      scaleX = base * (1 + 0.07 * plant * A);
       if (moved > 0.2 && lx !== undefined) angle += Math.sign(px - lx) * 2; // lean into travel
     }
 
@@ -228,7 +260,25 @@ export const spritesMethods = {
 
     s.setAngle(angle);
     s.setScale(scaleX, scaleY);
+    s.x = e.pos.x + xOff;
     s.y = e.pos.y + yOff;
+
+    // Ground-contact shadow: pinned at the ground point (never bobs), it shrinks
+    // and fades as the body lifts on each step — the anchor that turns a sliding
+    // sprite into a creature with weight on solid ground. Flyers keep a fixed,
+    // faint, small shadow far below as a pure altitude cue.
+    if (shadow) {
+      shadow.x = e.pos.x;
+      shadow.y = e.pos.y + 2;
+      if (e.flying) {
+        shadow.setScale(0.62);
+        shadow.setAlpha(0.16 * s.alpha);
+      } else {
+        const lift = Math.max(0, -yOff) / (5 * (boss ? 0.6 : 1)); // 0 planted → 1 airborne
+        shadow.setScale(1 - 0.42 * lift);
+        shadow.setAlpha((0.34 - 0.16 * lift) * s.alpha);
+      }
+    }
   },
 
   /**
@@ -291,10 +341,12 @@ export const spritesMethods = {
         s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1);
         const tint = enemyStatusTint(e);   // burn/poison/freeze body tint (T8)
         if (tint === null) s.clearTint(); else s.setTint(tint);
-        this.animateEnemy(s, e, key);      // walk / fly / hurt animation
+        const shadow = this.ensureShadow(e.uid, e.pos.x, e.pos.y, displayH);
+        this.animateEnemy(s, e, key, shadow);  // walk / fly / hurt animation + ground shadow
       }
     }
     for (const [uid, s] of this.enemySprites) if (!seenE.has(uid)) { s.destroy(); this.enemySprites.delete(uid); }
+    for (const [uid, sh] of this.enemyShadows) if (!seenE.has(uid)) { sh.destroy(); this.enemyShadows.delete(uid); }
 
     const h = this.battle.hero;
     if (h.alive && hasSprite(this, "hero__hero")) {
