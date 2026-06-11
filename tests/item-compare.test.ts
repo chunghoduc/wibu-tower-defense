@@ -73,6 +73,31 @@ describe("compareItems — base stat diffs", () => {
   });
 });
 
+describe("compareItems — selected (bag) value column", () => {
+  it("exposes the selected item's formatted value per row", () => {
+    const bag = ref({ rolledStats: { maxHp: 100, armor: 50 } });
+    const equipped = ref({ rolledStats: { armor: 52, magicResist: 50 } });
+    const { stats } = compareItems(bag, equipped);
+    const byLabel = (l: string) => stats.find((r) => r.label === l)!;
+
+    expect(byLabel("HP").bag).toBe("100");       // selected has it, equipped doesn't
+    expect(byLabel("Armor").bag).toBe("50");     // both have it
+    expect(byLabel("M.Resist").bag).toBe("0");   // equipped-only → selected shows 0
+  });
+
+  it("scales the selected value by enhance level", () => {
+    const bag = ref({ rolledStats: { armor: 20 }, enhanceLevel: 5 }); // ×1.4 → 28
+    const equipped = ref({ rolledStats: { armor: 20 } });
+    expect(compareItems(bag, equipped).stats.find((r) => r.label === "Armor")!.bag).toBe("28");
+  });
+
+  it("formats fractional / affix selected values as percent", () => {
+    const bag = ref({ rolledStats: { critRate: 0.22 } });
+    const equipped = ref({ rolledStats: { critRate: 0.10 } });
+    expect(compareItems(bag, equipped).stats.find((r) => r.label === "Crit")!.bag).toBe("22%");
+  });
+});
+
 describe("compareItems — affix diffs", () => {
   it("compares affixes as percentage rows, summing same-typed affixes", () => {
     const bag = ref({ rolledAffixes: [{ type: "atk", value: 0.12 }] });

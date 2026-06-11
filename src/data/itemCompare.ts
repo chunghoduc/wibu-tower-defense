@@ -22,6 +22,8 @@ export interface CompareRow {
   label: string;
   /** The equipped item's value, formatted (the number the player keeps if they don't swap). */
   equipped: string;
+  /** The selected (bag) item's value, formatted (the number you'd gain by equipping it). */
+  bag: string;
   /** Signed delta the swap would apply, formatted (e.g. "+100", "-2%", "0"). */
   delta: string;
   /** Colour hint: 1 = upgrade (green), -1 = downgrade (red), 0 = no change. */
@@ -90,6 +92,7 @@ function row(label: string, key: string, eqV: number, bagV: number, asPct: boole
   return {
     label,
     equipped: fmt(eqV),
+    bag: fmt(bagV),
     delta: zero ? "0" : (d > 0 ? "+" : "-") + mag,
     dir: zero ? 0 : d > 0 ? 1 : -1,
   };
