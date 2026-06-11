@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { world, mkEnemy, mkTower, mkStage, runFor } from "./fixtures.ts";
+import { adaptiveImmuneType } from "../src/core/enemyAdaptive.ts";
+import type { BattleState } from "../src/core/battle.ts";
+
+/** Tick (dt 0.05) until the first enemy spawns; returns it. */
+function spawnFirst(b: BattleState, cap = 60) {
+  for (let t = 0; t < cap / 0.05 && b.enemies.length === 0; t++) b.tick(0.05);
+  return b.enemies[0];
+}
 
 describe("Bloodmad Reaver — frenzy", () => {
   it("latches into frenzy once HP drops below 50% and speeds up", () => {
@@ -25,5 +33,48 @@ describe("Bloodmad Reaver — frenzy", () => {
       // If it died, it must have frenzied first — assert the latch fired this run.
       expect(e.frenzied).toBe(true);
     }
+  });
+});
+
+describe("Prism Behemoth — adaptive immunity", () => {
+  function prismWorld(towerType: "Physical" | "Magic") {
+    const prism = mkEnemy({
+      id: "prism", name: "Prism Behemoth", archetype: "Adapter",
+      baseStats: { ...mkEnemy().baseStats, maxHp: 100000, moveSpeed: 0, atk: 0 },
+      special: { adaptiveImmunity: { types: ["Physical", "Magic"], switchIntervalSec: 3.5 } },
+    });
+    const tower = mkTower({ damageType: towerType, baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999, maxHp: 1e9 } });
+    const stage = mkStage([{ spawns: [{ enemyId: "prism", count: 1, interval: 1, delay: 0 }] }],
+      { slots: [{ x: 10, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] });
+    const b = world([prism], [tower], stage, { seed: 1 });
+    b.placeTower("turret", 0);
+    return b;
+  }
+
+  it("starts immune to Physical at spawn", () => {
+    const b = prismWorld("Magic");
+    const e = spawnFirst(b);
+    expect(adaptiveImmuneType(e.def.special, e.adaptPhaseIndex)).toBe("Physical");
+  });
+
+  it("a Physical-only tower stalls during the Physical phase but lands during the Magic phase", () => {
+    const b = prismWorld("Physical");
+    const e = spawnFirst(b);
+    const hp0 = e.hp;
+    runFor(b, 1.0); // still the Physical phase (timer ~3.5 from spawn) → no damage
+    expect(e.hp).toBe(hp0);
+    runFor(b, 3.0); // crosses into the Magic phase → Physical now lands
+    expect(e.hp).toBeLessThan(hp0);
+  });
+
+  it("is always vulnerable to True damage regardless of phase", () => {
+    const b = prismWorld("Magic");
+    const e = spawnFirst(b);
+    // Phase 0 = immune to Physical; True must never be blocked.
+    expect(b.isImmune(e, "True", false)).toBe(false);
+    expect(b.isImmune(e, "Physical", false)).toBe(true);
+    runFor(b, 3.6); // switch to the Magic phase
+    expect(b.isImmune(e, "True", false)).toBe(false);
+    expect(b.isImmune(e, "Magic", false)).toBe(true);
   });
 });

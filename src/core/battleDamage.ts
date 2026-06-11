@@ -17,6 +17,7 @@ import { incrementQuestKey } from "./questTracker.ts";
 import { incrementBountyEvent } from "./bounties.ts";
 import { isoWeekKey } from "./meta.ts";
 import { addMasteryXp, MASTERY_XP_PER_KILL } from "./mastery.ts";
+import { adaptiveImmuneType } from "./enemyAdaptive.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type DmgCtx, type EnemyRuntime, type FxEvent, type TowerRuntime,
@@ -139,6 +140,8 @@ export const damageMethods = {
     const ei = target.eliteImmunity;
     if (ei === "Physical" && damageType === "Physical") return true;
     if (ei === "Magic" && damageType === "Magic") return true;
+    // Adapter: immune to whichever type its current phase has rotated to.
+    if (adaptiveImmuneType(target.def.special, target.adaptPhaseIndex) === damageType) return true;
     return false;
   },
 

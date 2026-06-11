@@ -11,6 +11,7 @@ import { dist, lerp, pointAtDistance } from "./path.ts";
 import { computeAuraMods, NEUTRAL_AURA } from "./enemyAuras.ts";
 import { enemyTowerAttack } from "./enemyCombat.ts";
 import { shouldFrenzy, frenzyMods } from "./enemyFrenzy.ts";
+import { advanceAdaptivePhase, adaptiveImmuneType } from "./enemyAdaptive.ts";
 import { castleLeakDamage } from "../data/enemies.ts";
 import type { BattleState } from "./battle.ts";
 import {
@@ -65,6 +66,16 @@ export const enemyMethods = {
       if (e.slowTimer <= 0) e.slowPct = 0;
     }
     if (e.stunTimer > 0) e.stunTimer -= dt;
+
+    if (e.def.special?.adaptiveImmunity) {
+      const r = advanceAdaptivePhase(e.def.special, e.adaptPhaseTimer, e.adaptPhaseIndex, dt);
+      e.adaptPhaseTimer = r.timer;
+      e.adaptPhaseIndex = r.index;
+      if (r.switched) {
+        const imm = adaptiveImmuneType(e.def.special, e.adaptPhaseIndex) ?? "Physical";
+        this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: 28, damageType: imm });
+      }
+    }
 
     if (e.dots.length > 0) {
       const survivors: Dot[] = [];
