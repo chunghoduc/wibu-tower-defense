@@ -16,6 +16,7 @@ import { crispText } from "./ui.ts";
 import { SPIN_WHEEL, type SpinPrize } from "../core/spin.ts";
 import { rewardPrimaryIcon } from "../data/rewardIcon.ts";
 import { makeFitIcon } from "./itemIcon.ts";
+import { addNamePlate } from "./namePlate.ts";
 
 const DEPTH = 150;
 const CELL_W = 132;
@@ -39,11 +40,11 @@ function buildCell(
   g.fillStyle(0x10151f, 1).fillRoundedRect(-CELL_W / 2, -52, CELL_W, 104, 12);
   g.lineStyle(2, accent, prize.rare ? 1 : 0.6).strokeRoundedRect(-CELL_W / 2, -52, CELL_W, 104, 12);
   cell.add(g);
-  cell.add(makeFitIcon(scene, 0, -14, view.iconKey, 56, view.emoji));
-  cell.add(crispText(scene, 0, 30, prize.label, {
-    fontSize: "12px", color: "#ffe9b0", fontStyle: "bold", align: "center",
-    stroke: "#0a0d14", strokeThickness: 3, wordWrap: { width: CELL_W - 12 },
-  }).setOrigin(0.5));
+  cell.add(makeFitIcon(scene, 0, -22, view.iconKey, 56, view.emoji));
+  addNamePlate(scene, cell, prize.label, {
+    width: CELL_W, topY: 52 - 30, height: 30, radius: 12,
+    accent, color: "#ffe9b0", basePx: 12, minPx: 8, maxLines: 2,
+  });
   strip.add(cell);
   return cell;
 }
