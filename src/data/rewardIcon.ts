@@ -7,8 +7,11 @@
 // fallback when not. Phaser-free so it is unit-testable.
 import type { Reward } from "../core/rewards.ts";
 import type { Rarity } from "./schema.ts";
+import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS_MAP } from "./materials.ts";
-import { itemTex, jewelTex, materialTex, boxTex, GOLD_TEX, GEM_TEX, XP_TEX } from "./assetKeys.ts";
+import { ITEM_CATALOG_MAP } from "./items.ts";
+import { TOWERS } from "./towers.ts";
+import { itemTex, jewelTex, materialTex, boxTex, skillTex, towerTex, GOLD_TEX, GEM_TEX, XP_TEX } from "./assetKeys.ts";
 
 export interface RewardIconView {
   /** Texture key to draw when loaded (e.g. "material__soul-jewel"). "" = no texture. */
@@ -70,4 +73,27 @@ export function rewardPrimaryIcon(reward: Reward): RewardIconView {
   if (reward.diamonds) return diamondIcon();
   if (reward.gold) return goldIcon();
   return SPARKLE;
+}
+
+// ---- Entity-level resolvers --------------------------------------------------
+// One resolver per entity class so scenes never assemble {iconKey,emoji,color}
+// themselves. The catalog def supplies the intrinsic (shared) bits — rarity
+// colour — while the instance supplies the extrinsic bits (which def). Keys are
+// always derived via assetKeys, never inlined.
+
+/** Owned-item instance → its icon (rarity colour from the catalog def: flyweight). */
+export function itemInstanceIcon(inst: ItemInstanceSave): RewardIconView {
+  const def = ITEM_CATALOG_MAP.get(inst.defId);
+  return itemIcon(def?.rarity ?? "Common", inst.defId);
+}
+
+/** Tower/character id → its roster icon (tower__<id>, rarity-tinted). */
+export function towerIcon(id: string): RewardIconView {
+  const def = TOWERS.find((t) => t.id === id);
+  return { iconKey: towerTex(id), emoji: "✨", color: RARITY_INT[def?.rarity ?? "Common"] };
+}
+
+/** Skill id → its ability icon (skill__<id>). */
+export function skillIcon(id: string): RewardIconView {
+  return { iconKey: skillTex(id), emoji: "⚡", color: RARITY_INT.Common };
 }
