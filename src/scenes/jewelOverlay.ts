@@ -3,6 +3,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import { jewelIconKey } from "../data/jewelIconManifest.ts";
 import { makeFitIcon } from "./itemIcon.ts";
+import { addNamePlate } from "./namePlate.ts";
 import type { Rarity } from "../data/schema.ts";
 
 const RARITY_TINT: Record<Rarity, number> = {
@@ -118,7 +119,7 @@ export class JewelOverlay {
   ): Phaser.GameObjects.Container {
     const c = this.scene.add.container(x, y);
     const tint = RARITY_TINT[rarity] ?? 0x9e9e9e;
-    const cell = this.scene.add.rectangle(0, 0, 88, 78, 0x1d2330, 1).setStrokeStyle(2, tint, 0.9)
+    const cell = this.scene.add.rectangle(0, 0, 88, 84, 0x1d2330, 1).setStrokeStyle(2, tint, 0.9)
       .setInteractive({ useHandCursor: true });
     cell.on("pointerover", () => cell.setFillStyle(0x2a3346));
     cell.on("pointerout", () => cell.setFillStyle(0x1d2330));
@@ -127,13 +128,15 @@ export class JewelOverlay {
 
     // Shared scale-to-fill rule (matches bag/shop/loot) so a jewel reads the
     // same size everywhere; falls back to the emoji only if its art is missing.
-    c.add(makeFitIcon(this.scene, 0, -14, jewelIconKey(defId), 46, "💠"));
-    c.add(this.scene.add.text(0, 20, name, {
-      fontSize: "10px", color: "#dddddd", align: "center", wordWrap: { width: 82 },
-    }).setOrigin(0.5, 0));
+    c.add(makeFitIcon(this.scene, 0, -18, jewelIconKey(defId), 46, "💠"));
+    // Name lives in a reserved plate band so long jewel names never spill off.
+    addNamePlate(this.scene, c, name, {
+      width: 88, topY: 42 - 28, height: 28, radius: 3,
+      accent: tint, color: "#e6e9ef", basePx: 10, minPx: 7, maxLines: 2,
+    });
 
     // ✕ destroy affordance (top-right of the tile).
-    const del = this.scene.add.text(36, -34, "✕", { fontSize: "12px", color: "#ff8a80" })
+    const del = this.scene.add.text(36, -38, "✕", { fontSize: "12px", color: "#ff8a80" })
       .setOrigin(0.5).setInteractive({ useHandCursor: true });
     del.on("pointerdown", onDestroy);
     c.add(del);
