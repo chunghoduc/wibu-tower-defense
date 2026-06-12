@@ -8,7 +8,7 @@ import { join } from "node:path";
 const ALLOWED = new Set(["src/data/assetKeys.ts"]);
 // Registry-owned namespaces. (vfx__ is skillVfx's own VFX namespace, not owned
 // by the asset-key registry, so it is deliberately excluded.)
-const RE = /`(item|tower|jewel|material|box|skill|menu|fx|structure)__\$\{/;
+const RE = /`(item|tower|jewel|material|box|skill|menu|fx|structure|roleicon)__\$\{/;
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

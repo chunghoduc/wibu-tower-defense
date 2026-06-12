@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   itemTex, towerTex, jewelTex, materialTex, boxTex, skillTex, menuTex, fxTex,
-  structureTex, CASTLE_TEX, CASTLE_DAMAGED_TEX,
+  structureTex, roleTex, CASTLE_TEX, CASTLE_DAMAGED_TEX,
   GOLD_TEX, GEM_TEX, XP_TEX, HERODOLL_BASE_TEX,
 } from "../src/data/assetKeys.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
@@ -26,6 +26,10 @@ describe("assetKeys derivation", () => {
     expect(structureTex("castle")).toBe("structure__castle");
     expect(CASTLE_TEX).toBe("structure__castle");
     expect(CASTLE_DAMAGED_TEX).toBe("structure__castle__damaged");
+  });
+  it("builds per-role badge keys", () => {
+    expect(roleTex("splash")).toBe("roleicon__splash");
+    expect(roleTex("tanker")).toBe("roleicon__tanker");
   });
   it("exposes fixed currency / singleton keys as named constants", () => {
     expect(GOLD_TEX).toBe("icon__gold");

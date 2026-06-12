@@ -26,6 +26,8 @@ export const menuTex = (id: string): string => `menu__${id}`;
 export const fxTex = (id: string): string => `fx__${id}`;
 /** Battle-world structure sprite (castle, …). */
 export const structureTex = (id: string): string => `structure__${id}`;
+/** Per-role tower badge emblem (damage, splash, chain, …). */
+export const roleTex = (role: string): string => `roleicon__${role}`;
 
 /** Fixed singleton currency / UI keys (named so they are never magic strings). */
 export const GOLD_TEX = "icon__gold";
