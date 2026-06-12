@@ -254,7 +254,7 @@ export class CollectionScene extends Phaser.Scene {
     c.add([panel, panelZone]);
 
     const pad = 18;
-    let x = px + pad;
+    const x = px + pad;
     const top = py + pad;
 
     // Avatar.

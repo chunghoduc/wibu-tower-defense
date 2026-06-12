@@ -211,7 +211,8 @@ export class Music {
   }
 
   setEnabled(on: boolean): void {
-    on ? this.start() : this.stop();
+    if (on) this.start();
+    else this.stop();
   }
   isEnabled(): boolean {
     return this.enabled;

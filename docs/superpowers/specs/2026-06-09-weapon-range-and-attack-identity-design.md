@@ -94,9 +94,11 @@ sword swing it currently falls through to).
 - `weaponRange.test.ts`: every `WeaponType` resolves to a positive range; melee
   families < 120 < ranged families; `null` → Fist range.
 - `attack-style.test.ts`: update the hero block — `heroAttackStyle("Gun", "Physical",
-260) === "gunshot"`, `("Sword", …) === "slash"`, `(null, …) === "punch"`,
-  `("Staff", …) === "arcane"`, `("Bow", …) === "arrow"`; "known styles" set gains
-  `punch`/`gunshot`.
+
+260. === "gunshot"`, `("Sword", …) === "slash"`, `(null, …) === "punch"`,
+`("Staff", …) === "arcane"`, `("Bow", …) === "arrow"`; "known styles" set gains
+`punch`/`gunshot`.
+
 - Existing battle/hero tests stay green (range numbers change but assertions are on
   behaviour, not the literal 130).
 

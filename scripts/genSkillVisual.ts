@@ -48,7 +48,7 @@ for (const r of [...heroRows, ...flavourRows]) {
 }
 
 writeFileSync(OUT, JSON.stringify(rows, null, 2) + "\n");
-// eslint-disable-next-line no-console
+
 console.log(
   `wrote ${rows.length} skill visuals → ${OUT} (${heroRows.length} hero VFX + ${rows.length - heroRows.length} flavour-only)`,
 );

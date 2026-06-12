@@ -10,7 +10,7 @@
 //
 // Renders into a caller-owned container (HeroScene.dialog) so the scene keeps
 // ownership of visibility/lifecycle — mirrors renderItemTooltip's contract.
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText, panelText } from "./ui.ts";
 import { compareItems, type ItemRef, type CompareRow } from "../data/itemCompare.ts";
 import { makeFitIcon } from "./itemIcon.ts";

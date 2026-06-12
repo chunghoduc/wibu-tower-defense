@@ -1,7 +1,7 @@
 import { JEWEL_CATALOG, type JewelDef } from "../data/jewels.ts";
 import type { Rarity } from "../data/schema.ts";
 import type { HeroSave, JewelInstanceSave } from "./save.ts";
-import { Rng } from "./rng.ts";
+import { type Rng } from "./rng.ts";
 
 /** Relative drop weight per rarity — commons are the staple, uniques the prize. */
 const RARITY_WEIGHT: Record<Rarity, number> = {

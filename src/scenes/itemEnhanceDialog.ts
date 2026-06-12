@@ -5,7 +5,7 @@
 // button. Re-renders in place after each attempt. Extracted from HeroScene so the
 // scene stays focused (and under the file-size limit); renders into a caller-owned
 // container, mirroring renderItemTooltip / renderCompareDialog.
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { MATERIALS_MAP } from "../data/materials.ts";

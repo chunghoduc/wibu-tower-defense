@@ -5,7 +5,7 @@
 // coloured button; when not, it's greyed, non-clickable, and reveals the
 // requirement ("Requires level N · you are M") on hover. Shared by the compare
 // (Replace) and enhance (Equip) dialogs so the disabled treatment is identical.
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import type { EquipLevelGate } from "../data/equipGate.ts";
 

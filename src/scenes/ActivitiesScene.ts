@@ -14,19 +14,20 @@ import { playSpinReel } from "./spinReel.ts";
 import { nextStreakReward, streakClaimable, STREAK_CYCLE } from "../core/streak.ts";
 import { freeSpinAvailable, PAID_SPIN_COST } from "../core/spin.ts";
 import { expeditionActive, expeditionPendingGold } from "../core/expedition.ts";
-import { WEEKLY_BOUNTIES } from "../data/bounties.ts";
-import { isBountyClaimable, getBountyProgress } from "../core/bounties.ts";
-import { MILESTONES } from "../data/milestones.ts";
-import { metricValue, claimedTier, nextClaimableTier } from "../core/milestones.ts";
 import { isoWeekKey } from "../core/meta.ts";
-import { challengeForDay } from "../core/challenge.ts";
 import { STAGES } from "../data/stage.ts";
 import type { BattleMode } from "./BattleScene.ts";
 import type { Difficulty } from "../data/schema.ts";
+import {
+  PANEL_X,
+  PANEL_W,
+  drawTrials,
+  drawBounties,
+  drawMilestones,
+  type ActivitiesSectionsCtx,
+} from "./activitiesSections.ts";
 
 const W = 960;
-const PANEL_X = 24,
-  PANEL_W = W - 48;
 
 export class ActivitiesScene extends Phaser.Scene {
   private mgr!: SaveManager;
@@ -89,10 +90,27 @@ export class ActivitiesScene extends Phaser.Scene {
     y = this.drawStreak(y);
     y = this.drawSpin(y);
     y = this.drawExpedition(y);
-    y = this.drawTrials(y);
-    y = this.drawBounties(y);
-    y = this.drawMilestones(y);
+    const ctx = this.sectionCtx();
+    y = drawTrials(ctx, y);
+    y = drawBounties(ctx, y);
+    y = drawMilestones(ctx, y);
     this.contentH = y + 20;
+  }
+
+  /** The callbacks the extracted section renderers (activitiesSections.ts) need. */
+  private sectionCtx(): ActivitiesSectionsCtx {
+    return {
+      scene: this,
+      mgr: this.mgr,
+      layer: this.layer,
+      panel: (y, h, accent, hot) => this.panel(y, h, accent, hot),
+      button: (x, y, label, color, enabled, cb) => this.button(x, y, label, color, enabled, cb),
+      celebrate: (y, emojis, label, accent) => this.celebrate(y, emojis, label, accent),
+      showToast: (msg) => this.showToast(msg),
+      redraw: () => this.redraw(),
+      launch: (stageId, difficulty, mode) => this.launch(stageId, difficulty, mode),
+      latestClearedStage: () => this.latestClearedStage(),
+    };
   }
 
   // ── panels ──────────────────────────────────────────────────────────────────
@@ -395,240 +413,6 @@ export class ActivitiesScene extends Phaser.Scene {
     this.registry.set("selectedDifficulty", difficulty);
     this.registry.set("battleMode", mode);
     fadeToScene(this, "BattleScene");
-  }
-
-  private drawTrials(y: number): number {
-    const save = this.mgr.getSave();
-    const today = new Date().toISOString().slice(0, 10);
-    const cleared = this.latestClearedStage();
-    this.layer.add(
-      crispText(this, PANEL_X + 4, y, "Trials", {
-        fontSize: "15px",
-        color: "#ffd56a",
-        fontStyle: "bold",
-      }),
-    );
-    y += 24;
-
-    // F5 Daily Challenge.
-    const ch = challengeForDay(today);
-    const chDone = save.meta.challenge.dayKey === today && save.meta.challenge.cleared;
-    {
-      const h = 56;
-      this.panel(y, h, 0x2c3a4f, !chDone);
-      this.layer.add(
-        crispText(this, PANEL_X + 14, y + 8, `⚡ Daily Challenge — ${ch.name}`, {
-          fontSize: "14px",
-          color: chDone ? "#8fc7a0" : "#ffe9b0",
-          fontStyle: "bold",
-        }),
-      );
-      this.layer.add(
-        crispText(this, PANEL_X + 14, y + 28, `${ch.description}  →  ${rewardLabel(ch.reward)}`, {
-          fontSize: "11px",
-          color: "#aab8cc",
-          wordWrap: { width: PANEL_W - 130 },
-        }),
-      );
-      const stageId = cleared?.id ?? STAGES[0].id;
-      this.button(
-        PANEL_X + PANEL_W - 14,
-        y + h / 2,
-        chDone ? "Cleared" : "Play",
-        "#9a6a1f",
-        !chDone,
-        () => this.launch(stageId, "Hard", { kind: "challenge", challenge: ch.effects }),
-      );
-      y += h + 8;
-    }
-
-    // F11 Endless Survival (needs a cleared stage).
-    {
-      const h = 56;
-      const best = cleared ? this.mgr.bestEndlessWave(cleared.id) : 0;
-      const cost = cleared ? this.mgr.endlessEntryCost(cleared.id) : 0;
-      const canPay = !!cleared && save.currency.gold >= cost;
-      this.panel(y, h, 0x2c3a4f);
-      this.layer.add(
-        crispText(this, PANEL_X + 14, y + 8, "🌊 Endless Survival", {
-          fontSize: "14px",
-          color: "#ffe9b0",
-          fontStyle: "bold",
-        }),
-      );
-      this.layer.add(
-        crispText(
-          this,
-          PANEL_X + 14,
-          y + 28,
-          cleared
-            ? `Waves never stop — boss every 10. Best wave: ${best}. · Entry 🪙${cost}`
-            : "Clear a stage first to unlock.",
-          { fontSize: "11px", color: "#aab8cc" },
-        ),
-      );
-      this.button(
-        PANEL_X + PANEL_W - 14,
-        y + h / 2,
-        cleared ? `Play 🪙${cost}` : "Play",
-        "#3a6a9a",
-        canPay,
-        () => {
-          if (!cleared) return;
-          const paid = this.mgr.payEndlessEntry(cleared.id);
-          if (paid < 0) {
-            this.showToast(`Need 🪙${cost} gold to enter`);
-            return;
-          }
-          this.launch(cleared.id, "Nightmare", { kind: "endless" });
-        },
-      );
-      y += h + 8;
-    }
-
-    // F12 Boss Rush (weekly).
-    {
-      const h = 56;
-      const tier = this.mgr.bestBossRushTier();
-      this.panel(y, h, 0x2c3a4f);
-      this.layer.add(
-        crispText(this, PANEL_X + 14, y + 8, "👹 Boss Rush — Weekly", {
-          fontSize: "14px",
-          color: "#ffe9b0",
-          fontStyle: "bold",
-        }),
-      );
-      this.layer.add(
-        crispText(
-          this,
-          PANEL_X + 14,
-          y + 28,
-          cleared
-            ? `Push as deep as you can. Best tier this week: ${tier}.`
-            : "Clear a stage first to unlock.",
-          { fontSize: "11px", color: "#aab8cc" },
-        ),
-      );
-      this.button(
-        PANEL_X + PANEL_W - 14,
-        y + h / 2,
-        "Play",
-        "#8a3a3a",
-        !!cleared,
-        () =>
-          cleared && this.launch(cleared.id, "Nightmare", { kind: "bossrush", endlessMul: 1.5 }),
-      );
-      y += h + 8;
-    }
-    return y + 6;
-  }
-
-  private drawBounties(y: number): number {
-    const save = this.mgr.getSave();
-    this.layer.add(
-      crispText(this, PANEL_X + 4, y, "Weekly Bounties", {
-        fontSize: "15px",
-        color: "#ffd56a",
-        fontStyle: "bold",
-      }),
-    );
-    y += 24;
-    for (const def of WEEKLY_BOUNTIES) {
-      const prog = getBountyProgress(save, def.id);
-      const claimable = isBountyClaimable(save, def.id);
-      const claimed = save.meta.bounties.claimed.includes(def.id);
-      const h = 52;
-      this.panel(y, h, claimed ? 0x3a6b4a : 0x2c3a4f, claimable);
-      this.layer.add(
-        crispText(this, PANEL_X + 14, y + 8, def.label, {
-          fontSize: "14px",
-          color: claimed ? "#8fc7a0" : "#ffe9b0",
-          fontStyle: "bold",
-        }),
-      );
-      this.layer.add(
-        crispText(
-          this,
-          PANEL_X + 14,
-          y + 28,
-          `${def.description}   (${Math.min(prog, def.target)}/${def.target})  →  ${rewardLabel(def.reward)}`,
-          { fontSize: "11px", color: "#aab8cc" },
-        ),
-      );
-      this.button(
-        PANEL_X + PANEL_W - 14,
-        y + h / 2,
-        claimed ? "✓" : "Claim",
-        "#1f8f43",
-        claimable,
-        () => {
-          if (this.mgr.claimBounty(def.id)) {
-            this.celebrate(y + h / 2, rewardEmojis(def.reward), rewardLabel(def.reward), 0x6fe08a);
-            this.showToast(`Bounty: ${rewardLabel(def.reward)}`);
-            this.redraw();
-          }
-        },
-      );
-      y += h + 8;
-    }
-    return y + 6;
-  }
-
-  private drawMilestones(y: number): number {
-    const save = this.mgr.getSave();
-    this.layer.add(
-      crispText(this, PANEL_X + 4, y, "Milestones", {
-        fontSize: "15px",
-        color: "#ffd56a",
-        fontStyle: "bold",
-      }),
-    );
-    y += 24;
-    for (const def of MILESTONES) {
-      const tierIdx = claimedTier(save, def.id);
-      const value = metricValue(save, def.metric);
-      const nextTier = def.tiers[Math.min(tierIdx, def.tiers.length - 1)];
-      const claimable = nextClaimableTier(save, def.id) > 0;
-      const maxed = tierIdx >= def.tiers.length;
-      const h = 52;
-      this.panel(y, h, maxed ? 0x3a6b4a : 0x2c3a4f, claimable);
-      this.layer.add(
-        crispText(
-          this,
-          PANEL_X + 14,
-          y + 8,
-          `${def.name}  ${"★".repeat(tierIdx)}${"☆".repeat(def.tiers.length - tierIdx)}`,
-          { fontSize: "14px", color: maxed ? "#8fc7a0" : "#ffe9b0", fontStyle: "bold" },
-        ),
-      );
-      const goalTxt = maxed
-        ? "Fully complete!"
-        : `${def.description}  (${value}/${nextTier.target})  →  ${rewardLabel(nextTier.reward)}${nextTier.title ? `  ·  Title "${nextTier.title}"` : ""}`;
-      this.layer.add(
-        crispText(this, PANEL_X + 14, y + 28, goalTxt, {
-          fontSize: "11px",
-          color: "#aab8cc",
-          wordWrap: { width: PANEL_W - 120 },
-        }),
-      );
-      this.button(
-        PANEL_X + PANEL_W - 14,
-        y + h / 2,
-        maxed ? "✓" : "Claim",
-        "#1f8f43",
-        claimable,
-        () => {
-          const r = this.mgr.claimMilestone(def.id);
-          if (r) {
-            this.celebrate(y + h / 2, ["⭐", "✨", ...rewardEmojis(r)], rewardLabel(r), 0xffd24d);
-            this.showToast(`Milestone: ${rewardLabel(r)}`);
-            this.redraw();
-          }
-        },
-      );
-      y += h + 8;
-    }
-    return y + 6;
   }
 
   private showToast(msg: string): void {

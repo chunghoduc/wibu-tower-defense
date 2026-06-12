@@ -4,7 +4,7 @@
 // a skill's impact signature. Each kind animates the cast travelling from its origin
 // (caster, sky, or ground) to the impact point, then calls onArrive() to fire the
 // per-skill impact set-piece. Pure presentation, built on the shared VfxDraw kit.
-import { VfxDraw, type V } from "./vfxDraw.ts";
+import { type VfxDraw, type V } from "./vfxDraw.ts";
 import type { DeliveryKind } from "../data/skillVfxMeta.ts";
 
 type Palette = { core: number; hot: number; deep: number };

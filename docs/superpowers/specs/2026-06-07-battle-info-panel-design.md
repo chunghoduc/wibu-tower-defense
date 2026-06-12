@@ -43,10 +43,8 @@ tower's screen position so they stay crisp. (Replaces the old world-space panel.
     the upgrade button) each frame; no per-frame object churn.
   - Owns Phaser objects parented to the UI layer; never reads battle state directly
     — the scene builds the view model and passes callbacks (onUpgrade/onSell).
-  - View models:
-    - `HeroPanelVM { name, level, hp, maxHp, mana, maxMana, stats[{label,value}],
-items[{slot,iconKey,name,plus}], skill{name,desc}|null }`
-    - `TowerPanelVM { name, iconKey, stars, hp, maxHp, mana, maxMana,
+  - View models: - `HeroPanelVM { name, level, hp, maxHp, mana, maxMana, stats[{label,value}],
+items[{slot,iconKey,name,plus}], skill{name,desc}|null }` - `TowerPanelVM { name, iconKey, stars, hp, maxHp, mana, maxMana,
 stats[{label,value}], skills[{label,desc,color}], upgradeCost, sellValue,
 maxed }`
 - **BattleScene changes:**

@@ -3,7 +3,7 @@
  * scene's right-hand info panel. Pure presentation: given a scene, a target
  * container, a layout box, and the data, it appends text/image game objects.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import type { CharacterDef, Rarity, Stats } from "../data/schema.ts";
 import { ITEM_SLOTS } from "../data/schema.ts";

@@ -483,38 +483,5 @@ export const TOWERS_C: CharacterDef[] = [
       manaOnHit: 15,
     }),
   }),
-  // ===================== MAGIC IMPLEMENT — orb =====================
-  t({
-    id: "aquella-the-radiant",
-    name: "Aquella the Radiant", // homage: Aqua (KonoSuba) — the (self-proclaimed) goddess
-    rarity: "Unique",
-    role: "support",
-    target: "Both",
-    cost: 215,
-    description:
-      "A dazzling, deeply unserious water-goddess whose floating orb pours blessing over the whole battle line — astonishingly powerful when she stops complaining long enough to use it.",
-    meta: {
-      homage: "A dazzling, deeply unserious self-proclaimed water-goddess of support",
-      outfit:
-        "A blue-and-white goddess's dress with detached sleeves and a water-ring halo, a glowing scrying orb afloat at her hand",
-      weapon: {
-        family: "orb",
-        element: "holy",
-        display: "A floating scrying orb that haloes allies in sacred light",
-      },
-    },
-    passives: ["benediction", "goddess-favor", "purify"],
-    active: "sacred-renewal",
-    behavior: { buffAura: { radius: 185, atkPct: 0.25, attackSpeedPct: 0.18 } },
-    baseStats: makeStats({
-      atk: 14,
-      attackSpeed: 0.75,
-      range: 190,
-      critRate: 0.1,
-      critDamage: 1.5,
-      skillPower: 2.2,
-      maxHp: 270,
-      manaOnHit: 0,
-    }),
-  }),
+  // The MAGIC IMPLEMENT (orb) entry continues in towersD.ts (TOWERS_C2).
 ];

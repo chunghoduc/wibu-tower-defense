@@ -23,5 +23,5 @@ const rows = ITEM_CATALOG.filter((d) => d.appearance).map((d) => ({
 }));
 
 writeFileSync(OUT, JSON.stringify(rows, null, 2) + "\n");
-// eslint-disable-next-line no-console
+
 console.log(`wrote ${rows.length} item visuals → ${OUT} (of ${ITEM_CATALOG.length} catalog items)`);

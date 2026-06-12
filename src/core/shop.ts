@@ -7,7 +7,7 @@ import { ITEM_CATALOG, ITEM_CATALOG_MAP, rollItem, itemValue } from "../data/ite
 import { toItemInstanceSave } from "./itemDrop.ts";
 import { SUMMON_SCROLL } from "../data/materials.ts";
 import { SINGLE_PULL_COST } from "./gacha.ts";
-import { Rng } from "./rng.ts";
+import { type Rng } from "./rng.ts";
 import type { HeroSave, ShopStockEntry } from "./save.ts";
 
 export const SHOP_SIZE = 8;

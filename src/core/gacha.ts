@@ -1,7 +1,7 @@
 import type { Rarity } from "../data/schema.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection, isTowerMaxStar } from "./collection.ts";
-import { Rng } from "./rng.ts";
+import { type Rng } from "./rng.ts";
 import type { HeroSave } from "./save.ts";
 import { incrementBountyEvent } from "./bounties.ts";
 import { isoWeekKey } from "./meta.ts";

@@ -27,7 +27,7 @@ interface Entry {
 function initFile(mode: string): void {
   mkdirSync(LOG_DIR, { recursive: true });
   writeFileSync(LOG_FILE, `==== ${mode} session started ${new Date().toISOString()} ====\n`);
-  // eslint-disable-next-line no-console
+
   console.log(`[file-log] writing runtime logs to ${LOG_FILE}`);
 }
 

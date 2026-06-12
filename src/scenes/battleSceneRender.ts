@@ -9,11 +9,29 @@ import type { CharacterDef, ItemSlot } from "../data/schema.ts";
 import { ELITE_SIZE_MULT } from "../core/elite.ts";
 import { totalXpForLevel } from "../core/hero.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
+import { WORLD_WIDTH, WORLD_HEIGHT, stageNumber } from "../data/stage.ts";
+import { bgKey } from "../data/bgManifest.ts";
+import { buildEndlessBackdrop } from "../core/endlessBackdrop.ts";
+import { EndlessBackdropFx } from "./endlessBackdropFx.ts";
+import { terrainKeyFor } from "../data/terrainManifest.ts";
+import { stageThemeForStage } from "../data/chapters.ts";
+import { stageBgKey } from "../data/uiManifest.ts";
 import { crispText } from "./ui.ts";
-import { ROLE_COLOR, KIND_COLOR, towerKind, starPoints } from "./battleSceneHelpers.ts";
+import {
+  ROLE_COLOR,
+  KIND_COLOR,
+  TERRAIN_COLOR,
+  towerKind,
+  starPoints,
+} from "./battleSceneHelpers.ts";
 import { auraRadiusOf, auraPulse, AURA_RING_COLOR } from "../core/auraIndicator.ts";
 import { roleBadgeTex } from "./roleBadge.ts";
+import { CASTLE_TEX } from "../data/assetKeys.ts";
+import { castleArtState, castleTexForState } from "./castleArt.ts";
 import type { BattleScene } from "./BattleScene.ts";
+
+/** In-world width the castle sprite renders at — reads as a fortress, not a tile. */
+const CASTLE_TARGET_W = 110;
 
 export const renderMethods = {
   draw(this: BattleScene): void {
@@ -400,6 +418,137 @@ export const renderMethods = {
       const equipped = save.inventory.equipped[slot];
       g.fillStyle(equipped ? 0xffcc44 : 0x444444, 1).fillCircle(12 + idx * 14, 130, 4);
     });
+  },
+
+  drawStatic(this: BattleScene): void {
+    const g = this.staticGfx;
+    g.clear();
+    this.terrainSprites.forEach((s) => s.destroy());
+    this.terrainSprites = [];
+    // Chapter backdrop (T2): a painted battlefield background per chapter theme,
+    // with a subtle dark veil over it for unit contrast. Falls back to a flat
+    // ground tint if the image failed to load.
+    const theme = stageThemeForStage(this.stage.id);
+    // Prefer the design team's hand-painted per-stage backdrop; fall back to the
+    // per-chapter SDXL backdrop, then a flat ground tint.
+    const stageBg = stageBgKey(this.stage.id);
+    const endlessBg = bgKey("endless-siege");
+    const bgKeyToUse =
+      this.stage.arena && this.textures.exists(endlessBg)
+        ? endlessBg
+        : this.textures.exists(stageBg)
+          ? stageBg
+          : this.textures.exists(theme.bgKey)
+            ? theme.bgKey
+            : null;
+    if (bgKeyToUse) {
+      const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
+      bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
+      this.world.add(bg);
+      this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
+      // Lighter veil for painted art; lighter still for endless (vignette darkens it).
+      const veil = bgKeyToUse === endlessBg ? 0.12 : bgKeyToUse === stageBg ? 0.22 : 0.4;
+      g.fillStyle(theme.groundOverlay, veil).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    } else {
+      g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    }
+    // Endless: build the animated siege-atmosphere layer over the base, centered on
+    // the arena castle (same stage-number seed as the maze). Rebuilt each drawStatic.
+    this.endlessBackdropFx?.destroy();
+    this.endlessBackdropFx = null;
+    if (this.stage.arena) {
+      const seed = stageNumber(this.stage.id) || 1;
+      const spec = buildEndlessBackdrop(
+        this.stage.arena,
+        { width: WORLD_WIDTH, height: WORLD_HEIGHT },
+        seed,
+      );
+      this.endlessBackdropFx = new EndlessBackdropFx(this, spec, this.world);
+    }
+    // terrain features (T13): SVG art authored by the svg-asset-gen skill, drawn
+    // as images above the ground but below units (depth 1). Falls back to a
+    // tinted blob if a texture failed to load so the map is never blank.
+    for (const f of this.stage.terrain ?? []) {
+      const key = terrainKeyFor(f.type, f.x, f.y);
+      if (this.textures.exists(key)) {
+        // The art's silhouette fills ~0.45 of the 128px box; scale so the blob's
+        // radius ≈ the feature radius (a touch of overhang reads as organic).
+        const img = this.add
+          .image(f.x, f.y, key)
+          .setDisplaySize(f.r * 2.6, f.r * 2.6)
+          .setDepth(1);
+        if (theme.terrainTint !== 0xffffff) img.setTint(theme.terrainTint); // match the biome
+        if (!f.blocks) img.setAlpha(0.92); // decor sits a hair lighter than obstacles
+        this.world.add(img);
+        this.terrainSprites.push(img);
+        continue;
+      }
+      const col = TERRAIN_COLOR[f.type];
+      g.fillStyle(col, f.blocks ? 0.95 : 0.5).fillCircle(f.x, f.y, f.r);
+      g.lineStyle(
+        2,
+        Phaser.Display.Color.IntegerToColor(col).darken(30).color,
+        f.blocks ? 0.9 : 0.4,
+      ).strokeCircle(f.x, f.y, f.r);
+      if (f.type === "mountain") {
+        g.fillStyle(0xe8eef4, 0.5).fillTriangle(
+          f.x - f.r * 0.4,
+          f.y + f.r * 0.2,
+          f.x,
+          f.y - f.r * 0.5,
+          f.x + f.r * 0.4,
+          f.y + f.r * 0.2,
+        );
+      }
+    }
+    // roads: the single campaign lane, or every corridor of the maze arena.
+    const roads = this.stage.arena ? this.stage.arena.routes : [this.stage.path];
+    g.lineStyle(36, 0x3a4458, 1);
+    for (const road of roads) {
+      if (road.length < 2) continue;
+      g.beginPath();
+      g.moveTo(road[0].x, road[0].y);
+      for (let i = 1; i < road.length; i++) g.lineTo(road[i].x, road[i].y);
+      g.strokePath();
+    }
+    // arena gates: red mouths where each siege column enters the map.
+    if (this.stage.arena) {
+      g.fillStyle(0x7a2a2a, 1);
+      g.lineStyle(2, 0xd06060, 1);
+      for (const gp of this.stage.arena.gates) {
+        const x = Math.max(10, Math.min(WORLD_WIDTH - 10, gp.x));
+        const y = Math.max(10, Math.min(WORLD_HEIGHT - 10, gp.y));
+        g.fillCircle(x, y, 13);
+        g.strokeCircle(x, y, 13);
+      }
+    }
+    // castle — an SDXL fortress sprite that swaps to battle-damaged art at low
+    // HP; the legacy rectangle is the fallback when the texture is missing
+    // (pre-generation / GPU-less env).
+    const c = this.battle.castlePos;
+    this.castleSprite?.destroy();
+    this.castleSprite = undefined;
+    if (this.textures.exists(CASTLE_TEX)) {
+      this.castleArtStateNow = castleArtState(this.battle.castleHp, this.battle.castleMax);
+      const img = this.add.image(c.x, c.y, castleTexForState(this.castleArtStateNow)).setDepth(4);
+      img.setScale(CASTLE_TARGET_W / img.width);
+      this.world.add(img);
+      this.castleSprite = img;
+    } else {
+      g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 24, c.y - 24, 48, 48);
+      g.lineStyle(3, 0x9ab0e0, 1).strokeRect(c.x - 24, c.y - 24, 48, 48);
+    }
+  },
+
+  /** Keep the castle art in sync with its HP (intact ↔ damaged). */
+  syncCastleArt(this: BattleScene): void {
+    const img = this.castleSprite;
+    if (!img) return;
+    const state = castleArtState(this.battle.castleHp, this.battle.castleMax);
+    if (state === this.castleArtStateNow) return;
+    this.castleArtStateNow = state;
+    img.setTexture(castleTexForState(state));
+    img.setScale(CASTLE_TARGET_W / img.width);
   },
 };
 

@@ -3,7 +3,7 @@
 // sell). The pure category taxonomy (slotInCategory / ItemCategory) lives in
 // itemCategory.ts so it stays unit-testable; this file only builds the Phaser
 // chips and re-exports the taxonomy for the scenes that consume both together.
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { CATS, type ItemCategory } from "./itemCategory.ts";
 

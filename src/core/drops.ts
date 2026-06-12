@@ -4,7 +4,7 @@ import { rollJewelDrop } from "./jewelDrop.ts";
 import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection } from "./collection.ts";
-import { Rng } from "./rng.ts";
+import { type Rng } from "./rng.ts";
 import {
   BLESS_JEWEL,
   SOUL_JEWEL,

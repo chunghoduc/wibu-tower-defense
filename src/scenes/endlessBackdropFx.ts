@@ -6,7 +6,7 @@
  * and units. Pure geometry comes from core/endlessBackdrop.ts. Built only for
  * endless arenas, so campaign battles never construct it.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { EndlessBackdropSpec, Scar } from "../core/endlessBackdrop.ts";
 import { emberPos } from "../core/endlessBackdrop.ts";
 

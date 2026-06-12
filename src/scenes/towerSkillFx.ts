@@ -5,7 +5,7 @@
 // set-piece (rings / links / strikes / shards / pillars / orb) that reads as the
 // skill's MECHANIC, layered UNDER the elemental substance particles in
 // SkillVfx.cast. Built on the shared VfxDraw kit; pure presentation, no assets.
-import { VfxDraw, type V } from "./vfxDraw.ts";
+import { type VfxDraw, type V } from "./vfxDraw.ts";
 import type { SkillShape } from "../data/attackStyle.ts";
 
 type Palette = { core: number; hot: number; deep: number };

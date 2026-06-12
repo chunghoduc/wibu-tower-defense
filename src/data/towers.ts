@@ -18,6 +18,7 @@ import { makeStats, type CharacterDef } from "./schema.ts";
 import { t } from "./towerBuilder.ts";
 import { TOWERS_B } from "./towersB.ts";
 import { TOWERS_C } from "./towersC.ts";
+import { TOWERS_A2, TOWERS_B2, TOWERS_C2 } from "./towersD.ts";
 
 const TOWERS_A: CharacterDef[] = [
   // ============================ DAMAGE ============================
@@ -481,75 +482,15 @@ const TOWERS_A: CharacterDef[] = [
       manaOnHit: 14,
     }),
   }),
-  t({
-    id: "kilo-lightning-hand",
-    name: "Kilo the Lightning Hand", // homage: Killua Zoldyck (Hunter x Hunter)
-    rarity: "Legendary",
-    role: "chain",
-    target: "Both",
-    cost: 155,
-    description:
-      "A former assassin prodigy who cloaks himself in lightning and moves faster than thought, striking a dozen foes in a heartbeat.",
-    meta: {
-      homage: "Killua Zoldyck (Hunter x Hunter)",
-      outfit:
-        "A simple turtleneck and shorts, spiky silver-white hair, lightning crawling over bare skin",
-      weapon: {
-        family: "fist",
-        element: "lightning",
-        enchanted: true,
-        display: "Bare hands cloaked in crackling lightning",
-      },
-    },
-    passives: ["godspeed", "whirlwind", "assassin-instinct"],
-    active: "thunderbolt",
-    behavior: { chainTargets: 5, chainFalloff: 0.74 },
-    baseStats: makeStats({
-      atk: 38,
-      attackSpeed: 1.3,
-      range: 150,
-      critRate: 0.25,
-      magicPen: 0.35,
-      skillPower: 1.5,
-      maxHp: 170,
-      manaOnHit: 15,
-    }),
-  }),
-  t({
-    id: "sasu-stormblade",
-    name: "Sasu the Stormblade", // homage: Sasuke Uchiha (Naruto)
-    rarity: "Unique",
-    role: "chain",
-    target: "Both",
-    cost: 205,
-    description:
-      "A brooding clan-last prodigy who calls down a dragon of lightning to leap between every enemy on the field. Power chased at a terrible price.",
-    meta: {
-      homage: "Sasuke Uchiha (Naruto)",
-      outfit:
-        "A dark high-collared cloak bearing a clan crest, black hair, one arm wrapped in storm-light",
-      weapon: {
-        family: "sword",
-        element: "lightning",
-        enchanted: true,
-        display: "A lightning-charged chokuto that calls down a dragon of thunder",
-      },
-    },
-    passives: ["sharingan", "chidori-stream", "vengeance"],
-    active: "kirin",
-    behavior: { chainTargets: 6, chainFalloff: 0.8, activeType: "True" }, // the descending lightning spares nothing
-    baseStats: makeStats({
-      atk: 46,
-      attackSpeed: 1.2,
-      range: 165,
-      critRate: 0.3,
-      critDamage: 1.9,
-      magicPen: 0.4,
-      skillPower: 1.7,
-      maxHp: 200,
-      manaOnHit: 16,
-    }),
-  }),
 ];
 
-export const TOWERS: CharacterDef[] = [...TOWERS_A, ...TOWERS_B, ...TOWERS_C];
+// Each batch's overflow tail (towersD.ts) is spliced back in place so the
+// merged roster keeps the exact original content and order.
+export const TOWERS: CharacterDef[] = [
+  ...TOWERS_A,
+  ...TOWERS_A2,
+  ...TOWERS_B,
+  ...TOWERS_B2,
+  ...TOWERS_C,
+  ...TOWERS_C2,
+];

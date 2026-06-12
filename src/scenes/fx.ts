@@ -11,6 +11,7 @@ import { makeCrisp } from "./ui.ts";
 import { SkillVfx } from "./skillVfx.ts";
 import { MeleeFx } from "./meleeFx.ts";
 import { ImpactFx } from "./impactFx.ts";
+import { ProjectileFx } from "./projectileFx.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { tierOfBox } from "../core/boxes.ts";
 import { LootFlyFx } from "./lootFlyFx.ts";
@@ -38,6 +39,8 @@ export class FxLayer {
   private readonly melee: MeleeFx;
   /** Per-element projectile contact VFX (fire/ice/shock/arcane/poison/…). */
   private readonly impact: ImpactFx;
+  /** Ranged-attack travel VFX (tracers / arrows / orbs / bolts / hit sparks). */
+  private readonly proj: ProjectileFx;
   /** Loot-magnet VFX: dropped rewards fly from the kill into the hero. */
   private readonly lootFly: LootFlyFx;
   /** Bespoke per-skill boss cast set-pieces (quake/rally/barrier/summon-surge). */
@@ -65,6 +68,7 @@ export class FxLayer {
     this.skillVfx = new SkillVfx(scene, this.fac, this.depth);
     this.melee = new MeleeFx(scene, this.fac, this.depth);
     this.impact = new ImpactFx(scene, this.fac, this.depth);
+    this.proj = new ProjectileFx(scene, this.fac, this.depth, this.impact);
     this.lootFly = new LootFlyFx(scene, this.fac, this.depth);
     this.bossFx = new BossSkillFx(scene, this.fac, this.depth);
   }
@@ -75,7 +79,7 @@ export class FxLayer {
         this.attackFx(e.style, e.from, e.to, e.ranged, e.crit, DMG_COLOR[e.damageType], e.role);
         break;
       case "hit":
-        this.spark(e.at, DMG_COLOR[e.damageType]);
+        this.proj.spark(e.at, DMG_COLOR[e.damageType]);
         this.damageNumber(e.at, Math.round(e.amount), DMG_NUM_COLOR[e.damageType], e.aoe);
         break;
       case "cast":
@@ -85,7 +89,7 @@ export class FxLayer {
         this.ring(e.at, e.radius, DMG_COLOR[e.damageType], 320);
         break;
       case "chain":
-        this.bolt(e.from, e.to, 0x9fe6ff);
+        this.proj.bolt(e.from, e.to, 0x9fe6ff);
         break;
       case "death":
         this.deathBurst(e.at, e.boss, e.elite);
@@ -242,7 +246,7 @@ export class FxLayer {
   ): void {
     switch (style) {
       case "lightning":
-        this.bolt(from, to, 0x9fe6ff);
+        this.proj.bolt(from, to, 0x9fe6ff);
         this.impact.shock(to);
         return;
       case "slash":
@@ -261,197 +265,40 @@ export class FxLayer {
         this.melee.punch(from, to, crit ? 0xffe07a : dmgColor, crit);
         return;
       case "gunshot":
-        this.gunshot(from, to, crit ? 0xfff2a8 : 0xffe39a);
+        this.proj.gunshot(from, to, crit ? 0xfff2a8 : 0xffe39a);
         return;
       case "arrow":
-        this.arrow(from, to, 0xe8d9a0);
+        this.proj.arrow(from, to, 0xe8d9a0);
         return;
       case "fireball":
-        this.orb(from, to, 0xff6a2a, 5.5, 0xffd24d, "round", (at) => this.impact.fire(at));
+        this.proj.orb(from, to, 0xff6a2a, 5.5, 0xffd24d, "round", (at) => this.impact.fire(at));
         return;
       case "iceball":
-        this.orb(from, to, 0x6fc6ff, 5, 0xe1f5ff, "diamond", (at) => this.impact.ice(at));
+        this.proj.orb(from, to, 0x6fc6ff, 5, 0xe1f5ff, "diamond", (at) => this.impact.ice(at));
         return;
       case "arcane":
-        this.orb(from, to, 0xc77dde, 5, 0xeec6ff, "round", (at) => this.impact.arcane(at));
+        this.proj.orb(from, to, 0xc77dde, 5, 0xeec6ff, "round", (at) => this.impact.arcane(at));
         return;
       case "poison":
-        this.orb(from, to, 0x8bc34a, 5, 0xd3ec9e, "round", (at) => this.impact.poison(at));
+        this.proj.orb(from, to, 0x8bc34a, 5, 0xd3ec9e, "round", (at) => this.impact.poison(at));
         return;
       case "holy":
-        this.orb(from, to, 0xffe98a, 4.5, 0xffffff, "round", (at) => this.impact.holy(at));
+        this.proj.orb(from, to, 0xffe98a, 4.5, 0xffffff, "round", (at) => this.impact.holy(at));
         return;
       case "cannon": {
         const ang = Math.atan2(to.y - from.y, to.x - from.x);
-        this.orb(from, to, 0x4a4f5a, 7, 0x9aa0ac, "round", (at) => this.impact.cannon(at, ang));
+        this.proj.orb(from, to, 0x4a4f5a, 7, 0x9aa0ac, "round", (at) =>
+          this.impact.cannon(at, ang),
+        );
         return;
       }
       default:
-        if (ranged) this.projectile(from, to, dmgColor, role);
+        if (ranged) this.proj.projectile(from, to, dmgColor, role);
         else this.melee.slash(from, to, crit ? 0xffe07a : dmgColor, crit);
     }
   }
 
-  /** A gunshot — a fast, dead-straight bullet tracer with a muzzle flash at the
-   *  barrel and a bright spark on impact. Snappier than the lobbed arrow/orb. */
-  private gunshot(from: Vec2, to: Vec2, color: number): void {
-    const ang = Math.atan2(to.y - from.y, to.x - from.x);
-    const mx = from.x + Math.cos(ang) * 10,
-      my = from.y + Math.sin(ang) * 10;
-    const flash = this.fac.circle(mx, my, 4, 0xfff4c2, 0.95).setDepth(this.depth + 1);
-    this.scene.tweens.add({
-      targets: flash,
-      scale: 0.2,
-      alpha: 0,
-      duration: 90,
-      onComplete: () => flash.destroy(),
-    });
-    const tracer = this.fac
-      .rectangle(mx, my, 16, 2, color)
-      .setRotation(ang)
-      .setOrigin(0, 0.5)
-      .setDepth(this.depth);
-    const dur = Math.min(
-      140,
-      30 +
-        Phaser.Math.Distance.BetweenPoints(
-          from as Phaser.Types.Math.Vector2Like,
-          to as Phaser.Types.Math.Vector2Like,
-        ) *
-          0.5,
-    );
-    this.scene.tweens.add({
-      targets: tracer,
-      x: to.x,
-      y: to.y,
-      duration: dur,
-      ease: "Quad.easeIn",
-      onComplete: () => {
-        this.impact.bullet(to, color);
-        tracer.destroy();
-      },
-    });
-  }
-
-  /** An arrow — a thin streak that flies to the target and sticks briefly. */
-  private arrow(from: Vec2, to: Vec2, color: number): void {
-    const ang = Math.atan2(to.y - from.y, to.x - from.x);
-    const shaft = this.fac
-      .rectangle(from.x, from.y, 14, 2.5, color)
-      .setRotation(ang)
-      .setOrigin(0.5)
-      .setDepth(this.depth);
-    shaft.setStrokeStyle(1, 0x2a2118, 0.6);
-    const dur = Math.min(
-      240,
-      50 +
-        Phaser.Math.Distance.BetweenPoints(
-          from as Phaser.Types.Math.Vector2Like,
-          to as Phaser.Types.Math.Vector2Like,
-        ) *
-          0.85,
-    );
-    this.scene.tweens.add({
-      targets: shaft,
-      x: to.x,
-      y: to.y,
-      duration: dur,
-      ease: "Sine.easeIn",
-      onComplete: () => {
-        this.impact.pierce(to, ang);
-        shaft.destroy();
-      },
-    });
-  }
-
-  /** A magic orb (round or diamond) that flies to the target with a glow + a
-   *  colored impact burst. Used for fireball/iceball/arcane/poison/holy/cannon. */
-  private orb(
-    from: Vec2,
-    to: Vec2,
-    color: number,
-    r: number,
-    core: number,
-    shape: "round" | "diamond",
-    onImpact: (to: Vec2) => void,
-  ): void {
-    const body =
-      shape === "diamond"
-        ? this.fac.star(from.x, from.y, 4, r * 0.5, r, color).setDepth(this.depth)
-        : this.fac.circle(from.x, from.y, r, color).setDepth(this.depth);
-    if (shape === "round") body.setStrokeStyle(1.5, core, 0.7);
-    const glow = this.fac.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
-    const dur = Math.min(
-      260,
-      60 +
-        Phaser.Math.Distance.BetweenPoints(
-          from as Phaser.Types.Math.Vector2Like,
-          to as Phaser.Types.Math.Vector2Like,
-        ) *
-          0.9,
-    );
-    this.scene.tweens.add({
-      targets: [body, glow],
-      x: to.x,
-      y: to.y,
-      duration: dur,
-      ease: "Sine.easeIn",
-      onComplete: () => {
-        body.destroy();
-        glow.destroy();
-        onImpact(to);
-      },
-    });
-  }
-
   // ---- primitives ----------------------------------------------------------
-
-  private projectile(from: Vec2, to: Vec2, color: number, role: string): void {
-    const isMagic = role === "dot" || role === "debuff" || role === "support";
-    const r = isMagic ? 5 : 4;
-    const dot = this.fac.circle(from.x, from.y, r, color).setDepth(this.depth);
-    dot.setStrokeStyle(2, 0xffffff, 0.5);
-    const glow = this.fac.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
-    const dur = Math.min(
-      260,
-      60 +
-        Phaser.Math.Distance.BetweenPoints(
-          from as Phaser.Types.Math.Vector2Like,
-          to as Phaser.Types.Math.Vector2Like,
-        ) *
-          0.9,
-    );
-    this.scene.tweens.add({
-      targets: [dot, glow],
-      x: to.x,
-      y: to.y,
-      duration: dur,
-      ease: "Sine.easeIn",
-      onComplete: () => {
-        glow.destroy();
-        this.spark(to, color);
-        dot.destroy();
-      },
-    });
-  }
-
-  private spark(at: Vec2, color: number): void {
-    const n = 5;
-    for (let i = 0; i < n; i++) {
-      const a = (Math.PI * 2 * i) / n + Math.random() * 0.6;
-      const p = this.fac.circle(at.x, at.y, 2, color).setDepth(this.depth);
-      this.scene.tweens.add({
-        targets: p,
-        x: at.x + Math.cos(a) * 14,
-        y: at.y + Math.sin(a) * 14,
-        alpha: 0,
-        scale: 0.3,
-        duration: 220,
-        ease: "Quad.easeOut",
-        onComplete: () => p.destroy(),
-      });
-    }
-  }
 
   private damageNumber(at: Vec2, amount: number, color: string, big: boolean): void {
     if (amount <= 0) return;
@@ -546,22 +393,6 @@ export class FxLayer {
         onComplete: () => p.destroy(),
       });
     }
-  }
-
-  private bolt(from: Vec2, to: Vec2, color: number): void {
-    const g = this.fac.graphics().setDepth(this.depth + 1);
-    g.lineStyle(2, color, 0.95);
-    g.beginPath();
-    g.moveTo(from.x, from.y);
-    const steps = 4;
-    for (let i = 1; i <= steps; i++) {
-      const t = i / steps;
-      const jx = i < steps ? Phaser.Math.Between(-6, 6) : 0;
-      const jy = i < steps ? Phaser.Math.Between(-6, 6) : 0;
-      g.lineTo(from.x + (to.x - from.x) * t + jx, from.y + (to.y - from.y) * t + jy);
-    }
-    g.strokePath();
-    this.scene.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
   }
 
   private deathBurst(at: Vec2, boss: boolean, elite = false): void {

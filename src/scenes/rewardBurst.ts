@@ -10,7 +10,7 @@
  * The codebase has no particle system; this stays in the established tween +
  * graphics + crispText idiom so it matches every other animation in the game.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import type { Reward } from "../core/rewards.ts";
 

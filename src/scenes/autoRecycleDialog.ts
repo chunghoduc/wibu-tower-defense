@@ -4,7 +4,7 @@
  * (confirm) and the live count/chaos source (preview); this module owns only the
  * toggle UI + preview rendering. Visual language mirrors ShopScene.openRecycle.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { AUTO_SMELT_RARITIES, type BulkSmeltPreview } from "../core/smelt.ts";
 import type { Rarity } from "../data/schema.ts";
@@ -84,7 +84,22 @@ export function openAutoRecycleDialog(
   const totalW = AUTO_SMELT_RARITIES.length * chipW + (AUTO_SMELT_RARITIES.length - 1) * gap;
   let cx = (W - totalW) / 2;
   const chipY = by + 70;
-  let smeltBtn!: Phaser.GameObjects.Text;
+  const smeltBtn = crispText(scene, W / 2, by + 162, "🔨 Smelt All", {
+    fontSize: "14px",
+    color: "#fff",
+    backgroundColor: "#7a3a5a",
+    fixedWidth: bw - 72,
+    align: "center",
+  })
+    .setOrigin(0.5, 0)
+    .setPadding(0, 9, 0, 9)
+    .setInteractive({ useHandCursor: true });
+  smeltBtn.on("pointerup", () => {
+    const sel = [...selected];
+    if (opts.preview(sel).count <= 0) return; // disabled state — inert
+    opts.confirm(sel);
+  });
+  c.add(smeltBtn);
 
   function render(): void {
     for (const ch of chipObjs) {
@@ -122,23 +137,6 @@ export function openAutoRecycleDialog(
     chipObjs.push({ r, bg, label });
     cx += chipW + gap;
   }
-
-  smeltBtn = crispText(scene, W / 2, by + 162, "🔨 Smelt All", {
-    fontSize: "14px",
-    color: "#fff",
-    backgroundColor: "#7a3a5a",
-    fixedWidth: bw - 72,
-    align: "center",
-  })
-    .setOrigin(0.5, 0)
-    .setPadding(0, 9, 0, 9)
-    .setInteractive({ useHandCursor: true });
-  smeltBtn.on("pointerup", () => {
-    const sel = [...selected];
-    if (opts.preview(sel).count <= 0) return; // disabled state — inert
-    opts.confirm(sel);
-  });
-  c.add(smeltBtn);
 
   const cancel = crispText(scene, W / 2, by + bh - 28, "Cancel", {
     fontSize: "13px",

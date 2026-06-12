@@ -3,7 +3,7 @@
  * equipment paper-doll on the Inventory screen. The pure selection+formatting
  * core lives in `heroStatRows.ts`; this is the Phaser presenter.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import type { HeroSave } from "../core/save.ts";
 import { resolveHeroBattleStats } from "../core/heroStats.ts";

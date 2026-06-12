@@ -1,5 +1,5 @@
 // src/scenes/scrollbar.ts
-import Phaser from "phaser";
+import type Phaser from "phaser";
 
 export interface ScrollbarSpec {
   /** Left edge x of the 6px-wide track. */

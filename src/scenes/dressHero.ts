@@ -5,7 +5,7 @@
 // intentionally skipped: the hero figure is already drawn as an armoured knight,
 // so flat inventory icons pasted on top read as stickers. Used on the main menu
 // so the throne hero visibly wields its weapon, wings and companion.
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import type { InventorySave } from "../core/save.ts";
 import type { ItemSlot } from "../data/schema.ts";

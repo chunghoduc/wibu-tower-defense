@@ -7,7 +7,7 @@
 // in labelFit.ts (tested there); this presenter only draws and places. Width
 // measurement uses a cached canvas context matching the UI font.
 
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText, UI_FONT_FAMILY } from "./ui.ts";
 import { fitLabel, plateLineLayout, type Measure } from "./labelFit.ts";
 

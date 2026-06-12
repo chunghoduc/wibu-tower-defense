@@ -9,25 +9,13 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
 import { renderCompareDialog } from "./itemCompareDialog.ts";
-import {
-  ITEM_SLOTS,
-  equipSlotsFor,
-  type ItemSlot,
-  type Rarity,
-  type ItemDef,
-} from "../data/schema.ts";
+import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type ItemDef } from "../data/schema.ts";
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
 import { renderHeroStats } from "./heroStatsPanel.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
-import {
-  MATERIALS,
-  MATERIALS_MAP,
-  BOX_RARITY_COLOR,
-  boxRarityName,
-  type MaterialKind,
-} from "../data/materials.ts";
+import { MATERIALS, type MaterialKind } from "../data/materials.ts";
 import { renderEnhanceDialog } from "./itemEnhanceDialog.ts";
-import { crispText, panelText } from "./ui.ts";
+import { crispText } from "./ui.ts";
 import { drawScrollbar } from "./scrollbar.ts";
 import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
 import {
@@ -37,25 +25,17 @@ import {
   type CategoryChips,
 } from "./itemFilter.ts";
 import { BoxOpenOverlay } from "./boxOpenOverlay.ts";
-import { boxOddsText } from "../core/boxes.ts";
-import { materialTex, boxTex, itemTex } from "../data/assetKeys.ts";
+import {
+  TILE,
+  makeItemTile,
+  makeMaterialTile,
+  renderTextTooltip,
+  type ItemTileCallbacks,
+  type MaterialTileCallbacks,
+} from "./heroItemTiles.ts";
 
 type InvFilter = "items" | "materials" | "boxes";
 
-const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
 const SLOT_LABEL: Record<ItemSlot, string> = {
   Weapon: "Weapon",
   Helmet: "Helmet",
@@ -68,8 +48,6 @@ const SLOT_LABEL: Record<ItemSlot, string> = {
   Pet: "Pet",
   Wing: "Wing",
 };
-
-const TILE = 52;
 
 export class HeroScene extends Phaser.Scene {
   private mgr!: SaveManager;
@@ -342,7 +320,7 @@ export class HeroScene extends Phaser.Scene {
       const inst = save.inventory.items.find((it) => it.id === instId);
       if (!inst) continue;
       const p = this.slotPos.get(slot)!;
-      this.tiles.add(this.makeTile(inst, p.x, p.y, slot, 40));
+      this.tiles.add(makeItemTile(this, inst, p.x, p.y, slot, this.itemTileCb(), 40));
     }
 
     // Window the inventory list: clamp the scroll offset to what the current
@@ -397,8 +375,27 @@ export class HeroScene extends Phaser.Scene {
   private refreshItems(save: ReturnType<SaveManager["getSave"]>): void {
     this.bagItems(save).forEach((inst, i) => {
       const p = this.gridPos(i);
-      if (p) this.tiles.add(this.makeTile(inst, p.x, p.y, null));
+      if (p) this.tiles.add(makeItemTile(this, inst, p.x, p.y, null, this.itemTileCb()));
     });
+  }
+
+  /** Callbacks the extracted item-tile builder (heroItemTiles.ts) reports through. */
+  private itemTileCb(): ItemTileCallbacks {
+    return {
+      showTooltip: (inst, x, y) => this.showTooltip(inst, x, y),
+      hideTooltip: () => this.hideTooltip(),
+      tapBlocked: () => this.didDrag || this.invDrag.didScroll(),
+      onTap: (inst, fromSlot) => this.openItemAction(inst, fromSlot),
+    };
+  }
+
+  /** Callbacks for the material/box tiles. */
+  private materialTileCb(): MaterialTileCallbacks {
+    return {
+      showTextTooltip: (title, desc, x, y) => this.showTextTooltip(title, desc, x, y),
+      hideTooltip: () => this.hideTooltip(),
+      onOpen: (id) => this.openBoxAction(id),
+    };
   }
 
   private refreshMaterials(save: ReturnType<SaveManager["getSave"]>, kinds: MaterialKind[]): void {
@@ -409,7 +406,8 @@ export class HeroScene extends Phaser.Scene {
       const count = save.materials[m.id] ?? 0;
       if (count <= 0) continue;
       const p = this.gridPos(i++);
-      if (p) this.tiles.add(this.makeMaterialTile(m.id, count, p.x, p.y, isBox));
+      if (p)
+        this.tiles.add(makeMaterialTile(this, m.id, count, p.x, p.y, isBox, this.materialTileCb()));
     }
     if (i === 0) {
       this.tiles.add(
@@ -423,154 +421,6 @@ export class HeroScene extends Phaser.Scene {
         ),
       );
     }
-  }
-
-  /** A draggable item tile centered at (x,y). `size` lets doll slots be smaller. */
-  private makeTile(
-    inst: ItemInstanceSave,
-    x: number,
-    y: number,
-    fromSlot: ItemSlot | null,
-    size = TILE,
-  ): Phaser.GameObjects.Container {
-    const def = ITEM_CATALOG_MAP.get(inst.defId);
-    const rarity = def?.rarity ?? "Common";
-    const c = this.add.container(x, y).setSize(size, size).setDepth(8);
-    const g = this.add.graphics();
-    g.fillStyle(0x1c2636, 1).fillRoundedRect(-size / 2, -size / 2, size, size, 5);
-    g.lineStyle(2, RARITY_INT[rarity], 1).strokeRoundedRect(-size / 2, -size / 2, size, size, 5);
-    c.add(g);
-    const key = itemTex(inst.defId);
-    if (this.textures.exists(key)) {
-      const img = this.add.image(0, -2, key).setOrigin(0.5);
-      img.setScale((size - 12) / img.height);
-      c.add(img);
-    } else {
-      c.add(
-        this.add
-          .text(0, -4, (def?.name ?? "?").slice(0, 6), {
-            fontSize: "8px",
-            color: RARITY_HEX[rarity],
-            align: "center",
-            wordWrap: { width: size - 6 },
-          })
-          .setOrigin(0.5),
-      );
-    }
-    if (size >= TILE) {
-      c.add(
-        this.add
-          .text(
-            0,
-            size / 2 - 8,
-            def?.slot === "Weapon"
-              ? (def.weaponType ?? "")
-              : (def?.slot.replace(/Ring[12]/, "Ring") ?? ""),
-            { fontSize: "7px", color: "#8aa0bb" },
-          )
-          .setOrigin(0.5),
-      );
-    }
-
-    // Enhancement level badge (+N) — top-right (T13).
-    if ((inst.enhanceLevel ?? 0) > 0) {
-      const bg = this.add.graphics();
-      bg.fillStyle(0x1a1206, 0.9).fillCircle(size / 2 - 8, -size / 2 + 8, 9);
-      bg.lineStyle(1.5, 0xffd34d, 1).strokeCircle(size / 2 - 8, -size / 2 + 8, 9);
-      c.add(bg);
-      c.add(
-        crispText(this, size / 2 - 8, -size / 2 + 8, `+${inst.enhanceLevel}`, {
-          fontSize: "10px",
-          color: "#ffe07a",
-          fontStyle: "bold",
-        }).setOrigin(0.5),
-      );
-    }
-
-    c.setData("instanceId", inst.id).setData("fromSlot", fromSlot);
-    c.setInteractive({ useHandCursor: true, draggable: true });
-    // Hover feedback: a bright glow border over the tile + a gentle scale pop.
-    const glow = this.add.graphics().setVisible(false);
-    glow.fillStyle(0xfff0bf, 0.1).fillRoundedRect(-size / 2, -size / 2, size, size, 5);
-    glow.lineStyle(2.5, 0xfff0bf, 0.95).strokeRoundedRect(-size / 2, -size / 2, size, size, 5);
-    c.add(glow);
-    c.on("pointerover", () => {
-      this.showTooltip(inst, x, y);
-      glow.setVisible(true);
-      c.setDepth(30);
-      this.tweens.add({
-        targets: c,
-        scaleX: 1.12,
-        scaleY: 1.12,
-        duration: 90,
-        ease: "Back.easeOut",
-      });
-    });
-    c.on("pointerout", () => {
-      this.hideTooltip();
-      glow.setVisible(false);
-      c.setDepth(8);
-      this.tweens.add({ targets: c, scaleX: 1, scaleY: 1, duration: 120, ease: "Quad.easeOut" });
-    });
-    c.on("pointerup", () => {
-      if (!this.didDrag && !this.invDrag.didScroll()) this.openItemAction(inst, fromSlot);
-    }); // tap = compare-to-replace or enhance
-    return c;
-  }
-
-  /** A material/box tile showing its count; boxes are clickable to open (T15). */
-  private makeMaterialTile(
-    id: string,
-    count: number,
-    x: number,
-    y: number,
-    openable: boolean,
-  ): Phaser.GameObjects.Container {
-    const def = MATERIALS_MAP.get(id);
-    const rarity = def?.rarity; // boxes carry a 1..5 rarity tier
-    const border = rarity ? (BOX_RARITY_COLOR[rarity] ?? 0xffb74d) : openable ? 0xffb74d : 0x7ec8ff;
-    const c = this.add.container(x, y).setSize(TILE, TILE);
-    const g = this.add.graphics();
-    g.fillStyle(0x1c2636, 1).fillRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
-    g.lineStyle(rarity ? 2.5 : 2, border, 1).strokeRoundedRect(-TILE / 2, -TILE / 2, TILE, TILE, 5);
-    c.add(g);
-    // Painted art per material: boxes use their chest art (box__<id>), other
-    // materials (enhance jewels, scroll) use material__<id>. Fall back to an emoji.
-    const spriteKey = this.textures.exists(materialTex(id)) ? materialTex(id) : boxTex(id);
-    if (this.textures.exists(spriteKey)) {
-      const img = this.add.image(0, -4, spriteKey).setOrigin(0.5);
-      img.setScale((TILE - 16) / img.height);
-      c.add(img);
-    } else {
-      c.add(this.add.text(0, -10, openable ? "🎁" : "💠", { fontSize: "20px" }).setOrigin(0.5));
-    }
-    if (rarity)
-      c.add(
-        crispText(this, 0, TILE / 2 - 13, boxRarityName(rarity), {
-          fontSize: "8px",
-          color: Phaser.Display.Color.IntegerToColor(border).rgba,
-          fontStyle: "bold",
-        }).setOrigin(0.5),
-      );
-    c.add(
-      crispText(this, TILE / 2 - 4, -TILE / 2 + 4, `×${count}`, {
-        fontSize: "11px",
-        color: "#fff",
-        fontStyle: "bold",
-      }).setOrigin(1, 0),
-    );
-    c.setInteractive({ useHandCursor: true });
-    // Boxes show their opening odds (drop rates) under the description so the
-    // player can see what's inside before spending the chest.
-    const desc = openable
-      ? def?.description
-        ? `${def.description}\n\n${boxOddsText(id)}`
-        : boxOddsText(id)
-      : (def?.description ?? "");
-    c.on("pointerover", () => this.showTextTooltip(def?.name ?? id, desc, x, y));
-    c.on("pointerout", () => this.hideTooltip());
-    if (openable) c.on("pointerup", () => this.openBoxAction(id));
-    return c;
   }
 
   private openBoxAction(boxId: string): void {
@@ -682,38 +532,7 @@ export class HeroScene extends Phaser.Scene {
   }
 
   private showTextTooltip(title: string, desc: string, x: number, y: number): void {
-    this.tooltip.removeAll(true);
-    const w = 200,
-      padX = 10;
-    // Measure the wrapped body so the card grows to fit instead of clipping it.
-    const titleT = panelText(this, 0, 0, title, {
-      fontSize: "13px",
-      color: "#cfe6ff",
-      fontStyle: "bold",
-      wordWrap: { width: w - padX * 2 },
-    });
-    const descT = desc
-      ? panelText(this, 0, 0, desc, {
-          fontSize: "11px",
-          color: "#cdd9ea",
-          wordWrap: { width: w - padX * 2 },
-          lineSpacing: 3,
-        })
-      : null;
-    const h = 12 + titleT.height + (descT ? descT.height + 4 : 0);
-    const tx = Phaser.Math.Clamp(x + 30, 0, this.scale.width - w),
-      ty = Phaser.Math.Clamp(y - 10, 0, 540 - h);
-    const g = this.add.graphics();
-    g.fillStyle(0x10141c, 0.98).fillRoundedRect(tx, ty, w, h, 6);
-    g.lineStyle(1.5, 0x7ec8ff, 1).strokeRoundedRect(tx, ty, w, h, 6);
-    this.tooltip.add(g);
-    titleT.setPosition(tx + padX, ty + 7);
-    this.tooltip.add(titleT);
-    if (descT) {
-      descT.setPosition(tx + padX, ty + 9 + titleT.height);
-      this.tooltip.add(descT);
-    }
-    this.tooltip.setVisible(true);
+    renderTextTooltip(this, this.tooltip, title, desc, x, y);
   }
 
   private showTooltip(inst: ItemInstanceSave, x: number, y: number): void {

@@ -325,7 +325,7 @@ export const spritesMethods = {
 
     let scaleX = base,
       scaleY = base,
-      angle = 0,
+      angle: number, // every branch below assigns it
       yOff = 0,
       xOff = 0;
 

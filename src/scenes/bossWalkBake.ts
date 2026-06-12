@@ -4,7 +4,7 @@
 // texture key (`boss__<id>__walk`) and never removes the
 // original texture, so the sliced atk*/skill* one-shot frames + their anims
 // (built earlier in PreloadScene.create) survive for the boss cast pose.
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { ENEMIES } from "../data/enemies.ts";
 import { bandWarp } from "./enemyWalkWarp.ts";
 

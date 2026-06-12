@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { SaveManager } from "../core/saveManager.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import { jewelIconKey } from "../data/jewelIconManifest.ts";
