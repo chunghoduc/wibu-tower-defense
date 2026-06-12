@@ -91,6 +91,9 @@ export class BattleScene extends Phaser.Scene {
   prevEnemyPos = new Map<number, { x: number; y: number }>();
   prevHeroPos: { x: number; y: number } | null = null;
   renderAlpha = 1; // lerp factor for draw(); 1 = draw live sim state
+  // Reused per-frame dirty-tracking sets for manageSprites (no per-frame allocation).
+  _seenT = new Set<number>();
+  _seenE = new Set<number>();
   speedBtn!: Phaser.GameObjects.Text;
   callWaveBtn!: Phaser.GameObjects.Text;
   autoSkipText!: Phaser.GameObjects.Text;

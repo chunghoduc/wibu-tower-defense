@@ -436,7 +436,8 @@ export const spritesMethods = {
 
   /** Create/update/cull pixel-art sprites for towers, enemies and the hero. */
   manageSprites(this: BattleScene): void {
-    const seenT = new Set<number>();
+    const seenT = this._seenT; // reused across frames — cleared, never reallocated
+    seenT.clear();
     for (const t of this.battle.towers) {
       if (!t.alive) continue;
       seenT.add(t.uid);
@@ -484,7 +485,8 @@ export const spritesMethods = {
         this.roleBadges.delete(uid);
       }
 
-    const seenE = new Set<number>();
+    const seenE = this._seenE; // reused across frames — cleared, never reallocated
+    seenE.clear();
     for (const e of this.battle.enemies) {
       const boss = e.def.archetype === "Boss";
       const key = `${boss ? "boss" : "enemy"}__${e.def.id}`;

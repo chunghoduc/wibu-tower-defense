@@ -6,7 +6,7 @@
 import { type BossSkill, type Stats } from "../data/schema.ts";
 import { mitigatedDamage, mitigationBreakdown, clamp01, type DamagePacket } from "./damage.ts";
 import { combatLogOn, emitDamageLog } from "./combatLog.ts";
-import { slowedSpeed, type Dot } from "./effects.ts";
+import { slowedSpeed } from "./effects.ts";
 import { dist, lerp, pointAtDistance } from "./path.ts";
 import { computeAuraMods, NEUTRAL_AURA } from "./enemyAuras.ts";
 import { enemyTowerAttack } from "./enemyCombat.ts";
@@ -102,17 +102,19 @@ export const enemyMethods = {
     }
 
     if (e.dots.length > 0) {
-      const survivors: Dot[] = [];
+      // In-place compaction — the old build-a-survivors-array allocated per enemy
+      // per tick. Mutating `remaining` is safe: dots are never aliased outside e.dots.
+      let w = 0;
       for (const d of e.dots) {
         const active = Math.min(dt, d.remaining);
         if (active > 0) {
           const ctx = this.dmgCtx("dot", "dot", `dot ${d.dps}/s ×${active.toFixed(2)}s`);
           this.applyDamage(e, d.type, d.dps * active, d.armorPen, d.magicPen, false, false, ctx);
         }
-        const left = d.remaining - dt;
-        if (left > 0 && e.alive) survivors.push({ ...d, remaining: left });
+        d.remaining -= dt;
+        if (d.remaining > 0 && e.alive) e.dots[w++] = d;
       }
-      e.dots = survivors;
+      e.dots.length = w;
     }
   },
 
