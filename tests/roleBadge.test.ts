@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { TOWER_ROLES } from "../src/data/schemaEnums.ts";
-import { roleBadgeTex, ROLE_BADGE } from "../src/scenes/roleBadge.ts";
+import { roleBadgeTex, ROLE_BADGE, ROLE_BADGE_COLOR } from "../src/scenes/roleBadge.ts";
 
 describe("roleBadge", () => {
   it("maps every role to a distinct roleicon key", () => {
@@ -16,5 +16,9 @@ describe("roleBadge", () => {
   it("exposes sane badge geometry", () => {
     expect(ROLE_BADGE.diameter).toBeGreaterThan(0);
     expect(ROLE_BADGE.offsetX).toBeGreaterThan(0);
+  });
+
+  it("has a badge color for every TowerRole", () => {
+    for (const r of TOWER_ROLES) expect(typeof ROLE_BADGE_COLOR[r]).toBe("number");
   });
 });

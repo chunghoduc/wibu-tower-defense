@@ -65,6 +65,7 @@ export const ROLE_COLOR: Record<string, number> = {
   dot: 0x9ccc65,
   support: 0xfff176,
   debuff: 0x4db6ac,
+  tanker: 0x90a4ae,
   economy: 0xffd54f,
 };
 
