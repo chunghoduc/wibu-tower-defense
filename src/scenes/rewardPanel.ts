@@ -18,6 +18,7 @@ import { renderInfoTooltip } from "./infoTooltip.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { battleLootTiles, type BattleLootSummary, type RewardTileSpec } from "../data/rewardTiles.ts";
 import { makeFitIcon } from "./itemIcon.ts";
+import { addNamePlate } from "./namePlate.ts";
 
 const TILE = 56, GAP = 8, PER_ROW = 8;
 const ROW_H = TILE + 22;     // tile + room for the count/rarity label
@@ -182,7 +183,13 @@ function buildTile(
   // Scale-to-fill (TILE-aware) so a looted item reads the same size here as in
   // the bag/shop — not the old tiny fixed 36px that made fresh loot look "off".
   c.add(makeFitIcon(scene, 0, -4, spec.iconKey, TILE - 14, spec.emoji));
-  c.add(crispText(scene, 0, TILE / 2 - 13, spec.label, { fontSize: "10px", color: hex(spec.color), fontStyle: "bold" }).setOrigin(0.5, 0));
+  // Label as a contained name-tag plate just below the icon tile (names live in
+  // the hover; this is the short rarity/count word, standardised to match every
+  // other loot tile and guaranteed to never spill).
+  addNamePlate(scene, c, spec.label, {
+    width: TILE + 4, topY: TILE / 2 - 2, height: 18, radius: 4,
+    accent: spec.color, color: hex(spec.color), basePx: 10, minPx: 7, maxLines: 1,
+  });
 
   c.setSize(TILE, TILE).setInteractive({ useHandCursor: true });
   c.on("pointerover", () => {
