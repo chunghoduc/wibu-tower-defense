@@ -16,7 +16,8 @@ import { ITEM_CATALOG } from "../data/items.ts";
 import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
 import { bakeEnemyWalks } from "./enemyWalkBake.ts";
 import { bakeBossWalks } from "./bossWalkBake.ts";
-import { skillTex, jewelTex, menuTex, fxTex, materialTex, itemTex, HERODOLL_BASE_TEX, CASTLE_TEX, CASTLE_DAMAGED_TEX } from "../data/assetKeys.ts";
+import { skillTex, jewelTex, menuTex, fxTex, materialTex, itemTex, HERODOLL_BASE_TEX, CASTLE_TEX, CASTLE_DAMAGED_TEX, roleTex } from "../data/assetKeys.ts";
+import { TOWER_ROLES } from "../data/schemaEnums.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -63,6 +64,11 @@ export class PreloadScene extends Phaser.Scene {
     // missing file degrades to the BattleScene rectangle fallback (no crash).
     this.load.image(CASTLE_TEX, "assets/sprites/structure/castle.png");
     this.load.image(CASTLE_DAMAGED_TEX, "assets/sprites/structure/castle__damaged.png");
+    // Per-role tower badge emblems (SDXL). A missing file degrades to the
+    // legacy sword/arrow glyph drawn by BattleScene (no crash).
+    for (const r of TOWER_ROLES) {
+      this.load.image(roleTex(r), `assets/sprites/roleicon/${r}.png`);
+    }
     // Additive-blend VFX textures (box-open burst/glow/sparkle).
     for (const id of FX_IDS) this.load.image(fxTex(id), `assets/sprites/fx/${id}.png`);
     // Crafting-material icons (enhance jewels + summon scroll).
