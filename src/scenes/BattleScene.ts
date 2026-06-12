@@ -41,7 +41,11 @@ import { TERRAIN_COLOR, RARITY_INT, buildSquad } from "./battleSceneHelpers.ts";
 import { renderMethods, type RenderMethods } from "./battleSceneRender.ts";
 import { spritesMethods, type SpritesMethods } from "./battleSceneSprites.ts";
 import { inputMethods, type InputMethods } from "./battleSceneInput.ts";
-import { towerTex } from "../data/assetKeys.ts";
+import { towerTex, CASTLE_TEX } from "../data/assetKeys.ts";
+import { castleArtState, castleTexForState, type CastleState } from "./castleArt.ts";
+
+/** In-world width the castle sprite renders at — reads as a fortress, not a tile. */
+const CASTLE_TARGET_W = 110;
 
 /** A special battle mode launched from the Activities hub (else a normal stage). */
 export interface BattleMode {
@@ -73,6 +77,9 @@ export class BattleScene extends Phaser.Scene {
   avatarTiles: Phaser.GameObjects.Container[] = [];
   avatarPulses: Phaser.Tweens.Tween[] = [];   // breathing-glow tweens on rarer build-bar cards
   terrainSprites: Phaser.GameObjects.Image[] = [];
+  /** SDXL castle sprite (when art exists); swaps to damaged art at low HP. */
+  castleSprite?: Phaser.GameObjects.Image;
+  castleArtStateNow: CastleState = "intact";
   endlessBackdropFx: EndlessBackdropFx | null = null;
   placeGhost: Phaser.GameObjects.Container | null = null;
   gameSpeed = 1;
@@ -342,10 +349,33 @@ export class BattleScene extends Phaser.Scene {
         g.strokeCircle(x, y, 13);
       }
     }
-    // castle
+    // castle — an SDXL fortress sprite that swaps to battle-damaged art at low
+    // HP; the legacy rectangle is the fallback when the texture is missing
+    // (pre-generation / GPU-less env).
     const c = this.battle.castlePos;
-    g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 24, c.y - 24, 48, 48);
-    g.lineStyle(3, 0x9ab0e0, 1).strokeRect(c.x - 24, c.y - 24, 48, 48);
+    this.castleSprite?.destroy();
+    this.castleSprite = undefined;
+    if (this.textures.exists(CASTLE_TEX)) {
+      this.castleArtStateNow = castleArtState(this.battle.castleHp, this.battle.castleMax);
+      const img = this.add.image(c.x, c.y, castleTexForState(this.castleArtStateNow)).setDepth(4);
+      img.setScale(CASTLE_TARGET_W / img.width);
+      this.world.add(img);
+      this.castleSprite = img;
+    } else {
+      g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 24, c.y - 24, 48, 48);
+      g.lineStyle(3, 0x9ab0e0, 1).strokeRect(c.x - 24, c.y - 24, 48, 48);
+    }
+  }
+
+  /** Keep the castle art in sync with its HP (intact ↔ damaged). */
+  syncCastleArt(): void {
+    const img = this.castleSprite;
+    if (!img) return;
+    const state = castleArtState(this.battle.castleHp, this.battle.castleMax);
+    if (state === this.castleArtStateNow) return;
+    this.castleArtStateNow = state;
+    img.setTexture(castleTexForState(state));
+    img.setScale(CASTLE_TARGET_W / img.width);
   }
 
   /** Build the bottom bar of draggable character avatars (T12). */
@@ -419,6 +449,7 @@ export class BattleScene extends Phaser.Scene {
     const dt = Math.min(deltaMs / 1000, 0.05);
     this.handleKeyboardHero();
     for (let i = 0; i < this.gameSpeed; i++) this.battle.tick(dt); // 0 = paused, 2/3 = fast-forward
+    this.syncCastleArt();
     this.draw();
     this.endlessBackdropFx?.update(time);
   }
