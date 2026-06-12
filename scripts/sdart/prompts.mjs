@@ -128,6 +128,25 @@ export const BOSS_VISUAL = {
   ashghost: "a vengeful pale ash-skinned warrior boss with a bold red tattoo sweeping across one eye and a short dark beard, a scarred muscular body, twin chained blades wreathed in roaring fire whirling at his sides, flying embers, cold fury, dramatic rim light, epic scale, high contrast",
 };
 
+// ---- STRUCTURES (battle-world buildings: the player's castle) ----
+export const STRUCTURE_VISUAL = {
+  castle: "a heroic fantasy stronghold keep, a tall central tower flanked by two smaller turrets, crenellated stone battlements, a grand arched gate, blue conical rooftops, proud blue-and-gold banners, a glowing magical core orb above the gate, three-quarter front view, grounded at the base",
+};
+// state suffix appended to the base look so both share silhouette/identity
+export const STRUCTURE_STATE = {
+  intact: "pristine and proud, banners flying high, warm glowing windows, the magical core shining bright",
+  damaged: "battle-damaged and besieged, cracked crumbling walls, fallen rubble, torn and burning banners, rising smoke and embers, the magical core dim and flickering",
+};
+// A structure is a BUILDING, not a character — its own style + negative (the
+// character STYLE/NEG deliberately ban "castle/building/architecture").
+const STRUCTURE_STYLE = "a single fantasy building game asset, {V}, clean cel-shaded anime illustration, vibrant saturated colors, bold clean outline, centered, the whole structure visible, isolated on a pure plain flat white background, empty background";
+const STRUCTURE_NEG = "character, person, people, hero, knight, soldier, warrior, anime girl, anime boy, face, portrait, multiple buildings, town, city skyline, landscape panorama, background scenery, sky, clouds, ground texture, grass field, road, user interface, UI, hud, frame, border, text, words, watermark, logo, signature, blurry, lowres, jpeg artifacts, cropped, cut off, deformed, cast shadow";
+export const STRUCTURE_NEGATIVE = STRUCTURE_NEG;
+/** Building prompt from base look + state suffix. */
+export function structureStyle(visual, state) {
+  return STRUCTURE_STYLE.replace("{V}", `${visual}, ${state}`);
+}
+
 // ---- ITEMS (icon style) ----
 const ITEM_STYLE = "a single game item icon, {V}, clean cel-shaded anime game asset, centered, isolated on a plain solid light grey background, no shadow, soft rim light";
 export function itemStyle(v) { return ITEM_STYLE.replace("{V}", v); }

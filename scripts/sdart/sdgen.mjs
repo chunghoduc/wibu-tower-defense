@@ -7,6 +7,7 @@ import {
   style, itemStyleFor, skillStyleFor, NEGATIVE, POSE,
   TOWER_VISUAL, ENEMY_VISUAL, BOSS_VISUAL,
   HERO_BASE, HERO_WEAPON,
+  STRUCTURE_VISUAL, STRUCTURE_STATE, structureStyle, STRUCTURE_NEGATIVE,
 } from "./prompts.mjs";
 
 // Item icons are catalog-driven: `npm run gen:item-visual` dumps every item's
@@ -32,12 +33,12 @@ const force = flag("force");
 
 function seedOf(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 1000000; }
 
-async function sdGenerate(prompt, seed, w, h) {
+async function sdGenerate(prompt, seed, w, h, neg = NEGATIVE) {
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const res = await fetch(SD, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, negative_prompt: NEGATIVE, steps: 30, width: w, height: h, seed }),
+        body: JSON.stringify({ prompt, negative_prompt: neg, steps: 30, width: w, height: h, seed }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const buf = Buffer.from(await res.arrayBuffer());
@@ -70,6 +71,13 @@ function buildJobs() {
     jobs.push({ kind: "enemy", id, file: `${id}.png`, prompt: style(`${v}, ${POSE.idle}`), seed: seedOf(id), w: 768, h: 1024, size: 300 });
   for (const [id, v] of Object.entries(BOSS_VISUAL))
     jobs.push({ kind: "boss", id, file: `${id}.png`, prompt: style(`${v}, ${POSE.idle}`), seed: seedOf(id), w: 832, h: 1024, size: 384 });
+  // structures (the player's castle) — building style + its own negative, two
+  // HP states sharing a seed so silhouette/identity stays consistent.
+  for (const [id, v] of Object.entries(STRUCTURE_VISUAL)) {
+    const sd = seedOf(id);
+    jobs.push({ kind: "structure", id, file: `${id}.png`, prompt: structureStyle(v, STRUCTURE_STATE.intact), seed: sd, w: 768, h: 768, size: 256, neg: STRUCTURE_NEGATIVE });
+    jobs.push({ kind: "structure", id, file: `${id}__damaged.png`, prompt: structureStyle(v, STRUCTURE_STATE.damaged), seed: sd, w: 768, h: 768, size: 256, neg: STRUCTURE_NEGATIVE });
+  }
   const items = existsSync(ITEM_VISUAL_PATH) ? JSON.parse(readFileSync(ITEM_VISUAL_PATH, "utf8")) : [];
   if (!items.length) console.log(`  WARN: ${ITEM_VISUAL_PATH} missing/empty — run \`npm run gen:item-visual\` first`);
   // size 96 — the loader (PreloadScene) and the in-battle scaler treat item
@@ -105,7 +113,7 @@ async function main() {
     mkdirSync(`${GAME}/${j.kind}`, { recursive: true });
     const rawPath = `${RAW}/${j.kind}__${j.file}`;
     console.log(`[${n}/${jobs.length}] ${j.kind}/${j.file}`);
-    const buf = await sdGenerate(j.prompt, j.seed, j.w, j.h);
+    const buf = await sdGenerate(j.prompt, j.seed, j.w, j.h, j.neg);
     if (!buf) { console.log("    SKIP (gen failed)"); continue; }
     writeFileSync(rawPath, buf);
     try { cut(rawPath, `${GAME}/${j.kind}/${j.file}`, j.size); }
