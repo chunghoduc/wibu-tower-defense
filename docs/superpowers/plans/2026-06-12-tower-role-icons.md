@@ -215,44 +215,56 @@ git commit -m "feat(role-icons): SDXL roleicon kind — 7 per-role emblem jobs"
 
 ---
 
-### Task 4: Add the `tanker` role color
+### Task 4: Pure per-role badge tint (covers all 7 roles incl. tanker)
+
+`battleSceneHelpers.ts` imports Phaser, which crashes a node Vitest import
+(`window is not defined`). So the **testable** badge color lives in the pure
+`roleBadge.ts` module instead. The Phaser-side `ROLE_COLOR` still gains a
+`tanker` entry (one-line data add, exercised by the build) for disc-fill
+consistency, but the badge **tint** reads from the pure map.
 
 **Files:**
-- Modify: `src/scenes/battleSceneHelpers.ts:61-69` (the `ROLE_COLOR` map)
-- Test: `tests/roleBadge.test.ts` (extend)
+- Modify: `src/scenes/roleBadge.ts` (add `ROLE_BADGE_COLOR`)
+- Modify: `src/scenes/battleSceneHelpers.ts:61-69` (add `tanker` to `ROLE_COLOR`)
+- Test: `tests/roleBadge.test.ts` (extend — pure, no Phaser import)
 
 - [ ] **Step 1: Write the failing test**
 
 Append to `tests/roleBadge.test.ts`:
 
 ```ts
-import { ROLE_COLOR } from "../src/scenes/battleSceneHelpers.ts";
+import { ROLE_BADGE_COLOR } from "../src/scenes/roleBadge.ts";
 
-it("has a color for every TowerRole", () => {
-  for (const r of TOWER_ROLES) expect(ROLE_COLOR[r]).toBeTypeOf("number");
+it("has a badge color for every TowerRole", () => {
+  for (const r of TOWER_ROLES) expect(typeof ROLE_BADGE_COLOR[r]).toBe("number");
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/roleBadge.test.ts`
-Expected: FAIL — `ROLE_COLOR.tanker` is `undefined` (not a number).
-
-> Note: `battleSceneHelpers.ts` imports Phaser. If importing it in a Vitest
-> (node) context throws, instead assert against a Phaser-free copy: this repo's
-> tests already import `ROLE_COLOR` only where Phaser is mocked. If the import
-> fails, move the `ROLE_COLOR` assertion into an existing test file that already
-> imports `battleSceneHelpers` successfully, or guard with the repo's standard
-> Phaser test setup. Verify by checking an existing passing test that imports
-> from `battleSceneHelpers.ts` before writing this step.
+Expected: FAIL — `ROLE_BADGE_COLOR` is not exported.
 
 - [ ] **Step 3: Implement**
 
-In `src/scenes/battleSceneHelpers.ts`, add to the `ROLE_COLOR` object:
+In `src/scenes/roleBadge.ts`, add (mirrors `ROLE_COLOR`, plus `tanker`):
 
 ```ts
+/** Tint applied to each role's badge emblem — mirrors battleSceneHelpers
+ *  ROLE_COLOR, but Phaser-free and total over every TowerRole. */
+export const ROLE_BADGE_COLOR: Record<TowerRole, number> = {
+  damage: 0x4fc3f7,
+  splash: 0xff8a65,
+  chain: 0xba68c8,
+  dot: 0x9ccc65,
+  support: 0xfff176,
+  debuff: 0x4db6ac,
   tanker: 0x90a4ae,
+};
 ```
+
+In `src/scenes/battleSceneHelpers.ts`, add `tanker: 0x90a4ae,` to the
+`ROLE_COLOR` object (keeps the immediate-mode disc fill consistent).
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -262,8 +274,8 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/scenes/battleSceneHelpers.ts tests/roleBadge.test.ts
-git commit -m "feat(role-icons): add tanker role color (steel)"
+git add src/scenes/roleBadge.ts src/scenes/battleSceneHelpers.ts tests/roleBadge.test.ts
+git commit -m "feat(role-icons): pure per-role badge tint + tanker color"
 ```
 
 ---
