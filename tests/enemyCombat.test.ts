@@ -3,14 +3,7 @@ import { makeStats } from "../src/data/schema.ts";
 import { enemyTowerAttack } from "../src/core/enemyCombat.ts";
 import { MELEE_TOWER_RANGE, RUSHER_BYPASS_SPEED } from "../src/core/battleTypes.ts";
 import { weaponBaseRange } from "../src/data/weaponFamily.ts";
-import {
-  mkEnemy,
-  mkStage,
-  mkTower,
-  oneWave,
-  runFor,
-  world,
-} from "./fixtures.ts";
+import { mkEnemy, mkStage, mkTower, oneWave, runFor, world } from "./fixtures.ts";
 
 describe("enemyTowerAttack profile", () => {
   it("gives an ordinary ground enemy a melee swipe in passing", () => {
@@ -44,9 +37,7 @@ describe("enemyTowerAttack profile", () => {
 
   it("returns null for a high-speed rusher (blows past the lane)", () => {
     expect(
-      enemyTowerAttack(
-        mkEnemy({ baseStats: makeStats({ moveSpeed: RUSHER_BYPASS_SPEED }) }),
-      ),
+      enemyTowerAttack(mkEnemy({ baseStats: makeStats({ moveSpeed: RUSHER_BYPASS_SPEED }) })),
     ).toBeNull();
   });
 
@@ -95,9 +86,14 @@ describe("on-road melee enemies attack towers", () => {
       id: "fragile",
       baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 60 }),
     });
-    const b = world([grunt], [fragile], mkStage(oneWave("grunt", 1), { castleHp: 1e6, slots: [{ x: 150, y: -35 }] }), {
-      hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -500, y: -500 } },
-    });
+    const b = world(
+      [grunt],
+      [fragile],
+      mkStage(oneWave("grunt", 1), { castleHp: 1e6, slots: [{ x: 150, y: -35 }] }),
+      {
+        hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -500, y: -500 } },
+      },
+    );
     expect(b.placeTower("fragile", 0)).toBe(true);
     runFor(b, 12);
     // The tower took damage in passing and was destroyed; the grunt didn't stall
@@ -114,9 +110,14 @@ describe("on-road melee enemies attack towers", () => {
       baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 60 }),
     });
     // y = -80 is well beyond MELEE_TOWER_RANGE (40) from the lane at y=0.
-    const b = world([grunt], [safe], mkStage(oneWave("grunt", 1), { castleHp: 1e6, slots: [{ x: 150, y: -80 }] }), {
-      hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -500, y: -500 } },
-    });
+    const b = world(
+      [grunt],
+      [safe],
+      mkStage(oneWave("grunt", 1), { castleHp: 1e6, slots: [{ x: 150, y: -80 }] }),
+      {
+        hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -500, y: -500 } },
+      },
+    );
     expect(b.placeTower("safe", 0)).toBe(true);
     runFor(b, 12);
     const t = b.towers.find((x) => x.def.id === "safe")!;

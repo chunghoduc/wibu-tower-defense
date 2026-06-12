@@ -10,7 +10,13 @@
  *
  * Keeping bonuses additive within their bucket prevents runaway stacking.
  */
-import { defaultStats, FRACTIONAL_STAT_KEYS, type PassiveNodeDef, type Stats, type TowerRole } from "../data/schema.ts";
+import {
+  defaultStats,
+  FRACTIONAL_STAT_KEYS,
+  type PassiveNodeDef,
+  type Stats,
+  type TowerRole,
+} from "../data/schema.ts";
 import { upgradeIncreased } from "./towerUpgrade.ts";
 
 export interface StatAccumulator {
@@ -70,7 +76,7 @@ const HERO_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
 /** Level at which the neutral crit-chance growth reaches its cap. */
 const HERO_CRIT_CAP_LEVEL = 90;
 /** The capped neutral crit chance (reached at HERO_CRIT_CAP_LEVEL). */
-const HERO_CRIT_CAP = 0.30;
+const HERO_CRIT_CAP = 0.3;
 
 /**
  * The hero's *neutral* crit chance from leveling alone: 0% at level 1, ramping
@@ -92,9 +98,7 @@ export function heroBaseCritRate(level: number): number {
  * silently dropped notable/gate nodes (e.g. the prestige Transcendent Gate's
  * +15% more ATK), so their multiplier never reached the hero.
  */
-export function collectPassiveMore(
-  nodes: Pick<PassiveNodeDef, "more">[],
-): Partial<Stats>[] {
+export function collectPassiveMore(nodes: Pick<PassiveNodeDef, "more">[]): Partial<Stats>[] {
   const out: Partial<Stats>[] = [];
   for (const node of nodes) if (node.more) out.push(node.more);
   return out;
@@ -202,7 +206,7 @@ const TOWER_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
 // +8% / +14% / +20% / +26% for reaching ★2..★5 — so the higher a tower's star,
 // the more stats each upgrade gives. STAR_STEP[s] = the bonus added by REACHING
 // star s. Cumulative by tier: ★1 0% · ★2 8% · ★3 22% · ★4 42% · ★5 68%.
-const STAR_STEP = [0, 0, 0.08, 0.14, 0.20, 0.26];
+const STAR_STEP = [0, 0, 0.08, 0.14, 0.2, 0.26];
 
 /** Total star "increased%" a tower has at the given star tier. */
 export function starIncreasedPct(stars: number): number {

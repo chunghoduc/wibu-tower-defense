@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
-import { challengeForDay, ensureChallenge, claimChallengeClear, challengeClaimable } from "../src/core/challenge.ts";
+import {
+  challengeForDay,
+  ensureChallenge,
+  claimChallengeClear,
+  challengeClaimable,
+} from "../src/core/challenge.ts";
 import { CHALLENGE_MODIFIERS_MAP } from "../src/data/challengeModifiers.ts";
 
 describe("F5 daily challenge", () => {

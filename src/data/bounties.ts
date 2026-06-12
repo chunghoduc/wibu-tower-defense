@@ -22,25 +22,39 @@ export interface BountyDef {
 
 export const WEEKLY_BOUNTIES: BountyDef[] = [
   {
-    id: "bounty-kills", event: "kill",
-    label: "Cull the Horde", description: "Kill 300 enemies this week.",
-    target: 300, reward: { diamonds: 40 },
+    id: "bounty-kills",
+    event: "kill",
+    label: "Cull the Horde",
+    description: "Kill 300 enemies this week.",
+    target: 300,
+    reward: { diamonds: 40 },
   },
   {
-    id: "bounty-clears", event: "clear",
-    label: "Campaign Push", description: "Clear 20 stages this week.",
-    target: 20, reward: { materials: { [AWAKENING_CRYSTAL]: 1 } },
+    id: "bounty-clears",
+    event: "clear",
+    label: "Campaign Push",
+    description: "Clear 20 stages this week.",
+    target: 20,
+    reward: { materials: { [AWAKENING_CRYSTAL]: 1 } },
   },
   {
-    id: "bounty-summons", event: "summon",
-    label: "Call the Heroes", description: "Summon 20 times this week.",
-    target: 20, reward: { diamonds: 60, materials: { [SUMMON_SCROLL]: 2 } },
+    id: "bounty-summons",
+    event: "summon",
+    label: "Call the Heroes",
+    description: "Summon 20 times this week.",
+    target: 20,
+    reward: { diamonds: 60, materials: { [SUMMON_SCROLL]: 2 } },
   },
   {
-    id: "bounty-enhance", event: "enhance",
-    label: "Master Smith", description: "Enhance items 15 times this week.",
-    target: 15, reward: { diamonds: 20, materials: { [SOUL_JEWEL]: 3 } },
+    id: "bounty-enhance",
+    event: "enhance",
+    label: "Master Smith",
+    description: "Enhance items 15 times this week.",
+    target: 15,
+    reward: { diamonds: 20, materials: { [SOUL_JEWEL]: 3 } },
   },
 ];
 
-export const WEEKLY_BOUNTIES_MAP = new Map<string, BountyDef>(WEEKLY_BOUNTIES.map((b) => [b.id, b]));
+export const WEEKLY_BOUNTIES_MAP = new Map<string, BountyDef>(
+  WEEKLY_BOUNTIES.map((b) => [b.id, b]),
+);

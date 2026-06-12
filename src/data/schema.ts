@@ -16,9 +16,19 @@
 
 import type { WeaponSpec } from "./weaponFamily.ts";
 import type { ItemArchetype } from "./itemArchetype.ts";
-import type { DamageType, TargetType, TowerRole, AttackDamageType, Rarity,
-  Immunity, EnemyArchetype, ItemDefSlot, WeaponType, PassiveNodeType,
-  PassiveRegion } from "./schemaEnums.ts";
+import type {
+  DamageType,
+  TargetType,
+  TowerRole,
+  AttackDamageType,
+  Rarity,
+  Immunity,
+  EnemyArchetype,
+  ItemDefSlot,
+  WeaponType,
+  PassiveNodeType,
+  PassiveRegion,
+} from "./schemaEnums.ts";
 import type { Stats } from "./schemaStats.ts";
 
 // Categorical attributes (enums) live in schemaEnums.ts; the 24-stat system in
@@ -170,9 +180,9 @@ export interface RolledAffix {
  * The catalog entry (ItemDef) is immutable; ItemInstance holds the rolled values.
  */
 export interface ItemInstance {
-  id: string;               // uuid generated at drop
-  defId: string;            // points to ItemDef.id
-  acquiredLevel: number;    // hero level at time of acquisition
+  id: string; // uuid generated at drop
+  defId: string; // points to ItemDef.id
+  acquiredLevel: number; // hero level at time of acquisition
   /**
    * Rolled required level for THIS copy (>= the def's floor, <= 90). The same
    * named item can drop at different required levels; its base stats scale with
@@ -413,13 +423,21 @@ export interface WaveDef {
 
 /** A terrain feature on the battlefield (decorative, or a blocking obstacle). */
 export type TerrainType =
-  | "grass" | "sand" | "water" | "stone" | "jungle" | "mountain"
-  | "lava" | "ice" | "snow" | "crystal";
+  | "grass"
+  | "sand"
+  | "water"
+  | "stone"
+  | "jungle"
+  | "mountain"
+  | "lava"
+  | "ice"
+  | "snow"
+  | "crystal";
 export interface TerrainFeature {
   type: TerrainType;
   x: number;
   y: number;
-  r: number;       // radius (circular blob)
+  r: number; // radius (circular blob)
   blocks: boolean; // true = towers cannot be placed here
 }
 
@@ -465,6 +483,11 @@ export interface StageDef {
 // Runtime validators live in schemaValidators.ts; re-exported here so existing
 // `import { validateX } from "./schema.ts"` callsites keep working.
 export {
-  SchemaError, validateCharacter, validateEnemy, validateStage,
-  validateActiveSkill, validatePassiveNode, validateItemDef,
+  SchemaError,
+  validateCharacter,
+  validateEnemy,
+  validateStage,
+  validateActiveSkill,
+  validatePassiveNode,
+  validateItemDef,
 } from "./schemaValidators.ts";

@@ -174,7 +174,14 @@ export function createFreshSave(): HeroSave {
       equipped: {},
     },
     collection: {},
-    currency: { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false, freeSummonReadyAt: 0 },
+    currency: {
+      gold: 0,
+      diamonds: 0,
+      pityCount: 0,
+      lastDailyLoginDate: "",
+      pityInsuranceActive: false,
+      freeSummonReadyAt: 0,
+    },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     squad: [],
     materials: {},
@@ -190,30 +197,69 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   if (!raw || typeof raw !== "object") return createFreshSave();
   let save = raw as HeroSave;
   if ((save.version ?? 0) < 2) save = { ...save, collection: {}, version: 2 };
-  if ((save.version ?? 0) < 3) save = {
-    ...save,
-    currency: { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false, freeSummonReadyAt: 0 },
-    progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
-    version: 3,
-  };
+  if ((save.version ?? 0) < 3)
+    save = {
+      ...save,
+      currency: {
+        gold: 0,
+        diamonds: 0,
+        pityCount: 0,
+        lastDailyLoginDate: "",
+        pityInsuranceActive: false,
+        freeSummonReadyAt: 0,
+      },
+      progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
+      version: 3,
+    };
   if ((save.version ?? 0) < 4) save = { ...save, squad: [], version: 4 };
   if ((save.version ?? 0) < 5) {
     // Add materials + default every existing item to +0.
-    const items = (save.inventory?.items ?? []).map((it) => ({ ...it, enhanceLevel: it.enhanceLevel ?? 0 }));
-    save = { ...save, materials: save.materials ?? {}, inventory: { ...save.inventory, items }, version: 5 };
+    const items = (save.inventory?.items ?? []).map((it) => ({
+      ...it,
+      enhanceLevel: it.enhanceLevel ?? 0,
+    }));
+    save = {
+      ...save,
+      materials: save.materials ?? {},
+      inventory: { ...save.inventory, items },
+      version: 5,
+    };
   }
   if ((save.version ?? 0) < 6) {
     // Skill jewels: add the owned-jewel inventory + socket map.
-    save = { ...save, hero: { ...save.hero, jewels: save.hero?.jewels ?? [], socketedJewels: save.hero?.socketedJewels ?? {} }, version: 6 };
+    save = {
+      ...save,
+      hero: {
+        ...save.hero,
+        jewels: save.hero?.jewels ?? [],
+        socketedJewels: save.hero?.socketedJewels ?? {},
+      },
+      version: 6,
+    };
   }
   if ((save.version ?? 0) < 7) {
     // Currency redesign: crystals → gold (everyday), add diamonds (premium).
     const legacyCrystals = (save.currency as unknown as { crystals?: number }).crystals ?? 0;
-    save = { ...save, currency: { gold: legacyCrystals, diamonds: 0, pityCount: save.currency?.pityCount ?? 0, lastDailyLoginDate: save.currency?.lastDailyLoginDate ?? "", pityInsuranceActive: save.currency?.pityInsuranceActive ?? false, freeSummonReadyAt: save.currency?.freeSummonReadyAt ?? 0 }, version: 7 };
+    save = {
+      ...save,
+      currency: {
+        gold: legacyCrystals,
+        diamonds: 0,
+        pityCount: save.currency?.pityCount ?? 0,
+        lastDailyLoginDate: save.currency?.lastDailyLoginDate ?? "",
+        pityInsuranceActive: save.currency?.pityInsuranceActive ?? false,
+        freeSummonReadyAt: save.currency?.freeSummonReadyAt ?? 0,
+      },
+      version: 7,
+    };
   }
   if ((save.version ?? 0) < 8) {
     // Daily quest system: stub in empty quest state.
-    save = { ...save, quests: { date: "", progress: {}, claimed: [], allClaimed: false }, version: 8 };
+    save = {
+      ...save,
+      quests: { date: "", progress: {}, claimed: [], allClaimed: false },
+      version: 8,
+    };
   }
   if ((save.version ?? 0) < 9) {
     // Free-summon timer: existing players start with one free summon ready.
@@ -228,10 +274,20 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   // versioned hops above and would crash on first access. Ensure every required
   // top-level field exists regardless of version.
   save.collection ??= {};
-  for (const id in save.collection) { const e = save.collection[id]; if (e) e.copies ??= 0; }
+  for (const id in save.collection) {
+    const e = save.collection[id];
+    if (e) e.copies ??= 0;
+  }
   save.squad ??= [];
   save.materials ??= {};
-  save.currency ??= { gold: 0, diamonds: 0, pityCount: 0, lastDailyLoginDate: "", pityInsuranceActive: false, freeSummonReadyAt: 0 };
+  save.currency ??= {
+    gold: 0,
+    diamonds: 0,
+    pityCount: 0,
+    lastDailyLoginDate: "",
+    pityInsuranceActive: false,
+    freeSummonReadyAt: 0,
+  };
   (save.currency as unknown as Record<string, unknown>).gold ??= 0;
   (save.currency as unknown as Record<string, unknown>).diamonds ??= 0;
   (save.currency as unknown as Record<string, unknown>).freeSummonReadyAt ??= 0;
@@ -261,7 +317,8 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     }
     // Only one active skill may be equipped; seed the first starter, and clamp
     // any save that migrated in from the old multi-slot era down to a single slot.
-    if (save.hero.equippedSkillIds.length === 0) save.hero.equippedSkillIds = [STARTER_SKILL_IDS[0]];
+    if (save.hero.equippedSkillIds.length === 0)
+      save.hero.equippedSkillIds = [STARTER_SKILL_IDS[0]];
     if (save.hero.equippedSkillIds.length > MAX_ACTIVE_SKILLS) {
       save.hero.equippedSkillIds = save.hero.equippedSkillIds.slice(-MAX_ACTIVE_SKILLS);
     }

@@ -53,7 +53,11 @@ export function computeAuraMods(enemies: readonly AuraEnemy[]): Map<number, Aura
 
   for (const ally of enemies) {
     if (!ally.alive) continue;
-    let moveMult = 1, drAdd = 0, armorAdd = 0, magicResistAdd = 0, healPerSec = 0;
+    let moveMult = 1,
+      drAdd = 0,
+      armorAdd = 0,
+      magicResistAdd = 0,
+      healPerSec = 0;
     for (const s of sources) {
       if (s === ally) continue;
       const a = s.def.special!.supportAura!;

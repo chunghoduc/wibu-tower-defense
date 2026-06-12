@@ -26,7 +26,8 @@ describe("T16 — boss active skills", () => {
       waves: [{ spawns: [{ enemyId: bossId, count: 1, interval: 1, delay: 0 }] }],
     };
     return new BattleState(stage, loadCatalog(), {
-      seed: 1, hero: { stats: defaultHeroStats(), startPos: { x: 480, y: 270 }, damageType: "Physical" },
+      seed: 1,
+      hero: { stats: defaultHeroStats(), startPos: { x: 480, y: 270 }, damageType: "Physical" },
     });
   }
 
@@ -41,7 +42,7 @@ describe("T16 — boss active skills", () => {
     expect(boss.shield).toBe(0);
     b.tick(0.1);
     expect(boss.shield).toBeGreaterThan(0); // barrier applied to self
-    expect(boss.mana).toBeLessThan(cost);   // mana spent
+    expect(boss.mana).toBeLessThan(cost); // mana spent
   });
 
   it("a summon-surge boss spawns extra adds on cast", () => {

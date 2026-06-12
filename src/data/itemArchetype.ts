@@ -32,24 +32,38 @@ export const ARCHETYPE_LABEL: Record<ItemArchetype, string> = Object.fromEntries
  */
 const PRIMARY_ARCHETYPE: Record<string, ItemArchetype> = {
   // physical — attack / crit / pen carry
-  physicalDamage: "physical", atk: "physical", critRate: "physical",
-  critDamage: "physical", armorPen: "physical", attackSpeed: "physical",
+  physicalDamage: "physical",
+  atk: "physical",
+  critRate: "physical",
+  critDamage: "physical",
+  armorPen: "physical",
+  attackSpeed: "physical",
   omnivamp: "physical",
   // magic — skill burst / mana / magic pen
-  magicDamage: "magic", skillPower: "magic", magicPen: "magic",
-  manaOnHit: "magic", manaOnKill: "magic",
+  magicDamage: "magic",
+  skillPower: "magic",
+  magicPen: "magic",
+  manaOnHit: "magic",
+  manaOnKill: "magic",
   // defense — survive / tank / sustain
-  maxHp: "defense", armor: "defense", magicResist: "defense",
-  damageReduction: "defense", critDefense: "defense", tenacity: "defense",
+  maxHp: "defense",
+  armor: "defense",
+  magicResist: "defense",
+  damageReduction: "defense",
+  critDefense: "defense",
+  tenacity: "defense",
   hpRegen: "defense",
   // utility — economy / mobility / reach
-  goldFind: "utility", moveSpeed: "utility", range: "utility",
+  goldFind: "utility",
+  moveSpeed: "utility",
+  range: "utility",
 };
 
 /** The build archetype of an item — authored override, else derived from primary. */
-export function archetypeFor(
-  def: { primaryAffix: { type: string }; archetype?: ItemArchetype },
-): ItemArchetype {
+export function archetypeFor(def: {
+  primaryAffix: { type: string };
+  archetype?: ItemArchetype;
+}): ItemArchetype {
   return def.archetype ?? PRIMARY_ARCHETYPE[def.primaryAffix.type] ?? "hybrid";
 }
 

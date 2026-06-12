@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  WEAPON_FAMILIES, FAMILY, deriveDamageType, weaponBaseRange,
+  WEAPON_FAMILIES,
+  FAMILY,
+  deriveDamageType,
+  weaponBaseRange,
   type WeaponSpec,
 } from "../src/data/weaponFamily.ts";
 
@@ -32,7 +35,9 @@ describe("weapon-family taxonomy", () => {
   it("elemental enchant flips a physical weapon to Magic (option ii)", () => {
     expect(deriveDamageType({ family: "sword", display: "" })).toBe("Physical");
     expect(deriveDamageType({ family: "sword", enchanted: true, display: "" })).toBe("Magic");
-    expect(deriveDamageType({ family: "fist", element: "fire", enchanted: true, display: "" })).toBe("Magic");
+    expect(
+      deriveDamageType({ family: "fist", element: "fire", enchanted: true, display: "" }),
+    ).toBe("Magic");
   });
 
   it("weaponBaseRange returns the family base", () => {

@@ -24,15 +24,15 @@ Findings:
 - **7 towers are broken** — they have FEWER than the standard 8 frames, and the
   visible frames carry real defects:
 
-  | id | frames | observed defect |
-  |----|-------:|-----------------|
-  | seren-skyfall | 1 | single static muddy frame, no atk/skill poses |
-  | auriel-wardlight | 2 | idle is a blonde queen-cleric, atk1 is a *different* orange figure (character inconsistency) |
-  | lyran-ricochet | 2 | dark / low-contrast / muddy |
-  | vesska-venombolt | 3 | skill frame is a faded semi-transparent ghost |
-  | rivka-rebound | 4 | atk/skill frames ghosted (failed background cutout) |
-  | aya-dawnshot | 5 | consistent & decent, but missing 3 frames |
-  | garron-unbreaking-pillar | 7 | consistent & good, missing 1 frame |
+  | id                       | frames | observed defect                                                                              |
+  | ------------------------ | -----: | -------------------------------------------------------------------------------------------- |
+  | seren-skyfall            |      1 | single static muddy frame, no atk/skill poses                                                |
+  | auriel-wardlight         |      2 | idle is a blonde queen-cleric, atk1 is a _different_ orange figure (character inconsistency) |
+  | lyran-ricochet           |      2 | dark / low-contrast / muddy                                                                  |
+  | vesska-venombolt         |      3 | skill frame is a faded semi-transparent ghost                                                |
+  | rivka-rebound            |      4 | atk/skill frames ghosted (failed background cutout)                                          |
+  | aya-dawnshot             |      5 | consistent & decent, but missing 3 frames                                                    |
+  | garron-unbreaking-pillar |      7 | consistent & good, missing 1 frame                                                           |
 
 ## Root cause
 
@@ -42,6 +42,7 @@ character's frames in ONE txt2img pass (z-image-turbo) as a horizontal strip, th
 "portrait full-body figures," and packs them into a uniform sheet.
 
 For these 7, that single pass produced figures that either:
+
 - **merged** (touching/overlapping) → counted as one wide blob and dropped by the
   portrait filter (`height ≥ 1.05 × width`), or
 - were **too faint / low-contrast** → fell below the min-pixel area, or survived with
@@ -64,10 +65,11 @@ pipeline, hardened so each tower reliably yields exactly 8 clean, fully-opaque,
 consistent frames.
 
 Considered and rejected:
-- *Single crisp static pose per tower (enemy-style) + procedural `animateTower`*:
+
+- _Single crisp static pose per tower (enemy-style) + procedural `animateTower`_:
   reliable, but drops the atk/skill frame swap the other 46 towers have → breaks
   roster parity and doesn't literally answer "lack of frame." Rejected for parity.
-- *Hand-fix the prompts only*: the descriptors are already good; re-running the same
+- _Hand-fix the prompts only_: the descriptors are already good; re-running the same
   deterministic seed would reproduce the same merge/ghost. Insufficient alone.
 
 ### Mechanism
@@ -100,6 +102,7 @@ is accepting a clean seed.
 
 `tests/towerSpriteManifest.test.ts` (Vitest, Phaser-free) asserts, for every
 `kind === "tower"` entry in `SPRITE_MANIFEST`:
+
 - `frames === 8`
 - `names.length === frames`
 - `names` follow the canonical idle/atk/skill pattern (2 idle, 3 atk, 3 skill).

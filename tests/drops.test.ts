@@ -55,7 +55,7 @@ describe("processStageClear", () => {
       if (r.materialsDropped[boxId]) boxes++;
     }
     expect(boxes).toBeLessThan(N * 0.3); // dramatically lower than 100%
-    expect(boxes).toBeGreaterThan(0);    // but still occasionally drops
+    expect(boxes).toBeGreaterThan(0); // but still occasionally drops
   });
 
   it("drops the Oblivion Orb rarely (>0 but well under 10% across many clears)", () => {
@@ -66,8 +66,8 @@ describe("processStageClear", () => {
       const r = processStageClear(save, "stage-3", "Normal", new Rng(seed));
       if (r.materialsDropped[OBLIVION_ORB]) orbs++;
     }
-    expect(orbs).toBeGreaterThan(0);        // it is obtainable
-    expect(orbs).toBeLessThan(N * 0.1);     // but a rare drop
+    expect(orbs).toBeGreaterThan(0); // it is obtainable
+    expect(orbs).toBeLessThan(N * 0.1); // but a rare drop
   });
 
   it("may drop an item over 100 runs", () => {

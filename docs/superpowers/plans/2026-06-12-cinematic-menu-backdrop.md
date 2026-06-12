@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Turn the dead, double-throne main menu into a cinematic, *alive* throne hall — god-ray shafts, drifting dust, rising embers, a warm key-light behind the throne, and a true radial vignette — backed by a regenerated throne-less hall image.
+**Goal:** Turn the dead, double-throne main menu into a cinematic, _alive_ throne hall — god-ray shafts, drifting dust, rising embers, a warm key-light behind the throne, and a true radial vignette — backed by a regenerated throne-less hall image.
 
 **Architecture:** A pure, seeded layout module (`menuAtmosphere.ts`) produces plain-data specs + deterministic animation helpers; a Phaser presenter (`menuBackdropFx.ts`) draws a static layer once and redraws an animated layer each frame, sitting between the painted backdrop (depth −10) and the diorama (depth ≥1). `MainMenuScene` darkens the painted hall, drops its flat bars, builds the FX, and ticks it in `update()`. A best-effort one-off script regenerates the SDXL hall art without a baked throne.
 
@@ -13,6 +13,7 @@
 ### Task 1: Pure atmosphere spec + animation helpers (TDD)
 
 **Files:**
+
 - Create: `src/scenes/menuAtmosphere.ts`
 - Test: `tests/menuAtmosphere.test.ts`
 
@@ -21,10 +22,16 @@
 ```ts
 import { describe, it, expect } from "vitest";
 import {
-  buildMenuAtmosphere, motePos, emberPos, rayAlpha, flicker,
+  buildMenuAtmosphere,
+  motePos,
+  emberPos,
+  rayAlpha,
+  flicker,
 } from "../src/scenes/menuAtmosphere.ts";
 
-const W = 960, H = 540, SEED = 1337;
+const W = 960,
+  H = 540,
+  SEED = 1337;
 const dims = { width: W, height: H };
 
 describe("buildMenuAtmosphere", () => {
@@ -50,20 +57,24 @@ describe("buildMenuAtmosphere", () => {
     const s = buildMenuAtmosphere(W, H, SEED);
     for (const m of s.motes) {
       const p = motePos(m, 0, dims);
-      expect(p.x).toBeGreaterThanOrEqual(-20); expect(p.x).toBeLessThanOrEqual(W + 20);
-      expect(p.y).toBeGreaterThanOrEqual(-20); expect(p.y).toBeLessThanOrEqual(H + 20);
+      expect(p.x).toBeGreaterThanOrEqual(-20);
+      expect(p.x).toBeLessThanOrEqual(W + 20);
+      expect(p.y).toBeGreaterThanOrEqual(-20);
+      expect(p.y).toBeLessThanOrEqual(H + 20);
     }
     for (const e of s.embers) {
       const p = emberPos(e, 0, dims);
       expect(Number.isFinite(p.x)).toBe(true);
-      expect(p.y).toBeGreaterThanOrEqual(0); expect(p.y).toBeLessThanOrEqual(H);
+      expect(p.y).toBeGreaterThanOrEqual(0);
+      expect(p.y).toBeLessThanOrEqual(H);
     }
   });
 
   it("keeps positions finite and embers rising across a time sweep", () => {
     const s = buildMenuAtmosphere(W, H, SEED);
     const e = s.embers[0];
-    const y0 = emberPos(e, 0, dims).y, y1 = emberPos(e, 0.5, dims).y;
+    const y0 = emberPos(e, 0, dims).y,
+      y1 = emberPos(e, 0.5, dims).y;
     expect(y1).toBeLessThan(y0); // embers drift upward
     for (let t = 0; t < 12; t += 0.37) {
       for (const m of s.motes) {
@@ -76,11 +87,19 @@ describe("buildMenuAtmosphere", () => {
   it("rayAlpha and flicker are bounded in [0,1] and vary with t", () => {
     const s = buildMenuAtmosphere(W, H, SEED);
     const r = s.rays[0];
-    const a0 = rayAlpha(r, 0), a1 = rayAlpha(r, 1.3);
-    for (const a of [a0, a1]) { expect(a).toBeGreaterThanOrEqual(0); expect(a).toBeLessThanOrEqual(1); }
+    const a0 = rayAlpha(r, 0),
+      a1 = rayAlpha(r, 1.3);
+    for (const a of [a0, a1]) {
+      expect(a).toBeGreaterThanOrEqual(0);
+      expect(a).toBeLessThanOrEqual(1);
+    }
     expect(a0).not.toBe(a1);
-    const f0 = flicker(0, 0.3), f1 = flicker(0.9, 0.3);
-    for (const f of [f0, f1]) { expect(f).toBeGreaterThanOrEqual(0); expect(f).toBeLessThanOrEqual(1); }
+    const f0 = flicker(0, 0.3),
+      f1 = flicker(0.9, 0.3);
+    for (const f of [f0, f1]) {
+      expect(f).toBeGreaterThanOrEqual(0);
+      expect(f).toBeLessThanOrEqual(1);
+    }
     expect(f0).not.toBe(f1);
   });
 });
@@ -103,17 +122,62 @@ Expected: FAIL — `buildMenuAtmosphere is not a function` (module missing).
  */
 import { Rng } from "../core/rng.ts";
 
-export interface Dims { width: number; height: number; }
-export interface Vignette { cx: number; cy: number; innerR: number; outerR: number; edgeAlpha: number; }
-export interface KeyLight { x: number; y: number; r: number; color: number; }
+export interface Dims {
+  width: number;
+  height: number;
+}
+export interface Vignette {
+  cx: number;
+  cy: number;
+  innerR: number;
+  outerR: number;
+  edgeAlpha: number;
+}
+export interface KeyLight {
+  x: number;
+  y: number;
+  r: number;
+  color: number;
+}
 /** A volumetric god-ray shaft falling from the top edge. */
-export interface Ray { x: number; topW: number; botW: number; len: number; tilt: number; color: number; baseAlpha: number; phase: number; }
+export interface Ray {
+  x: number;
+  topW: number;
+  botW: number;
+  len: number;
+  tilt: number;
+  color: number;
+  baseAlpha: number;
+  phase: number;
+}
 /** Slow floating dust speck: gentle drift + bob, wraps in x. */
-export interface Mote { x: number; y: number; r: number; drift: number; rise: number; phase: number; alpha: number; }
+export interface Mote {
+  x: number;
+  y: number;
+  r: number;
+  drift: number;
+  rise: number;
+  phase: number;
+  alpha: number;
+}
 /** Warm ember rising from a brazier: steady rise (wraps) + sine sway. */
-export interface Ember { x: number; y: number; r: number; speed: number; drift: number; phase: number; alpha: number; }
+export interface Ember {
+  x: number;
+  y: number;
+  r: number;
+  speed: number;
+  drift: number;
+  phase: number;
+  alpha: number;
+}
 /** A flickering torch/brazier light point. */
-export interface Torch { x: number; y: number; r: number; color: number; phase: number; }
+export interface Torch {
+  x: number;
+  y: number;
+  r: number;
+  color: number;
+  phase: number;
+}
 
 export interface MenuAtmosphereSpec {
   vignette: Vignette;
@@ -136,10 +200,13 @@ export function buildMenuAtmosphere(W: number, H: number, seed: number): MenuAtm
   const outerR = Math.hypot(W, H) / 2;
 
   const vignette: Vignette = {
-    cx: W / 2, cy: H * 0.44,
-    innerR: Math.round(outerR * 0.30), outerR: Math.round(outerR * 1.02), edgeAlpha: 0.72,
+    cx: W / 2,
+    cy: H * 0.44,
+    innerR: Math.round(outerR * 0.3),
+    outerR: Math.round(outerR * 1.02),
+    edgeAlpha: 0.72,
   };
-  const keyLight: KeyLight = { x: W / 2, y: H * 0.40, r: Math.round(H * 0.42), color: 0xffd27a };
+  const keyLight: KeyLight = { x: W / 2, y: H * 0.4, r: Math.round(H * 0.42), color: 0xffd27a };
 
   // God-rays: a few wide soft shafts slanting down from the top windows.
   const rays: Ray[] = [];
@@ -161,7 +228,8 @@ export function buildMenuAtmosphere(W: number, H: number, seed: number): MenuAtm
   const motes: Mote[] = [];
   for (let i = 0; i < MOTE_COUNT; i++) {
     motes.push({
-      x: rng.next() * W, y: rng.next() * H,
+      x: rng.next() * W,
+      y: rng.next() * H,
       r: 0.6 + rng.next() * 1.6,
       drift: 8 + rng.next() * 20,
       rise: 4 + rng.next() * 10,
@@ -174,9 +242,10 @@ export function buildMenuAtmosphere(W: number, H: number, seed: number): MenuAtm
   const embers: Ember[] = [];
   for (let i = 0; i < EMBER_COUNT; i++) {
     const left = i % 2 === 0;
-    const bx = left ? W * (0.14 + rng.next() * 0.06) : W * (0.80 + rng.next() * 0.06);
+    const bx = left ? W * (0.14 + rng.next() * 0.06) : W * (0.8 + rng.next() * 0.06);
     embers.push({
-      x: bx, y: H * (0.55 + rng.next() * 0.45),
+      x: bx,
+      y: H * (0.55 + rng.next() * 0.45),
       r: 1 + rng.next() * 2.2,
       speed: 10 + rng.next() * 26,
       drift: 5 + rng.next() * 12,
@@ -218,7 +287,7 @@ export function rayAlpha(r: Ray, tSec: number): number {
 
 /** Torch flicker multiplier in [0,1]: layered sines so it reads as fire. Pure. */
 export function flicker(tSec: number, phase: number): number {
-  const v = 0.72 + 0.18 * Math.sin(tSec * 11 + phase) + 0.10 * Math.sin(tSec * 23 + phase * 1.7);
+  const v = 0.72 + 0.18 * Math.sin(tSec * 11 + phase) + 0.1 * Math.sin(tSec * 23 + phase * 1.7);
   return Math.max(0, Math.min(1, v));
 }
 ```
@@ -241,6 +310,7 @@ git commit -m "feat(menu-bg): pure seeded throne-hall atmosphere spec + anim hel
 ### Task 2: `MenuBackdropFx` presenter
 
 **Files:**
+
 - Create: `src/scenes/menuBackdropFx.ts`
 
 No new unit test (Phaser-rendering code is verified by the headless playtest in
@@ -266,11 +336,14 @@ import { motePos, emberPos, rayAlpha, flicker } from "./menuAtmosphere.ts";
 const ADD = Phaser.BlendModes.ADD;
 
 export class MenuBackdropFx {
-  private base: Phaser.GameObjects.Graphics;   // static, normal blend (darken + vignette)
-  private glow: Phaser.GameObjects.Graphics;   // static, additive (key light + ray cones)
-  private anim: Phaser.GameObjects.Graphics;   // per-frame, additive
+  private base: Phaser.GameObjects.Graphics; // static, normal blend (darken + vignette)
+  private glow: Phaser.GameObjects.Graphics; // static, additive (key light + ray cones)
+  private anim: Phaser.GameObjects.Graphics; // per-frame, additive
 
-  constructor(scene: Phaser.Scene, private spec: MenuAtmosphereSpec) {
+  constructor(
+    scene: Phaser.Scene,
+    private spec: MenuAtmosphereSpec,
+  ) {
     this.base = scene.add.graphics().setDepth(-8);
     this.glow = scene.add.graphics().setDepth(-8).setBlendMode(ADD);
     this.anim = scene.add.graphics().setDepth(-7).setBlendMode(ADD);
@@ -282,7 +355,8 @@ export class MenuBackdropFx {
     // Whole-screen darken so the busy painted hall recedes behind the lit diorama.
     this.base.fillStyle(0x05070c, 0.36).fillRect(0, 0, dims.width, dims.height);
     // Radial vignette: stacked translucent rings, dark at the rim, clear at the hero.
-    const RINGS = 18, ringW = (v.outerR - v.innerR) / RINGS + 3;
+    const RINGS = 18,
+      ringW = (v.outerR - v.innerR) / RINGS + 3;
     for (let i = 1; i <= RINGS; i++) {
       const t = i / RINGS;
       this.base.lineStyle(ringW, 0x000000, (v.edgeAlpha * t * t) / 3);
@@ -324,7 +398,7 @@ export class MenuBackdropFx {
     }
     // Torch flicker pools.
     for (const tr of torches) {
-      g.fillStyle(tr.color, 0.10 + 0.16 * flicker(t, tr.phase));
+      g.fillStyle(tr.color, 0.1 + 0.16 * flicker(t, tr.phase));
       g.fillCircle(tr.x, tr.y, tr.r * (0.85 + 0.25 * flicker(t, tr.phase)));
     }
     // Dust motes (cool/white) and rising embers (warm).
@@ -361,6 +435,7 @@ git commit -m "feat(menu-bg): MenuBackdropFx presenter (vignette, key light, ray
 ### Task 3: Wire the FX into `MainMenuScene`
 
 **Files:**
+
 - Modify: `src/scenes/MainMenuScene.ts` (imports; field; `create`; `update`; `drawBackdrop`)
 
 - [ ] **Step 1: Add imports**
@@ -391,7 +466,7 @@ Inside the class, next to `private pet?: ...`, add:
 In `create()`, where the per-entry state is reset (the line `this.pet = undefined;`), add right after it:
 
 ```ts
-    this.backdropFx = undefined; // scene instances are reused — reset per-entry state
+this.backdropFx = undefined; // scene instances are reused — reset per-entry state
 ```
 
 `drawBackdrop` (called next) will construct it.
@@ -462,6 +537,7 @@ git commit -m "feat(menu-bg): wire living-atmosphere backdrop into MainMenuScene
 ### Task 4: Regenerate the throne-less hall art (best-effort) + verify whole
 
 **Files:**
+
 - Create: `scripts/sdart/genBackgrounds.mjs`
 - Replace (asset): `public/assets/bg/menu-hall.png`
 
@@ -479,7 +555,8 @@ unlike sprites).
 import { writeFileSync } from "node:fs";
 
 const SD = "http://127.0.0.1:8765/generate";
-const W = 960, H = 540;
+const W = 960,
+  H = 540;
 const OUT = "public/assets/bg";
 
 const PROMPT =
@@ -496,13 +573,24 @@ const NEG =
   "words, watermark, logo, signature, frame, border, blurry, lowres, jpeg " +
   "artifacts, deformed, tiling seams";
 
-const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 ? process.argv[i + 1] : d; };
+const arg = (n, d) => {
+  const i = process.argv.indexOf(`--${n}`);
+  return i >= 0 ? process.argv[i + 1] : d;
+};
 const N = Number(arg("n", 4));
 
 async function gen(seed) {
   const res = await fetch(SD, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: PROMPT, negative_prompt: NEG, steps: 30, width: W, height: H, seed }),
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: PROMPT,
+      negative_prompt: NEG,
+      steps: 30,
+      width: W,
+      height: H,
+      seed,
+    }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());
@@ -516,7 +604,9 @@ for (const s of seeds) {
     const png = await gen(s);
     writeFileSync(`${OUT}/menu-hall-cand-${s}.png`, png);
     console.log(`wrote ${OUT}/menu-hall-cand-${s}.png`);
-  } catch (e) { console.log(`seed ${s} failed: ${e.message}`); }
+  } catch (e) {
+    console.log(`seed ${s} failed: ${e.message}`);
+  }
 }
 console.log("Review candidates, then copy the best over menu-hall.png");
 ```
@@ -577,28 +667,30 @@ git commit -m "feat(menu-bg): regenerate throne-less grand-hall backdrop art"
 ### Task 5: Memory + final report
 
 **Files:**
+
 - Create: `memory/project_menu_backdrop.md`
 - Modify: `memory/MEMORY.md`
 
 - [ ] **Step 1: Write the memory file** documenting: `menuAtmosphere.ts` (pure,
-  seeded) + `menuBackdropFx.ts` (presenter) compose the living throne-hall;
-  `MainMenuScene.drawBackdrop` darkens the painted hall and builds the FX;
-  the single throne is the procedural one (the baked throne was removed from the
-  art to fix the double-throne clash); seed `ATMOSPHERE_SEED=4242`. Link
-  `[[project_home_throne_room]]`, `[[project_endless_maze_arena]]`,
-  `[[project_art_pipeline_sdxl]]`, `[[project_scene_reentry_reset]]`.
+      seeded) + `menuBackdropFx.ts` (presenter) compose the living throne-hall;
+      `MainMenuScene.drawBackdrop` darkens the painted hall and builds the FX;
+      the single throne is the procedural one (the baked throne was removed from the
+      art to fix the double-throne clash); seed `ATMOSPHERE_SEED=4242`. Link
+      `[[project_home_throne_room]]`, `[[project_endless_maze_arena]]`,
+      `[[project_art_pipeline_sdxl]]`, `[[project_scene_reentry_reset]]`.
 
 - [ ] **Step 2: Add the one-line pointer to `MEMORY.md`.**
 
 - [ ] **Step 3: Confirm a clean tree** (only intended files committed; the
-  pre-existing dirty tower-art files remain untouched), and deliver the final
-  report with the playtest screenshot via `[[send: /tmp/menu_backdrop.png]]`.
+      pre-existing dirty tower-art files remain untouched), and deliver the final
+      report with the playtest screenshot via `[[send: /tmp/menu_backdrop.png]]`.
 
 ---
 
 ## Self-Review
 
 **Spec coverage:**
+
 - Double-throne fix → Task 4 (throne-less art) + Task 3 Step 4 (darken). ✓
 - Living atmosphere (rays/motes/embers/key-light/vignette/flicker) → Tasks 1–2, wired in Task 3. ✓
 - Pure, deterministic, unit-testable maths → Task 1 + its tests. ✓
@@ -611,4 +703,7 @@ git commit -m "feat(menu-bg): regenerate throne-less grand-hall backdrop art"
 **Placeholder scan:** none — every code step shows full code; commands have expected output.
 
 **Type consistency:** `MenuAtmosphereSpec`/`Mote`/`Ember`/`Ray`/`Torch`/`Vignette`/`KeyLight` defined in Task 1 and consumed unchanged in Task 2; helpers `motePos`/`emberPos`/`rayAlpha`/`flicker` signatures identical across Tasks 1–2. `buildMenuAtmosphere(W,H,seed)` and `new MenuBackdropFx(scene, spec)` match their Task-3 call sites. ✓
+
+```
+
 ```

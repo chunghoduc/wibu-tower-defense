@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
 import {
-  addMasteryXp, getMasteryLevel, masteryLevelFromXp, masteryStatMul,
-  masteryXpForLevel, MASTERY_MAX_LEVEL,
+  addMasteryXp,
+  getMasteryLevel,
+  masteryLevelFromXp,
+  masteryStatMul,
+  masteryXpForLevel,
+  MASTERY_MAX_LEVEL,
 } from "../src/core/mastery.ts";
 
 describe("F6 tower mastery", () => {

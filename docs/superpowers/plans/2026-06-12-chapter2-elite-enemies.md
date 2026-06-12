@@ -15,12 +15,14 @@
 ## File Structure
 
 **Create:**
+
 - `src/core/enemyFrenzy.ts` — pure frenzy latch + multiplier helpers.
 - `src/core/enemyAdaptive.ts` — pure adaptive-immunity phase + current-immune-type helpers.
 - `tests/enemyFrenzy.test.ts`, `tests/enemyAdaptive.test.ts` — pure helper tests.
 - `tests/chapter2Enemies.test.ts` — integration (`world()`) tests for all four mechanics + catalog + wave-gating.
 
 **Modify:**
+
 - `src/data/schemaEnums.ts` — add 5 archetype keys.
 - `src/data/schema.ts:248-282` — add 4 optional `EnemySpecial` fields.
 - `src/data/enemyInfo.ts` — add `ARCHETYPE_INFO` entries + `enemyTags` cases.
@@ -39,6 +41,7 @@
 Pure type + data additions. After this the catalog compiles with the new vocabulary; no behaviour yet.
 
 **Files:**
+
 - Modify: `src/data/schemaEnums.ts:38-57`
 - Modify: `src/data/schema.ts:248-282`
 - Modify: `src/data/enemyInfo.ts:8-53`
@@ -116,10 +119,10 @@ In `src/data/enemyInfo.ts`, add to the `ARCHETYPE_INFO` record (before `Boss:`):
 And in `enemyTags`, before `return tags;`, add:
 
 ```ts
-  if (def.special?.frenzy) tags.push("Frenzies");
-  if (def.special?.adaptiveImmunity) tags.push("Adaptive immunity");
-  if (def.special?.deathNova) tags.push("Death nova");
-  if (def.special?.towerDisablePulse) tags.push("Disables towers");
+if (def.special?.frenzy) tags.push("Frenzies");
+if (def.special?.adaptiveImmunity) tags.push("Adaptive immunity");
+if (def.special?.deathNova) tags.push("Death nova");
+if (def.special?.towerDisablePulse) tags.push("Disables towers");
 ```
 
 - [ ] **Step 6: Run it — expect PASS + typecheck**
@@ -141,6 +144,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 2: Frenzy mechanic (Bloodmad Reaver)
 
 **Files:**
+
 - Create: `src/core/enemyFrenzy.ts`
 - Create: `tests/enemyFrenzy.test.ts`
 - Modify: `src/core/battleTypes.ts:144-183` (add `frenzied`), `src/core/battleWaves.ts:285-315` (init)
@@ -192,14 +196,21 @@ Create `src/core/enemyFrenzy.ts`:
 import type { EnemySpecial } from "../data/schema.ts";
 
 /** True when a frenzy-capable enemy should latch into frenzy at this HP fraction. */
-export function shouldFrenzy(special: EnemySpecial | undefined, hpFrac: number, already: boolean): boolean {
+export function shouldFrenzy(
+  special: EnemySpecial | undefined,
+  hpFrac: number,
+  already: boolean,
+): boolean {
   const f = special?.frenzy;
   if (!f || already) return false;
   return hpFrac <= f.belowHpPct;
 }
 
 /** Speed/atk multipliers from an active frenzy; neutral {1,1} when inactive or absent. */
-export function frenzyMods(special: EnemySpecial | undefined, frenzied: boolean): { speedMult: number; atkMult: number } {
+export function frenzyMods(
+  special: EnemySpecial | undefined,
+  frenzied: boolean,
+): { speedMult: number; atkMult: number } {
   const f = special?.frenzy;
   if (!f || !frenzied) return { speedMult: 1, atkMult: 1 };
   return { speedMult: f.speedMult, atkMult: f.atkMult };
@@ -216,8 +227,8 @@ Expected: PASS.
 In `src/core/battleTypes.ts`, in `interface EnemyRuntime`, after `enraged: boolean;` (line ~174) add:
 
 ```ts
-  /** Berserker: latched into frenzy (one-way, like `enraged`). */
-  frenzied: boolean;
+/** Berserker: latched into frenzy (one-way, like `enraged`). */
+frenzied: boolean;
 ```
 
 In `src/core/battleWaves.ts`, in the `this.enemies.push({ ... })` literal, after `enraged: false,` (line ~310) add:
@@ -237,7 +248,7 @@ import { shouldFrenzy, frenzyMods } from "./enemyFrenzy.ts";
 In `updateEnemies`, right after the `if (e.def.boss) this.updateBoss(e, dt);` line (line ~30), add:
 
 ```ts
-      if (shouldFrenzy(e.def.special, e.hp / e.stats.maxHp, e.frenzied)) e.frenzied = true;
+if (shouldFrenzy(e.def.special, e.hp / e.stats.maxHp, e.frenzied)) e.frenzied = true;
 ```
 
 Replace `enemySpeed` (lines ~209-212) with:
@@ -270,14 +281,23 @@ import { world, mkEnemy, mkTower, mkStage, runFor } from "./fixtures.ts";
 describe("Bloodmad Reaver — frenzy", () => {
   it("latches into frenzy once HP drops below 50% and speeds up", () => {
     const reaver = mkEnemy({
-      id: "reaver", name: "Bloodmad Reaver", archetype: "Berserker",
+      id: "reaver",
+      name: "Bloodmad Reaver",
+      archetype: "Berserker",
       baseStats: { ...mkEnemy().baseStats, maxHp: 100, moveSpeed: 60, atk: 30 },
       special: { frenzy: { belowHpPct: 0.5, speedMult: 1.8, atkMult: 1.6 } },
     });
     // A weak tower so the enemy survives and crosses the 50% threshold slowly.
-    const tower = mkTower({ baseStats: { ...mkTower().baseStats, atk: 6, attackSpeed: 2, range: 600 } });
-    const stage = mkStage([{ spawns: [{ enemyId: "reaver", count: 1, interval: 1, delay: 0 }] }],
-      { slots: [{ x: 150, y: -30 }], path: [{ x: 0, y: 0 }, { x: 4000, y: 0 }] });
+    const tower = mkTower({
+      baseStats: { ...mkTower().baseStats, atk: 6, attackSpeed: 2, range: 600 },
+    });
+    const stage = mkStage([{ spawns: [{ enemyId: "reaver", count: 1, interval: 1, delay: 0 }] }], {
+      slots: [{ x: 150, y: -30 }],
+      path: [
+        { x: 0, y: 0 },
+        { x: 4000, y: 0 },
+      ],
+    });
     const b = world([reaver], [tower], stage, { seed: 1 });
     runFor(b, 8);
     const e = b.enemies[0];
@@ -313,6 +333,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 3: Adaptive immunity (Prism Behemoth)
 
 **Files:**
+
 - Create: `src/core/enemyAdaptive.ts`
 - Create: `tests/enemyAdaptive.test.ts`
 - Modify: `src/core/battleTypes.ts` (add `adaptPhaseTimer`, `adaptPhaseIndex`), `src/core/battleWaves.ts` (init)
@@ -327,7 +348,9 @@ import { describe, expect, it } from "vitest";
 import { adaptiveImmuneType, advanceAdaptivePhase } from "../src/core/enemyAdaptive.ts";
 import type { EnemySpecial } from "../src/data/schema.ts";
 
-const AD: EnemySpecial = { adaptiveImmunity: { types: ["Physical", "Magic"], switchIntervalSec: 3.5 } };
+const AD: EnemySpecial = {
+  adaptiveImmunity: { types: ["Physical", "Magic"], switchIntervalSec: 3.5 },
+};
 
 describe("enemyAdaptive", () => {
   it("reports the current immune type by phase index, wrapping", () => {
@@ -375,7 +398,10 @@ Create `src/core/enemyAdaptive.ts`:
 import type { DamageType, EnemySpecial } from "../data/schema.ts";
 
 /** The damage type the enemy is currently immune to for this phase index (null if not an Adapter). */
-export function adaptiveImmuneType(special: EnemySpecial | undefined, phaseIndex: number): DamageType | null {
+export function adaptiveImmuneType(
+  special: EnemySpecial | undefined,
+  phaseIndex: number,
+): DamageType | null {
   const a = special?.adaptiveImmunity;
   if (!a || a.types.length === 0) return null;
   return a.types[phaseIndex % a.types.length];
@@ -416,9 +442,9 @@ Expected: PASS.
 In `src/core/battleTypes.ts`, in `EnemyRuntime`, after the `frenzied: boolean;` line add:
 
 ```ts
-  /** Adapter: countdown to the next immunity switch, and the current phase index. */
-  adaptPhaseTimer: number;
-  adaptPhaseIndex: number;
+/** Adapter: countdown to the next immunity switch, and the current phase index. */
+adaptPhaseTimer: number;
+adaptPhaseIndex: number;
 ```
 
 In `src/core/battleWaves.ts`, after `frenzied: false,` add:
@@ -439,15 +465,15 @@ import { advanceAdaptivePhase, adaptiveImmuneType } from "./enemyAdaptive.ts";
 In `tickEnemyStatus`, after the `if (e.stunTimer > 0) e.stunTimer -= dt;` line (line ~65), add:
 
 ```ts
-    if (e.def.special?.adaptiveImmunity) {
-      const r = advanceAdaptivePhase(e.def.special, e.adaptPhaseTimer, e.adaptPhaseIndex, dt);
-      e.adaptPhaseTimer = r.timer;
-      e.adaptPhaseIndex = r.index;
-      if (r.switched) {
-        const imm = adaptiveImmuneType(e.def.special, e.adaptPhaseIndex) ?? "Physical";
-        this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: 28, damageType: imm });
-      }
-    }
+if (e.def.special?.adaptiveImmunity) {
+  const r = advanceAdaptivePhase(e.def.special, e.adaptPhaseTimer, e.adaptPhaseIndex, dt);
+  e.adaptPhaseTimer = r.timer;
+  e.adaptPhaseIndex = r.index;
+  if (r.switched) {
+    const imm = adaptiveImmuneType(e.def.special, e.adaptPhaseIndex) ?? "Physical";
+    this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: 28, damageType: imm });
+  }
+}
 ```
 
 - [ ] **Step 7: Wire isImmune**
@@ -461,7 +487,7 @@ import { adaptiveImmuneType } from "./enemyAdaptive.ts";
 In `isImmune`, immediately before `return false;` (line ~142), add:
 
 ```ts
-    if (adaptiveImmuneType(target.def.special, target.adaptPhaseIndex) === damageType) return true;
+if (adaptiveImmuneType(target.def.special, target.adaptPhaseIndex) === damageType) return true;
 ```
 
 - [ ] **Step 8: Write the failing integration test**
@@ -474,13 +500,23 @@ import { adaptiveImmuneType } from "../src/core/enemyAdaptive.ts";
 describe("Prism Behemoth — adaptive immunity", () => {
   function prismWorld(towerType: "Physical" | "Magic") {
     const prism = mkEnemy({
-      id: "prism", name: "Prism Behemoth", archetype: "Adapter",
+      id: "prism",
+      name: "Prism Behemoth",
+      archetype: "Adapter",
       baseStats: { ...mkEnemy().baseStats, maxHp: 100000, moveSpeed: 0, atk: 0 },
       special: { adaptiveImmunity: { types: ["Physical", "Magic"], switchIntervalSec: 3.5 } },
     });
-    const tower = mkTower({ damageType: towerType, baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999 } });
-    const stage = mkStage([{ spawns: [{ enemyId: "prism", count: 1, interval: 1, delay: 0 }] }],
-      { slots: [{ x: 10, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] });
+    const tower = mkTower({
+      damageType: towerType,
+      baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999 },
+    });
+    const stage = mkStage([{ spawns: [{ enemyId: "prism", count: 1, interval: 1, delay: 0 }] }], {
+      slots: [{ x: 10, y: 0 }],
+      path: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+      ],
+    });
     return world([prism], [tower], stage, { seed: 1 });
   }
 
@@ -504,13 +540,22 @@ describe("Prism Behemoth — adaptive immunity", () => {
 
   it("is always killable by True damage regardless of phase", () => {
     const prism = mkEnemy({
-      id: "prism2", archetype: "Adapter",
+      id: "prism2",
+      archetype: "Adapter",
       baseStats: { ...mkEnemy().baseStats, maxHp: 500, moveSpeed: 0 },
       special: { adaptiveImmunity: { types: ["Physical", "Magic"], switchIntervalSec: 3.5 } },
     });
-    const tower = mkTower({ damageType: "True", baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999 } });
-    const stage = mkStage([{ spawns: [{ enemyId: "prism2", count: 1, interval: 1, delay: 0 }] }],
-      { slots: [{ x: 10, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] });
+    const tower = mkTower({
+      damageType: "True",
+      baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999 },
+    });
+    const stage = mkStage([{ spawns: [{ enemyId: "prism2", count: 1, interval: 1, delay: 0 }] }], {
+      slots: [{ x: 10, y: 0 }],
+      path: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+      ],
+    });
     const b = world([prism], [tower], stage, { seed: 1 });
     runFor(b, 2);
     expect(b.enemies[0].alive).toBe(false);
@@ -539,6 +584,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 4: Death nova (Bloomrot Carrier)
 
 **Files:**
+
 - Modify: `src/core/battleDamage.ts` (`killEnemy` + imports)
 - Test: `tests/chapter2Enemies.test.ts`
 
@@ -550,32 +596,68 @@ Append to `tests/chapter2Enemies.test.ts`:
 describe("Bloomrot Carrier — death nova", () => {
   it("damages towers within the nova radius when it dies", () => {
     const carrier = mkEnemy({
-      id: "carrier", name: "Bloomrot Carrier", archetype: "Burster",
+      id: "carrier",
+      name: "Bloomrot Carrier",
+      archetype: "Burster",
       baseStats: { ...mkEnemy().baseStats, maxHp: 30, moveSpeed: 0, atk: 0 },
       special: { deathNova: { radius: 110, damage: 45, type: "Magic" } },
     });
     // Tower with low HP and no mitigation so the nova is observable; high range/atk to kill the carrier fast.
-    const near = mkTower({ id: "near", baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999, maxHp: 100, magicResist: 0 } });
-    const stage = mkStage([{ spawns: [{ enemyId: "carrier", count: 1, interval: 1, delay: 0 }] }],
-      { slots: [{ x: 20, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] });
+    const near = mkTower({
+      id: "near",
+      baseStats: {
+        ...mkTower().baseStats,
+        atk: 1000,
+        attackSpeed: 10,
+        range: 9999,
+        maxHp: 100,
+        magicResist: 0,
+      },
+    });
+    const stage = mkStage([{ spawns: [{ enemyId: "carrier", count: 1, interval: 1, delay: 0 }] }], {
+      slots: [{ x: 20, y: 0 }],
+      path: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+      ],
+    });
     const b = world([carrier], [near], stage, { seed: 1 });
     const tower = b.towers[0];
     const hp0 = tower.hp;
     runFor(b, 1.5);
     expect(b.enemies[0].alive).toBe(false); // carrier dead
-    expect(tower.hp).toBeLessThan(hp0);     // nova hit the nearby tower
+    expect(tower.hp).toBeLessThan(hp0); // nova hit the nearby tower
     expect(b.fx.some((f) => f.type === "splash")).toBe(true); // telegraph emitted at some point
   });
 
   it("spares towers outside the nova radius", () => {
     const carrier = mkEnemy({
-      id: "carrier2", archetype: "Burster",
+      id: "carrier2",
+      archetype: "Burster",
       baseStats: { ...mkEnemy().baseStats, maxHp: 30, moveSpeed: 0, atk: 0 },
       special: { deathNova: { radius: 50, damage: 45, type: "Magic" } },
     });
-    const far = mkTower({ id: "far", baseStats: { ...mkTower().baseStats, atk: 1000, attackSpeed: 10, range: 9999, maxHp: 100, magicResist: 0 } });
-    const stage = mkStage([{ spawns: [{ enemyId: "carrier2", count: 1, interval: 1, delay: 0 }] }],
-      { slots: [{ x: 400, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] }); // tower 400u away (> radius 50)
+    const far = mkTower({
+      id: "far",
+      baseStats: {
+        ...mkTower().baseStats,
+        atk: 1000,
+        attackSpeed: 10,
+        range: 9999,
+        maxHp: 100,
+        magicResist: 0,
+      },
+    });
+    const stage = mkStage(
+      [{ spawns: [{ enemyId: "carrier2", count: 1, interval: 1, delay: 0 }] }],
+      {
+        slots: [{ x: 400, y: 0 }],
+        path: [
+          { x: 0, y: 0 },
+          { x: 50, y: 0 },
+        ],
+      },
+    ); // tower 400u away (> radius 50)
     const b = world([carrier], [far], stage, { seed: 1 });
     const tower = b.towers[0];
     const hp0 = tower.hp;
@@ -607,17 +689,22 @@ import { dist } from "./path.ts";
 In `src/core/battleDamage.ts`, in `killEnemy`, after the `splitInto` block (after its closing `}` at line ~320, before the method's closing `}`), add:
 
 ```ts
-    const nova = e.def.special?.deathNova;
-    if (nova) {
-      this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: nova.radius, damageType: nova.type });
-      const packet: DamagePacket = { amount: nova.damage, type: nova.type, armorPen: 0, magicPen: 0 };
-      for (const t of this.towers) {
-        if (t.alive && dist(e.pos, t.pos) <= nova.radius) {
-          t.hp -= mitigatedDamage(packet, t.stats);
-          if (t.hp <= 0) t.alive = false;
-        }
-      }
+const nova = e.def.special?.deathNova;
+if (nova) {
+  this.emit({
+    type: "splash",
+    at: { x: e.pos.x, y: e.pos.y },
+    radius: nova.radius,
+    damageType: nova.type,
+  });
+  const packet: DamagePacket = { amount: nova.damage, type: nova.type, armorPen: 0, magicPen: 0 };
+  for (const t of this.towers) {
+    if (t.alive && dist(e.pos, t.pos) <= nova.radius) {
+      t.hp -= mitigatedDamage(packet, t.stats);
+      if (t.hp <= 0) t.alive = false;
     }
+  }
+}
 ```
 
 - [ ] **Step 5: Run it — expect PASS**
@@ -639,6 +726,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 5: Tower-disable pulse (Gravewail Cantor) + the five enemy defs
 
 **Files:**
+
 - Modify: `src/core/battleTypes.ts` (add `disablePulseTimer`), `src/core/battleWaves.ts` (init)
 - Modify: `src/core/battleEnemies.ts` (`updateEnemies` pulse loop)
 - Modify: `src/data/enemies.ts` (add 5 `EnemyDef`)
@@ -649,8 +737,8 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 In `src/core/battleTypes.ts`, in `EnemyRuntime`, after `adaptPhaseIndex: number;` add:
 
 ```ts
-  /** Disruptor: countdown to the next tower-disable pulse. */
-  disablePulseTimer: number;
+/** Disruptor: countdown to the next tower-disable pulse. */
+disablePulseTimer: number;
 ```
 
 In `src/core/battleWaves.ts`, after `adaptPhaseIndex: 0,` add:
@@ -664,21 +752,27 @@ In `src/core/battleWaves.ts`, after `adaptPhaseIndex: 0,` add:
 In `src/core/battleEnemies.ts`, in `updateEnemies`, after the `summon` block (after line ~37, before the `if (e.stunTimer > 0)` block), add:
 
 ```ts
-      if (e.def.special?.towerDisablePulse) {
-        const p = e.def.special.towerDisablePulse;
-        e.disablePulseTimer -= dt;
-        if (e.disablePulseTimer <= 0) {
-          let hit = false;
-          for (const t of this.towers) {
-            if (t.alive && dist(e.pos, t.pos) <= p.radius) {
-              t.disabledTimer = Math.max(t.disabledTimer, p.duration);
-              hit = true;
-            }
-          }
-          if (hit) this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: p.radius, damageType: "Magic" });
-          e.disablePulseTimer = p.interval;
-        }
+if (e.def.special?.towerDisablePulse) {
+  const p = e.def.special.towerDisablePulse;
+  e.disablePulseTimer -= dt;
+  if (e.disablePulseTimer <= 0) {
+    let hit = false;
+    for (const t of this.towers) {
+      if (t.alive && dist(e.pos, t.pos) <= p.radius) {
+        t.disabledTimer = Math.max(t.disabledTimer, p.duration);
+        hit = true;
       }
+    }
+    if (hit)
+      this.emit({
+        type: "splash",
+        at: { x: e.pos.x, y: e.pos.y },
+        radius: p.radius,
+        damageType: "Magic",
+      });
+    e.disablePulseTimer = p.interval;
+  }
+}
 ```
 
 (`dist` is already imported in `battleEnemies.ts`.)
@@ -691,13 +785,22 @@ Append to `tests/chapter2Enemies.test.ts`:
 describe("Gravewail Cantor — tower-disable pulse", () => {
   it("periodically disables towers within its radius", () => {
     const cantor = mkEnemy({
-      id: "cantor", name: "Gravewail Cantor", archetype: "Disruptor",
+      id: "cantor",
+      name: "Gravewail Cantor",
+      archetype: "Disruptor",
       baseStats: { ...mkEnemy().baseStats, maxHp: 1e9, moveSpeed: 0, atk: 0 },
       special: { towerDisablePulse: { radius: 120, duration: 1.6, interval: 7 } },
     });
-    const tower = mkTower({ baseStats: { ...mkTower().baseStats, atk: 1, attackSpeed: 1, range: 9999, maxHp: 1e9 } });
-    const stage = mkStage([{ spawns: [{ enemyId: "cantor", count: 1, interval: 1, delay: 0 }] }],
-      { slots: [{ x: 30, y: 0 }], path: [{ x: 0, y: 0 }, { x: 50, y: 0 }] });
+    const tower = mkTower({
+      baseStats: { ...mkTower().baseStats, atk: 1, attackSpeed: 1, range: 9999, maxHp: 1e9 },
+    });
+    const stage = mkStage([{ spawns: [{ enemyId: "cantor", count: 1, interval: 1, delay: 0 }] }], {
+      slots: [{ x: 30, y: 0 }],
+      path: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+      ],
+    });
     const b = world([cantor], [tower], stage, { seed: 1 });
     runFor(b, 0.3); // spawn; first pulse fires when timer (7) hits 0 — but timer starts at interval, so...
     // Drive until just after the first pulse (timer init = interval = 7s).
@@ -843,6 +946,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 `buildWaves(n)` is only ever called with `n ≥ 11` (Chapter 1 uses `buildChapter1Waves`), so adding gated spawns here means the five appear **only from Chapter 2 onward**, staggered across stages 11–14.
 
 **Files:**
+
 - Modify: `src/data/stage.ts:167-252`
 - Test: `tests/chapter2Enemies.test.ts`
 
@@ -876,12 +980,13 @@ describe("Escalation Five — chapter-2 gating", () => {
   });
   it("introduces Carrier by stage 12, Cantor by 13, Prism by 14", () => {
     expect(stageEnemyIds(11).has("carrier")).toBe(true); // stage 12
-    expect(stageEnemyIds(12).has("cantor")).toBe(true);  // stage 13
-    expect(stageEnemyIds(13).has("prism")).toBe(true);   // stage 14
+    expect(stageEnemyIds(12).has("cantor")).toBe(true); // stage 13
+    expect(stageEnemyIds(13).has("prism")).toBe(true); // stage 14
   });
   it("by Chapter 3 (stage 16) all five are in rotation", () => {
     const ids = stageEnemyIds(15); // stage 16
-    for (const f of ["reaver", "prism", "carrier", "dreadwing", "cantor"]) expect(ids.has(f), f).toBe(true);
+    for (const f of ["reaver", "prism", "carrier", "dreadwing", "cantor"])
+      expect(ids.has(f), f).toBe(true);
   });
 });
 ```
@@ -898,27 +1003,27 @@ In `src/data/stage.ts`, inside `buildWaves(n)`:
 In the **wave 6** block, after the existing `if (n >= 6) w6.push(spawn("monolith", 1, 2.5, 5));` line and before `w.push({ spawns: w6 });`, add:
 
 ```ts
-  if (n >= 12) w6.push(spawn("carrier", 1 + Math.floor(n / 5), 1.5, 4)); // Bloomrot Carrier — space your towers
-  if (n >= 14) w6.push(spawn("prism", 1, 2.5, 6));                       // Prism Behemoth — dual-type wall
+if (n >= 12) w6.push(spawn("carrier", 1 + Math.floor(n / 5), 1.5, 4)); // Bloomrot Carrier — space your towers
+if (n >= 14) w6.push(spawn("prism", 1, 2.5, 6)); // Prism Behemoth — dual-type wall
 ```
 
 In the **wave 7** block, after `if (n >= 6) w7.push(spawn("courier", 1, 1, 3));` and before `w.push({ spawns: w7 });`, add:
 
 ```ts
-  if (n >= 11) w7.push(spawn("reaver", 1 + Math.floor(n / 4), 2, 4)); // Bloodmad Reaver — burst it
+if (n >= 11) w7.push(spawn("reaver", 1 + Math.floor(n / 4), 2, 4)); // Bloodmad Reaver — burst it
 ```
 
 In the **wave 8** block, after `if (n >= 6) w8.push(spawn("hexer", 1, 1, 5));` and before `w.push({ spawns: w8 });`, add:
 
 ```ts
-  if (n >= 11) w8.push(spawn("dreadwing", 1 + Math.floor(n / 5), 1.5, 3)); // Iron Dreadwing — heavy anti-air
-  if (n >= 13) w8.push(spawn("cantor", 1, 1, 6));                          // Gravewail Cantor — priority kill
+if (n >= 11) w8.push(spawn("dreadwing", 1 + Math.floor(n / 5), 1.5, 3)); // Iron Dreadwing — heavy anti-air
+if (n >= 13) w8.push(spawn("cantor", 1, 1, 6)); // Gravewail Cantor — priority kill
 ```
 
 In the **wave 9** block, after `if (heavy) w9.push(spawn("golem", 1, 2.5, 4), spawn("monolith", 1, 2.5, 5));` and before `w.push({ spawns: w9 });`, add:
 
 ```ts
-  if (n >= 14) w9.push(spawn("prism", 1, 2.5, 6)); // capstone gauntlet wall
+if (n >= 14) w9.push(spawn("prism", 1, 2.5, 6)); // capstone gauntlet wall
 ```
 
 - [ ] **Step 4: Run the gating + existing wave tests — expect PASS**
@@ -942,6 +1047,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 The five must render. Match exactly how existing enemies declare art (single SDXL sprite → preload walk-bake), then generate art via the SDXL flow.
 
 **Files:**
+
 - Modify: `src/data/spriteManifest.ts`
 - Create: PNGs under the enemy sprite asset directory.
 
@@ -957,6 +1063,7 @@ Run: `git ls-files public/assets | grep -i enem | head` to find where enemy PNGs
 - If existing enemies all use a shared placeholder/coloured-shape render (no per-enemy PNG): add manifest entries that mirror that placeholder convention — do NOT invent a new art path. The five will render via the same fallback as the other 28.
 
 Prompts (one per enemy, top-down readable game sprite, transparent/neutral background, consistent with roster):
+
 - **reaver** — "frenzied armored berserker warrior, blood-red war paint, twin cleavers, hunched aggressive charge, dark fantasy game enemy sprite, top-down 3/4 view"
 - **prism** — "massive crystalline golem behemoth, faceted prism armor shifting between blue and red light, slow and immense, dark fantasy enemy sprite, top-down 3/4 view"
 - **carrier** — "bloated rotting plague-carrier, swollen sac of spores about to burst, sickly green, dark fantasy enemy sprite, top-down 3/4 view"
@@ -1000,6 +1107,7 @@ Expected: every file < 500 lines. If `battleEnemies.ts`, `battleDamage.ts`, `ene
 - [ ] **Step 3: CDP balance playtest (the spec's risk experiments)**
 
 Launch the dev server (`setsid npm run dev > /tmp/dev.log 2>&1 < /dev/null &`), open the game with `?debug`, and via `window.__game` start a Chapter-2 stage (e.g. stage 14, which has all five). Verify the spec §8 risks:
+
 1. **Prism is killable by a mono-type loadout** — it dies during off-phase windows (not a soft-lock).
 2. **Carrier nova threatens but does not delete a fresh tower** — place a tower, kill a Carrier on it, read tower HP (should survive at lower HP). Tune `deathNova.damage` in `enemies.ts` if it one-shots.
 3. **Cantor pulse is a window, not a lockout** — towers recover between pulses.

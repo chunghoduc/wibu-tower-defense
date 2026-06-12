@@ -52,8 +52,8 @@ export function bandWarp(
     return { dx: 0, dy: -flap * w * s };
   }
   if (profile === "stomp") {
-    const legSwing = opts.legSwing ?? 12;   // wider stride than walk's 9
-    const bob = opts.bob ?? 8;              // heavier lift than walk's 4
+    const legSwing = opts.legSwing ?? 12; // wider stride than walk's 9
+    const bob = opts.bob ?? 8; // heavier lift than walk's 4
     const sway = opts.sway ?? 2.5;
     const lw = legWeight(yNorm);
     const tw = yNorm >= WAIST ? 0 : (WAIST - yNorm) / WAIST;

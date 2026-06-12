@@ -16,9 +16,9 @@
 
 Two concrete asks, plus a quality bar:
 
-1. **Source delivery** — every skill must visibly *arrive* from somewhere: fly from the
+1. **Source delivery** — every skill must visibly _arrive_ from somewhere: fly from the
    caster, fall from the sky, erupt from the ground, beam from the caster, etc. Today the
-   cast set-piece simply *appears* at the target with no sense of origin or travel.
+   cast set-piece simply _appears_ at the target with no sense of origin or travel.
 2. **"At least 4 frames" per effect** — In this codebase, VFX is **100% procedural Phaser
    shapes + tweens, deliberately asset-free** (see memory `project_skill_vfx_signatures`,
    `project_art_pipeline_sdxl`; the SDXL pipeline is for sprites/icons, never battle VFX).
@@ -61,17 +61,17 @@ Damage still lands at `at` (target) — unchanged. `from` is presentation-only.
 
 ### 2. Delivery archetypes (the "fly from source" layer)
 
-A new **delivery** concept: *how the skill travels from its origin to the impact point*,
+A new **delivery** concept: _how the skill travels from its origin to the impact point_,
 played **before** the existing impact signature. Five reusable choreographies, each ≥2 beats,
 so combined with the impact + aftermath every skill clears the ≥4-beat bar:
 
-| kind       | origin            | motion (beats)                                              |
-|------------|-------------------|------------------------------------------------------------|
-| `bolt`     | caster            | ① charge-glow gathers at caster → ② glowing orb + trail flies caster→target |
-| `beam`     | caster            | ① charge-flash at caster → ② instant tapering lance/streak caster→target |
-| `skyfall`  | sky above target  | ① target ground-marker telegraph blooms → ② body plummets sky→target |
-| `ground`   | below target      | ① cracks telegraph at target → ② energy/shards erupt upward from ground |
-| `cast`     | caster (melee)    | ① wind-up glow at caster → ② quick draw-streak caster→target |
+| kind      | origin           | motion (beats)                                                              |
+| --------- | ---------------- | --------------------------------------------------------------------------- |
+| `bolt`    | caster           | ① charge-glow gathers at caster → ② glowing orb + trail flies caster→target |
+| `beam`    | caster           | ① charge-flash at caster → ② instant tapering lance/streak caster→target    |
+| `skyfall` | sky above target | ① target ground-marker telegraph blooms → ② body plummets sky→target        |
+| `ground`  | below target     | ① cracks telegraph at target → ② energy/shards erupt upward from ground     |
+| `cast`    | caster (melee)   | ① wind-up glow at caster → ② quick draw-streak caster→target                |
 
 On the delivery's final beat it invokes `onArrive()`, which fires beat ③ **impact** (the
 existing per-skill signature set-piece) and the signature's own beat ④ **aftermath** (linger
@@ -83,22 +83,22 @@ added).
 Add `delivery: DeliveryKind` to `SkillVfxSpec`. `DeliveryKind` is declared in
 `skillVfxMeta.ts` (data layer; the scene delivery module imports it — no upward dependency).
 
-| skill | signature | delivery | rationale |
-|-------|-----------|----------|-----------|
-| valiant-strike | valiant-sweep | `cast` | hero sword sweep |
-| spirit-bolt | spirit-comet | `bolt` | a comet flies out |
-| iron-cleave | steel-cross | `cast` | thrown cross-blades |
-| stone-bash | earthshatter | `ground` | erupts from earth |
-| execute-slash | guillotine | `skyfall` | blade drops from sky |
-| tri-shot | triple-volley | `bolt` | arrows fly from archer |
-| piercing-arrow | piercing-lance | `beam` | instant lance-beam |
-| mana-burst | mana-detonation | `bolt` | charged orb lobbed |
-| arcane-nova | arcane-supernova | `skyfall` | supernova falls into place |
-| rapid-fire | muzzle-barrage | `bolt` | tracer stream from gun |
-| concussion-round | concussion-blast | `skyfall` | shell falls from sky |
-| shadow-curse | hex-sigil | `ground` | sigil blooms from ground |
-| true-strike | pure-technique | `beam` | instant iai draw-line |
-| void-palm | void-rift | `beam` | void lances from palm |
+| skill            | signature        | delivery  | rationale                  |
+| ---------------- | ---------------- | --------- | -------------------------- |
+| valiant-strike   | valiant-sweep    | `cast`    | hero sword sweep           |
+| spirit-bolt      | spirit-comet     | `bolt`    | a comet flies out          |
+| iron-cleave      | steel-cross      | `cast`    | thrown cross-blades        |
+| stone-bash       | earthshatter     | `ground`  | erupts from earth          |
+| execute-slash    | guillotine       | `skyfall` | blade drops from sky       |
+| tri-shot         | triple-volley    | `bolt`    | arrows fly from archer     |
+| piercing-arrow   | piercing-lance   | `beam`    | instant lance-beam         |
+| mana-burst       | mana-detonation  | `bolt`    | charged orb lobbed         |
+| arcane-nova      | arcane-supernova | `skyfall` | supernova falls into place |
+| rapid-fire       | muzzle-barrage   | `bolt`    | tracer stream from gun     |
+| concussion-round | concussion-blast | `skyfall` | shell falls from sky       |
+| shadow-curse     | hex-sigil        | `ground`  | sigil blooms from ground   |
+| true-strike      | pure-technique   | `beam`    | instant iai draw-line      |
+| void-palm        | void-rift        | `beam`    | void lances from palm      |
 
 Tower fallback: a pure `deliveryForStyle(style)` map (lightning→`skyfall`, slash→`cast`,
 rest→`bolt`) so tower actives also arrive from their source.
@@ -109,7 +109,7 @@ rest→`bolt`) so tower actives also arrive from their source.
   add a few travel primitives (`orbTravel`, `chargeGlow`, `fallStreak`, `riser`, `marker`).
   Shared by signatures + delivery. (`skillSignatures.ts` drops to ~220 lines.)
 - **`src/scenes/skillDelivery.ts` (NEW)** — `DeliveryFn` per kind + `renderDelivery(d, kind,
-  from, at, palette, radius, onArrive)`.
+from, at, palette, radius, onArrive)`.
 - **`src/data/skillVfxMeta.ts`** — `DeliveryKind` type, `delivery` field on each spec,
   `deliveryForStyle`.
 - **`src/scenes/skillVfx.ts`** — `cast(from, at, ...)`: run `renderDelivery(...)` →

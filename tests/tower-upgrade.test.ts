@@ -16,7 +16,9 @@ describe("tower upgrade / sell", () => {
     b.placeTower("zoran-thricedraw", 0);
     const t = b.towers[0];
     b.gold = 1000;
-    const atk0 = t.stats.atk, hp0 = t.stats.maxHp, goldBefore = b.gold;
+    const atk0 = t.stats.atk,
+      hp0 = t.stats.maxHp,
+      goldBefore = b.gold;
     const cost = b.upgradeCost(t.uid);
     expect(cost).toBeGreaterThan(0);
     expect(b.upgradeTower(t.uid)).toBe(true);

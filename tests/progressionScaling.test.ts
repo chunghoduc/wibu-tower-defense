@@ -31,7 +31,8 @@ describe("progressionScaling — cross-stage/chapter long-game curve", () => {
   });
 
   it("is strictly monotonic across the whole campaign", () => {
-    let prevHp = 0, prevAtk = 0;
+    let prevHp = 0,
+      prevAtk = 0;
     for (let n = 1; n <= 30; n++) {
       const s = progressionScaling(n);
       expect(s.hpMult).toBeGreaterThan(prevHp);

@@ -40,9 +40,9 @@ describe("StatAccumulator — resolve", () => {
   it("flat + increased + more compose correctly", () => {
     const base = makeStats({ atk: 100 });
     let acc = makeAcc();
-    acc = addFlat(acc, { atk: 20 });       // base+flat = 120
+    acc = addFlat(acc, { atk: 20 }); // base+flat = 120
     acc = addIncreased(acc, { atk: 0.5 }); // × 1.5 = 180
-    acc = addMore(acc, { atk: 0.2 });      // × 1.2 = 216
+    acc = addMore(acc, { atk: 0.2 }); // × 1.2 = 216
     const result = resolveAcc(base, acc);
     expect(result.atk).toBeCloseTo(216, 5);
   });
@@ -93,7 +93,7 @@ describe("heroStatPipeline", () => {
     expect(heroBaseCritRate(1)).toBeCloseTo(0, 6);
     expect(heroBaseCritRate(90)).toBeCloseTo(0.3, 6);
     // Linear: level 45.5 is the midpoint of 1..90 → ~15%; check the exact L46 step.
-    expect(heroBaseCritRate(46)).toBeCloseTo(0.3 * 45 / 89, 6);
+    expect(heroBaseCritRate(46)).toBeCloseTo((0.3 * 45) / 89, 6);
     // Held at the cap past level 90.
     expect(heroBaseCritRate(100)).toBeCloseTo(0.3, 6);
   });

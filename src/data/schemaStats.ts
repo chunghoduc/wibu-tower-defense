@@ -74,8 +74,16 @@ export function defaultStats(): Stats {
  * like atk/hp do scale. Shared so item rolling and affix resolution agree.
  */
 export const FRACTIONAL_STAT_KEYS = new Set<keyof Stats>([
-  "critRate", "critDamage", "critDefense", "armorPen", "magicPen",
-  "damageReduction", "tenacity", "omnivamp", "goldFind", "skillPower",
+  "critRate",
+  "critDamage",
+  "critDefense",
+  "armorPen",
+  "magicPen",
+  "damageReduction",
+  "tenacity",
+  "omnivamp",
+  "goldFind",
+  "skillPower",
 ]);
 
 /** Build a Stats from partial overrides on top of the zeroed baseline. */

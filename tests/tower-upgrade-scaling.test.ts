@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { effectiveBehavior, upgradeIncreased, battleLevelAtkMul } from "../src/core/towerUpgrade.ts";
+import {
+  effectiveBehavior,
+  upgradeIncreased,
+  battleLevelAtkMul,
+} from "../src/core/towerUpgrade.ts";
 import { towerStatPipeline } from "../src/core/stats.ts";
 import { BattleState, MAX_TOWER_UPGRADES } from "../src/core/battle.ts";
 import { loadCatalog } from "../src/data/catalog.ts";
@@ -16,9 +20,9 @@ describe("T12 — per-role tower upgrade scaling", () => {
   });
 
   it("each star multiplies final attack by ~+60% (additive, hero-share-proof)", () => {
-    expect(battleLevelAtkMul(0)).toBe(1);               // ★1 placed: base
-    expect(battleLevelAtkMul(1)).toBeCloseTo(1.6, 5);   // ★2: +60%
-    expect(battleLevelAtkMul(2)).toBeCloseTo(2.2, 5);   // ★3 (maxed): 2.2× base
+    expect(battleLevelAtkMul(0)).toBe(1); // ★1 placed: base
+    expect(battleLevelAtkMul(1)).toBeCloseTo(1.6, 5); // ★2: +60%
+    expect(battleLevelAtkMul(2)).toBeCloseTo(2.2, 5); // ★3 (maxed): 2.2× base
   });
 
   it("stat emphasis grows range with battleLevel (towerStatPipeline)", () => {
@@ -77,11 +81,13 @@ describe("T12 — per-role tower upgrade scaling", () => {
 
   it("upgrading a debuff tower in battle scales its runtime behavior + range", () => {
     const b = new BattleState(STAGE_1, loadCatalog(), {
-      seed: 1, hero: { stats: defaultHeroStats(), startPos: { x: 480, y: 270 }, damageType: "Physical" },
+      seed: 1,
+      hero: { stats: defaultHeroStats(), startPos: { x: 480, y: 270 }, damageType: "Physical" },
     });
     b.placeTower("doro-mire-spirit", 0);
     const t = b.towers[0];
-    const slow0 = t.behavior.slow!.pct, range0 = t.stats.range;
+    const slow0 = t.behavior.slow!.pct,
+      range0 = t.stats.range;
     b.gold = 100000;
     for (let i = 0; i < 10; i++) b.upgradeTower(t.uid); // caps at MAX_TOWER_UPGRADES
     expect(t.battleLevel).toBe(MAX_TOWER_UPGRADES);

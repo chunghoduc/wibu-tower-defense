@@ -36,7 +36,17 @@ describe("boxRewardEntries", () => {
     const def = ITEM_CATALOG[0];
     const entries = boxRewardEntries({
       ...baseReward,
-      items: [{ id: "x", defId: def.id, acquiredLevel: 1, rolledStats: {}, rolledPrimaryAffix: 0, rolledAffixes: [], enhanceLevel: 0 }],
+      items: [
+        {
+          id: "x",
+          defId: def.id,
+          acquiredLevel: 1,
+          rolledStats: {},
+          rolledPrimaryAffix: 0,
+          rolledAffixes: [],
+          enhanceLevel: 0,
+        },
+      ],
     });
     const item = entries.find((e) => e.kind === "item")!;
     expect(item.name).toBe(def.name);

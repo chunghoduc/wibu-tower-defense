@@ -41,14 +41,28 @@ describe("jewel bags flow through the hero pipeline", () => {
   it("an increased jewel raises the stat (+8% ATK on 100 → 108)", () => {
     const s = saveWithJewel("brawler-jewel-1", "crimson-shard", true);
     const bags = socketedJewelBags(s);
-    const out = heroStatPipeline(makeStats({ atk: 100 }), 1, bags, [], [], collectPassiveMore(bags));
+    const out = heroStatPipeline(
+      makeStats({ atk: 100 }),
+      1,
+      bags,
+      [],
+      [],
+      collectPassiveMore(bags),
+    );
     expect(out.atk).toBeCloseTo(108, 5);
   });
 
   it("a Unique `more` jewel multiplies (Berserker's Heart +8% more ATK on 100 → 108)", () => {
     const s = saveWithJewel("brawler-jewel-1", "berserkers-heart", true);
     const bags = socketedJewelBags(s);
-    const out = heroStatPipeline(makeStats({ atk: 100 }), 1, bags, [], [], collectPassiveMore(bags));
+    const out = heroStatPipeline(
+      makeStats({ atk: 100 }),
+      1,
+      bags,
+      [],
+      [],
+      collectPassiveMore(bags),
+    );
     expect(out.atk).toBeCloseTo(108, 5);
   });
 });

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { absorbWithShield, ccDuration, slowedSpeed, tickDots, type Dot } from "../src/core/effects.ts";
+import {
+  absorbWithShield,
+  ccDuration,
+  slowedSpeed,
+  tickDots,
+  type Dot,
+} from "../src/core/effects.ts";
 
 describe("ccDuration", () => {
   it("reduces duration by tenacity", () => {

@@ -10,17 +10,30 @@ import { itemTex } from "../data/assetKeys.ts";
 
 /** The 9 equipped slots shown on wall hangers (Pet is excluded — it flies). */
 export const HANGER_SLOTS: ItemSlot[] = [
-  "Weapon", "Helmet", "BodyArmor", "Gloves", "Boots",
-  "Amulet", "Ring1", "Ring2", "Wing",
+  "Weapon",
+  "Helmet",
+  "BodyArmor",
+  "Gloves",
+  "Boots",
+  "Amulet",
+  "Ring1",
+  "Ring2",
+  "Wing",
 ];
 const LEFT_COUNT = 5; // 5 hangers on the left wall, the rest on the right wall
 
-export interface HangerCell { slot: ItemSlot; x: number; y: number; }
+export interface HangerCell {
+  slot: ItemSlot;
+  x: number;
+  y: number;
+}
 
 /** Peg positions: two vertical wall columns just inside the edge menu buttons. */
 export function hangerLayout(W: number, H: number): HangerCell[] {
-  const leftX = W * 0.13, rightX = W * 0.87;
-  const top = H * 0.20, bot = H * 0.64;
+  const leftX = W * 0.13,
+    rightX = W * 0.87;
+  const top = H * 0.2,
+    bot = H * 0.64;
   return HANGER_SLOTS.map((slot, i) => {
     const onLeft = i < LEFT_COUNT;
     const col = onLeft ? leftX : rightX;
@@ -31,7 +44,11 @@ export function hangerLayout(W: number, H: number): HangerCell[] {
   });
 }
 
-export interface HangerItem { slot: ItemSlot; defId: string; iconKey: string; }
+export interface HangerItem {
+  slot: ItemSlot;
+  defId: string;
+  iconKey: string;
+}
 
 /** Per HANGER_SLOTS index: the equipped item to hang, or null (empty peg). */
 export function equippedHangers(inv: InventorySave): (HangerItem | null)[] {
@@ -46,7 +63,10 @@ export function equippedHangers(inv: InventorySave): (HangerItem | null)[] {
   });
 }
 
-export interface SquadStand { members: string[]; showSetSquad: boolean; }
+export interface SquadStand {
+  members: string[];
+  showSetSquad: boolean;
+}
 
 /** The selected squad to stand on the stage. No owned-tower fallback. */
 export function squadStand(save: HeroSave): SquadStand {
@@ -54,7 +74,10 @@ export function squadStand(save: HeroSave): SquadStand {
   return { members, showSetSquad: members.length === 0 };
 }
 
-export interface StandPoint { x: number; y: number; }
+export interface StandPoint {
+  x: number;
+  y: number;
+}
 
 /** Up to n arced standing positions on the lower stage. */
 export function squadStandPoints(n: number, W: number, H: number): StandPoint[] {
@@ -67,12 +90,20 @@ export function squadStandPoints(n: number, W: number, H: number): StandPoint[] 
 }
 
 /** Bounded lissajous wander for the pet, in a box above the throne. */
-export function petWander(elapsedMs: number, W: number, H: number): {
-  x: number; y: number; faceLeft: boolean;
+export function petWander(
+  elapsedMs: number,
+  W: number,
+  H: number,
+): {
+  x: number;
+  y: number;
+  faceLeft: boolean;
 } {
   const t = elapsedMs / 1000;
-  const cx = W * 0.50, cy = H * 0.26;
-  const ax = W * 0.10, ay = H * 0.08;
+  const cx = W * 0.5,
+    cy = H * 0.26;
+  const ax = W * 0.1,
+    ay = H * 0.08;
   const x = cx + Math.sin(t * 0.6) * ax;
   const y = cy + Math.sin(t * 0.9 + 1.3) * ay;
   return { x, y, faceLeft: Math.cos(t * 0.6) < 0 };

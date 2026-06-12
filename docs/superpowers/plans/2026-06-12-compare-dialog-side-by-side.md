@@ -13,6 +13,7 @@
 ### Task 1: Add the selected-item value to `CompareRow`
 
 **Files:**
+
 - Modify: `src/data/itemCompare.ts`
 - Test: `tests/item-compare.test.ts`
 
@@ -28,9 +29,9 @@ describe("compareItems — selected (bag) value column", () => {
     const { stats } = compareItems(bag, equipped);
     const byLabel = (l: string) => stats.find((r) => r.label === l)!;
 
-    expect(byLabel("HP").bag).toBe("100");       // selected has it, equipped doesn't
-    expect(byLabel("Armor").bag).toBe("50");     // both have it
-    expect(byLabel("M.Resist").bag).toBe("0");   // equipped-only → selected shows 0
+    expect(byLabel("HP").bag).toBe("100"); // selected has it, equipped doesn't
+    expect(byLabel("Armor").bag).toBe("50"); // both have it
+    expect(byLabel("M.Resist").bag).toBe("0"); // equipped-only → selected shows 0
   });
 
   it("scales the selected value by enhance level", () => {
@@ -41,7 +42,7 @@ describe("compareItems — selected (bag) value column", () => {
 
   it("formats fractional / affix selected values as percent", () => {
     const bag = ref({ rolledStats: { critRate: 0.22 } });
-    const equipped = ref({ rolledStats: { critRate: 0.10 } });
+    const equipped = ref({ rolledStats: { critRate: 0.1 } });
     expect(compareItems(bag, equipped).stats.find((r) => r.label === "Crit")!.bag).toBe("22%");
   });
 });
@@ -57,20 +58,20 @@ Expected: FAIL — `bag` is `undefined` (property does not exist on `CompareRow`
 In `src/data/itemCompare.ts`, add to the `CompareRow` interface (after `equipped`):
 
 ```ts
-  /** The selected (bag) item's value, formatted (the number you'd gain by equipping it). */
-  bag: string;
+/** The selected (bag) item's value, formatted (the number you'd gain by equipping it). */
+bag: string;
 ```
 
 In the `row()` helper, add `bag: fmt(bagV)` to the returned object (alongside `equipped: fmt(eqV)`):
 
 ```ts
-  return {
-    label,
-    equipped: fmt(eqV),
-    bag: fmt(bagV),
-    delta: zero ? "0" : (d > 0 ? "+" : "-") + mag,
-    dir: zero ? 0 : d > 0 ? 1 : -1,
-  };
+return {
+  label,
+  equipped: fmt(eqV),
+  bag: fmt(bagV),
+  delta: zero ? "0" : (d > 0 ? "+" : "-") + mag,
+  dir: zero ? 0 : d > 0 ? 1 : -1,
+};
 ```
 
 - [ ] **Step 4: Run the whole compare test file**
@@ -90,6 +91,7 @@ git commit -m "feat(compare): expose selected-item value on CompareRow"
 ### Task 2: Two-column compare dialog presenter
 
 **Files:**
+
 - Modify (rewrite render body): `src/scenes/itemCompareDialog.ts`
 
 No test (Phaser presenter — verified by build + CDP playtest, consistent with the
@@ -103,11 +105,11 @@ the two-column layout below. Keep the file header comment, the `RARITY_HEX` / `R
 the geometry constants and the render function:
 
 ```ts
-const W = 430;             // wider: two columns on the 960-wide stage
+const W = 430; // wider: two columns on the 960-wide stage
 const COL_GAP = 14;
 const PAD = 14;
 const ROW_H = 19;
-const HEADER_H = 74;       // icon + name + section legend
+const HEADER_H = 74; // icon + name + section legend
 const SECTION_H = 22;
 const FOOTER_H = 64;
 
@@ -131,7 +133,7 @@ export function renderCompareDialog(
 
   // Column geometry (x offsets relative to dx).
   const colW = (W - PAD * 2 - COL_GAP) / 2;
-  const leftX = PAD;                 // left card origin
+  const leftX = PAD; // left card origin
   const rightX = PAD + colW + COL_GAP;
   const midX = PAD + colW + COL_GAP / 2;
 
@@ -141,13 +143,25 @@ export function renderCompareDialog(
   g.lineStyle(2, RARITY_INT[bag.def.rarity], 1).strokeRoundedRect(dx, dy, W, H, 10);
   // faint divider between the two cards
   g.lineStyle(1, 0x2a3650, 0.8).lineBetween(dx + midX, dy + 10, dx + midX, dy + H - FOOTER_H + 2);
-  const scrim = scene.add.zone(0, 0, scene.scale.width, scene.scale.height).setOrigin(0).setInteractive();
+  const scrim = scene.add
+    .zone(0, 0, scene.scale.width, scene.scale.height)
+    .setOrigin(0)
+    .setInteractive();
   scrim.on("pointerup", cb.onClose);
   dialog.add(g);
   dialog.add(scrim);
 
-  const txt = (xx: number, yy: number, s: string, style: Phaser.Types.GameObjects.Text.TextStyle = {}) => {
-    const t = crispText(scene, dx + xx, dy + yy, s, { fontSize: "12px", color: "#dfe8f3", ...style });
+  const txt = (
+    xx: number,
+    yy: number,
+    s: string,
+    style: Phaser.Types.GameObjects.Text.TextStyle = {},
+  ) => {
+    const t = crispText(scene, dx + xx, dy + yy, s, {
+      fontSize: "12px",
+      color: "#dfe8f3",
+      ...style,
+    });
     dialog.add(t);
     return t;
   };
@@ -159,13 +173,21 @@ export function renderCompareDialog(
     icon.setDepth(0);
     dialog.add(icon);
     txt(originX + 36, 10, tag, { fontSize: "9px", color: "#7e8ea3" });
-    txt(originX + 36, 22, `${ref.def.name}${enh(ref)}`,
-      { fontSize: "12px", color: RARITY_HEX[ref.def.rarity], fontStyle: "bold",
-        wordWrap: { width: colW - 40 } });
+    txt(originX + 36, 22, `${ref.def.name}${enh(ref)}`, {
+      fontSize: "12px",
+      color: RARITY_HEX[ref.def.rarity],
+      fontStyle: "bold",
+      wordWrap: { width: colW - 40 },
+    });
   };
   header(leftX, "SELECTED", bag);
   header(rightX, `EQUIPPED · ${SLOT_LABEL[slot]}`, equipped);
-  g.lineStyle(1, 0x2a3650, 0.9).lineBetween(dx + PAD, dy + HEADER_H - 6, dx + W - PAD, dy + HEADER_H - 6);
+  g.lineStyle(1, 0x2a3650, 0.9).lineBetween(
+    dx + PAD,
+    dy + HEADER_H - 6,
+    dx + W - PAD,
+    dy + HEADER_H - 6,
+  );
 
   // ---- rows: same stat at the same y in both columns ----
   let y = HEADER_H;
@@ -178,8 +200,11 @@ export function renderCompareDialog(
     // left card: label … bag value (delta bracket)
     txt(leftX + 6, y, r.label, { fontSize: "12px", color: "#cdd9ea" });
     txt(leftX + colW - 52, y, r.bag, { fontSize: "12px", color: "#dfe8f3" }).setOrigin(1, 0);
-    txt(leftX + colW - 2, y, `(${r.delta})`,
-      { fontSize: "11px", color: DELTA_COLOR[String(r.dir) as "0"], fontStyle: "bold" }).setOrigin(1, 0);
+    txt(leftX + colW - 2, y, `(${r.delta})`, {
+      fontSize: "11px",
+      color: DELTA_COLOR[String(r.dir) as "0"],
+      fontStyle: "bold",
+    }).setOrigin(1, 0);
     // right card: label … equipped value
     txt(rightX + 6, y, r.label, { fontSize: "12px", color: "#cdd9ea" });
     txt(rightX + colW - 2, y, r.equipped, { fontSize: "12px", color: "#dfe8f3" }).setOrigin(1, 0);
@@ -188,31 +213,52 @@ export function renderCompareDialog(
 
   section("Stats");
   if (stats.length) stats.forEach(rowLine);
-  else { txt(leftX + 6, y, "No base stats.", { fontSize: "11px", color: "#7c8aa0" }); y += ROW_H; }
+  else {
+    txt(leftX + 6, y, "No base stats.", { fontSize: "11px", color: "#7c8aa0" });
+    y += ROW_H;
+  }
 
-  if (affixes.length) { section("Affixes"); affixes.forEach(rowLine); }
+  if (affixes.length) {
+    section("Affixes");
+    affixes.forEach(rowLine);
+  }
 
   // ---- footer buttons: Enhance under left card, Replace under right card ----
   const btnY = dy + H - 46;
   const enhance = crispText(scene, dx + leftX + colW / 2, btnY, "⚒  Enhance", {
-    fontSize: "14px", color: "#dfe8f3", backgroundColor: "#26344a",
-  }).setOrigin(0.5, 0).setPadding(14, 8, 14, 8).setInteractive({ useHandCursor: true });
+    fontSize: "14px",
+    color: "#dfe8f3",
+    backgroundColor: "#26344a",
+  })
+    .setOrigin(0.5, 0)
+    .setPadding(14, 8, 14, 8)
+    .setInteractive({ useHandCursor: true });
   enhance.on("pointerup", cb.onEnhance);
   dialog.add(enhance);
 
   const replace = crispText(scene, dx + rightX + colW / 2, btnY, "⇄  Replace", {
-    fontSize: "14px", color: "#fff", backgroundColor: "#1565c0",
-  }).setOrigin(0.5, 0).setPadding(14, 8, 14, 8).setInteractive({ useHandCursor: true });
+    fontSize: "14px",
+    color: "#fff",
+    backgroundColor: "#1565c0",
+  })
+    .setOrigin(0.5, 0)
+    .setPadding(14, 8, 14, 8)
+    .setInteractive({ useHandCursor: true });
   replace.on("pointerup", cb.onReplace);
   dialog.add(replace);
 
   const close = crispText(scene, dx + W - 14, dy + 8, "✕", { fontSize: "16px", color: "#ef9a9a" })
-    .setOrigin(1, 0).setInteractive({ useHandCursor: true });
+    .setOrigin(1, 0)
+    .setInteractive({ useHandCursor: true });
   close.on("pointerup", cb.onClose);
   dialog.add(close);
 
-  dialog.add(panelText(scene, dx + PAD, dy + H - 16,
-    "Bracket = change vs equipped · Green up · Red down", { fontSize: "9px", color: "#6c7c93" }));
+  dialog.add(
+    panelText(scene, dx + PAD, dy + H - 16, "Bracket = change vs equipped · Green up · Red down", {
+      fontSize: "9px",
+      color: "#6c7c93",
+    }),
+  );
 
   dialog.setVisible(true);
 }
@@ -276,6 +322,7 @@ hook text changes.
 ## Self-Review
 
 **Spec coverage:**
+
 - Req 1 (two items side by side, selected left / equipping right) → Task 2 two-column layout. ✓
 - Req 2 (Enhance under left, Replace under right) → Task 2 footer buttons. ✓
 - Req 3 (deltas in bracket on left + extra rows for equipped-only stats) → Task 1 `bag` field + Task 2 left-column bracket; union already provided by `compareItems`. ✓

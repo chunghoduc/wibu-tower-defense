@@ -6,12 +6,14 @@ to make the game great. This doc is the source of truth — update checkboxes + 
 progresses (survives context compaction).
 
 ## Conventions
+
 - One focused commit per task (conventional commits, descriptive body).
 - Keep `npm run typecheck`, `npm test`, `npm run build` green at every commit.
 - Self-verify gameplay with the CDP playtest harness (`scripts/playtest/`).
 - Regenerate art via `npx vite-node scripts/svgart/gen.mjs` when sprites change.
 
 ## Task checklist
+
 - [x] **F0** Foundation: dev-only `window.__game`, reusable playtest harness, effects/anim helpers.
 - [x] **T9** Starter crystals for ≥50 rolls (quick).
 - [x] **T1** Combat feedback: projectiles for ranged towers; melee attack animation + impact effects; tower-skill effects.
@@ -33,6 +35,7 @@ progresses (survives context compaction).
 - [~] **LOOP** Brainstorm + add more; playtest; polish until great. (ongoing)
 
 ## LOOP polish — done
+
 - Battle speed controls (Pause / 1× / 2× / 3×).
 - Tower range preview on the placement ghost.
 - Procedural Web-Audio SFX (attacks/hits/deaths/casts/loot/place/win/lose) + mute.
@@ -42,6 +45,7 @@ progresses (survives context compaction).
   loaded via Phaser `load.svg()` and drawn in `BattleScene.drawStatic`.
 
 ## LOOP polish — ideas (next iterations)
+
 - Extend `svg-asset-gen` to towers/props; parallax background from the same kit.
 - Wave-incoming announcement + a "start next wave early" bonus.
 - Castle + tower-placement-count HUD niceties; minimap for the larger world.
@@ -53,6 +57,7 @@ progresses (survives context compaction).
 - Hero appearance reflecting equipped weapon (variants exist in sdart pipeline).
 
 ## Progress log
+
 - 2026-06-07: Roadmap created. Baseline playable, 224 tests. Commit `43195e2`.
 - 2026-06-07: All 17 requested tasks (T1–T17) implemented with the full workflow
   (design → TDD where logic exists → playtest-verify → code review → commit).

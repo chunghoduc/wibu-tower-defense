@@ -24,7 +24,11 @@ export interface ScrollbarSpec {
  * Scrolling itself is row-windowed by the caller (only on-screen tiles are
  * created), so this is purely a "there's more below/above" affordance.
  */
-export function drawScrollbar(scene: Phaser.Scene, layer: Phaser.GameObjects.Container, o: ScrollbarSpec): void {
+export function drawScrollbar(
+  scene: Phaser.Scene,
+  layer: Phaser.GameObjects.Container,
+  o: ScrollbarSpec,
+): void {
   if (o.total <= o.visible) return;
   const g = scene.add.graphics();
   g.fillStyle(0x0c121c, 0.6).fillRoundedRect(o.x, o.y, 6, o.h, 3);

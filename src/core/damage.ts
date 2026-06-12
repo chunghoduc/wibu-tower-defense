@@ -58,7 +58,10 @@ export interface MitigationBreakdown {
  */
 export function mitigationBreakdown(packet: DamagePacket, defender: Stats): MitigationBreakdown {
   const input = Math.max(0, packet.amount);
-  let defRating = 0, effRating = 0, mitigationFrac = 0, afterMitig = input;
+  let defRating = 0,
+    effRating = 0,
+    mitigationFrac = 0,
+    afterMitig = input;
 
   if (packet.type === "Physical") {
     defRating = defender.armor;
@@ -90,7 +93,11 @@ export function critMultiplier(attackerCritDamage: number, defenderCritDefense: 
 }
 
 /** Roll an attack's raw damage, applying crit (reduced by the defender's crit defense). */
-export function rollAttackDamage(attacker: Stats, didCrit: boolean, defenderCritDefense = 0): number {
+export function rollAttackDamage(
+  attacker: Stats,
+  didCrit: boolean,
+  defenderCritDefense = 0,
+): number {
   const base = Math.max(0, attacker.atk);
   return didCrit ? base * critMultiplier(attacker.critDamage, defenderCritDefense) : base;
 }

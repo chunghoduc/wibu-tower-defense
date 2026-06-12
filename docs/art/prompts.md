@@ -1,4 +1,3 @@
-
 > wibu-tower-defense@0.1.0 gen:art-prompts
 > vite-node scripts/genArtPrompts.ts
 
@@ -7,6 +6,7 @@
 Generated from the data catalogs — 70 sprites total.
 
 **Canonical dimensions:**
+
 - tower: 32×32
 - enemy: 24×24
 - boss: 48×48
@@ -576,4 +576,3 @@ Generated from the data catalogs — 70 sprites total.
 ```
 8-bit retro pixel art sprite, NES/SNES era, limited disciplined palette, crisp single-pixel outline, strong readable silhouette, transparent background, front-facing or 3/4 view, no text, no signature, centered 16x16 inventory item icon. Name: "Tempest Wings". Equipment slot: Wing. Legendary rarity — accent colour molten orange-gold, glowing gold outline, ember motes Single static icon, clear on a dark inventory background.
 ```
-

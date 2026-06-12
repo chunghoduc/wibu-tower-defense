@@ -25,7 +25,9 @@ for (const jw of JEWEL_CATALOG) {
  * uniform-random. Returns null only if the catalog is somehow empty.
  */
 export function rollJewelDrop(save: HeroSave, rng: Rng): JewelInstanceSave | null {
-  const rarities = (Object.keys(RARITY_WEIGHT) as Rarity[]).filter((r) => (JEWELS_BY_RARITY.get(r)?.length ?? 0) > 0);
+  const rarities = (Object.keys(RARITY_WEIGHT) as Rarity[]).filter(
+    (r) => (JEWELS_BY_RARITY.get(r)?.length ?? 0) > 0,
+  );
   const total = rarities.reduce((sum, r) => sum + RARITY_WEIGHT[r], 0);
   if (total <= 0) return null;
 
@@ -33,12 +35,18 @@ export function rollJewelDrop(save: HeroSave, rng: Rng): JewelInstanceSave | nul
   let rarity: Rarity = rarities[0];
   for (const r of rarities) {
     roll -= RARITY_WEIGHT[r];
-    if (roll < 0) { rarity = r; break; }
+    if (roll < 0) {
+      rarity = r;
+      break;
+    }
   }
 
   const pool = JEWELS_BY_RARITY.get(rarity)!;
   const def = pool[Math.floor(rng.next() * pool.length)];
-  const instance: JewelInstanceSave = { id: `jewel-${def.id}-${(rng.next() * 1e9) | 0}`, defId: def.id };
+  const instance: JewelInstanceSave = {
+    id: `jewel-${def.id}-${(rng.next() * 1e9) | 0}`,
+    defId: def.id,
+  };
   save.hero.jewels.push(instance);
   return instance;
 }

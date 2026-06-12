@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
 import {
-  metricValue, nextClaimableTier, claimMilestone, claimedTier, unlockedTitles, claimableMilestoneCount,
+  metricValue,
+  nextClaimableTier,
+  claimMilestone,
+  claimedTier,
+  unlockedTitles,
+  claimableMilestoneCount,
 } from "../src/core/milestones.ts";
 import { MILESTONES_MAP } from "../src/data/milestones.ts";
 

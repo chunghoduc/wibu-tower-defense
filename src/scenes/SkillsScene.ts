@@ -15,22 +15,38 @@ import { crispText } from "./ui.ts";
 import { skillTex } from "../data/assetKeys.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e", Magic: "#2196f3", Rare: "#9c27b0", Legendary: "#ff9800", Unique: "#f44336",
+  Common: "#9e9e9e",
+  Magic: "#2196f3",
+  Rare: "#9c27b0",
+  Legendary: "#ff9800",
+  Unique: "#f44336",
 };
 const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
+  Common: 0x9e9e9e,
+  Magic: 0x2196f3,
+  Rare: 0x9c27b0,
+  Legendary: 0xff9800,
+  Unique: 0xf44336,
 };
 const DMG_HEX: Record<string, string> = { Physical: "#ff8a65", Magic: "#b39ddb", True: "#fff176" };
 const DMG_INT: Record<string, number> = { Physical: 0xff8a65, Magic: 0xb39ddb, True: 0xfff176 };
 
-const COLS = 4, CW = 224, CH = 148, X0 = 16, Y0 = 62, GAP_X = 8, GAP_Y = 6;
+const COLS = 4,
+  CW = 224,
+  CH = 148,
+  X0 = 16,
+  Y0 = 62,
+  GAP_X = 8,
+  GAP_Y = 6;
 
 export class SkillsScene extends Phaser.Scene {
   private mgr!: SaveManager;
   private layer!: Phaser.GameObjects.Container;
   private toast!: Phaser.GameObjects.Text;
 
-  constructor() { super("SkillsScene"); }
+  constructor() {
+    super("SkillsScene");
+  }
 
   /** Where "Back" returns — the stage-select if we came from a pre-battle
    *  loadout edit, otherwise the main menu. Consumed (cleared) on read. */
@@ -44,17 +60,32 @@ export class SkillsScene extends Phaser.Scene {
     fadeIn(this);
     this.mgr = this.registry.get("saveManager");
     const W = this.scale.width;
-    this.add.text(W / 2, 10, "✦ Hero Skills", { fontSize: "24px", color: "#ffd700", fontStyle: "bold" }).setOrigin(0.5, 0);
-    this.add.text(20, 10, "← Back", { fontSize: "15px", color: "#90caf9" })
-      .setInteractive({ useHandCursor: true }).on("pointerup", () => fadeToScene(this, this.backScene()));
+    this.add
+      .text(W / 2, 10, "✦ Hero Skills", { fontSize: "24px", color: "#ffd700", fontStyle: "bold" })
+      .setOrigin(0.5, 0);
+    this.add
+      .text(20, 10, "← Back", { fontSize: "15px", color: "#90caf9" })
+      .setInteractive({ useHandCursor: true })
+      .on("pointerup", () => fadeToScene(this, this.backScene()));
 
     const save0 = this.mgr.getSave();
     const owned = save0.hero.obtainedSkills.length;
-    this.add.text(W / 2, 38, `${owned}/${ACTIVE_SKILLS.length} collected  ·  ${save0.hero.equippedSkillIds.length}/${MAX_ACTIVE_SKILLS} equipped  ·  tap to equip / unequip`, { fontSize: "12px", color: "#90a4bb" }).setOrigin(0.5, 0);
+    this.add
+      .text(
+        W / 2,
+        38,
+        `${owned}/${ACTIVE_SKILLS.length} collected  ·  ${save0.hero.equippedSkillIds.length}/${MAX_ACTIVE_SKILLS} equipped  ·  tap to equip / unequip`,
+        { fontSize: "12px", color: "#90a4bb" },
+      )
+      .setOrigin(0.5, 0);
 
     this.layer = this.add.container(0, 0);
-    this.toast = this.add.text(W / 2, 516, "", { fontSize: "12px", color: "#ffd6a0", backgroundColor: "#2a1a1a" })
-      .setOrigin(0.5).setPadding(8, 4, 8, 4).setDepth(60).setVisible(false);
+    this.toast = this.add
+      .text(W / 2, 516, "", { fontSize: "12px", color: "#ffd6a0", backgroundColor: "#2a1a1a" })
+      .setOrigin(0.5)
+      .setPadding(8, 4, 8, 4)
+      .setDepth(60)
+      .setVisible(false);
     this.redraw();
   }
 
@@ -69,17 +100,33 @@ export class SkillsScene extends Phaser.Scene {
     });
   }
 
-  private drawCard(def: ActiveSkillDef, x: number, y: number, entry: { level: number; useXp: number } | undefined, equipped: boolean): void {
+  private drawCard(
+    def: ActiveSkillDef,
+    x: number,
+    y: number,
+    entry: { level: number; useXp: number } | undefined,
+    equipped: boolean,
+  ): void {
     const owned = entry !== undefined;
     const g = this.add.graphics();
-    g.fillStyle(equipped ? 0x2a1f40 : owned ? 0x18202c : 0x121821, owned ? 1 : 0.85)
-      .fillRoundedRect(x, y, CW, CH, 8);
-    g.lineStyle(equipped ? 3 : 2, equipped ? 0xb085f5 : owned ? RARITY_INT[def.rarity] : 0x2a3442, owned ? 1 : 0.7)
-      .strokeRoundedRect(x, y, CW, CH, 8);
+    g.fillStyle(
+      equipped ? 0x2a1f40 : owned ? 0x18202c : 0x121821,
+      owned ? 1 : 0.85,
+    ).fillRoundedRect(x, y, CW, CH, 8);
+    g.lineStyle(
+      equipped ? 3 : 2,
+      equipped ? 0xb085f5 : owned ? RARITY_INT[def.rarity] : 0x2a3442,
+      owned ? 1 : 0.7,
+    ).strokeRoundedRect(x, y, CW, CH, 8);
     // Inset damage-type frame (Physical / Magic / True) — the outer border keeps
     // showing rarity, this inner one distinguishes how the skill deals damage.
-    g.lineStyle(1.5, DMG_INT[def.damageType] ?? 0x9fb0c4, owned ? 0.9 : 0.4)
-      .strokeRoundedRect(x + 3, y + 3, CW - 6, CH - 6, 6);
+    g.lineStyle(1.5, DMG_INT[def.damageType] ?? 0x9fb0c4, owned ? 0.9 : 0.4).strokeRoundedRect(
+      x + 3,
+      y + 3,
+      CW - 6,
+      CH - 6,
+      6,
+    );
     this.layer.add(g);
 
     // Icon.
@@ -90,36 +137,104 @@ export class SkillsScene extends Phaser.Scene {
       this.layer.add(img);
     }
     // Header.
-    this.layer.add(crispText(this, x + 62, y + 10, def.name, { fontSize: "13px", color: owned ? RARITY_HEX[def.rarity] : "#5c6a70", fontStyle: "bold", wordWrap: { width: CW - 70 } }));
-    this.layer.add(crispText(this, x + 62, y + 30, `${def.rarity} · ${def.damageType}`, { fontSize: "10px", color: owned ? DMG_HEX[def.damageType] ?? "#9fb0c4" : "#566275" }));
+    this.layer.add(
+      crispText(this, x + 62, y + 10, def.name, {
+        fontSize: "13px",
+        color: owned ? RARITY_HEX[def.rarity] : "#5c6a70",
+        fontStyle: "bold",
+        wordWrap: { width: CW - 70 },
+      }),
+    );
+    this.layer.add(
+      crispText(this, x + 62, y + 30, `${def.rarity} · ${def.damageType}`, {
+        fontSize: "10px",
+        color: owned ? (DMG_HEX[def.damageType] ?? "#9fb0c4") : "#566275",
+      }),
+    );
     const met = skillWeaponMet(this.mgr.getSave(), def.id);
-    this.layer.add(crispText(this, x + 62, y + 44,
-      def.requiresWeapon ? `Weapon: ${def.requiresWeapon}${met ? " ✓" : ""}` : "Any weapon",
-      { fontSize: "9px", color: def.requiresWeapon ? (met ? "#8be06a" : "#ff9a9a") : "#7c8aa0" }));
+    this.layer.add(
+      crispText(
+        this,
+        x + 62,
+        y + 44,
+        def.requiresWeapon ? `Weapon: ${def.requiresWeapon}${met ? " ✓" : ""}` : "Any weapon",
+        { fontSize: "9px", color: def.requiresWeapon ? (met ? "#8be06a" : "#ff9a9a") : "#7c8aa0" },
+      ),
+    );
 
     // Description.
-    this.layer.add(crispText(this, x + 10, y + 64, def.description, { fontSize: "9px", color: owned ? "#aeb9c8" : "#5a6678", wordWrap: { width: CW - 20 } }));
+    this.layer.add(
+      crispText(this, x + 10, y + 64, def.description, {
+        fontSize: "9px",
+        color: owned ? "#aeb9c8" : "#5a6678",
+        wordWrap: { width: CW - 20 },
+      }),
+    );
 
     // Footer: level + XP bar + power, or "not collected".
     const fy = y + CH - 34;
     if (owned && entry) {
       const need = skillXpToLevel(entry.level);
-      this.layer.add(crispText(this, x + 10, fy, `Lv ${entry.level}`, { fontSize: "12px", color: "#ffe07a", fontStyle: "bold" }));
+      this.layer.add(
+        crispText(this, x + 10, fy, `Lv ${entry.level}`, {
+          fontSize: "12px",
+          color: "#ffe07a",
+          fontStyle: "bold",
+        }),
+      );
       // XP bar
-      const bx = x + 52, bw = CW - 110;
+      const bx = x + 52,
+        bw = CW - 110;
       const bg = this.add.graphics();
       bg.fillStyle(0x000000, 0.5).fillRoundedRect(bx, fy + 2, bw, 7, 3);
-      bg.fillStyle(0x5a8cff, 1).fillRoundedRect(bx, fy + 2, bw * Phaser.Math.Clamp(entry.useXp / need, 0, 1), 7, 3);
+      bg.fillStyle(0x5a8cff, 1).fillRoundedRect(
+        bx,
+        fy + 2,
+        bw * Phaser.Math.Clamp(entry.useXp / need, 0, 1),
+        7,
+        3,
+      );
       this.layer.add(bg);
-      this.layer.add(crispText(this, x + 52 + bw + 4, fy, `${entry.useXp}/${need}`, { fontSize: "8px", color: "#9fb0c4" }));
-      this.layer.add(crispText(this, x + 10, fy + 14, `Power ${Math.round(skillEffectivePower(def.basePower, entry.level))}`, { fontSize: "10px", color: "#cdd6e6" }));
+      this.layer.add(
+        crispText(this, x + 52 + bw + 4, fy, `${entry.useXp}/${need}`, {
+          fontSize: "8px",
+          color: "#9fb0c4",
+        }),
+      );
+      this.layer.add(
+        crispText(
+          this,
+          x + 10,
+          fy + 14,
+          `Power ${Math.round(skillEffectivePower(def.basePower, entry.level))}`,
+          { fontSize: "10px", color: "#cdd6e6" },
+        ),
+      );
 
       const badge = equipped
-        ? crispText(this, x + CW - 10, fy + 6, "✓ Equipped", { fontSize: "11px", color: "#fff", backgroundColor: "#5a2a7a" }).setOrigin(1, 0).setPadding(6, 3, 6, 3)
-        : crispText(this, x + CW - 10, fy + 6, "Equip", { fontSize: "11px", color: "#fff", backgroundColor: "#1f6f3a" }).setOrigin(1, 0).setPadding(8, 3, 8, 3).setInteractive({ useHandCursor: true });
+        ? crispText(this, x + CW - 10, fy + 6, "✓ Equipped", {
+            fontSize: "11px",
+            color: "#fff",
+            backgroundColor: "#5a2a7a",
+          })
+            .setOrigin(1, 0)
+            .setPadding(6, 3, 6, 3)
+        : crispText(this, x + CW - 10, fy + 6, "Equip", {
+            fontSize: "11px",
+            color: "#fff",
+            backgroundColor: "#1f6f3a",
+          })
+            .setOrigin(1, 0)
+            .setPadding(8, 3, 8, 3)
+            .setInteractive({ useHandCursor: true });
       this.layer.add(badge);
     } else {
-      this.layer.add(crispText(this, x + 10, fy + 6, "🔒 Not collected — drops from battles", { fontSize: "10px", color: "#6b7689" }));
+      this.layer.add(
+        crispText(this, x + 10, fy + 6, "🔒 Not collected — drops from battles", {
+          fontSize: "10px",
+          color: "#6b7689",
+        }),
+      );
     }
 
     // Whole owned card toggles: tap to equip into a free slot, tap again to remove.

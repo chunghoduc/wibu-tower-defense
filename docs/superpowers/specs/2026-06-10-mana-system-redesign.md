@@ -22,7 +22,7 @@ Replace the variable-pool mana economy with a simple, hit-driven charge bar.
 - **No passive regen.** `manaRegen` is removed — mana only comes from combat.
 - **Kill bonus kept.** `manaOnKill` survives as an optional accelerator (kills
   top up mana). It is a distinct, already-authored build lever; the brief only
-  capped *on-hit*, so on-kill stays uncapped (kills are far rarer than hits).
+  capped _on-hit_, so on-kill stays uncapped (kills are far rarer than hits).
 
 ### Who casts (replacing the old `maxMana > 0` gate)
 
@@ -38,13 +38,13 @@ status.
 
 ## Stat Changes (`Stats` interface)
 
-| Stat | Action | Reason |
-|------|--------|--------|
-| `maxMana` | **removed** | Pool is a fixed constant now. |
-| `manaRegen` | **removed** | No passive regen. |
-| `manaCostReduction` | **removed** | Already dead (no runtime reader); meaningless with a fixed full-bar cast. |
-| `manaOnHit` | kept, clamped ≤15 at consumption | The one allowed bonus. |
-| `manaOnKill` | kept | Optional kill-fuelled accelerator. |
+| Stat                | Action                           | Reason                                                                    |
+| ------------------- | -------------------------------- | ------------------------------------------------------------------------- |
+| `maxMana`           | **removed**                      | Pool is a fixed constant now.                                             |
+| `manaRegen`         | **removed**                      | No passive regen.                                                         |
+| `manaCostReduction` | **removed**                      | Already dead (no runtime reader); meaningless with a fixed full-bar cast. |
+| `manaOnHit`         | kept, clamped ≤15 at consumption | The one allowed bonus.                                                    |
+| `manaOnKill`        | kept                             | Optional kill-fuelled accelerator.                                        |
 
 ## Touch Points
 
@@ -53,7 +53,7 @@ status.
 - **`src/core/battleTypes.ts`** — add `MANA_MAX`, `MANA_PER_HIT`,
   `MANA_ON_HIT_CAP`, and a `manaGainOnHit(stats)` helper.
 - **`src/core/battleDamage.ts`** — `performAttack` charges `MANA_PER_HIT +
-  clamp(manaOnHit)` on hit (gated `role !== "support"`), `manaOnKill` on kill.
+clamp(manaOnHit)` on hit (gated `role !== "support"`), `manaOnKill` on kill.
 - **`src/core/battle.ts`** (`updateHero`, `upgradeTower`) and
   **`src/core/battleTowers.ts`** (`updateTowers`) — cast at `mana >= MANA_MAX`,
   drop `manaRegen` accrual, drop the max-mana fraction bookkeeping on upgrade

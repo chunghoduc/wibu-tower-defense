@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { adaptiveImmuneType, advanceAdaptivePhase } from "../src/core/enemyAdaptive.ts";
 import type { EnemySpecial } from "../src/data/schema.ts";
 
-const AD: EnemySpecial = { adaptiveImmunity: { types: ["Physical", "Magic"], switchIntervalSec: 3.5 } };
+const AD: EnemySpecial = {
+  adaptiveImmunity: { types: ["Physical", "Magic"], switchIntervalSec: 3.5 },
+};
 
 describe("enemyAdaptive", () => {
   it("reports the current immune type by phase index, wrapping", () => {
@@ -30,6 +32,10 @@ describe("enemyAdaptive", () => {
   });
 
   it("is a no-op for non-adapters", () => {
-    expect(advanceAdaptivePhase(undefined, 2, 0, 1)).toEqual({ timer: 2, index: 0, switched: false });
+    expect(advanceAdaptivePhase(undefined, 2, 0, 1)).toEqual({
+      timer: 2,
+      index: 0,
+      switched: false,
+    });
   });
 });

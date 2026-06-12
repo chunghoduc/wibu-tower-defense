@@ -18,7 +18,8 @@ describe("kill rewards persist per kill", () => {
 
   it("scales XP with difficulty and rewards bosses far more", () => {
     expect(killXpFor(grunt, "Nightmare")).toBeGreaterThan(killXpFor(grunt, "Normal"));
-    if (boss !== grunt) expect(killXpFor(boss, "Normal")).toBeGreaterThan(killXpFor(grunt, "Normal"));
+    if (boss !== grunt)
+      expect(killXpFor(boss, "Normal")).toBeGreaterThan(killXpFor(grunt, "Normal"));
   });
 
   it("an elite kill always drops exactly one loot box into materials", () => {
@@ -42,7 +43,10 @@ describe("kill rewards persist per kill", () => {
     for (let seed = 0; seed < 400; seed++) {
       const before = save.inventory.items.length;
       const r = processEnemyKill(save, grunt, "Normal", 30, new Rng(seed));
-      if (r.itemDropped) { drops++; expect(save.inventory.items.length).toBe(before + 1); }
+      if (r.itemDropped) {
+        drops++;
+        expect(save.inventory.items.length).toBe(before + 1);
+      }
     }
     expect(drops).toBeGreaterThan(0); // small chance, but present over 400 kills
   });

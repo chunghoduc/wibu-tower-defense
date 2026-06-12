@@ -12,7 +12,7 @@ import type { HeroSave, ShopStockEntry } from "./save.ts";
 
 export const SHOP_SIZE = 8;
 export const SHOP_FREE_REFRESHES = 3;
-export const SHOP_REFRESH_STEP = 60;   // each reroll past the free ones costs +60 gold
+export const SHOP_REFRESH_STEP = 60; // each reroll past the free ones costs +60 gold
 /** Scroll costs diamonds, same as 75% of a single summon. */
 export const SCROLL_SHOP_COST = Math.round(SINGLE_PULL_COST * 0.75);
 export const SCROLL_SLOT_CHANCE = 0.04;
@@ -21,7 +21,10 @@ export const SCROLL_SLOT_CHANCE = 0.04;
 const DIAMOND_RARITIES = new Set(["Legendary", "Unique"]);
 
 /** Returns which currency a shop slot costs and its amount. */
-export function slotCurrency(slot: ShopStockEntry): { currency: "gold" | "diamonds"; amount: number } {
+export function slotCurrency(slot: ShopStockEntry): {
+  currency: "gold" | "diamonds";
+  amount: number;
+} {
   if (slot.kind === "scroll") return { currency: "diamonds", amount: slot.cost };
   if (!slot.item) return { currency: "gold", amount: slot.cost };
   const def = ITEM_CATALOG_MAP.get(slot.item.defId);
@@ -35,8 +38,12 @@ export interface PurchaseResult {
 }
 
 let _slotCounter = 0;
-function newSlotId(): string { return `slot-${(_slotCounter++).toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`; }
-function shopItemLevel(save: HeroSave): number { return Math.max(1, save.hero.level); }
+function newSlotId(): string {
+  return `slot-${(_slotCounter++).toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
+}
+function shopItemLevel(save: HeroSave): number {
+  return Math.max(1, save.hero.level);
+}
 
 export function generateShopStock(save: HeroSave, rng: Rng): ShopStockEntry[] {
   const lvl = shopItemLevel(save);
@@ -56,13 +63,19 @@ export function generateShopStock(save: HeroSave, rng: Rng): ShopStockEntry[] {
 }
 
 export function ensureShopStock(save: HeroSave, rng: Rng): void {
-  if (!save.shop.stock || save.shop.stock.length === 0) save.shop.stock = generateShopStock(save, rng);
+  if (!save.shop.stock || save.shop.stock.length === 0)
+    save.shop.stock = generateShopStock(save, rng);
 }
 
-function todayStr(): string { return new Date().toISOString().slice(0, 10); }
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 function rolloverRefreshes(save: HeroSave, today: string): void {
-  if (save.shop.refreshDate !== today) { save.shop.refreshDate = today; save.shop.refreshesToday = 0; }
+  if (save.shop.refreshDate !== today) {
+    save.shop.refreshDate = today;
+    save.shop.refreshesToday = 0;
+  }
 }
 
 /** Gold cost of the next manual refresh (free until SHOP_FREE_REFRESHES, then escalating). */
@@ -74,7 +87,8 @@ export function shopRefreshCost(save: HeroSave, today: string = todayStr()): num
 
 export function refreshShop(save: HeroSave, rng: Rng, today: string = todayStr()): PurchaseResult {
   const cost = shopRefreshCost(save, today);
-  if (save.currency.gold < cost) return { success: false, message: `Need ${cost} 🪙 gold to refresh` };
+  if (save.currency.gold < cost)
+    return { success: false, message: `Need ${cost} 🪙 gold to refresh` };
   save.currency.gold -= cost;
   save.shop.refreshesToday += 1;
   save.shop.stock = generateShopStock(save, rng);

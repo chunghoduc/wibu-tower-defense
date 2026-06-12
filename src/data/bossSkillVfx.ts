@@ -15,9 +15,9 @@ export interface BossSignatureSpec {
 }
 
 const SPECS: Record<string, BossSignatureSpec> = {
-  "quake":        { signature: "quake",        color: 0xff5a4a, label: "EARTHSHATTER" },
-  "rally":        { signature: "rally",        color: 0x9ccc65, label: "WAR ROAR" },
-  "barrier":      { signature: "barrier",      color: 0x8ad8ff, label: "AEGIS DOME" },
+  quake: { signature: "quake", color: 0xff5a4a, label: "EARTHSHATTER" },
+  rally: { signature: "rally", color: 0x9ccc65, label: "WAR ROAR" },
+  barrier: { signature: "barrier", color: 0x8ad8ff, label: "AEGIS DOME" },
   "summon-surge": { signature: "summon-surge", color: 0xb085f5, label: "RIFT SUMMON" },
 };
 
@@ -45,17 +45,17 @@ export interface BossSkillTheme {
 /** Element -> accent colour (mirrors the DMG_COLOR family in fx.ts). */
 const ELEMENT_ACCENT: Record<DamageType, number> = {
   Physical: 0xdfe7f2, // steel white
-  Magic: 0xc77dde,    // violet
-  True: 0xfff3a0,     // gold
+  Magic: 0xc77dde, // violet
+  True: 0xfff3a0, // gold
 };
 
 /** Per-signature camera weight: quake hits hardest, barrier softest. */
 const SIGNATURE_WEIGHT: Record<BossSignature, number> = {
-  "quake": 1.0,
+  quake: 1.0,
   "summon-surge": 0.7,
-  "rally": 0.6,
-  "barrier": 0.4,
-  "ring": 0.5,
+  rally: 0.6,
+  barrier: 0.4,
+  ring: 0.5,
 };
 
 /** Resolve a boss cast to its full themed palette + camera weight (never throws). */

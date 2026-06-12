@@ -43,7 +43,9 @@ export function resolveHeroBattleStats(save: HeroSave, base: Stats): ResolvedHer
     if (!instance) continue;
     const def = ITEM_CATALOG_MAP.get(instance.defId);
     if (!def) continue;
-    itemStats.push(scaleStatsByEnhance(instance.rolledStats as Partial<Stats>, instance.enhanceLevel ?? 0));
+    itemStats.push(
+      scaleStatsByEnhance(instance.rolledStats as Partial<Stats>, instance.enhanceLevel ?? 0),
+    );
     if (slot === "Pet" && def.petUtility?.goldPerSec) petGoldPerSec = def.petUtility.goldPerSec;
     if (slot === "Weapon") weaponType = def.weaponType ?? null;
   }

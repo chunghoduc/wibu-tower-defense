@@ -24,6 +24,7 @@
 ### Task 1: Shape classifier + delivery mapping (pure data)
 
 **Files:**
+
 - Modify: `src/data/attackStyle.ts` (append after the existing skill-style block, ~line 126-131)
 - Modify: `src/data/skillVfxMeta.ts` (append after `deliveryForStyle`, ~line 181-185)
 - Test: `tests/skillVfx.test.ts`
@@ -40,7 +41,7 @@ import type { CharacterDef } from "../src/data/schema.ts";
 
 // minimal def factory — only the fields towerSkillShape reads
 const defOf = (role: CharacterDef["role"], active: string | null): CharacterDef =>
-  ({ role, active } as unknown as CharacterDef);
+  ({ role, active }) as unknown as CharacterDef;
 
 describe("tower skill shape", () => {
   it("maps each role to its base shape", () => {
@@ -89,7 +90,16 @@ Append at the end of the file:
 export type SkillShape = "nova" | "chain" | "barrage" | "beam" | "cloud" | "slam" | "aura" | "bolt";
 
 /** Runtime list of every shape (keep in sync with `SkillShape`). */
-export const SKILL_SHAPES: readonly SkillShape[] = ["nova", "chain", "barrage", "beam", "cloud", "slam", "aura", "bolt"];
+export const SKILL_SHAPES: readonly SkillShape[] = [
+  "nova",
+  "chain",
+  "barrage",
+  "beam",
+  "cloud",
+  "slam",
+  "aura",
+  "bolt",
+];
 
 /**
  * Shape for a tower's active skill, derived from its ROLE (reliable structured
@@ -98,19 +108,60 @@ export const SKILL_SHAPES: readonly SkillShape[] = ["nova", "chain", "barrage", 
  */
 export function towerSkillShape(def: CharacterDef): SkillShape {
   switch (def.role) {
-    case "splash": return "nova";
-    case "chain": return "chain";
-    case "dot": return "cloud";
-    case "debuff": return "cloud";
-    case "support": return "aura";
-    case "tanker": return "slam";
+    case "splash":
+      return "nova";
+    case "chain":
+      return "chain";
+    case "dot":
+      return "cloud";
+    case "debuff":
+      return "cloud";
+    case "support":
+      return "aura";
+    case "tanker":
+      return "slam";
     case "damage": {
       const s = (def.active ?? "").toLowerCase();
-      if (has(s, "wave", "flash", "hollow", "purple", "palm", "kame", "serious", "punch", "fist", "ki", "ball", "spirit", "beam", "ray", "dimensional")) return "beam";
-      if (has(s, "volley", "salvo", "missile", "rapid", "spin", "siege", "shot", "barrage", "fusillade")) return "barrage";
+      if (
+        has(
+          s,
+          "wave",
+          "flash",
+          "hollow",
+          "purple",
+          "palm",
+          "kame",
+          "serious",
+          "punch",
+          "fist",
+          "ki",
+          "ball",
+          "spirit",
+          "beam",
+          "ray",
+          "dimensional",
+        )
+      )
+        return "beam";
+      if (
+        has(
+          s,
+          "volley",
+          "salvo",
+          "missile",
+          "rapid",
+          "spin",
+          "siege",
+          "shot",
+          "barrage",
+          "fusillade",
+        )
+      )
+        return "barrage";
       return "bolt";
     }
-    default: return "bolt";
+    default:
+      return "bolt";
   }
 }
 ```
@@ -129,14 +180,22 @@ Append after `deliveryForStyle`:
 /** Source-delivery for a tower-skill SHAPE (the "fly-from-source" beat). */
 export function deliveryForShape(shape: SkillShape): DeliveryKind {
   switch (shape) {
-    case "nova": return "skyfall";
-    case "beam": return "beam";
-    case "cloud": return "ground";
-    case "slam": return "ground";
-    case "aura": return "cast";
-    case "chain": return "bolt";
-    case "barrage": return "bolt";
-    case "bolt": return "bolt";
+    case "nova":
+      return "skyfall";
+    case "beam":
+      return "beam";
+    case "cloud":
+      return "ground";
+    case "slam":
+      return "ground";
+    case "aura":
+      return "cast";
+    case "chain":
+      return "bolt";
+    case "barrage":
+      return "bolt";
+    case "bolt":
+      return "bolt";
   }
 }
 ```
@@ -160,6 +219,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: Catalog shape index + coverage / variety guard
 
 **Files:**
+
 - Create: `src/data/towerSkillShapeIndex.ts`
 - Test: `tests/skillVfx.test.ts`
 
@@ -243,6 +303,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Shape motion flourishes (renderer)
 
 **Files:**
+
 - Create: `src/scenes/towerSkillFx.ts`
 
 Renderer coverage is enforced at **compile time** by the exhaustive `Record<SkillShape, ShapeFn>` — a missing shape fails `tsc`. No runtime render test (mirrors the hero-signature pattern); the CDP smoke in Task 5 confirms it runs.
@@ -266,7 +327,9 @@ type ShapeFn = (d: VfxDraw, at: V, p: Palette, radius: number) => void;
 // splash — three staged concentric shock-rings punch outward from a hot core.
 const nova: ShapeFn = (d, at, p, radius) => {
   d.disc(at, 20, p.hot, 0.85, 2.0, 220);
-  [0, 90, 180].forEach((ms, i) => d.after(ms, () => d.ring(at, radius * (0.5 + i * 0.28), i ? p.hot : p.core, 460, 4 - i)));
+  [0, 90, 180].forEach((ms, i) =>
+    d.after(ms, () => d.ring(at, radius * (0.5 + i * 0.28), i ? p.hot : p.core, 460, 4 - i)),
+  );
 };
 
 // chain — jagged links leap out in sequence to orbit points, each sparking.
@@ -274,18 +337,22 @@ const chain: ShapeFn = (d, at, p, radius) => {
   for (let i = 0; i < 4; i++) {
     const a = (Math.PI * 2 * i) / 4 + 0.4;
     const to = { x: at.x + Math.cos(a) * radius * 0.95, y: at.y + Math.sin(a) * radius * 0.95 };
-    d.after(i * 55, () => { d.crack(at, a, radius * 0.95, p.hot, 200); d.spark(to, p.core, 5, 12); });
+    d.after(i * 55, () => {
+      d.crack(at, a, radius * 0.95, p.hot, 200);
+      d.spark(to, p.core, 5, 12);
+    });
   }
   d.ring(at, radius * 0.6, p.core, 320, 2);
 };
 
 // barrage — four stutter muzzle-strikes in a row, each spitting a tracer.
 const barrage: ShapeFn = (d, at, p, radius) => {
-  for (let i = 0; i < 4; i++) d.after(i * 55, () => {
-    const off = { x: at.x + (i - 1.5) * 9, y: at.y };
-    d.disc(off, 8, p.hot, 0.9, 1.6, 150);
-    d.beam(off, 0, radius, p.core, 3, 180);
-  });
+  for (let i = 0; i < 4; i++)
+    d.after(i * 55, () => {
+      const off = { x: at.x + (i - 1.5) * 9, y: at.y };
+      d.disc(off, 8, p.hot, 0.9, 1.6, 150);
+      d.beam(off, 0, radius, p.core, 3, 180);
+    });
 };
 
 // beam — a bright focused pop + a cross-gleam: a converged single strike.
@@ -313,7 +380,8 @@ const slam: ShapeFn = (d, at, p, radius) => {
 // aura — staggered radiant rings + rising light motes: a supportive bloom.
 const aura: ShapeFn = (d, at, p, radius) => {
   d.ring(at, radius, p.core, 560, 3);
-  for (let i = 0; i < 3; i++) d.after(i * 80, () => d.ring(at, radius * (0.45 + i * 0.25), p.hot, 460, 2));
+  for (let i = 0; i < 3; i++)
+    d.after(i * 80, () => d.ring(at, radius * (0.45 + i * 0.25), p.hot, 460, 2));
   d.motes(at, radius, 8, () => p.hot, -1);
 };
 
@@ -327,7 +395,13 @@ const bolt: ShapeFn = (d, at, p, radius) => {
 const SHAPES: Record<SkillShape, ShapeFn> = { nova, chain, barrage, beam, cloud, slam, aura, bolt };
 
 /** Render the structural motion flourish for a tower-skill `shape` at `at`. */
-export function renderTowerShape(d: VfxDraw, shape: SkillShape, at: V, palette: Palette, radius: number): void {
+export function renderTowerShape(
+  d: VfxDraw,
+  shape: SkillShape,
+  at: V,
+  palette: Palette,
+  radius: number,
+): void {
   SHAPES[shape](d, at, palette, radius);
 }
 ```
@@ -351,6 +425,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Wire the tower branch of SkillVfx.cast
 
 **Files:**
+
 - Modify: `src/scenes/skillVfx.ts` (imports + the tower fallback in `cast`, ~lines 9-13 and 50-68)
 
 - [ ] **Step 1: Add imports**
@@ -371,31 +446,55 @@ import { renderTowerShape } from "./towerSkillFx.ts";
 Replace the body after the hero `if (spec) { … return; }` block (current lines 50-68) with:
 
 ```ts
-    // Tower active (or any id without a bespoke hero signature): element × shape.
-    // element → palette + substance particles; shape → delivery + motion flourish.
-    const style = skillStyleFor(skillId);
-    const color = SKILL_STYLE_COLOR[style];
-    const accent = ACCENT[style];
-    const shape = skillShapeFor(skillId);
-    renderDelivery(draw, deliveryForShape(shape), from, at, { core: color, hot: accent.hot, deep: accent.deep }, radius, () => {
-      this.baseBurst(at, color, radius, skillId);
-      renderTowerShape(draw, shape, at, { core: color, hot: accent.hot, deep: accent.deep }, radius); // structural motion (under particles)
-      switch (style) {                                                                                  // elemental substance (on top)
-        case "fire": this.fire(at, color, radius); break;
-        case "ice": this.ice(at, color, radius); break;
-        case "lightning": this.lightning(at, color, radius); break;
-        case "arcane": this.arcane(at, color, radius); break;
-        case "poison": this.poison(at, color, radius); break;
-        case "heal": this.heal(at, color, radius); break;
-        case "slash": this.slash(at, color, radius); break;
-      }
-      // One weighted shake by SHAPE (heavy blasts/slams shake hardest); never double.
-      const heavy = shape === "nova" || shape === "slam";
-      const med = shape === "chain" || shape === "beam";
-      if (source === "hero" || heavy || med || style === "lightning") {
-        this.scene.cameras.main.shake(heavy ? 200 : 130, heavy ? 0.007 : 0.004);
-      }
-    });
+// Tower active (or any id without a bespoke hero signature): element × shape.
+// element → palette + substance particles; shape → delivery + motion flourish.
+const style = skillStyleFor(skillId);
+const color = SKILL_STYLE_COLOR[style];
+const accent = ACCENT[style];
+const shape = skillShapeFor(skillId);
+renderDelivery(
+  draw,
+  deliveryForShape(shape),
+  from,
+  at,
+  { core: color, hot: accent.hot, deep: accent.deep },
+  radius,
+  () => {
+    this.baseBurst(at, color, radius, skillId);
+    renderTowerShape(draw, shape, at, { core: color, hot: accent.hot, deep: accent.deep }, radius); // structural motion (under particles)
+    switch (
+      style // elemental substance (on top)
+    ) {
+      case "fire":
+        this.fire(at, color, radius);
+        break;
+      case "ice":
+        this.ice(at, color, radius);
+        break;
+      case "lightning":
+        this.lightning(at, color, radius);
+        break;
+      case "arcane":
+        this.arcane(at, color, radius);
+        break;
+      case "poison":
+        this.poison(at, color, radius);
+        break;
+      case "heal":
+        this.heal(at, color, radius);
+        break;
+      case "slash":
+        this.slash(at, color, radius);
+        break;
+    }
+    // One weighted shake by SHAPE (heavy blasts/slams shake hardest); never double.
+    const heavy = shape === "nova" || shape === "slam";
+    const med = shape === "chain" || shape === "beam";
+    if (source === "hero" || heavy || med || style === "lightning") {
+      this.scene.cameras.main.shake(heavy ? 200 : 130, heavy ? 0.007 : 0.004);
+    }
+  },
+);
 ```
 
 Note: `slam` (towerSkillFx) already calls `d.shake` for its own impact; that's the tank's body-slam thump and is fine to stack with the weighted shake (both are short). If it reads as too much during playtest, drop the `d.shake` line from `slam` in towerSkillFx.ts.
@@ -419,6 +518,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 5: Verify whole + playtest + memory
 
 **Files:**
+
 - Modify: `memory/project_skill_vfx_signatures.md`, `memory/MEMORY.md`
 
 - [ ] **Step 1: Full verification**
@@ -440,6 +540,7 @@ bash scripts/playtest/snap.sh --scene Battle --place --wait 1200 \
   --out /tmp/tower-vfx.png \
   --eval 'const bs=window.__game.scene.getScene("BattleScene"); let n=0; const ids=["explosion","chain-lightning","rapid-volley","kamefist-wave","plague-cloud","fortress-smash","war-cry","spirit-ball"]; ids.forEach((id,i)=>setTimeout(()=>{bs.fx.play({type:"cast",from:{x:200,y:480},at:{x:480+((i%4)*90),y:230+((i>>2)*90)},radius:70,damageType:"Physical",source:"tower",skillId:id});n++;},i*80)); return {scheduled:ids.length};'
 ```
+
 Expected: command exits 0; harness reports 0 runtime errors; `/tmp/tower-vfx.png` written. (Exact flags per `scripts/playtest/snap.sh`; adjust `from`/`at`/timings as needed.)
 
 - [ ] **Step 4: Update memory**
@@ -460,6 +561,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Self-Review
 
 **Spec coverage:**
+
 - Two-axis element×shape → Tasks 1+4. ✓
 - Role-derived shape, `damage` keyword-refined → Task 1 `towerSkillShape`. ✓
 - Catalog-built `SKILL_SHAPE` index, `bolt` default → Task 2. ✓

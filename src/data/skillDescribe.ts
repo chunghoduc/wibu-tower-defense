@@ -9,8 +9,8 @@
 import type { CharacterDef, Stats } from "./schema.ts";
 import { towerActiveInfo } from "./passiveSkills.ts";
 
-const SPLASH_RADIUS = 60;   // battle.ts SPLASH_RADIUS
-const ACTIVE_MULT = 2;      // battle.ts castActive: burst = effAtk * 2 * skillPower
+const SPLASH_RADIUS = 60; // battle.ts SPLASH_RADIUS
+const ACTIVE_MULT = 2; // battle.ts castActive: burst = effAtk * 2 * skillPower
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const n0 = (v: number) => `${Math.round(v)}`;
@@ -22,15 +22,19 @@ export function activeSkillDetail(def: CharacterDef, stats: Stats): string {
   const sp = Math.max(1, stats.skillPower);
   const ds = def.behavior?.defenseScale;
   const defBonus = ds
-    ? stats.armor * (ds.armor ?? 0) + stats.magicResist * (ds.magicResist ?? 0) + stats.maxHp * (ds.maxHp ?? 0)
+    ? stats.armor * (ds.armor ?? 0) +
+      stats.magicResist * (ds.magicResist ?? 0) +
+      stats.maxHp * (ds.maxHp ?? 0)
     : 0;
   const burst = Math.round(stats.atk * ACTIVE_MULT * sp + defBonus);
   const type = def.behavior?.activeType ?? def.damageType;
   const radius = def.behavior?.splashRadius ?? SPLASH_RADIUS;
   const defNote = ds ? ` + ${n0(defBonus)} from defenses` : "";
   const role = roleEffectDetail(def, stats);
-  return `${info.description}\n▸ Burst: ${burst} ${type} (atk ${n0(stats.atk)} ×${ACTIVE_MULT} × ${sp.toFixed(2)} skill power${defNote}), ${radius}px AoE.`
-    + (role ? `\n▸ ${role}` : "");
+  return (
+    `${info.description}\n▸ Burst: ${burst} ${type} (atk ${n0(stats.atk)} ×${ACTIVE_MULT} × ${sp.toFixed(2)} skill power${defNote}), ${radius}px AoE.` +
+    (role ? `\n▸ ${role}` : "")
+  );
 }
 
 /** Exact on-hit role mechanic for this tower (splash/chain/DoT/control/aura). */
@@ -40,7 +44,8 @@ export function roleEffectDetail(def: CharacterDef, stats: Stats): string | null
     case "splash":
       return `Splash: ${n0(stats.atk)} ${def.damageType} in ${b?.splashRadius ?? SPLASH_RADIUS}px.`;
     case "chain": {
-      const tg = b?.chainTargets ?? 2, f = b?.chainFalloff ?? 0.6;
+      const tg = b?.chainTargets ?? 2,
+        f = b?.chainFalloff ?? 0.6;
       return `Chain: hits ${tg} extra foes, ${pct(f)} retained/bounce (≈${n0(stats.atk * f)} on the 2nd).`;
     }
     case "dot":
@@ -55,7 +60,8 @@ export function roleEffectDetail(def: CharacterDef, stats: Stats): string | null
     case "support":
       if (!b?.buffAura) return null;
       {
-        const a = b.buffAura, parts: string[] = [];
+        const a = b.buffAura,
+          parts: string[] = [];
         if (a.atkPct) parts.push(`+${pct(a.atkPct)} atk`);
         if (a.attackSpeedPct) parts.push(`+${pct(a.attackSpeedPct)} atk spd`);
         return `Aura ${a.radius}px: ${parts.join(", ")} to allies.`;
@@ -65,7 +71,8 @@ export function roleEffectDetail(def: CharacterDef, stats: Stats): string | null
       if (!d) return null;
       const parts: string[] = [];
       if (d.armor) parts.push(`${d.armor}× armor (${n0(stats.armor * d.armor)})`);
-      if (d.magicResist) parts.push(`${d.magicResist}× resist (${n0(stats.magicResist * d.magicResist)})`);
+      if (d.magicResist)
+        parts.push(`${d.magicResist}× resist (${n0(stats.magicResist * d.magicResist)})`);
       if (d.maxHp) parts.push(`${pct(d.maxHp)} max HP (${n0(stats.maxHp * d.maxHp)})`);
       return `Fortress: its cast adds ${parts.join(" + ")} as damage.`;
     }

@@ -27,9 +27,14 @@ describe("boss sieges a tower", () => {
       baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: towerHp, armor: 30 }),
     });
     // Tower planted right on the lane so the boss's weapon reach covers it.
-    const b = world([boss], [tower], mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 0 }] }), {
-      hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
-    });
+    const b = world(
+      [boss],
+      [tower],
+      mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 0 }] }),
+      {
+        hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
+      },
+    );
     expect(b.placeTower("wall", 0)).toBe(true);
     return b;
   }
@@ -49,9 +54,14 @@ describe("boss sieges a tower", () => {
       role: "tanker",
       baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 1e9, armor: 30 }),
     });
-    const b = world([boss], [tower], mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 900 }] }), {
-      hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
-    });
+    const b = world(
+      [boss],
+      [tower],
+      mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 900 }] }),
+      {
+        hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
+      },
+    );
     b.placeTower("faraway", 0); // tower exists, just never in reach
     while (b.enemies.length === 0) b.tick(0.05); // let the boss spawn
     const e = b.enemies[0]!;
@@ -105,9 +115,14 @@ describe("boss sieges a tower", () => {
         role: "tanker",
         baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 1e9, armor: 30 }),
       });
-      const b = world([enemy], [tower], mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 0 }] }), {
-        hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
-      });
+      const b = world(
+        [enemy],
+        [tower],
+        mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 0 }] }),
+        {
+          hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
+        },
+      );
       b.placeTower("anvil", 0);
       const tw = b.towers[0]!;
       const full = tw.hp;
@@ -115,7 +130,10 @@ describe("boss sieges a tower", () => {
       return full - tw.hp;
     }
     // Boss vs a dedicated sapper with the SAME offensive stats; only `boss` differs.
-    const bossDmg = firstHit({ archetype: "Boss", boss: { enrage: { belowHpPct: 0, atkMult: 1, speedMult: 1 } } });
+    const bossDmg = firstHit({
+      archetype: "Boss",
+      boss: { enrage: { belowHpPct: 0, atkMult: 1, speedMult: 1 } },
+    });
     const sapperDmg = firstHit({ special: { attacksTowers: { range: 130 } } });
     expect(bossDmg).toBeGreaterThan(0);
     expect(sapperDmg).toBeGreaterThan(0);

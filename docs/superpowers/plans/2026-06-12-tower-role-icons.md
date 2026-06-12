@@ -13,6 +13,7 @@
 ### Task 1: Asset key + discipline for `roleicon`
 
 **Files:**
+
 - Modify: `src/data/assetKeys.ts`
 - Test: `tests/assetKeys.test.ts`, `tests/assetKeyDiscipline.test.ts`
 
@@ -62,6 +63,7 @@ git commit -m "feat(role-icons): roleTex asset key + discipline coverage"
 ### Task 2: Pure `roleBadge.ts` helper (role→key + geometry)
 
 **Files:**
+
 - Create: `src/scenes/roleBadge.ts`
 - Test: `tests/roleBadge.test.ts`
 
@@ -144,6 +146,7 @@ git commit -m "feat(role-icons): pure roleBadge helper (role->key + geometry)"
 ### Task 3: SDXL `roleicon` prompts + jobs
 
 **Files:**
+
 - Modify: `scripts/sdart/prompts.mjs`
 - Modify: `scripts/sdart/sdgen.mjs`
 
@@ -159,19 +162,23 @@ In `scripts/sdart/prompts.mjs`, before the ITEMS section, add:
 // Flat UI glyphs (not creatures), so they get their own style + negative — the
 // character STYLE/NEGATIVE ban "icon/symbol/flat" and demand a full-body figure.
 export const ROLE_VISUAL = {
-  damage:  "a sharp target reticle crosshair pierced by a single arrowhead, sky-blue",
-  splash:  "a bold radiating explosion starburst blast, coral orange",
-  chain:   "a forked lightning bolt arcing between two nodes, violet purple",
-  dot:     "a single dripping venom droplet with a faint rising bubble, toxic green",
+  damage: "a sharp target reticle crosshair pierced by a single arrowhead, sky-blue",
+  splash: "a bold radiating explosion starburst blast, coral orange",
+  chain: "a forked lightning bolt arcing between two nodes, violet purple",
+  dot: "a single dripping venom droplet with a faint rising bubble, toxic green",
   support: "three upward chevrons rising inside a soft radiant halo ring, warm gold",
-  debuff:  "a downward arrow over a cracked hourglass, teal cyan",
-  tanker:  "a sturdy heater knight shield with a central boss, steel grey",
+  debuff: "a downward arrow over a cracked hourglass, teal cyan",
+  tanker: "a sturdy heater knight shield with a central boss, steel grey",
 };
 
-const ROLEICON_STYLE = "a single flat vector game UI emblem icon of {V}, bold thick clean outline, high contrast, minimal flat cel-shaded, centered, simple iconography, crisp and readable at small size, isolated on a pure plain flat white background, empty background, no text";
-const ROLEICON_NEG = "character, person, creature, hero, knight figure, full body, anime girl, realistic, 3d render, photo, complex scene, landscape, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, signature, frame, border";
+const ROLEICON_STYLE =
+  "a single flat vector game UI emblem icon of {V}, bold thick clean outline, high contrast, minimal flat cel-shaded, centered, simple iconography, crisp and readable at small size, isolated on a pure plain flat white background, empty background, no text";
+const ROLEICON_NEG =
+  "character, person, creature, hero, knight figure, full body, anime girl, realistic, 3d render, photo, complex scene, landscape, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, signature, frame, border";
 export const ROLEICON_NEGATIVE = ROLEICON_NEG;
-export function roleIconStyle(visual) { return ROLEICON_STYLE.replace("{V}", visual); }
+export function roleIconStyle(visual) {
+  return ROLEICON_STYLE.replace("{V}", visual);
+}
 ```
 
 - [ ] **Step 2: Wire jobs into the generator**
@@ -186,10 +193,20 @@ multiline import block) to add:
 Then in `buildJobs()`, after the `STRUCTURE_VISUAL` loop, add:
 
 ```js
-  // role badge emblems — one flat icon per TowerRole, transparent-cut to 64px.
-  for (const [role, v] of Object.entries(ROLE_VISUAL)) {
-    jobs.push({ kind: "roleicon", id: role, file: `${role}.png`, prompt: roleIconStyle(v), seed: seedOf(role), w: 768, h: 768, size: 64, neg: ROLEICON_NEGATIVE });
-  }
+// role badge emblems — one flat icon per TowerRole, transparent-cut to 64px.
+for (const [role, v] of Object.entries(ROLE_VISUAL)) {
+  jobs.push({
+    kind: "roleicon",
+    id: role,
+    file: `${role}.png`,
+    prompt: roleIconStyle(v),
+    seed: seedOf(role),
+    w: 768,
+    h: 768,
+    size: 64,
+    neg: ROLEICON_NEGATIVE,
+  });
+}
 ```
 
 (`sdGenerate` already threads a per-job `neg`, and the `kind`-based output
@@ -199,9 +216,11 @@ in `main()`.)
 - [ ] **Step 3: Verify the job list builds (dry, no server needed)**
 
 Run:
+
 ```bash
 node -e "process.argv.push('--only=roleicon'); import('./scripts/sdart/sdgen.mjs').catch(e=>{console.log('expected (no SD server):', e.message)})" 2>&1 | head -5
 ```
+
 Expected: prints `SD generating 7 sprites` then a gen-failure/connection line
 (the SD server may be down). The "7 sprites" line proves the jobs build with no
 JS error. If the SD server is up, the 7 PNGs are written — that's fine too.
@@ -224,6 +243,7 @@ git commit -m "feat(role-icons): SDXL roleicon kind — 7 per-role emblem jobs"
 consistency, but the badge **tint** reads from the pure map.
 
 **Files:**
+
 - Modify: `src/scenes/roleBadge.ts` (add `ROLE_BADGE_COLOR`)
 - Modify: `src/scenes/battleSceneHelpers.ts:61-69` (add `tanker` to `ROLE_COLOR`)
 - Test: `tests/roleBadge.test.ts` (extend — pure, no Phaser import)
@@ -283,6 +303,7 @@ git commit -m "feat(role-icons): pure per-role badge tint + tanker color"
 ### Task 5: Preload role emblems
 
 **Files:**
+
 - Modify: `src/scenes/PreloadScene.ts`
 
 No new unit test (PreloadScene needs a live Phaser loader; covered by the build +
@@ -291,16 +312,17 @@ the in-game playtest in Task 8).
 - [ ] **Step 1: Implement**
 
 In `src/scenes/PreloadScene.ts`:
+
 - Add `roleTex` to the `assetKeys.ts` import line (line 19).
 - Add `import { TOWER_ROLES } from "../data/schemaEnums.ts";` near the other data imports.
 - After the castle-image loads (around line 65), add:
 
 ```ts
-    // Per-role tower badge emblems (SDXL). A missing file degrades to the
-    // legacy sword/arrow glyph drawn by BattleScene (no crash).
-    for (const r of TOWER_ROLES) {
-      this.load.image(roleTex(r), `assets/sprites/roleicon/${r}.png`);
-    }
+// Per-role tower badge emblems (SDXL). A missing file degrades to the
+// legacy sword/arrow glyph drawn by BattleScene (no crash).
+for (const r of TOWER_ROLES) {
+  this.load.image(roleTex(r), `assets/sprites/roleicon/${r}.png`);
+}
 ```
 
 - [ ] **Step 2: Verify typecheck + build**
@@ -320,6 +342,7 @@ git commit -m "feat(role-icons): preload per-role badge emblems"
 ### Task 6: Render managed role-badge Images
 
 **Files:**
+
 - Modify: `src/scenes/BattleScene.ts` (add `roleBadges` map + clear on reset)
 - Modify: `src/scenes/battleSceneSprites.ts` (manage badges in `manageSprites`)
 - Modify: `src/scenes/battleSceneRender.ts` (`drawTypeBadge` fallback gating)
@@ -332,13 +355,13 @@ mapping is already tested in Task 2.
 In `src/scenes/BattleScene.ts`, beside `towerSprites` (line 101):
 
 ```ts
-  roleBadges = new Map<number, Phaser.GameObjects.Image>();
+roleBadges = new Map<number, Phaser.GameObjects.Image>();
 ```
 
 In the same reset block that does `this.towerSprites.clear();` (line ~135), add:
 
 ```ts
-    this.roleBadges.clear();
+this.roleBadges.clear();
 ```
 
 - [ ] **Step 2: Manage badges alongside tower sprites**
@@ -357,29 +380,33 @@ still inside `if (s) { … }` is fine, but place it after so it runs even if the
 body sprite is absent), add:
 
 ```ts
-      // Role badge emblem (upper-right). Managed Image; only shown when its
-      // SDXL texture is loaded — otherwise BattleScene.drawTypeBadge draws the
-      // legacy sword/arrow glyph as a fallback.
-      const badgeKey = roleBadgeTex(t.def.role);
-      if (this.textures.exists(badgeKey)) {
-        let b = this.roleBadges.get(t.uid);
-        if (!b) {
-          b = this.add.image(0, 0, badgeKey).setDepth(6);
-          if (b.height) b.setScale(ROLE_BADGE.diameter / b.height);
-          b.setTint(ROLE_COLOR[t.def.role] ?? 0xffffff);
-          this.world.add(b);
-          this.roleBadges.set(t.uid, b);
-        }
-        b.setPosition(t.pos.x + ROLE_BADGE.offsetX, t.pos.y + ROLE_BADGE.offsetY);
-        b.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
-      }
+// Role badge emblem (upper-right). Managed Image; only shown when its
+// SDXL texture is loaded — otherwise BattleScene.drawTypeBadge draws the
+// legacy sword/arrow glyph as a fallback.
+const badgeKey = roleBadgeTex(t.def.role);
+if (this.textures.exists(badgeKey)) {
+  let b = this.roleBadges.get(t.uid);
+  if (!b) {
+    b = this.add.image(0, 0, badgeKey).setDepth(6);
+    if (b.height) b.setScale(ROLE_BADGE.diameter / b.height);
+    b.setTint(ROLE_COLOR[t.def.role] ?? 0xffffff);
+    this.world.add(b);
+    this.roleBadges.set(t.uid, b);
+  }
+  b.setPosition(t.pos.x + ROLE_BADGE.offsetX, t.pos.y + ROLE_BADGE.offsetY);
+  b.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
+}
 ```
 
 After the tower-sprite cull line (`for (const [uid, s] of this.towerSprites) …`),
 add a matching badge cull:
 
 ```ts
-    for (const [uid, b] of this.roleBadges) if (!seenT.has(uid)) { b.destroy(); this.roleBadges.delete(uid); }
+for (const [uid, b] of this.roleBadges)
+  if (!seenT.has(uid)) {
+    b.destroy();
+    this.roleBadges.delete(uid);
+  }
 ```
 
 (Use the same `seenT` set the tower-sprite cull uses — it is populated earlier in
@@ -396,17 +423,30 @@ draws when the emblem texture is absent. Replace the `if (kind === "melee") { �
 else { … }` block with:
 
 ```ts
-    // Role emblem (SDXL Image) rides on top when present; otherwise fall back to
-    // the legacy melee/ranged glyph so the badge is never empty.
-    if (!this.textures.exists(roleBadgeTex(def.role))) {
-      if (kind === "melee") {
-        g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x, y + 3.2); g.strokePath();
-        g.beginPath(); g.moveTo(x - 2.4, y + 1.4); g.lineTo(x + 2.4, y + 1.4); g.strokePath();
-      } else {
-        g.beginPath(); g.moveTo(x - 3.4, y); g.lineTo(x + 3, y); g.strokePath();
-        g.beginPath(); g.moveTo(x + 0.6, y - 2.4); g.lineTo(x + 3.4, y); g.lineTo(x + 0.6, y + 2.4); g.strokePath();
-      }
-    }
+// Role emblem (SDXL Image) rides on top when present; otherwise fall back to
+// the legacy melee/ranged glyph so the badge is never empty.
+if (!this.textures.exists(roleBadgeTex(def.role))) {
+  if (kind === "melee") {
+    g.beginPath();
+    g.moveTo(x, y - 4);
+    g.lineTo(x, y + 3.2);
+    g.strokePath();
+    g.beginPath();
+    g.moveTo(x - 2.4, y + 1.4);
+    g.lineTo(x + 2.4, y + 1.4);
+    g.strokePath();
+  } else {
+    g.beginPath();
+    g.moveTo(x - 3.4, y);
+    g.lineTo(x + 3, y);
+    g.strokePath();
+    g.beginPath();
+    g.moveTo(x + 0.6, y - 2.4);
+    g.lineTo(x + 3.4, y);
+    g.lineTo(x + 0.6, y + 2.4);
+    g.strokePath();
+  }
+}
 ```
 
 Add `import { roleBadgeTex } from "./roleBadge.ts";` to `battleSceneRender.ts`.
@@ -431,6 +471,7 @@ git commit -m "feat(role-icons): render managed per-role badge Images w/ glyph f
 ### Task 7: Generate the emblem art (SDXL)
 
 **Files:**
+
 - Create (generated): `public/assets/sprites/roleicon/{damage,splash,chain,dot,support,debuff,tanker}.png`
 
 - [ ] **Step 1: Confirm the SD server is reachable**
@@ -467,6 +508,7 @@ git commit -m "art(role-icons): generated SDXL per-role badge emblems"
 ### Task 8: Verify whole + playtest + memory
 
 **Files:**
+
 - Modify: `memory/MEMORY.md` (+ new `memory/project_role_icons.md`)
 
 - [ ] **Step 1: Full verification**
@@ -477,6 +519,7 @@ Expected: tsc clean, all tests pass, build clean.
 - [ ] **Step 2: In-game playtest (CDP)**
 
 Build + preview + headless Chrome, then drive a battle and screenshot:
+
 ```bash
 npm run build
 npx vite preview --port 4188 >/tmp/preview.log 2>&1 &
@@ -485,6 +528,7 @@ sleep 3
 node scripts/playtest/playtest.mjs --out=/tmp/role_badges.png --place=4 --wait=3500 \
   --eval='const bs=window.__game.scene.getScene("BattleScene"); return JSON.stringify((bs.battle.towers||[]).map(t=>({role:t.def.role, hasBadge:bs.roleBadges.has(t.uid)})));'
 ```
+
 Expected: the eval prints each placed tower's role + `hasBadge:true`; the
 screenshot shows distinct emblems in the towers' upper-right corners. Kill the
 preview + chrome background jobs afterward.
@@ -511,6 +555,7 @@ git commit -m "docs(role-icons): record role-badge memory"
 ## Self-Review
 
 **Spec coverage:**
+
 - New `roleicon` SDXL kind + prompts + negative → Task 3. ✓
 - `roleTex` asset key + discipline → Task 1. ✓
 - Pure `roleBadge.ts` (role→key + geometry) → Task 2. ✓

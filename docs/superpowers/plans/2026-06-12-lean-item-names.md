@@ -13,6 +13,7 @@
 ### Task 1: Lock the lean-name contract with a failing test
 
 **Files:**
+
 - Test: `tests/item-catalog.test.ts` (append a new `describe`/`it`)
 
 - [ ] **Step 1: Write the failing test**
@@ -23,8 +24,12 @@ Append to `tests/item-catalog.test.ts` (after the existing top-level imports it 
 describe("lean item names (no rarity-prefix adjective)", () => {
   const RARITY_WORDS = ["Worn", "Fine", "Masterwork", "Heroic", "Mythic"];
   const LINE_IDS = [
-    "kingsworn-brand", "galewind-longbow", "mithrilweave-shirt",
-    "warblade", "longbow", "platemail",
+    "kingsworn-brand",
+    "galewind-longbow",
+    "mithrilweave-shirt",
+    "warblade",
+    "longbow",
+    "platemail",
   ];
 
   it("a generated line shows the same bare base name across all five tiers", () => {
@@ -66,6 +71,7 @@ Expected: FAIL — names are currently `"Worn Kingsworn Brand"` etc., so `starts
 ### Task 2: Drop the prefix from the generation loop
 
 **Files:**
+
 - Modify: `src/data/items.ts` (the `for (const line of ITEM_LINES)` generation loop, the `name:` field)
 
 - [ ] **Step 1: Edit the generated name**
@@ -94,6 +100,7 @@ Expected: the `warblade/longbow/platemail` cases (lines without lore) now pass; 
 ### Task 3: Drop the prefix from the lore-merge branch
 
 **Files:**
+
 - Modify: `src/data/items.ts` (the `for (const def of ITEM_CATALOG)` lore-merge loop)
 
 - [ ] **Step 1: Edit the lore-base name branch**
@@ -132,6 +139,7 @@ Expected: PASS (both `it` blocks).
 ### Task 4: Update stale comments to match the new behavior
 
 **Files:**
+
 - Modify: `tests/item-catalog.test.ts:131` (comment)
 - Modify: `src/data/itemLore.ts` (doc comment around line 15)
 
@@ -140,13 +148,13 @@ Expected: PASS (both `it` blocks).
 In `tests/item-catalog.test.ts`, the existing expansion test has:
 
 ```ts
-      // Name is the rarity-prefixed homage base, never a raw "Mythic <lineId>".
+// Name is the rarity-prefixed homage base, never a raw "Mythic <lineId>".
 ```
 
 Change to:
 
 ```ts
-      // Name is the bare homage base (no rarity prefix), never a raw lineId.
+// Name is the bare homage base (no rarity prefix), never a raw lineId.
 ```
 
 - [ ] **Step 2: Fix the itemLore.ts doc comment**
@@ -192,13 +200,17 @@ the new lean-name contract passes).
 - [ ] **Step 3: Spot-check a few names**
 
 Run:
+
 ```bash
 node --input-type=module -e "import('./src/data/items.ts').then(m=>{const g=id=>m.ITEM_CATALOG_MAP.get(id).name;console.log(['worn-kingsworn-brand','mythic-kingsworn-brand','fine-galewind-longbow','heroic-mithrilweave-shirt','worn-warblade'].map(g).join('\n'))})"
 ```
+
 Expected: `Kingsworn Brand` / `Kingsworn Brand` / `Galewind Longbow` /
 `Mithrilweave Shirt` / `Warblade` (no rarity prefixes). If `node` cannot import
 `.ts` directly, skip this step — the vitest contract already proves it.
+
 ```
+
 ```
 
 ---
@@ -206,6 +218,7 @@ Expected: `Kingsworn Brand` / `Kingsworn Brand` / `Galewind Longbow` /
 ## Self-Review
 
 **Spec coverage:**
+
 - Drop prefix in generation loop → Task 2 ✓
 - Drop prefix in lore-merge branch → Task 3 ✓
 - Keep ids / `RARITY_TIERS.prefix` → explicit "UNCHANGED" notes in Tasks 2–3 ✓

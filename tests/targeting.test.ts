@@ -2,7 +2,15 @@ import { describe, expect, it } from "vitest";
 import { selectTarget, type Targetable } from "../src/core/targeting.ts";
 
 function mob(over: Partial<Targetable>): Targetable {
-  return { pos: { x: 0, y: 0 }, threat: 0, flying: false, alive: true, stealth: false, revealed: true, ...over };
+  return {
+    pos: { x: 0, y: 0 },
+    threat: 0,
+    flying: false,
+    alive: true,
+    stealth: false,
+    revealed: true,
+    ...over,
+  };
 }
 
 describe("selectTarget", () => {

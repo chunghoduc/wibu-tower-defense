@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "gen:sprites": "vite-node scripts/sdart/sdgen.mjs",
     "gen:sprites:anim": "vite-node scripts/sdart/animgen.mjs",
     "gen:item-visual": "vite-node scripts/genItemVisual.ts",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.2",
+    "prettier": "^3.8.4",
     "typescript": "^5.5.4",
     "vite": "^5.4.0",
     "vitest": "^2.0.5"

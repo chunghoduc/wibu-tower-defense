@@ -15,7 +15,7 @@ effective = base × DIFFICULTY(tier) × waveScaling(stage, wave) × challenge ×
 The only cross-stage "harder over time" lever is a **flat linear** stage bump
 inside `waveScaling` (`STAGE_HP_RAMP = 0.08`/stage). Over a full ~30-stage,
 6-chapter game that is only ~3.3× HP end-to-end — it plateaus, and it models no
-notion of *chapter*. We want the same enemy to feel meaningfully different at
+notion of _chapter_. We want the same enemy to feel meaningfully different at
 ch1-s1 vs ch2-s1 vs deep into the game, and the difficulty to keep climbing.
 
 ## Design — a clean 3-layer scaling model
@@ -23,16 +23,16 @@ ch1-s1 vs ch2-s1 vs deep into the game, and the difficulty to keep climbing.
 Split the two jobs currently conflated in `waveScaling` into single-purpose
 layers, each independently unit-testable:
 
-| Layer | Scope | Question it answers |
-|---|---|---|
-| `DIFFICULTY_SCALING` | tier | Hard vs Normal (the shipped 10×) |
-| **`progressionScaling`** *(new)* | global stage / chapter | ch1-s1 vs ch2-s1 vs ch1-s10 |
-| `waveScaling` | within one stage | wave 1 vs final wave |
+| Layer                            | Scope                  | Question it answers              |
+| -------------------------------- | ---------------------- | -------------------------------- |
+| `DIFFICULTY_SCALING`             | tier                   | Hard vs Normal (the shipped 10×) |
+| **`progressionScaling`** _(new)_ | global stage / chapter | ch1-s1 vs ch2-s1 vs ch1-s10      |
+| `waveScaling`                    | within one stage       | wave 1 vs final wave             |
 
 ### `progressionScaling(stageN)` — geometric long-game curve
 
 `stageN` is the global 1-based stage number (a "chapter" is a 5-stage biome
-band, `floor((stageN-1)/5)`). Geometric so it gets *harder and harder* instead
+band, `floor((stageN-1)/5)`). Geometric so it gets _harder and harder_ instead
 of plateauing; a per-chapter step makes new chapters feel like walls while the
 curve stays **strictly monotonic** (ch2-s1 > ch1-s10 — hero + gear also grew by
 then, so no "new chapter feels trivial" trough).
@@ -46,13 +46,13 @@ atkMult   = (1 + PROG_ATK_PER_STAGE) ** idx  ×  (1 + PROG_ATK_PER_CHAPTER) ** c
 
 Tunable constants (one file):
 
-| Constant | Value | Effect |
-|---|---|---|
-| `STAGES_PER_CHAPTER` | 5 | chapter band width (matches chapters.ts) |
-| `PROG_HP_PER_STAGE` | 0.08 | ×1.08 HP each stage (compounding) |
-| `PROG_ATK_PER_STAGE` | 0.04 | ×1.04 atk each stage |
-| `PROG_HP_PER_CHAPTER` | 0.30 | extra ×1.30 HP at each new chapter |
-| `PROG_ATK_PER_CHAPTER` | 0.14 | extra ×1.14 atk at each new chapter |
+| Constant               | Value | Effect                                   |
+| ---------------------- | ----- | ---------------------------------------- |
+| `STAGES_PER_CHAPTER`   | 5     | chapter band width (matches chapters.ts) |
+| `PROG_HP_PER_STAGE`    | 0.08  | ×1.08 HP each stage (compounding)        |
+| `PROG_ATK_PER_STAGE`   | 0.04  | ×1.04 atk each stage                     |
+| `PROG_HP_PER_CHAPTER`  | 0.30  | extra ×1.30 HP at each new chapter       |
+| `PROG_ATK_PER_CHAPTER` | 0.14  | extra ×1.14 atk at each new chapter      |
 
 Resulting HP multipliers (vs ch1-s1 = 1×): ch1-s10 ≈ 2.5×, ch2-s1 ≈ 1.9×,
 ch4-s1 ≈ 7×, ch6-s10 ≈ 35×. Stacked with Hard's 10× → late-game Hard enemy
@@ -67,7 +67,7 @@ exempt from this frac ramp (returns ×1.0).
 ### Boss handling
 
 `progressionScaling` applies to **all** enemies including bosses (cross-chapter
-growth should lift bosses too). Only the *intra-stage* frac ramp stays
+growth should lift bosses too). Only the _intra-stage_ frac ramp stays
 boss-exempt. Boss tier multipliers (`bossHpMult` / `bossAtkMult`) are unchanged.
 
 ### Wiring (`spawnEnemy`)
@@ -75,8 +75,8 @@ boss-exempt. Boss tier multipliers (`bossHpMult` / `bossAtkMult`) are unchanged.
 ```ts
 const prog = progressionScaling(stageNumber(this.stage.id));
 const ramp = waveScaling(this.waveIndex, this.stage.waves.length, isBoss);
-const hpMul  = (ch.enemyHpMul ?? 1) * this.endlessMul * ramp.hpMult  * prog.hpMult;
-const atkMul =                         this.endlessMul * ramp.atkMult * prog.atkMult;
+const hpMul = (ch.enemyHpMul ?? 1) * this.endlessMul * ramp.hpMult * prog.hpMult;
+const atkMul = this.endlessMul * ramp.atkMult * prog.atkMult;
 // shield also × prog.hpMult
 ```
 

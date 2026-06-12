@@ -26,10 +26,25 @@ export const renderMethods = {
     if (this.selectedTowerUid >= 0) {
       const t = this.battle.towers.find((x) => x.uid === this.selectedTowerUid && x.alive);
       if (!t) this.deselectTower();
-      else this.panel.tick({ hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.def.role !== "support" ? MANA_MAX : 0, gold: this.battle.gold, upgradeCost: this.battle.upgradeCost(t.uid) });
+      else
+        this.panel.tick({
+          hp: t.hp,
+          maxHp: t.stats.maxHp,
+          mana: t.mana,
+          maxMana: t.def.role !== "support" ? MANA_MAX : 0,
+          gold: this.battle.gold,
+          upgradeCost: this.battle.upgradeCost(t.uid),
+        });
     } else {
       const h = this.battle.hero;
-      this.panel.tick({ hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: MANA_MAX, gold: this.battle.gold, upgradeCost: 0 });
+      this.panel.tick({
+        hp: h.hp,
+        maxHp: h.stats.maxHp,
+        mana: h.mana,
+        maxMana: MANA_MAX,
+        gold: this.battle.gold,
+        upgradeCost: 0,
+      });
     }
 
     this.manageSprites();
@@ -52,23 +67,28 @@ export const renderMethods = {
 
     this.drawHeroSaveHUD(this.uiGfx);
 
-    this.info.setText("Drag a character onto the field to deploy (avoid obstacles).  ·  WASD / arrows or tap to move your hero.  ·  Tap a tower to upgrade/sell.");
+    this.info.setText(
+      "Drag a character onto the field to deploy (avoid obstacles).  ·  WASD / arrows or tap to move your hero.  ·  Tap a tower to upgrade/sell.",
+    );
 
     if (b.outcome === "won") {
       // The loot panel renders the VICTORY title itself; the transient banner stays clear.
       if (!this._victoryProcessed) this.sfx.win();
       this.showBattleRewards("won");
     } else if (b.outcome === "lost") {
-      if (!this._defeatPlayed) { this._defeatPlayed = true; this.sfx.lose(); }
+      if (!this._defeatPlayed) {
+        this._defeatPlayed = true;
+        this.sfx.lose();
+      }
       this.showBattleRewards("lost");
     }
 
     if (b.outcome !== "ongoing" && !this._menuBtn) {
       this._menuBtn = crispText(this, this.battleW / 2, 478, "← Return to Menu", {
-          fontSize: "20px",
-          color: "#ffffff",
-          backgroundColor: "#223355",
-        })
+        fontSize: "20px",
+        color: "#ffffff",
+        backgroundColor: "#223355",
+      })
         .setOrigin(0.5)
         .setPadding(16, 10, 16, 10)
         .setInteractive({ useHandCursor: true })
@@ -133,7 +153,13 @@ export const renderMethods = {
   },
 
   /** A row of small gold stars marking a tower's in-battle upgrade level. */
-  drawStarPips(this: BattleScene, g: Phaser.GameObjects.Graphics, cx: number, cy: number, count: number): void {
+  drawStarPips(
+    this: BattleScene,
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    cy: number,
+    count: number,
+  ): void {
     const gap = 8;
     const startX = cx - ((count - 1) * gap) / 2;
     for (let i = 0; i < count; i++) {
@@ -144,7 +170,13 @@ export const renderMethods = {
   },
 
   /** Small badge showing tower type (melee/ranged) tinted by role, upper-right. */
-  drawTypeBadge(this: BattleScene, g: Phaser.GameObjects.Graphics, x: number, y: number, def: CharacterDef): void {
+  drawTypeBadge(
+    this: BattleScene,
+    g: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    def: CharacterDef,
+  ): void {
     const kind = towerKind(def);
     g.fillStyle(0x10141c, 0.9).fillCircle(x, y, 7.5);
     g.lineStyle(1.5, KIND_COLOR[kind], 1).strokeCircle(x, y, 7.5);
@@ -156,17 +188,38 @@ export const renderMethods = {
     g.lineStyle(1.6, 0xffffff, 0.95);
     if (kind === "melee") {
       // a little sword: blade + crossguard
-      g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x, y + 3.2); g.strokePath();
-      g.beginPath(); g.moveTo(x - 2.4, y + 1.4); g.lineTo(x + 2.4, y + 1.4); g.strokePath();
+      g.beginPath();
+      g.moveTo(x, y - 4);
+      g.lineTo(x, y + 3.2);
+      g.strokePath();
+      g.beginPath();
+      g.moveTo(x - 2.4, y + 1.4);
+      g.lineTo(x + 2.4, y + 1.4);
+      g.strokePath();
     } else {
       // a little arrow pointing right
-      g.beginPath(); g.moveTo(x - 3.4, y); g.lineTo(x + 3, y); g.strokePath();
-      g.beginPath(); g.moveTo(x + 0.6, y - 2.4); g.lineTo(x + 3.4, y); g.lineTo(x + 0.6, y + 2.4); g.strokePath();
+      g.beginPath();
+      g.moveTo(x - 3.4, y);
+      g.lineTo(x + 3, y);
+      g.strokePath();
+      g.beginPath();
+      g.moveTo(x + 0.6, y - 2.4);
+      g.lineTo(x + 3.4, y);
+      g.lineTo(x + 0.6, y + 2.4);
+      g.strokePath();
     }
   },
 
   /** A dashed circle (stealth "hidden" marker). */
-  drawDashedRing(this: BattleScene, g: Phaser.GameObjects.Graphics, cx: number, cy: number, radius: number, color: number, alpha: number): void {
+  drawDashedRing(
+    this: BattleScene,
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    cy: number,
+    radius: number,
+    color: number,
+    alpha: number,
+  ): void {
     g.lineStyle(2, color, alpha);
     const segs = 10;
     for (let i = 0; i < segs; i++) {
@@ -178,7 +231,13 @@ export const renderMethods = {
   },
 
   /** A small eye glyph (stealth "spotted" marker). */
-  drawEye(this: BattleScene, g: Phaser.GameObjects.Graphics, x: number, y: number, color: number): void {
+  drawEye(
+    this: BattleScene,
+    g: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    color: number,
+  ): void {
     g.fillStyle(color, 0.95).fillEllipse(x, y, 11, 6);
     g.fillStyle(0x10131c, 1).fillCircle(x, y, 2);
   },
@@ -239,7 +298,12 @@ export const renderMethods = {
   },
 
   /** Burning / poison / freeze status glyphs over an enemy (T8). */
-  drawStatusGlyphs(this: BattleScene, g: Phaser.GameObjects.Graphics, e: EnemyRuntime, gy: number): void {
+  drawStatusGlyphs(
+    this: BattleScene,
+    g: Phaser.GameObjects.Graphics,
+    e: EnemyRuntime,
+    gy: number,
+  ): void {
     const kinds: ("burn" | "poison" | "freeze")[] = [];
     if (e.dots.length > 0) kinds.push(e.dots[0].type === "Magic" ? "poison" : "burn");
     if (e.slowPct >= 0.6) kinds.push("freeze");
@@ -249,14 +313,22 @@ export const renderMethods = {
     kinds.forEach((k, i) => this.drawStatusGlyph(g, k, startX + i * gap, gy));
   },
 
-  drawStatusGlyph(this: BattleScene, g: Phaser.GameObjects.Graphics, kind: "burn" | "poison" | "freeze", x: number, y: number): void {
+  drawStatusGlyph(
+    this: BattleScene,
+    g: Phaser.GameObjects.Graphics,
+    kind: "burn" | "poison" | "freeze",
+    x: number,
+    y: number,
+  ): void {
     g.fillStyle(0x10131c, 0.55).fillCircle(x, y, 5.5); // dark backing for contrast
     if (kind === "burn") {
       g.fillStyle(0xff6a2a, 1).fillTriangle(x - 3.2, y + 3, x, y - 5, x + 3.2, y + 3);
       g.fillStyle(0xffd24d, 1).fillTriangle(x - 1.5, y + 3, x, y - 1, x + 1.5, y + 3);
     } else if (kind === "poison") {
       g.fillStyle(0x8bc34a, 1);
-      g.fillCircle(x - 2, y + 1.5, 2.1); g.fillCircle(x + 1.8, y - 1, 1.7); g.fillCircle(x + 1.6, y + 2.2, 1.3);
+      g.fillCircle(x - 2, y + 1.5, 2.1);
+      g.fillCircle(x + 1.8, y - 1, 1.7);
+      g.fillCircle(x + 1.6, y + 2.2, 1.3);
     } else {
       g.lineStyle(1.7, 0xaee6ff, 0.95);
       for (let i = 0; i < 3; i++) {
@@ -313,8 +385,16 @@ export const renderMethods = {
     }
 
     const SLOTS: ItemSlot[] = [
-      "Weapon", "Helmet", "BodyArmor", "Gloves", "Boots",
-      "Amulet", "Ring1", "Ring2", "Pet", "Wing",
+      "Weapon",
+      "Helmet",
+      "BodyArmor",
+      "Gloves",
+      "Boots",
+      "Amulet",
+      "Ring1",
+      "Ring2",
+      "Pet",
+      "Wing",
     ];
     SLOTS.forEach((slot, idx) => {
       const equipped = save.inventory.equipped[slot];

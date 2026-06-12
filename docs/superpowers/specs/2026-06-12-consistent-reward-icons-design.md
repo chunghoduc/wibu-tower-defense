@@ -15,14 +15,14 @@ I mapped every surface that draws an equipment-item or reward icon. The findings
   hero overlay all resolve to the `item__<defId>` texture and render it through the shared
   `makeFitIcon` / `iconFitScale` sizing helper in `src/scenes/itemIcon.ts`. Sizes differ
   per surface (22 px on a loot-fly, 72 px on a shop card), but that is intentional,
-  context-appropriate scaling of the *same* artwork — not an inconsistency to fix.
+  context-appropriate scaling of the _same_ artwork — not an inconsistency to fix.
 - **The wing `appearanceRef` "divergence" is a non-issue.** Both wing items
   (`fledgling-wings`, `tempest-wings`) set `appearanceRef` to their own `item__<id>` key,
   so the worn path (`appearanceRef ?? item__<id>`) and the raw inventory path resolve to
   the identical texture. No visible difference today.
 - **The real inconsistency is the Lucky Spin (Activities → F4).** The spin reel
   (`src/scenes/spinReel.ts`) renders each prize cell with a hand-picked **emoji glyph**
-  (`prizeGlyph`: 🪙 💎 💠 🔷 📜 🔹 ✨) instead of the real texture. Every *other* loot
+  (`prizeGlyph`: 🪙 💎 💠 🔷 📜 🔹 ✨) instead of the real texture. Every _other_ loot
   surface — the post-battle reward panel, the jewel picker, the box-reveal — renders the
   actual `material__<id>` / `icon__gold` / `icon__gem` artwork for those very same prizes.
   So a "Jewel of Soul" shows real jewel art when it drops in battle, but a flat 🔷 emoji
@@ -58,15 +58,19 @@ Two units: one pure data resolver (the single source of truth), one render-glue 
 The single source of truth for "what icon represents this reward". Today the per-kind
 `{iconKey, emoji, color}` triples are inlined inside the tile builders in
 `src/data/rewardTiles.ts`. Extract those triples into small pure functions here so both
-the reward panel and the spin consume the *same* mapping and can never drift:
+the reward panel and the spin consume the _same_ mapping and can never drift:
 
 ```ts
-export interface RewardIconView { iconKey: string; emoji: string; color: number; }
+export interface RewardIconView {
+  iconKey: string;
+  emoji: string;
+  color: number;
+}
 
 export function goldIcon(): RewardIconView;
 export function diamondIcon(): RewardIconView;
 export function xpIcon(): RewardIconView;
-export function materialIcon(id: string): RewardIconView;   // box → box__<id> + rarity color; else material__<id> + MAT_INT
+export function materialIcon(id: string): RewardIconView; // box → box__<id> + rarity color; else material__<id> + MAT_INT
 export function itemIcon(rarity: Rarity, defId: string): RewardIconView;
 export function jewelIcon(rarity: Rarity, defId: string): RewardIconView;
 

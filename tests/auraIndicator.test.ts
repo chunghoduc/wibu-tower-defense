@@ -4,7 +4,10 @@ import type { TowerRuntime } from "../src/core/battleTypes.ts";
 import { TOWERS } from "../src/data/towers.ts";
 
 // Minimal TowerRuntime stub — only the fields auraRadiusOf reads.
-function tower(role: string, buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number }): TowerRuntime {
+function tower(
+  role: string,
+  buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number },
+): TowerRuntime {
   return {
     def: { role } as TowerRuntime["def"],
     behavior: { buffAura } as TowerRuntime["behavior"],
@@ -59,7 +62,9 @@ describe("AURA_RING_COLOR", () => {
 
 describe("buffAura data integrity", () => {
   it("every tower def with a buffAura is role 'support' (else its aura never applies)", () => {
-    const offenders = TOWERS.filter((d) => d.behavior?.buffAura && d.role !== "support").map((d) => d.id);
+    const offenders = TOWERS.filter((d) => d.behavior?.buffAura && d.role !== "support").map(
+      (d) => d.id,
+    );
     expect(offenders).toEqual([]);
   });
 

@@ -21,6 +21,7 @@
 ## Task 1: Pure `homeRoom` module (TDD)
 
 **Files:**
+
 - Create: `src/scenes/homeRoom.ts`
 - Test: `tests/homeRoom.test.ts`
 
@@ -31,13 +32,18 @@ Create `tests/homeRoom.test.ts`:
 ```ts
 import { describe, it, expect } from "vitest";
 import {
-  HANGER_SLOTS, hangerLayout, equippedHangers,
-  squadStand, squadStandPoints, petWander,
+  HANGER_SLOTS,
+  hangerLayout,
+  equippedHangers,
+  squadStand,
+  squadStandPoints,
+  petWander,
 } from "../src/scenes/homeRoom.ts";
 import { createFreshSave, type HeroSave } from "../src/core/save.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 
-const W = 960, H = 540;
+const W = 960,
+  H = 540;
 
 function equip(save: HeroSave, slot: string, defId: string, instId: string): void {
   save.inventory.items.push({ id: instId, defId } as never);
@@ -58,8 +64,8 @@ describe("homeRoom hangers", () => {
     const xs = new Set(cells.map((c) => c.x));
     expect(xs.size).toBe(2); // exactly two wall columns
     for (const c of cells) {
-      expect(c.x).toBeGreaterThan(60);   // clear of the left edge buttons (x≈46)
-      expect(c.x).toBeLessThan(W - 60);  // clear of the right edge buttons (x≈914)
+      expect(c.x).toBeGreaterThan(60); // clear of the left edge buttons (x≈46)
+      expect(c.x).toBeLessThan(W - 60); // clear of the right edge buttons (x≈914)
       expect(c.y).toBeGreaterThan(0);
       expect(c.y).toBeLessThan(H);
     }
@@ -110,14 +116,16 @@ describe("homeRoom squad", () => {
 
 describe("homeRoom pet wander", () => {
   it("stays inside the box above the throne for a full period and flips facing", () => {
-    let sawLeft = false, sawRight = false;
+    let sawLeft = false,
+      sawRight = false;
     for (let ms = 0; ms <= 20000; ms += 50) {
       const p = petWander(ms, W, H);
-      expect(p.x).toBeGreaterThanOrEqual(W * 0.40 - 0.001);
-      expect(p.x).toBeLessThanOrEqual(W * 0.60 + 0.001);
+      expect(p.x).toBeGreaterThanOrEqual(W * 0.4 - 0.001);
+      expect(p.x).toBeLessThanOrEqual(W * 0.6 + 0.001);
       expect(p.y).toBeGreaterThanOrEqual(H * 0.18 - 0.001);
       expect(p.y).toBeLessThanOrEqual(H * 0.34 + 0.001);
-      if (p.faceLeft) sawLeft = true; else sawRight = true;
+      if (p.faceLeft) sawLeft = true;
+      else sawRight = true;
     }
     expect(sawLeft && sawRight).toBe(true);
   });
@@ -145,17 +153,30 @@ import { ITEM_CATALOG_MAP } from "../data/items.ts";
 
 /** The 9 equipped slots shown on wall hangers (Pet is excluded — it flies). */
 export const HANGER_SLOTS: ItemSlot[] = [
-  "Weapon", "Helmet", "BodyArmor", "Gloves", "Boots",
-  "Amulet", "Ring1", "Ring2", "Wing",
+  "Weapon",
+  "Helmet",
+  "BodyArmor",
+  "Gloves",
+  "Boots",
+  "Amulet",
+  "Ring1",
+  "Ring2",
+  "Wing",
 ];
 const LEFT_COUNT = 5; // 5 hangers on the left wall, the rest on the right wall
 
-export interface HangerCell { slot: ItemSlot; x: number; y: number; }
+export interface HangerCell {
+  slot: ItemSlot;
+  x: number;
+  y: number;
+}
 
 /** Peg positions: two vertical wall columns just inside the edge menu buttons. */
 export function hangerLayout(W: number, H: number): HangerCell[] {
-  const leftX = W * 0.13, rightX = W * 0.87;
-  const top = H * 0.20, bot = H * 0.64;
+  const leftX = W * 0.13,
+    rightX = W * 0.87;
+  const top = H * 0.2,
+    bot = H * 0.64;
   return HANGER_SLOTS.map((slot, i) => {
     const onLeft = i < LEFT_COUNT;
     const col = onLeft ? leftX : rightX;
@@ -166,7 +187,11 @@ export function hangerLayout(W: number, H: number): HangerCell[] {
   });
 }
 
-export interface HangerItem { slot: ItemSlot; defId: string; iconKey: string; }
+export interface HangerItem {
+  slot: ItemSlot;
+  defId: string;
+  iconKey: string;
+}
 
 /** Per HANGER_SLOTS index: the equipped item to hang, or null (empty peg). */
 export function equippedHangers(inv: InventorySave): (HangerItem | null)[] {
@@ -181,7 +206,10 @@ export function equippedHangers(inv: InventorySave): (HangerItem | null)[] {
   });
 }
 
-export interface SquadStand { members: string[]; showSetSquad: boolean; }
+export interface SquadStand {
+  members: string[];
+  showSetSquad: boolean;
+}
 
 /** The selected squad to stand on the stage. No owned-tower fallback. */
 export function squadStand(save: HeroSave): SquadStand {
@@ -189,7 +217,10 @@ export function squadStand(save: HeroSave): SquadStand {
   return { members, showSetSquad: members.length === 0 };
 }
 
-export interface StandPoint { x: number; y: number; }
+export interface StandPoint {
+  x: number;
+  y: number;
+}
 
 /** Up to n arced standing positions on the lower stage. */
 export function squadStandPoints(n: number, W: number, H: number): StandPoint[] {
@@ -202,12 +233,20 @@ export function squadStandPoints(n: number, W: number, H: number): StandPoint[] 
 }
 
 /** Bounded lissajous wander for the pet, in a box above the throne. */
-export function petWander(elapsedMs: number, W: number, H: number): {
-  x: number; y: number; faceLeft: boolean;
+export function petWander(
+  elapsedMs: number,
+  W: number,
+  H: number,
+): {
+  x: number;
+  y: number;
+  faceLeft: boolean;
 } {
   const t = elapsedMs / 1000;
-  const cx = W * 0.50, cy = H * 0.26;
-  const ax = W * 0.10, ay = H * 0.08;
+  const cx = W * 0.5,
+    cy = H * 0.26;
+  const ax = W * 0.1,
+    ay = H * 0.08;
   const x = cx + Math.sin(t * 0.6) * ax;
   const y = cy + Math.sin(t * 0.9 + 1.3) * ay;
   return { x, y, faceLeft: Math.cos(t * 0.6) < 0 };
@@ -231,6 +270,7 @@ git commit -m "feat: pure homeRoom layout module (hangers/squad/pet, TDD)"
 ## Task 2: Wire `MainMenuScene` to the throne room
 
 **Files:**
+
 - Modify: `src/scenes/MainMenuScene.ts`
 
 > Read the current file first. Replace the `dressHero` import with `homeRoom`
@@ -240,39 +280,52 @@ git commit -m "feat: pure homeRoom layout module (hangers/squad/pet, TDD)"
 - [ ] **Step 1: Swap imports**
 
 Remove:
+
 ```ts
 import { dressHero } from "./dressHero.ts";
 ```
+
 Add:
+
 ```ts
-import { hangerLayout, equippedHangers, squadStand, squadStandPoints, petWander } from "./homeRoom.ts";
+import {
+  hangerLayout,
+  equippedHangers,
+  squadStand,
+  squadStandPoints,
+  petWander,
+} from "./homeRoom.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 ```
 
 - [ ] **Step 2: Add re-entry-safe fields + pet update state**
 
 Inside the class, replace the `private badges` field block with:
+
 ```ts
   private badges: Record<string, number> = {};
   private pet?: Phaser.GameObjects.Image; // re-init in create()
   private elapsed = 0;
 ```
+
 At the top of `create()`, after `const mgr ...` reset the per-entry state (scene reuse rule):
+
 ```ts
-    this.pet = undefined;
-    this.elapsed = 0;
+this.pet = undefined;
+this.elapsed = 0;
 ```
 
 - [ ] **Step 3: Replace `drawHeroAndSquad` with throne + bare hero + hangers + squad + pet**
 
 Replace the whole `drawHeroAndSquad(...)` method body with calls, and in `create()`
 change the call site from `this.drawHeroAndSquad(save, W, H);` to:
+
 ```ts
-    this.drawThrone(W, H);
-    this.drawHero(W, H);
-    this.drawHangers(save, W, H);
-    this.drawSquad(save, W, H);
-    this.drawPet(save, W, H);
+this.drawThrone(W, H);
+this.drawHero(W, H);
+this.drawHangers(save, W, H);
+this.drawSquad(save, W, H);
+this.drawPet(save, W, H);
 ```
 
 Add these methods (delete the old `drawHeroAndSquad`):
@@ -397,13 +450,13 @@ git commit -m "feat: throne-room home screen (bare hero, gear hangers, squad on 
 **Files:** none unless polish needed.
 
 - [ ] **Step 1: Playtest via CDP** — start dev server + headless Chrome, open the
-  game, navigate to MainMenuScene. Via `window.__game`: confirm (a) hangers show
-  equipped icons + empty pegs, (b) squad stands on the stage when `save.squad` is
-  set, (c) pet image position changes across two `requestAnimationFrame` samples and
-  stays in-box, (d) clearing `save.squad` then re-entering shows the **Set Squad**
-  button and tapping routes to `SquadScene`, (e) 0 console errors. Verify layout by
-  measured object `x/y`, NOT the headless screenshot (`crispText` blows up without
-  system fonts).
+      game, navigate to MainMenuScene. Via `window.__game`: confirm (a) hangers show
+      equipped icons + empty pegs, (b) squad stands on the stage when `save.squad` is
+      set, (c) pet image position changes across two `requestAnimationFrame` samples and
+      stays in-box, (d) clearing `save.squad` then re-entering shows the **Set Squad**
+      button and tapping routes to `SquadScene`, (e) 0 console errors. Verify layout by
+      measured object `x/y`, NOT the headless screenshot (`crispText` blows up without
+      system fonts).
 
 - [ ] **Step 2: Commit any polish** (spacing/scale tweaks only) with a `polish:` message.
 
@@ -414,4 +467,7 @@ git commit -m "feat: throne-room home screen (bare hero, gear hangers, squad on 
 - **Spec coverage:** bare hero (Task 2 drawHero, no dressHero ✓), king chair (drawThrone ✓), gear on hangers (homeRoom hangerLayout/equippedHangers + drawHangers, Pet excluded ✓), squad on stage (squadStand/squadStandPoints + drawSquad ✓), Set Squad button when empty (showSetSquad ✓), pet flying above (petWander + drawPet/update ✓), scene-reentry reset (Task 2 step 2 ✓), <500-line guard (scene ~+150 lines over 229 → ~380, under cap ✓).
 - **Placeholder scan:** none — all steps carry full code.
 - **Type consistency:** `HANGER_SLOTS`, `hangerLayout`, `equippedHangers`, `squadStand`, `squadStandPoints`, `petWander` names identical across module, tests, and scene. `iconKey`/`faceLeft`/`showSetSquad`/`members` property names consistent.
+
+```
+
 ```

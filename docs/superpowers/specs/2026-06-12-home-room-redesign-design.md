@@ -21,8 +21,8 @@ The edge icon-button navigation, header (title/gold/daily bonus), and SDXL
 ## Why
 
 Today `dressHero` paints the equipped weapon/wings/pet onto the throne hero, and
-the squad falls back to *owned* towers when no squad is set. The redesign makes the
-home screen a status display of the player's *choices*: gear you equipped is on
+the squad falls back to _owned_ towers when no squad is set. The redesign makes the
+home screen a status display of the player's _choices_: gear you equipped is on
 show (hangers), the squad you picked is on stage, the pet you chose is your
 companion — and an empty squad is surfaced as a call-to-action instead of being
 silently auto-filled.
@@ -49,7 +49,7 @@ silently auto-filled.
   longer called here. Centred on the throne seat.
 - **Gear hangers:** the **9 non-pet equipped slots** (Weapon, Helmet, BodyArmor,
   Gloves, Boots, Amulet, Ring1, Ring2, Wing) hang on two inner side walls — 5 on the
-  left wall, 4 on the right — just *inside* the edge menu columns so they never
+  left wall, 4 on the right — just _inside_ the edge menu columns so they never
   overlap a nav button. Each hanger = a small peg + short rope + the item icon,
   with a gentle idle sway. Empty slots draw an empty peg (so the wall reads as a
   rack, not a gap). The Pet slot is excluded — the pet flies instead.
@@ -73,26 +73,43 @@ math and the squad/hanger/pet decisions are unit-testable without Phaser.
 > (`heroStatRows.ts`, `lootFlyArc.ts`), imports only data/types.
 
 ```ts
-export const HANGER_SLOTS: ItemSlot[];          // the 9 non-pet slots, render order
-export interface HangerCell { slot: ItemSlot; x: number; y: number; }
+export const HANGER_SLOTS: ItemSlot[]; // the 9 non-pet slots, render order
+export interface HangerCell {
+  slot: ItemSlot;
+  x: number;
+  y: number;
+}
 export function hangerLayout(W: number, H: number): HangerCell[];
 //   → 9 fixed peg positions: 5 left wall, 4 right wall (inside the menu columns).
 
-export interface HangerItem { slot: ItemSlot; defId: string; iconKey: string; }
+export interface HangerItem {
+  slot: ItemSlot;
+  defId: string;
+  iconKey: string;
+}
 export function equippedHangers(inv: InventorySave): (HangerItem | null)[];
 //   → per HANGER_SLOTS index: the equipped item to hang, or null (empty peg).
 //     Wing uses appearanceRef icon when present (mirrors dressHero).
 
-export interface SquadStand { members: string[]; showSetSquad: boolean; }
+export interface SquadStand {
+  members: string[];
+  showSetSquad: boolean;
+}
 export function squadStand(save: HeroSave): SquadStand;
 //   → members = save.squad (NO owned fallback); showSetSquad = members.length===0.
 
-export interface StandPoint { x: number; y: number; }
+export interface StandPoint {
+  x: number;
+  y: number;
+}
 export function squadStandPoints(n: number, W: number, H: number): StandPoint[];
 //   → up to 7 arced positions on the stage (extracted from current inline math).
 
-export function petWander(elapsedMs: number, W: number, H: number):
-  { x: number; y: number; faceLeft: boolean };
+export function petWander(
+  elapsedMs: number,
+  W: number,
+  H: number,
+): { x: number; y: number; faceLeft: boolean };
 //   → bounded lissajous point in the box above the throne; faceLeft from x-velocity sign.
 ```
 
@@ -143,4 +160,7 @@ keeps (e.g. the pet sprite handle, elapsed accumulator) must be **re-initialised
   "pets" is honoured as a continuously wandering companion, extensible later.
 - Worn-armour rendering on the hero is intentionally removed from the home screen
   (gear now lives on hangers).
+
+```
+
 ```

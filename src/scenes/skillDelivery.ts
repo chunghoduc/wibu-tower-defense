@@ -8,7 +8,14 @@ import { VfxDraw, type V } from "./vfxDraw.ts";
 import type { DeliveryKind } from "../data/skillVfxMeta.ts";
 
 type Palette = { core: number; hot: number; deep: number };
-type DeliveryFn = (d: VfxDraw, from: V, at: V, p: Palette, radius: number, onArrive: () => void) => void;
+type DeliveryFn = (
+  d: VfxDraw,
+  from: V,
+  at: V,
+  p: Palette,
+  radius: number,
+  onArrive: () => void,
+) => void;
 
 function dist(a: V, b: V): number {
   return Math.hypot(b.x - a.x, b.y - a.y);
@@ -17,7 +24,9 @@ function dist(a: V, b: V): number {
 // Travel from caster: charge, then an orb streaks to the target.
 const bolt: DeliveryFn = (d, from, at, p, _radius, onArrive) => {
   d.chargeGlow(from, p.core, 10, 180);
-  d.after(120, () => d.orbTravel(from, at, p.core, p.hot, 6, Math.min(220, 80 + dist(from, at) * 0.5), onArrive));
+  d.after(120, () =>
+    d.orbTravel(from, at, p.core, p.hot, 6, Math.min(220, 80 + dist(from, at) * 0.5), onArrive),
+  );
 };
 
 // Instant lance/beam from caster straight to target.
@@ -57,7 +66,13 @@ const DELIVERIES: Record<DeliveryKind, DeliveryFn> = { bolt, beam, skyfall, grou
 
 /** Play the delivery for `kind`, firing `onArrive` when the cast reaches the target. */
 export function renderDelivery(
-  d: VfxDraw, kind: DeliveryKind, from: V, at: V, palette: Palette, radius: number, onArrive: () => void,
+  d: VfxDraw,
+  kind: DeliveryKind,
+  from: V,
+  at: V,
+  palette: Palette,
+  radius: number,
+  onArrive: () => void,
 ): void {
   DELIVERIES[kind](d, from, at, palette, radius, onArrive);
 }

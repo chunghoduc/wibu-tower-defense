@@ -27,6 +27,7 @@
 ### Task 1: Manifest-contract test (RED)
 
 **Files:**
+
 - Test: `tests/towerSpriteManifest.test.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -73,6 +74,7 @@ git commit -m "test(tower-art): lock 8-frame manifest contract (RED)"
 ### Task 2: Ghost-frame guard in sliceanim.py
 
 **Files:**
+
 - Modify: `scripts/sdart/sliceanim.py` (the `main()` figure-filter block, ~lines 81–99)
 
 - [ ] **Step 1: Add an opacity guard helper + apply it after the portrait filter**
@@ -128,6 +130,7 @@ git commit -m "feat(sdart): reject ghost/faint frames in sliceanim + --min-frame
 ### Task 3: Seed-retry regen harness
 
 **Files:**
+
 - Create: `scripts/sdart/regen_towers.mjs`
 
 - [ ] **Step 1: Write the harness**
@@ -149,23 +152,51 @@ const GAME = "public/assets/sprites/tower";
 const SEEDFILE = "scripts/sdart/regen_seeds.json";
 mkdirSync(RAW, { recursive: true });
 
-const arg = (n) => { const h = process.argv.find((a) => a.startsWith(`--${n}=`)); return h ? h.split("=").slice(1).join("=") : undefined; };
-const ids = (arg("ids") || "").split(",").map((s) => s.trim()).filter(Boolean);
+const arg = (n) => {
+  const h = process.argv.find((a) => a.startsWith(`--${n}=`));
+  return h ? h.split("=").slice(1).join("=") : undefined;
+};
+const ids = (arg("ids") || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 const tries = parseInt(arg("tries") || "12", 10);
-if (!ids.length) { console.error("need --ids="); process.exit(1); }
+if (!ids.length) {
+  console.error("need --ids=");
+  process.exit(1);
+}
 
-function seedOf(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 1000000; }
+function seedOf(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) % 1000000;
+}
 
 async function sd(prompt, neg, seed, w, h) {
   for (let a = 1; a <= 2; a++) {
     try {
-      const r = await fetch(SD, { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, negative_prompt: neg, steps: 34, width: w, height: h, seed }) });
+      const r = await fetch(SD, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          negative_prompt: neg,
+          steps: 34,
+          width: w,
+          height: h,
+          seed,
+        }),
+      });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const b = Buffer.from(await r.arrayBuffer());
       if (b[0] !== 0x89) throw new Error("not PNG");
       return b;
-    } catch (e) { console.log("   gen fail " + a + ": " + e.message); }
+    } catch (e) {
+      console.log("   gen fail " + a + ": " + e.message);
+    }
   }
   return null;
 }
@@ -174,17 +205,26 @@ function sliceFrames(raw, out) {
   // returns frame count produced (0 if short/failed). --min-frames 8 makes a short
   // slice return its (small) n and NOT overwrite a good prior result.
   try {
-    const o = execFileSync("python3", [SLICE, raw, out, "--cell", "128", "--max-frames", "8", "--min-frames", "8"], { encoding: "utf8" });
+    const o = execFileSync(
+      "python3",
+      [SLICE, raw, out, "--cell", "128", "--max-frames", "8", "--min-frames", "8"],
+      { encoding: "utf8" },
+    );
     const m = o.match(/sliced (\d+) frames/);
     return m ? parseInt(m[1], 10) : 0;
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 }
 
 const seeds = existsSync(SEEDFILE) ? JSON.parse(readFileSync(SEEDFILE, "utf8")) : {};
 
 for (const id of ids) {
   const v = TOWER_VISUAL[id];
-  if (!v) { console.log(`SKIP ${id}: no TOWER_VISUAL`); continue; }
+  if (!v) {
+    console.log(`SKIP ${id}: no TOWER_VISUAL`);
+    continue;
+  }
   const prompt = charSheetPrompt(v);
   const out = `${GAME}/${id}.png`;
   const tmpOut = `/tmp/sdraw/slice__${id}.png`;
@@ -198,9 +238,15 @@ for (const id of ids) {
     writeFileSync(raw, buf);
     const n = sliceFrames(raw, tmpOut);
     console.log(`   -> ${n} frames`);
-    if (n === 8) { won = { seed, raw, tmpOut }; break; }
+    if (n === 8) {
+      won = { seed, raw, tmpOut };
+      break;
+    }
   }
-  if (!won) { console.log(`[${id}] FAILED to reach 8 frames in ${tries} tries — leaving existing art`); continue; }
+  if (!won) {
+    console.log(`[${id}] FAILED to reach 8 frames in ${tries} tries — leaving existing art`);
+    continue;
+  }
   // promote: copy slice png + its json sidecar over the live asset
   copyFileSync(won.tmpOut, out);
   copyFileSync(won.tmpOut.replace(/\.png$/, ".json"), out.replace(/\.png$/, ".json"));
@@ -228,6 +274,7 @@ git commit -m "feat(sdart): bounded seed-retry regen harness for tower sheets"
 ### Task 4: Regenerate the 7 sheets
 
 **Files:**
+
 - Modify (generated): `public/assets/sprites/tower/{seren-skyfall,auriel-wardlight,lyran-ricochet,vesska-venombolt,rivka-rebound,aya-dawnshot,garron-unbreaking-pillar}.png` + `.json`
 - Create (generated): `scripts/sdart/regen_seeds.json`
 
@@ -239,21 +286,25 @@ Expected: JSON containing `"ready":true`.
 - [ ] **Step 2: Run the harness for all 7**
 
 Run:
+
 ```bash
 npx vite-node scripts/sdart/regen_towers.mjs \
   --ids=seren-skyfall,auriel-wardlight,lyran-ricochet,vesska-venombolt,rivka-rebound,aya-dawnshot,garron-unbreaking-pillar \
   --tries=14
 ```
+
 Expected: each id logs `DONE seed <n>`. If any logs `FAILED`, re-run that id alone with a higher `--tries` (e.g. 24). Do NOT proceed for an id still short of 8.
 
 - [ ] **Step 3: Verify every regenerated json reports 8 frames**
 
 Run:
+
 ```bash
 for f in seren-skyfall auriel-wardlight lyran-ricochet vesska-venombolt rivka-rebound aya-dawnshot garron-unbreaking-pillar; do
   python3 -c "import json;d=json.load(open('public/assets/sprites/tower/$f.json'));print('$f',d['frames'],d['names'])"
 done
 ```
+
 Expected: every line ends with `8 ['idle1', 'idle2', 'atk1', 'atk2', 'atk3', 'skill1', 'skill2', 'skill3']`.
 
 - [ ] **Step 4: Visual QA montage (all 8 frames of each regenerated tower)**
@@ -275,6 +326,7 @@ git commit -m "art(tower-art): regenerate 7 broken towers to clean 8-frame sheet
 ### Task 5: Sync spriteManifest.ts (GREEN)
 
 **Files:**
+
 - Modify: `src/data/spriteManifest.ts` (7 tower entries)
 
 - [ ] **Step 1: Patch the 7 entries from their regenerated json sidecars**
@@ -301,9 +353,11 @@ PY
 - [ ] **Step 2: Verify the manifest now reads 8 frames for all 7**
 
 Run:
+
 ```bash
 node -e "const m=require('fs').readFileSync('src/data/spriteManifest.ts','utf8');for(const id of ['seren-skyfall','auriel-wardlight','lyran-ricochet','vesska-venombolt','rivka-rebound','aya-dawnshot','garron-unbreaking-pillar']){const e=m.match(new RegExp('\"key\":\"tower__'+id+'\".*?\\\\}'));console.log(id, /\"frames\":8/.test(e[0]))}"
 ```
+
 Expected: every line ends `true`.
 
 - [ ] **Step 3: Run the contract test — now GREEN**

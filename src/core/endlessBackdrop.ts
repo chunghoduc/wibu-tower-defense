@@ -8,14 +8,40 @@
 import type { ArenaDef, Vec2 } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 
-export interface Dims { width: number; height: number; }
+export interface Dims {
+  width: number;
+  height: number;
+}
 
 /** Radial focus pull: dark at the rim (edgeAlpha), clear toward the castle. */
-export interface Vignette { cx: number; cy: number; innerR: number; outerR: number; edgeAlpha: number; }
+export interface Vignette {
+  cx: number;
+  cy: number;
+  innerR: number;
+  outerR: number;
+  edgeAlpha: number;
+}
 /** A glowing ley-line battle-scar: jittered polyline castle→gate, color `glow`. */
-export interface Scar { points: Vec2[]; width: number; glow: number; }
-export interface CastleRing { cx: number; cy: number; baseR: number; color: number; }
-export interface Ember { x: number; y: number; r: number; speed: number; drift: number; alpha: number; phase: number; }
+export interface Scar {
+  points: Vec2[];
+  width: number;
+  glow: number;
+}
+export interface CastleRing {
+  cx: number;
+  cy: number;
+  baseR: number;
+  color: number;
+}
+export interface Ember {
+  x: number;
+  y: number;
+  r: number;
+  speed: number;
+  drift: number;
+  alpha: number;
+  phase: number;
+}
 
 export interface EndlessBackdropSpec {
   vignette: Vignette;
@@ -28,19 +54,31 @@ export interface EndlessBackdropSpec {
 const EMBER_COUNT = 60;
 const SCAR_SEGS = 5;
 
-export function buildEndlessBackdrop(arena: ArenaDef, dims: Dims, seed: number): EndlessBackdropSpec {
+export function buildEndlessBackdrop(
+  arena: ArenaDef,
+  dims: Dims,
+  seed: number,
+): EndlessBackdropSpec {
   const rng = new Rng(seed * 2246822519 + 7);
-  const cx = arena.center.x, cy = arena.center.y;
+  const cx = arena.center.x,
+    cy = arena.center.y;
   const outerR = Math.hypot(dims.width, dims.height) / 2;
 
-  const vignette: Vignette = { cx, cy, innerR: Math.round(outerR * 0.34), outerR: Math.round(outerR), edgeAlpha: 0.7 };
+  const vignette: Vignette = {
+    cx,
+    cy,
+    innerR: Math.round(outerR * 0.34),
+    outerR: Math.round(outerR),
+    edgeAlpha: 0.7,
+  };
 
   // One battle-scar per gate: a perpendicular-jittered polyline from the castle
   // out to the (on-screen-clamped) gate mouth, so the war-roads visibly converge.
   const scars: Scar[] = arena.gates.map((g) => {
     const gx = Math.max(8, Math.min(dims.width - 8, g.x));
     const gy = Math.max(8, Math.min(dims.height - 8, g.y));
-    const dx = gx - cx, dy = gy - cy;
+    const dx = gx - cx,
+      dy = gy - cy;
     const len = Math.hypot(dx, dy) || 1;
     const points: Vec2[] = [];
     for (let i = 0; i <= SCAR_SEGS; i++) {

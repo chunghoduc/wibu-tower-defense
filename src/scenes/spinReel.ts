@@ -27,8 +27,10 @@ const STRIP_LEN = 54;
 
 /** Build one prize cell (bg + real reward icon + label) into the strip container. */
 function buildCell(
-  scene: Phaser.Scene, strip: Phaser.GameObjects.Container,
-  prize: SpinPrize, cx: number,
+  scene: Phaser.Scene,
+  strip: Phaser.GameObjects.Container,
+  prize: SpinPrize,
+  cx: number,
 ): Phaser.GameObjects.Container {
   // Same resolver the post-battle reward panel uses, so the wheel shows the real
   // gold/diamond/material/jewel texture (emoji fallback only when un-arted).
@@ -42,8 +44,15 @@ function buildCell(
   cell.add(g);
   cell.add(makeFitIcon(scene, 0, -22, view.iconKey, 56, view.emoji));
   addNamePlate(scene, cell, prize.label, {
-    width: CELL_W, topY: 52 - 30, height: 30, radius: 12,
-    accent, color: "#ffe9b0", basePx: 12, minPx: 8, maxLines: 2,
+    width: CELL_W,
+    topY: 52 - 30,
+    height: 30,
+    radius: 12,
+    accent,
+    color: "#ffe9b0",
+    basePx: 12,
+    minPx: 8,
+    maxLines: 2,
   });
   strip.add(cell);
   return cell;
@@ -54,10 +63,15 @@ function buildCell(
  * prize (and the celebration should fire). `rare` brightens the framing.
  */
 export function playSpinReel(
-  scene: Phaser.Scene, winner: SpinPrize, rare: boolean, onLand: () => void,
+  scene: Phaser.Scene,
+  winner: SpinPrize,
+  rare: boolean,
+  onLand: () => void,
 ): void {
-  const W = scene.scale.width, H = scene.scale.height;
-  const cx = W / 2, cy = H / 2;
+  const W = scene.scale.width,
+    H = scene.scale.height;
+  const cx = W / 2,
+    cy = H / 2;
   const winW = WIN_CELLS * PITCH;
   const winLeft = Math.round(cx - winW / 2);
   const root = scene.add.container(0, 0).setDepth(DEPTH);
@@ -67,9 +81,13 @@ export function playSpinReel(
   root.add(dim);
   scene.tweens.add({ targets: dim, alpha: 0.78, duration: 180 });
 
-  root.add(crispText(scene, cx, cy - 96, "🎡 Spinning…", {
-    fontSize: "22px", color: "#ffe9b0", fontStyle: "bold",
-  }).setOrigin(0.5));
+  root.add(
+    crispText(scene, cx, cy - 96, "🎡 Spinning…", {
+      fontSize: "22px",
+      color: "#ffe9b0",
+      fontStyle: "bold",
+    }).setOrigin(0.5),
+  );
 
   // The scrolling strip, clipped to the window.
   const strip = scene.add.container(winLeft, cy);
@@ -88,7 +106,9 @@ export function playSpinReel(
 
   // Window frame + centre pointer.
   const frame = scene.add.graphics();
-  frame.lineStyle(3, rare ? 0xff5bd0 : 0xffd24d, 1).strokeRoundedRect(winLeft - 6, cy - 66, winW + 12, 132, 14);
+  frame
+    .lineStyle(3, rare ? 0xff5bd0 : 0xffd24d, 1)
+    .strokeRoundedRect(winLeft - 6, cy - 66, winW + 12, 132, 14);
   frame.fillStyle(rare ? 0xff5bd0 : 0xffd24d, 0.08).fillRect(cx - 3, cy - 60, 6, 120);
   root.add(frame);
   const ptr = scene.add.graphics();
@@ -99,13 +119,18 @@ export function playSpinReel(
 
   // Land the TARGET cell under the pointer, with a little jitter so it isn't
   // always dead-centre. strip-local x of the cell, mapped to window centre.
-  const jitter = (((TARGET_INDEX * 7) % 11) - 5) / 5 * (CELL_W * 0.28);
+  const jitter = ((((TARGET_INDEX * 7) % 11) - 5) / 5) * (CELL_W * 0.28);
   const finalX = winW / 2 - (TARGET_INDEX * PITCH + CELL_W / 2) + jitter;
 
   const proxy = { x: 0 };
   scene.tweens.add({
-    targets: proxy, x: finalX, duration: 3000, ease: "Cubic.easeOut",
-    onUpdate: () => { strip.x = winLeft + proxy.x; },
+    targets: proxy,
+    x: finalX,
+    duration: 3000,
+    ease: "Cubic.easeOut",
+    onUpdate: () => {
+      strip.x = winLeft + proxy.x;
+    },
     onComplete: () => revealWinner(scene, root, winnerCell, winner, rare, cx, cy, onLand),
   });
 
@@ -114,33 +139,59 @@ export function playSpinReel(
 
 /** Pop the landed cell, swap the header to the prize, then hand off + fade out. */
 function revealWinner(
-  scene: Phaser.Scene, root: Phaser.GameObjects.Container,
-  cell: Phaser.GameObjects.Container, winner: SpinPrize, rare: boolean,
-  cx: number, cy: number, onLand: () => void,
+  scene: Phaser.Scene,
+  root: Phaser.GameObjects.Container,
+  cell: Phaser.GameObjects.Container,
+  winner: SpinPrize,
+  rare: boolean,
+  cx: number,
+  cy: number,
+  onLand: () => void,
 ): void {
   const accent = rare ? 0xff5bd0 : 0xffd24d;
-  scene.tweens.add({ targets: cell, scale: 1.16, duration: 200, yoyo: true, repeat: 1, ease: "Sine.easeInOut" });
+  scene.tweens.add({
+    targets: cell,
+    scale: 1.16,
+    duration: 200,
+    yoyo: true,
+    repeat: 1,
+    ease: "Sine.easeInOut",
+  });
 
   // Bright ring blooming out of the window centre.
   const ring = scene.add.graphics().setDepth(DEPTH + 1);
   root.add(ring);
   const f = { r: 40, a: 0.9 };
   scene.tweens.add({
-    targets: f, r: 130, a: 0, duration: 600, ease: "Cubic.easeOut",
-    onUpdate: () => { ring.clear(); ring.lineStyle(4, accent, f.a).strokeCircle(cx, cy, f.r); },
+    targets: f,
+    r: 130,
+    a: 0,
+    duration: 600,
+    ease: "Cubic.easeOut",
+    onUpdate: () => {
+      ring.clear();
+      ring.lineStyle(4, accent, f.a).strokeCircle(cx, cy, f.r);
+    },
     onComplete: () => ring.destroy(),
   });
 
   const head = crispText(scene, cx, cy - 96, `${rare ? "★ " : ""}${winner.label}!`, {
-    fontSize: "22px", color: rare ? "#ff9be8" : "#ffe9b0", fontStyle: "bold",
-  }).setOrigin(0.5).setDepth(DEPTH + 1);
+    fontSize: "22px",
+    color: rare ? "#ff9be8" : "#ffe9b0",
+    fontStyle: "bold",
+  })
+    .setOrigin(0.5)
+    .setDepth(DEPTH + 1);
   root.add(head);
 
   // Let the win read for a beat, hand off to the celebration, then dismiss.
   scene.time.delayedCall(620, onLand);
   scene.time.delayedCall(900, () => {
     scene.tweens.add({
-      targets: root, alpha: 0, duration: 280, ease: "Cubic.easeIn",
+      targets: root,
+      alpha: 0,
+      duration: 280,
+      ease: "Cubic.easeIn",
       onComplete: () => root.destroy(),
     });
   });

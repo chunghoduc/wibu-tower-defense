@@ -27,7 +27,9 @@ export function getQuestProgress(save: HeroSave, questId: string): number {
 export function isQuestClaimable(save: HeroSave, questId: string): boolean {
   const def = DAILY_QUESTS_MAP.get(questId);
   if (!def) return false;
-  return (save.quests.progress[questId] ?? 0) >= def.target && !save.quests.claimed.includes(questId);
+  return (
+    (save.quests.progress[questId] ?? 0) >= def.target && !save.quests.claimed.includes(questId)
+  );
 }
 
 /**
@@ -37,7 +39,8 @@ export function isQuestClaimable(save: HeroSave, questId: string): boolean {
  */
 export function claimableQuestCount(save: HeroSave): number {
   let n = ALL_QUEST_IDS.filter((id) => isQuestClaimable(save, id)).length;
-  if (!save.quests.allClaimed && ALL_QUEST_IDS.every((id) => save.quests.claimed.includes(id))) n += 1;
+  if (!save.quests.allClaimed && ALL_QUEST_IDS.every((id) => save.quests.claimed.includes(id)))
+    n += 1;
   return n;
 }
 
@@ -46,7 +49,12 @@ export function claimableQuestCount(save: HeroSave): number {
  * doesn't match `today` (prevents stale increments after midnight).
  * Progress is capped at the quest's target — no over-counting.
  */
-export function incrementQuestKey(save: HeroSave, key: string, amount: number, today: string): void {
+export function incrementQuestKey(
+  save: HeroSave,
+  key: string,
+  amount: number,
+  today: string,
+): void {
   if (save.quests.date !== today) return;
   const def = DAILY_QUESTS_MAP.get(key);
   if (!def) return;

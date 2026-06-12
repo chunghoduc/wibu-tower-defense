@@ -1,14 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeStats } from "../src/data/schema.ts";
-import {
-  mkEnemy,
-  mkStage,
-  mkTower,
-  oneWave,
-  runFor,
-  runUntilDone,
-  world,
-} from "./fixtures.ts";
+import { mkEnemy, mkStage, mkTower, oneWave, runFor, runUntilDone, world } from "./fixtures.ts";
 
 describe("support role", () => {
   it("buffs nearby towers via its aura", () => {
@@ -70,8 +62,15 @@ describe("debuff role (slow)", () => {
 
 describe("stealth", () => {
   it("is invisible to towers (reaches the castle) but a strong tower clears a non-stealth twin", () => {
-    const ghost = mkEnemy({ id: "ghost", special: { stealth: true }, baseStats: makeStats({ maxHp: 100, moveSpeed: 50, atk: 0 }) });
-    const seen = mkEnemy({ id: "seen", baseStats: makeStats({ maxHp: 100, moveSpeed: 50, atk: 0 }) });
+    const ghost = mkEnemy({
+      id: "ghost",
+      special: { stealth: true },
+      baseStats: makeStats({ maxHp: 100, moveSpeed: 50, atk: 0 }),
+    });
+    const seen = mkEnemy({
+      id: "seen",
+      baseStats: makeStats({ maxHp: 100, moveSpeed: 50, atk: 0 }),
+    });
 
     const stealthWorld = world([ghost], [mkTower()], mkStage(oneWave("ghost", 1), { castleHp: 1 }));
     stealthWorld.placeTower("turret", 0);
@@ -93,7 +92,10 @@ describe("destructible towers", () => {
       castleDamage: 0,
       baseStats: makeStats({ maxHp: 1e6, moveSpeed: 20, atk: 100, attackSpeed: 2 }),
     });
-    const fragile = mkTower({ id: "fragile", baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 50 }) });
+    const fragile = mkTower({
+      id: "fragile",
+      baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 50 }),
+    });
     // A neutral parked hero — the default fixture hero has 1e9 maxHp, and towers
     // now inherit 60% of the hero's stats, which would make the tower unkillable.
     const b = world([sapper], [fragile], mkStage(oneWave("sapper", 1), { castleHp: 1e6 }), {
@@ -109,8 +111,15 @@ describe("destructible towers", () => {
 
 describe("shields", () => {
   it("absorb damage so a weak tower cannot break through an oversized shield", () => {
-    const shielded = mkEnemy({ id: "shield", special: { shieldHp: 1e6 }, baseStats: makeStats({ maxHp: 50, moveSpeed: 50, atk: 0 }) });
-    const weak = mkTower({ id: "weak", baseStats: makeStats({ atk: 30, attackSpeed: 2, range: 400, maxHp: 100 }) });
+    const shielded = mkEnemy({
+      id: "shield",
+      special: { shieldHp: 1e6 },
+      baseStats: makeStats({ maxHp: 50, moveSpeed: 50, atk: 0 }),
+    });
+    const weak = mkTower({
+      id: "weak",
+      baseStats: makeStats({ atk: 30, attackSpeed: 2, range: 400, maxHp: 100 }),
+    });
     const b = world([shielded], [weak], mkStage(oneWave("shield", 1), { castleHp: 1 }));
     b.placeTower("weak", 0);
     runUntilDone(b);
@@ -125,8 +134,15 @@ describe("splitter", () => {
       special: { splitInto: { enemyId: "child", count: 2 } },
       baseStats: makeStats({ maxHp: 100, moveSpeed: 50, atk: 0 }),
     });
-    const child = mkEnemy({ id: "child", baseStats: makeStats({ maxHp: 1e6, moveSpeed: 1, atk: 0 }) });
-    const b = world([splitter, child], [mkTower()], mkStage(oneWave("splitter", 1), { castleHp: 1e6 }));
+    const child = mkEnemy({
+      id: "child",
+      baseStats: makeStats({ maxHp: 1e6, moveSpeed: 1, atk: 0 }),
+    });
+    const b = world(
+      [splitter, child],
+      [mkTower()],
+      mkStage(oneWave("splitter", 1), { castleHp: 1e6 }),
+    );
     b.placeTower("turret", 0);
 
     let sawChild = false;
@@ -146,7 +162,11 @@ describe("summoner", () => {
       castleDamage: 0,
       baseStats: makeStats({ maxHp: 1e6, moveSpeed: 0, atk: 0 }),
     });
-    const add = mkEnemy({ id: "add", castleDamage: 0, baseStats: makeStats({ maxHp: 1e6, moveSpeed: 0, atk: 0 }) });
+    const add = mkEnemy({
+      id: "add",
+      castleDamage: 0,
+      baseStats: makeStats({ maxHp: 1e6, moveSpeed: 0, atk: 0 }),
+    });
     const b = world([summoner, add], [], mkStage(oneWave("summoner", 1), { castleHp: 1e6 }));
 
     let sawAdd = false;
@@ -185,7 +205,9 @@ describe("difficulty scaling", () => {
   it("bosses scale harder than trash on Hard (extra boss multipliers)", () => {
     const spawn = (archetype: "Rusher" | "Boss") => {
       const e = mkEnemy({ archetype, baseStats: makeStats({ maxHp: 100, atk: 10, moveSpeed: 1 }) });
-      const b = world([e], [], mkStage(oneWave("grunt", 1), { castleHp: 1e6 }), { difficulty: "Hard" });
+      const b = world([e], [], mkStage(oneWave("grunt", 1), { castleHp: 1e6 }), {
+        difficulty: "Hard",
+      });
       for (let i = 0; i < 200 && b.enemies.length === 0; i++) b.tick(0.05);
       return b.enemies[0]!.stats;
     };

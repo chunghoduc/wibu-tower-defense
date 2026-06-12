@@ -11,7 +11,7 @@ defects:
 
 1. **Double-throne clash.** The SDXL backdrop `bg__menu-hall` already bakes a
    large gold throne into the centre of the image, but `drawThrone()` paints a
-   *second* procedural king's-chair directly on top of it. The two thrones
+   _second_ procedural king's-chair directly on top of it. The two thrones
    fight each other — different scale, perspective and colour — and the result
    looks cluttered and amateurish.
 2. **Dead static.** The backdrop never moves. The only "atmosphere" is two flat
@@ -25,7 +25,7 @@ stays. The job is to give it a **cinematic stage** to stand on.
 
 ## Goals
 
-- A grand, *moody, alive* throne hall that makes the menu feel premium.
+- A grand, _moody, alive_ throne hall that makes the menu feel premium.
 - Resolve the double-throne so there is exactly **one** focal throne (the
   engine-controlled procedural chair the hero sits on).
 - Add living atmosphere: volumetric god-ray shafts, floating dust motes, rising
@@ -63,7 +63,7 @@ A small, reproducible one-off generator `scripts/sdart/genBackgrounds.mjs`
 (re-created — the old `wibu-td-designer/gen-backgrounds.mjs` was deleted) renders
 N candidates so the best can be picked, then writes the winner to the bg folder.
 `bgManifest.ts` is unchanged (the id `menu-hall` already exists). This task is
-*best-effort*: if generation fails, Pillar B still ships and the hall simply
+_best-effort_: if generation fails, Pillar B still ships and the hall simply
 keeps the old (or fallback) image.
 
 ### Pillar B — living atmosphere layer
@@ -76,10 +76,10 @@ keeps the old (or fallback) image.
 - `keyLight` — warm radial glow `{x, y, r, color}` behind the throne so the
   procedural chair + hero read as the lit subject and the painted hall recedes.
 - `rays` — N god-ray shafts descending from the top: `{x, topW, botW, len,
-  tilt, color, baseAlpha, phase}` (drawn as translucent additive quads).
+tilt, color, baseAlpha, phase}` (drawn as translucent additive quads).
 - `motes` — drifting dust `{x, y, r, drift, rise, phase, alpha}`.
 - `embers` — warm motes rising from brazier anchors `{x, y, r, speed, drift,
-  phase, alpha}`.
+phase, alpha}`.
 - `torches` — flicker light points `{x, y, r, color, phase}`.
 
 Plus pure deterministic animation helpers (no Phaser, no `Date.now`):
@@ -143,5 +143,8 @@ MainMenuScene.update(t) --> backdropFx.update(t) --> motePos/emberPos/rayAlpha/f
 - **SD art quality variance** — mitigated by generating several candidates and
   by Pillar B not depending on the art.
 - **Over-busy atmosphere** — keep particle counts and alphas low; the layer must
-  *frame* the diorama, not bury it. Tunable constants at the top of the module.
+  _frame_ the diorama, not bury it. Tunable constants at the top of the module.
+
+```
+
 ```

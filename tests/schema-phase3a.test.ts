@@ -14,8 +14,13 @@ import {
 // Verify exported types exist by using them in narrowly-scoped type assertions.
 // These are compile-time-only checks — no runtime cost.
 const _itemInstanceCheck: ItemInstance = {
-  id: "i", defId: "d", acquiredLevel: 1,
-  rolledStats: {}, rolledPrimaryAffix: 0, rolledAffixes: [], enhanceLevel: 0,
+  id: "i",
+  defId: "d",
+  acquiredLevel: 1,
+  rolledStats: {},
+  rolledPrimaryAffix: 0,
+  rolledAffixes: [],
+  enhanceLevel: 0,
 };
 const _rolledAffixCheck: RolledAffix = { type: "critRate", value: 0.05 };
 void _itemInstanceCheck;
@@ -54,31 +59,72 @@ describe("validateActiveSkill", () => {
 
   it("rejects missing id", () => {
     expect(() =>
-      validateActiveSkill({ id: "", name: "x", description: "x", rarity: "Common", damageType: "Physical", basePower: 10, artRef: "x" })
+      validateActiveSkill({
+        id: "",
+        name: "x",
+        description: "x",
+        rarity: "Common",
+        damageType: "Physical",
+        basePower: 10,
+        artRef: "x",
+      }),
     ).toThrow();
   });
 
   it("rejects basePower <= 0", () => {
     expect(() =>
-      validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "Common", damageType: "Physical", basePower: 0, artRef: "x" })
+      validateActiveSkill({
+        id: "s",
+        name: "x",
+        description: "x",
+        rarity: "Common",
+        damageType: "Physical",
+        basePower: 0,
+        artRef: "x",
+      }),
     ).toThrow();
   });
 
   it("rejects bad rarity", () => {
     expect(() =>
-      validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "SuperRare" as any, damageType: "Physical", basePower: 10, artRef: "x" })
+      validateActiveSkill({
+        id: "s",
+        name: "x",
+        description: "x",
+        rarity: "SuperRare" as any,
+        damageType: "Physical",
+        basePower: 10,
+        artRef: "x",
+      }),
     ).toThrow();
   });
 
   it("rejects bad damageType", () => {
     expect(() =>
-      validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "Common", damageType: "Poison" as any, basePower: 10, artRef: "x" })
+      validateActiveSkill({
+        id: "s",
+        name: "x",
+        description: "x",
+        rarity: "Common",
+        damageType: "Poison" as any,
+        basePower: 10,
+        artRef: "x",
+      }),
     ).toThrow();
   });
 
   it("rejects bad requiresWeapon", () => {
     expect(() =>
-      validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "Common", damageType: "Physical", basePower: 10, requiresWeapon: "Axe" as any, artRef: "x" })
+      validateActiveSkill({
+        id: "s",
+        name: "x",
+        description: "x",
+        rarity: "Common",
+        damageType: "Physical",
+        basePower: 10,
+        requiresWeapon: "Axe" as any,
+        artRef: "x",
+      }),
     ).toThrow();
   });
 });
@@ -101,7 +147,16 @@ describe("validatePassiveNode", () => {
 
   it("rejects node with no neighbors", () => {
     expect(() =>
-      validatePassiveNode({ id: "x", type: "path", region: "brawler", name: "x", description: "x", gridX: 0, gridY: 0, neighbors: [] })
+      validatePassiveNode({
+        id: "x",
+        type: "path",
+        region: "brawler",
+        name: "x",
+        description: "x",
+        gridX: 0,
+        gridY: 0,
+        neighbors: [],
+      }),
     ).toThrow();
   });
 });
@@ -125,19 +180,50 @@ describe("validateItemDef", () => {
 
   it("rejects Weapon slot without weaponType", () => {
     expect(() =>
-      validateItemDef({ id: "x", name: "x", slot: "Weapon", rarity: "Common", requiredLevel: 1, baseStats: {}, primaryAffix: { type: "x", baseValue: 1 }, affixPool: [], artRef: "x" })
+      validateItemDef({
+        id: "x",
+        name: "x",
+        slot: "Weapon",
+        rarity: "Common",
+        requiredLevel: 1,
+        baseStats: {},
+        primaryAffix: { type: "x", baseValue: 1 },
+        affixPool: [],
+        artRef: "x",
+      }),
     ).toThrow(/weaponType/);
   });
 
   it("rejects requiredLevel < 1", () => {
     expect(() =>
-      validateItemDef({ id: "x", name: "x", slot: "Helmet", rarity: "Common", requiredLevel: 0, baseStats: {}, primaryAffix: { type: "x", baseValue: 1 }, affixPool: [], artRef: "x" })
+      validateItemDef({
+        id: "x",
+        name: "x",
+        slot: "Helmet",
+        rarity: "Common",
+        requiredLevel: 0,
+        baseStats: {},
+        primaryAffix: { type: "x", baseValue: 1 },
+        affixPool: [],
+        artRef: "x",
+      }),
     ).toThrow(/requiredLevel/);
   });
 
   it("rejects primaryAffix.baseValue of 0", () => {
     expect(() =>
-      validateItemDef({ id: "x", name: "Sword", slot: "Weapon", weaponType: "Sword", rarity: "Common", requiredLevel: 1, baseStats: {}, primaryAffix: { type: "atk", baseValue: 0 }, affixPool: [], artRef: "x" })
+      validateItemDef({
+        id: "x",
+        name: "Sword",
+        slot: "Weapon",
+        weaponType: "Sword",
+        rarity: "Common",
+        requiredLevel: 1,
+        baseStats: {},
+        primaryAffix: { type: "atk", baseValue: 0 },
+        affixPool: [],
+        artRef: "x",
+      }),
     ).toThrow(/primaryAffix/);
   });
 });

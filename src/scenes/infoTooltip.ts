@@ -25,8 +25,11 @@ const W = 224;
 
 /** Render a titled info card into `c` near (x, y) and show it. */
 export function renderInfoTooltip(
-  scene: Phaser.Scene, c: Phaser.GameObjects.Container,
-  data: InfoTooltipData, x: number, y: number,
+  scene: Phaser.Scene,
+  c: Phaser.GameObjects.Container,
+  data: InfoTooltipData,
+  x: number,
+  y: number,
 ): void {
   // Drawn at absolute coordinates (container left at the origin) so this card can
   // share a tooltip container with renderItemTooltip without a double offset.
@@ -40,19 +43,28 @@ export function renderInfoTooltip(
   let cy = PAD;
 
   const title = panelText(scene, 0, 0, data.title, {
-    fontSize: "14px", color: data.titleColor ?? "#ffe9b0", fontStyle: "bold", wordWrap: { width: innerW },
+    fontSize: "14px",
+    color: data.titleColor ?? "#ffe9b0",
+    fontStyle: "bold",
+    wordWrap: { width: innerW },
   });
-  lines.push({ t: title, dy: cy }); cy += title.height + 3;
+  lines.push({ t: title, dy: cy });
+  cy += title.height + 3;
 
   if (data.subtitle) {
     const sub = panelText(scene, 0, 0, data.subtitle, { fontSize: "11px", color: "#aebfd4" });
-    lines.push({ t: sub, dy: cy }); cy += sub.height + 5;
+    lines.push({ t: sub, dy: cy });
+    cy += sub.height + 5;
   }
   if (data.body) {
     const body = panelText(scene, 0, 0, data.body, {
-      fontSize: "11px", color: "#cdd6e6", wordWrap: { width: innerW }, lineSpacing: 3,
+      fontSize: "11px",
+      color: "#cdd6e6",
+      wordWrap: { width: innerW },
+      lineSpacing: 3,
     });
-    lines.push({ t: body, dy: cy }); cy += body.height;
+    lines.push({ t: body, dy: cy });
+    cy += body.height;
   }
   const h = cy + PAD;
 
@@ -63,6 +75,9 @@ export function renderInfoTooltip(
   g.fillStyle(0x10141c, 0.97).fillRoundedRect(tx, ty, W, h, 6);
   g.lineStyle(1.5, data.borderColor ?? 0x33405a, 1).strokeRoundedRect(tx, ty, W, h, 6);
   c.add(g);
-  for (const { t, dy } of lines) { t.setPosition(tx + PAD, ty + dy); c.add(t); }
+  for (const { t, dy } of lines) {
+    t.setPosition(tx + PAD, ty + dy);
+    c.add(t);
+  }
   c.setVisible(true);
 }

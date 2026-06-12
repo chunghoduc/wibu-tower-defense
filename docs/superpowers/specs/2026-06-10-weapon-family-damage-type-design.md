@@ -5,7 +5,7 @@
 
 ## Problem
 
-Ranged attack towers should be diversified by weapon family, with a *canonical*
+Ranged attack towers should be diversified by weapon family, with a _canonical_
 rule mapping weapon → damage type: bow / gun / crossbow users are **physical**;
 staff / tome / scepter users are **magic**; etc. Today `meta.weapon` is a free-text
 flavour string, `damageType` is hand-authored per tower (so it can silently
@@ -30,15 +30,15 @@ fists / ki / swords / katana plus thematic implements.
 ## Section 1 — Weapon-family taxonomy (single source of truth)
 
 New module `src/data/weaponFamily.ts` holds one canonical table every system reads.
-Each family maps to a damage-type *class*, a default attack style, and a base range
+Each family maps to a damage-type _class_, a default attack style, and a base range
 band:
 
-| Class | Families | Default dmgType | Range band |
-|---|---|---|---|
-| **Physical melee** | `fist`, `sword`, `spear`, `blunt` | Physical | 85–115 (cleaves) |
-| **Physical ranged** | `bow`, `crossbow`, `gun`, `thrown` | Physical | 200–260 |
-| **Magic implement** | `staff`, `tome`, `scepter`, `wand`, `rod`, `orb` | Magic | 170–210 |
-| **Conduit** (bodily/elemental energy, no held weapon) | `ki`, `aura`, `curse`, `nature`, `shadow`, `sand`, `talisman`, `instrument`, `banner` | by element/force | varies |
+| Class                                                 | Families                                                                              | Default dmgType  | Range band       |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------- | ---------------- | ---------------- |
+| **Physical melee**                                    | `fist`, `sword`, `spear`, `blunt`                                                     | Physical         | 85–115 (cleaves) |
+| **Physical ranged**                                   | `bow`, `crossbow`, `gun`, `thrown`                                                    | Physical         | 200–260          |
+| **Magic implement**                                   | `staff`, `tome`, `scepter`, `wand`, `rod`, `orb`                                      | Magic            | 170–210          |
+| **Conduit** (bodily/elemental energy, no held weapon) | `ki`, `aura`, `curse`, `nature`, `shadow`, `sand`, `talisman`, `instrument`, `banner` | by element/force | varies           |
 
 - **Enchant rule:** a Physical family with `enchanted: true` (elemental/spirit energy
   infusing it) derives as **Magic**. Plain `sword` = Physical; `sword + enchanted` = Magic.
@@ -55,14 +55,15 @@ band:
 
 ```ts
 interface WeaponSpec {
-  family: WeaponFamily;       // drives class → damageType, style, range
-  element?: Element;          // fire|ice|lightning|poison|holy|none — VFX sub-style
-  enchanted?: boolean;        // option-ii: makes a physical family read as Magic
-  display: string;            // player-facing text (what CollectionScene shows today)
+  family: WeaponFamily; // drives class → damageType, style, range
+  element?: Element; // fire|ice|lightning|poison|holy|none — VFX sub-style
+  enchanted?: boolean; // option-ii: makes a physical family read as Magic
+  display: string; // player-facing text (what CollectionScene shows today)
 }
 ```
 
 Wiring:
+
 - `attackStyleFor()` is **rewritten** to read `weapon.family` + `weapon.element`
   directly — deletes the brittle keyword-matching against prose.
 - `towerBuilder.t()` **derives `damageType` from the weapon**; the hand-authored
@@ -106,6 +107,7 @@ All created via the `create-character` skill (story → stats → art → animat
 Distribution weighted toward the ranged/magic gap:
 
 **Physical ranged:**
+
 1. Bow — `damage` Common (rapid archer)
 2. Bow — `chain` Rare (ricochet volley)
 3. Bow — `splash` Legendary (arrow-rain)
@@ -116,17 +118,10 @@ Distribution weighted toward the ranged/magic gap:
 8. Gun — `chain` Unique (ricochet pistolero)
 9. Thrown — `debuff` Magic (kunai/bola — slows)
 
-**Magic implement:**
-10. Tome — `dot` Magic (curse-scribe)
-11. Tome — `debuff` Rare (hex-scholar)
-12. Scepter — `support` Legendary (royal warding)
-13. Scepter — `chain` Rare (arc-scepter)
-14. Wand — `splash` Common (spark-wand)
-15. Wand — `damage` Legendary (arcane-missile)
-16. Orb — `support` Unique (oracle's orb)
+**Magic implement:** 10. Tome — `dot` Magic (curse-scribe) 11. Tome — `debuff` Rare (hex-scholar) 12. Scepter — `support` Legendary (royal warding) 13. Scepter — `chain` Rare (arc-scepter) 14. Wand — `splash` Common (spark-wand) 15. Wand — `damage` Legendary (arcane-missile) 16. Orb — `support` Unique (oracle's orb)
 
 Every empty family is covered. Roles stay roughly balanced; tanker stays
-melee-only by design. Each new tower's `damageType` is *derived* from its family,
+melee-only by design. Each new tower's `damageType` is _derived_ from its family,
 so by construction it cannot violate the ruleset.
 
 ## Section 5 — Enforcement & process

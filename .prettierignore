@@ -1,0 +1,12 @@
+# Generated / binary asset trees
+public/
+dist/
+logs/
+
+# Harness/skill definitions — not project source
+.claude/
+
+# TEMP: carry uncommitted prior-session art work — remove once that lands
+src/data/spriteManifest.ts
+scripts/sdart/sync_manifest.mjs
+scripts/sdart/regen_seeds.json

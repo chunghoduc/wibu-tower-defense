@@ -13,6 +13,7 @@
 ### Task 1: Pure arc math (`lootFlyArc.ts`)
 
 **Files:**
+
 - Create: `src/scenes/lootFlyArc.ts`
 - Test: `tests/lootFlyArc.test.ts`
 
@@ -82,7 +83,9 @@ export function arcControl(from: Vec2, to: Vec2, lift: number): Vec2 {
 /** Quadratic bézier B(t) for t in [0,1]. t=0 → from, t=1 → to. */
 export function bezierPoint(from: Vec2, ctrl: Vec2, to: Vec2, t: number): Vec2 {
   const u = 1 - t;
-  const a = u * u, b = 2 * u * t, c = t * t;
+  const a = u * u,
+    b = 2 * u * t,
+    c = t * t;
   return {
     x: a * from.x + b * ctrl.x + c * to.x,
     y: a * from.y + b * ctrl.y + c * to.y,
@@ -109,6 +112,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: `LootFlyFx` renderer
 
 **Files:**
+
 - Create: `src/scenes/lootFlyFx.ts`
 
 No new unit test — this is Phaser rendering, exercised via the pure arc test (Task 1) and the manual playtest (Task 5). Keep it under the 500-line cap (it will be ~80 lines).
@@ -130,10 +134,10 @@ import { arcControl, bezierPoint } from "./lootFlyArc.ts";
 import { iconFitScale } from "./itemIcon.ts";
 
 export interface LootFlyOpts {
-  iconKey?: string;        // when set + loaded, fly the real art (item__/box__)
-  fallbackColor?: number;  // circle colour when no icon/texture
-  delay?: number;          // stagger multiple coins
-  iconFit?: number;        // longest-edge px for an icon (default 22)
+  iconKey?: string; // when set + loaded, fly the real art (item__/box__)
+  fallbackColor?: number; // circle colour when no icon/texture
+  delay?: number; // stagger multiple coins
+  iconFit?: number; // longest-edge px for an icon (default 22)
 }
 
 export class LootFlyFx {
@@ -153,41 +157,70 @@ export class LootFlyFx {
     const ey = from.y - Phaser.Math.Between(10, 24);
     const baseScale = obj.scale;
     this.scene.tweens.add({
-      targets: obj, x: ex, y: ey, scale: baseScale * 1.15, duration: 160, delay,
+      targets: obj,
+      x: ex,
+      y: ey,
+      scale: baseScale * 1.15,
+      duration: 160,
+      delay,
       ease: "Quad.easeOut",
       onComplete: () => this.flyToHero({ x: ex, y: ey }, to, obj, baseScale),
     });
   }
 
   /** Drive a {t} proxy along the bezier, scaling down toward the hero. */
-  private flyToHero(start: Vec2, to: Vec2, obj: Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject, baseScale: number): void {
+  private flyToHero(
+    start: Vec2,
+    to: Vec2,
+    obj: Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject,
+    baseScale: number,
+  ): void {
     const ctrl = arcControl(start, to, 46);
     const proxy = { t: 0 };
     this.scene.tweens.add({
-      targets: proxy, t: 1, duration: 760, ease: "Sine.easeInOut",
+      targets: proxy,
+      t: 1,
+      duration: 760,
+      ease: "Sine.easeInOut",
       onUpdate: () => {
         const p = bezierPoint(start, ctrl, to, proxy.t);
         obj.setPosition(p.x, p.y);
         obj.setScale(baseScale * (1 - 0.5 * proxy.t));
       },
-      onComplete: () => { this.absorb(to); obj.destroy(); },
+      onComplete: () => {
+        this.absorb(to);
+        obj.destroy();
+      },
     });
   }
 
   /** A quick white flash where the loot meets the hero. */
   private absorb(at: Vec2): void {
     const flash = this.fac.circle(at.x, at.y, 7, 0xffffff, 0.85).setDepth(this.depth + 3);
-    this.scene.tweens.add({ targets: flash, scale: 1.9, alpha: 0, duration: 220, ease: "Quad.easeOut", onComplete: () => flash.destroy() });
+    this.scene.tweens.add({
+      targets: flash,
+      scale: 1.9,
+      alpha: 0,
+      duration: 220,
+      ease: "Quad.easeOut",
+      onComplete: () => flash.destroy(),
+    });
   }
 
-  private makeObject(from: Vec2, kind: "coin" | "icon", opts: LootFlyOpts): Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject {
+  private makeObject(
+    from: Vec2,
+    kind: "coin" | "icon",
+    opts: LootFlyOpts,
+  ): Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject {
     if (kind === "icon" && opts.iconKey && this.scene.textures.exists(opts.iconKey)) {
       const img = this.fac.image(from.x, from.y, opts.iconKey).setDepth(this.depth + 2);
       img.setScale(iconFitScale(img.width, img.height, opts.iconFit ?? 22));
       return img;
     }
-    return this.fac.circle(from.x, from.y, 5, opts.fallbackColor ?? 0xffd34d)
-      .setStrokeStyle(1, 0xa9722a).setDepth(this.depth + 2);
+    return this.fac
+      .circle(from.x, from.y, 5, opts.fallbackColor ?? 0xffd34d)
+      .setStrokeStyle(1, 0xa9722a)
+      .setDepth(this.depth + 2);
   }
 }
 ```
@@ -211,6 +244,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Plumb hero target + item defId through the fx events
 
 **Files:**
+
 - Modify: `src/core/battleTypes.ts:50-51`
 - Modify: `src/core/battleDamage.ts:294,303`
 
@@ -228,13 +262,26 @@ In `src/core/battleTypes.ts`, replace the `loot` and `killReward` lines:
 In `src/core/battleDamage.ts`, replace the `loot` emit (line ~294):
 
 ```ts
-    this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, to: { x: this.hero.pos.x, y: this.hero.pos.y }, gold: reward });
+this.emit({
+  type: "loot",
+  at: { x: e.pos.x, y: e.pos.y },
+  to: { x: this.hero.pos.x, y: this.hero.pos.y },
+  gold: reward,
+});
 ```
 
 and the `killReward` emit (line ~303):
 
 ```ts
-      this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, to: { x: this.hero.pos.x, y: this.hero.pos.y }, xp: kr.xp, item: kr.itemDropped !== null, itemDefId: kr.itemDropped?.defId ?? null, box: kr.boxDropped });
+this.emit({
+  type: "killReward",
+  at: { x: e.pos.x, y: e.pos.y - 14 },
+  to: { x: this.hero.pos.x, y: this.hero.pos.y },
+  xp: kr.xp,
+  item: kr.itemDropped !== null,
+  itemDefId: kr.itemDropped?.defId ?? null,
+  box: kr.boxDropped,
+});
 ```
 
 - [ ] **Step 3: Typecheck — expect the consumer to break**
@@ -261,6 +308,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Wire `FxLayer` — fly gold/item/box to the hero
 
 **Files:**
+
 - Modify: `src/scenes/fx.ts` (constructor, `play` cases, `coinPop`)
 
 - [ ] **Step 1: Own a `LootFlyFx` and import it**
@@ -281,7 +329,7 @@ Add a field beside `impact`:
 Initialise it at the end of the constructor (after `this.impact = ...`):
 
 ```ts
-    this.lootFly = new LootFlyFx(scene, this.fac, this.depth);
+this.lootFly = new LootFlyFx(scene, this.fac, this.depth);
 ```
 
 - [ ] **Step 2: Pass `to` into the `loot` / `killReward` cases**

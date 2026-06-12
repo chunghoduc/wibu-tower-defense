@@ -4,7 +4,15 @@ import { slotInCategory, type ItemCategory } from "../src/scenes/itemCategory.ts
 import type { ItemDefSlot } from "../src/data/schemaEnums.ts";
 
 const ALL_SLOTS: ItemDefSlot[] = [
-  "Weapon", "Helmet", "BodyArmor", "Gloves", "Boots", "Amulet", "Ring", "Pet", "Wing",
+  "Weapon",
+  "Helmet",
+  "BodyArmor",
+  "Gloves",
+  "Boots",
+  "Amulet",
+  "Ring",
+  "Pet",
+  "Wing",
 ];
 
 describe("slotInCategory", () => {

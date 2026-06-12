@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { PASSIVE_NODES, PASSIVE_NODES_MAP, getReachableNodes, canForgetNode } from "../src/data/passiveGrid.ts";
+import {
+  PASSIVE_NODES,
+  PASSIVE_NODES_MAP,
+  getReachableNodes,
+  canForgetNode,
+} from "../src/data/passiveGrid.ts";
 import { PASSIVE_REGIONS } from "../src/data/schema.ts";
 
 describe("PASSIVE_NODES catalog", () => {
@@ -17,7 +22,10 @@ describe("PASSIVE_NODES catalog", () => {
   it("all neighbor references point to existing nodes", () => {
     for (const node of PASSIVE_NODES) {
       for (const neighborId of node.neighbors) {
-        expect(PASSIVE_NODES_MAP.has(neighborId), `${node.id} references missing neighbor ${neighborId}`).toBe(true);
+        expect(
+          PASSIVE_NODES_MAP.has(neighborId),
+          `${node.id} references missing neighbor ${neighborId}`,
+        ).toBe(true);
       }
     }
   });
@@ -25,7 +33,9 @@ describe("PASSIVE_NODES catalog", () => {
     for (const node of PASSIVE_NODES) {
       for (const neighborId of node.neighbors) {
         const neighbor = PASSIVE_NODES_MAP.get(neighborId)!;
-        expect(neighbor.neighbors, `${neighborId} doesn't list ${node.id} as neighbor`).toContain(node.id);
+        expect(neighbor.neighbors, `${neighborId} doesn't list ${node.id} as neighbor`).toContain(
+          node.id,
+        );
       }
     }
   });

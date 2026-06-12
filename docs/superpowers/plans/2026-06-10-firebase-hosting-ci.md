@@ -8,7 +8,7 @@
 
 **Tech Stack:** Firebase Hosting, GitHub Actions, `firebase-tools` (CLI, run via `npx`), Node 20, Vite, Vitest, TypeScript.
 
-> **Note on TDD:** This plan produces config/YAML, not application code, so there are no unit tests to write first. The equivalent discipline here is *verification by observed deploy behavior* (Task 7), and locally validating YAML/JSON before commit. Each task still ends in a commit.
+> **Note on TDD:** This plan produces config/YAML, not application code, so there are no unit tests to write first. The equivalent discipline here is _verification by observed deploy behavior_ (Task 7), and locally validating YAML/JSON before commit. Each task still ends in a commit.
 
 > **Placeholder convention:** `PROJECT_ID` below means the real Firebase project ID captured in Task 1 (e.g. `wibu-tower-defense` or `wibu-tower-defense-xxxxx` if that name was taken). Replace every literal `PROJECT_ID` with the captured value when you reach the relevant task. The secret name `FIREBASE_SERVICE_ACCOUNT_WIBU_TOWER_DEFENSE` likewise must match what `firebase init` created — confirm its exact name in the repo's GitHub secrets (Settings → Secrets and variables → Actions).
 
@@ -39,6 +39,7 @@ npx -y firebase-tools init hosting:github
 ```
 
 Answer the prompts:
+
 - "Which Firebase project?" → select the `PROJECT_ID` from Step 1.
 - "For which GitHub repository?" → `chunghoduc/wibu-tower-defense`.
 - "Set up the workflow to run a build script before every deploy?" → **No** (we supply our own build steps in Tasks 4–5).
@@ -65,6 +66,7 @@ git commit -m "chore(ci): baseline firebase init hosting:github output"
 ## Task 2: Hosting config — `firebase.json`
 
 **Files:**
+
 - Create/replace: `firebase.json`
 
 - [ ] **Step 1: Write `firebase.json`**
@@ -77,9 +79,7 @@ git commit -m "chore(ci): baseline firebase init hosting:github output"
     "headers": [
       {
         "source": "**/*.@(js|css|woff2|png|jpg|jpeg|gif|svg|webp|mp3|ogg|wav)",
-        "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-        ]
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
       },
       {
         "source": "/index.html",
@@ -95,17 +95,21 @@ Rationale: Vite emits content-hashed asset filenames, so they are safe to cache 
 - [ ] **Step 2: Validate the JSON**
 
 Run:
+
 ```bash
 node -e "JSON.parse(require('fs').readFileSync('firebase.json','utf8')); console.log('valid JSON')"
 ```
+
 Expected: `valid JSON`
 
 - [ ] **Step 3: Verify the build output dir matches `public`**
 
 Run:
+
 ```bash
 npm run build && ls dist/index.html
 ```
+
 Expected: build succeeds and `dist/index.html` exists (confirms `public: "dist"` is correct).
 
 - [ ] **Step 4: Commit**
@@ -120,6 +124,7 @@ git commit -m "chore(ci): firebase hosting config (dist + cache headers)"
 ## Task 3: Project alias — `.firebaserc`
 
 **Files:**
+
 - Create/replace: `.firebaserc`
 
 - [ ] **Step 1: Write `.firebaserc`** (replace `PROJECT_ID` with the real value from Task 1)
@@ -135,9 +140,11 @@ git commit -m "chore(ci): firebase hosting config (dist + cache headers)"
 - [ ] **Step 2: Validate**
 
 Run:
+
 ```bash
 node -e "const c=require('./.firebaserc'); if(!c.projects.default||c.projects.default==='PROJECT_ID'){throw new Error('PROJECT_ID not substituted')} console.log('ok:',c.projects.default)"
 ```
+
 Expected: `ok: <your real project id>` (fails loudly if the placeholder was left in).
 
 - [ ] **Step 3: Commit**
@@ -152,6 +159,7 @@ git commit -m "chore(ci): pin firebase project id"
 ## Task 4: Production deploy workflow — `deploy.yml`
 
 **Files:**
+
 - Create: `.github/workflows/deploy.yml`
 - Delete: `.github/workflows/firebase-hosting-merge.yml` (the auto-generated one this replaces)
 
@@ -202,22 +210,27 @@ jobs:
 ```bash
 git rm .github/workflows/firebase-hosting-merge.yml
 ```
+
 (If `firebase init` named it differently, `git rm` that file instead; run `ls .github/workflows/` to check.)
 
 - [ ] **Step 3: Lint the YAML**
 
 Run:
+
 ```bash
 npx -y js-yaml .github/workflows/deploy.yml > /dev/null && echo "valid YAML"
 ```
+
 Expected: `valid YAML`
 
 - [ ] **Step 4: Confirm no leftover placeholders**
 
 Run:
+
 ```bash
 ! grep -n "PROJECT_ID" .github/workflows/deploy.yml && echo "no placeholders"
 ```
+
 Expected: `no placeholders` (the `grep` must find nothing — the real project id should be substituted).
 
 - [ ] **Step 5: Commit**
@@ -232,6 +245,7 @@ git commit -m "ci: deploy to firebase live on push to main"
 ## Task 5: PR preview workflow — `preview.yml`
 
 **Files:**
+
 - Create: `.github/workflows/preview.yml`
 - Delete: `.github/workflows/firebase-hosting-pull-request.yml` (the auto-generated one this replaces)
 
@@ -289,22 +303,27 @@ jobs:
 ```bash
 git rm .github/workflows/firebase-hosting-pull-request.yml
 ```
+
 (Check the real filename with `ls .github/workflows/` first.)
 
 - [ ] **Step 3: Lint the YAML**
 
 Run:
+
 ```bash
 npx -y js-yaml .github/workflows/preview.yml > /dev/null && echo "valid YAML"
 ```
+
 Expected: `valid YAML`
 
 - [ ] **Step 4: Confirm no leftover placeholders**
 
 Run:
+
 ```bash
 ! grep -n "PROJECT_ID" .github/workflows/preview.yml && echo "no placeholders"
 ```
+
 Expected: `no placeholders`
 
 - [ ] **Step 5: Commit**
@@ -319,6 +338,7 @@ git commit -m "ci: per-PR firebase preview deploys"
 ## Task 6: Ignore Firebase local artifacts + document deploy
 
 **Files:**
+
 - Modify: `.gitignore`
 - Modify: `README.md`
 
@@ -377,14 +397,17 @@ gh pr create --fill --base main
 ```bash
 gh pr checks --watch
 ```
+
 Expected: `Preview deploy (PR)` finishes successfully (green).
 
 - [ ] **Step 3: Open the preview URL**
 
 Find the bot comment on the PR:
+
 ```bash
 gh pr view --comments | grep -i "web.app"
 ```
+
 Open the printed URL in a browser. Expected: the game loads and is playable.
 
 - [ ] **Step 4: Merge and watch the live deploy**
@@ -393,6 +416,7 @@ Open the printed URL in a browser. Expected: the game loads and is playable.
 gh pr merge --squash --delete-branch
 gh run watch $(gh run list --workflow=deploy.yml --limit 1 --json databaseId -q '.[0].databaseId')
 ```
+
 Expected: `Deploy to Firebase Hosting (live)` succeeds (green).
 
 - [ ] **Step 5: Confirm production serves the build**

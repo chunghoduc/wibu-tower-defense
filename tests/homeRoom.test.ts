@@ -1,12 +1,17 @@
 import { describe, it, expect } from "vitest";
 import {
-  HANGER_SLOTS, hangerLayout, equippedHangers,
-  squadStand, squadStandPoints, petWander,
+  HANGER_SLOTS,
+  hangerLayout,
+  equippedHangers,
+  squadStand,
+  squadStandPoints,
+  petWander,
 } from "../src/scenes/homeRoom.ts";
 import { createFreshSave, type HeroSave } from "../src/core/save.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 
-const W = 960, H = 540;
+const W = 960,
+  H = 540;
 
 function equip(save: HeroSave, slot: string, defId: string, instId: string): void {
   save.inventory.items.push({ id: instId, defId } as never);
@@ -27,8 +32,8 @@ describe("homeRoom hangers", () => {
     const xs = new Set(cells.map((c) => c.x));
     expect(xs.size).toBe(2); // exactly two wall columns
     for (const c of cells) {
-      expect(c.x).toBeGreaterThan(60);   // clear of the left edge buttons (x≈46)
-      expect(c.x).toBeLessThan(W - 60);  // clear of the right edge buttons (x≈914)
+      expect(c.x).toBeGreaterThan(60); // clear of the left edge buttons (x≈46)
+      expect(c.x).toBeLessThan(W - 60); // clear of the right edge buttons (x≈914)
       expect(c.y).toBeGreaterThan(0);
       expect(c.y).toBeLessThan(H);
     }
@@ -79,14 +84,16 @@ describe("homeRoom squad", () => {
 
 describe("homeRoom pet wander", () => {
   it("stays inside the box above the throne for a full period and flips facing", () => {
-    let sawLeft = false, sawRight = false;
+    let sawLeft = false,
+      sawRight = false;
     for (let ms = 0; ms <= 20000; ms += 50) {
       const p = petWander(ms, W, H);
-      expect(p.x).toBeGreaterThanOrEqual(W * 0.40 - 0.001);
-      expect(p.x).toBeLessThanOrEqual(W * 0.60 + 0.001);
+      expect(p.x).toBeGreaterThanOrEqual(W * 0.4 - 0.001);
+      expect(p.x).toBeLessThanOrEqual(W * 0.6 + 0.001);
       expect(p.y).toBeGreaterThanOrEqual(H * 0.18 - 0.001);
       expect(p.y).toBeLessThanOrEqual(H * 0.34 + 0.001);
-      if (p.faceLeft) sawLeft = true; else sawRight = true;
+      if (p.faceLeft) sawLeft = true;
+      else sawRight = true;
     }
     expect(sawLeft && sawRight).toBe(true);
   });

@@ -5,12 +5,14 @@ Full autonomy. Per task: brainstorm → plan → TDD where logic exists → play
 Update the checkbox + log when a task lands.
 
 ## Conventions
+
 - One focused commit per task (conventional commits).
 - Keep `npm run typecheck`, `npm test`, `npm run build` green at every commit.
 - Logic (sim/economy) gets vitest TDD; pure-visual gets CDP playtest screenshots.
 - Skill/tower/terrain icons authored via the `svg-asset-gen` skill family (SVG).
 
 ## Tasks
+
 - [x] **T3** Fix hero moving to corner when clicking UI — guard scene pointerdown when over a UI object. (cf3ffc2)
 - [x] **T2** In-battle UI text: crisp high-DPI (crispText: resolution + LINEAR + stroke). (26b97f4)
 - [x] **T12** Per-tower upgrade design (towerUpgrade.ts; role emphasis + behavior scaling). (3d543ba)
@@ -33,9 +35,11 @@ Update the checkbox + log when a task lands.
 ## Brainstorm decisions (per task) — filled as work proceeds
 
 ### T12 — per-role in-battle upgrade plan (src/core/towerUpgrade.ts)
+
 Each purchased star stacks (1) a general bump every tower gets and (2) a
 role emphasis (extra stat growth + scaled role behavior). Behavior is recomputed
 onto the tower runtime (never mutating the shared def).
+
 - **General (all roles)**: +6% atk, +5% maxHp per star.
 - **damage** (e.g. yamo, zoran, prince-vael): +4% atk, +5% range per star. Pure single-target DPS.
 - **splash** (pip-powderkeg, iron-bo, kanae): +3% atk, +2% range; splash radius +10%/star.
@@ -45,6 +49,7 @@ onto the tower runtime (never mutating the shared def).
 - **support** (mochi, lyra, orin): +5% maxHp, +3% range; buff aura radius +8%/star, +3% atk aura, +2% atkspd aura per star.
 
 ## Remaining work (post-compaction continuation notes)
+
 - **Inventory UI pass (HeroScene)** — wires up already-built systems: T13 enhance
   (click item → enhance panel: shows +level, success %, jewel counts, Enhance btn
   via saveManager.enhanceItem), T14 filter tabs (All/Weapon/Armor/Accessory +
@@ -61,10 +66,11 @@ onto the tower runtime (never mutating the shared def).
 - **T1** passive tree nodes render those icons.
 - **T4** Squad UI redesign — 7 slots + collected-characters inventory drag/drop + filter/sort.
 
-Helpers already available: towerUpgrade.upgradeSummary(role); enhance.*; boxes.openBox;
+Helpers already available: towerUpgrade.upgradeSummary(role); enhance.\*; boxes.openBox;
 materials MATERIALS_MAP/BOX_TIERS; crispText/makeCrisp; fx.starUp.
 
 ## Progress log
+
 - 2026-06-07: Roadmap v2 created. Starting from 258 tests, build green. Head 0d550a6.
 - 2026-06-07: T3 (hero/UI click), T2 (crisp text), T12 (per-role upgrades) done. 267 tests.
 - 2026-06-07: T5/T10/T11 (tower badge/stars/upgrade FX), T9 (stealth), T8 (status visuals),
@@ -72,6 +78,7 @@ materials MATERIALS_MAP/BOX_TIERS; crispText/makeCrisp; fx.starUp.
   Done: T2,T3,T5,T8,T9,T10,T11,T12,T13(core),T15(core),T16. Left: T1,T4,T6,T7,T14,T17,T18 + T13/T15 UI.
 
 ## Post-session additions (2026-06-07 continued)
+
 - **T18** Skill-icon system: procedural 24×24 glyphs in skillIcons.ts (T1 + tower panel badge). (c7aea1f)
 - **T1** Passive tree icons: region-themed glyphs on every node. (c7aea1f)
 - **Item art gap** (new task): 130 → 125 → all items being generated via SDXL (gen-items-full.mjs); manifest rebuilt after generation.

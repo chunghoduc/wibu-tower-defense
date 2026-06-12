@@ -6,7 +6,9 @@
 import { MATERIALS } from "./materials.ts";
 import { materialTex } from "./assetKeys.ts";
 
-export const MATERIAL_ICON_IDS: string[] = MATERIALS.filter((m) => m.kind !== "box").map((m) => m.id);
+export const MATERIAL_ICON_IDS: string[] = MATERIALS.filter((m) => m.kind !== "box").map(
+  (m) => m.id,
+);
 
 /** Texture key for a material's painted icon. */
 export function materialIconKey(id: string): string {

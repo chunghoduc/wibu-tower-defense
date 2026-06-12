@@ -25,7 +25,7 @@ describe("buildMazeArena", () => {
     const edge = (g: { x: number; y: number }) =>
       g.x < 0 ? "L" : g.x > WORLD_WIDTH ? "R" : g.y < 0 ? "T" : g.y > WORLD_HEIGHT ? "B" : "?";
     const edges = new Set(a.gates.map(edge));
-    expect(edges.has("?")).toBe(false);          // every gate is off an edge
+    expect(edges.has("?")).toBe(false); // every gate is off an edge
     expect(edges.size).toBeGreaterThanOrEqual(3);
   });
 
@@ -35,7 +35,7 @@ describe("buildMazeArena", () => {
     for (const r of a.routes) {
       expect(r.length).toBeGreaterThanOrEqual(2);
       expect(a.gates.some((g) => eq(g, r[0]))).toBe(true); // starts at some gate
-      expect(eq(r[r.length - 1], a.center)).toBe(true);    // ends at the castle
+      expect(eq(r[r.length - 1], a.center)).toBe(true); // ends at the castle
     }
   });
 
@@ -43,7 +43,8 @@ describe("buildMazeArena", () => {
     const a = buildMazeArena(11);
     for (const r of a.routes) {
       for (let i = 1; i < r.length; i++) {
-        const dx = Math.abs(r[i].x - r[i - 1].x), dy = Math.abs(r[i].y - r[i - 1].y);
+        const dx = Math.abs(r[i].x - r[i - 1].x),
+          dy = Math.abs(r[i].y - r[i - 1].y);
         expect(dx === 0 || dy === 0).toBe(true);
       }
     }

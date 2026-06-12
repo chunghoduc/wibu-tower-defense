@@ -50,9 +50,16 @@ export class BattleCameraController {
     scene.input.addPointer(1); // allow a 2nd touch pointer for pinch
 
     this.onWheel = (p, _o, _dx, dy) => this.zoomToward(dy < 0 ? 1.12 : 1 / 1.12, p.x, p.y);
-    this.onDown = () => { this.consumedGesture = false; this.panning = false; };
+    this.onDown = () => {
+      this.consumedGesture = false;
+      this.panning = false;
+    };
     this.onMove = (p) => this.handleMove(p);
-    this.onUp = () => { this.panning = false; this.pinching = false; this.pinchDist = 0; };
+    this.onUp = () => {
+      this.panning = false;
+      this.pinching = false;
+      this.pinchDist = 0;
+    };
 
     scene.input.on("wheel", this.onWheel);
     scene.input.on("pointerdown", this.onDown);
@@ -83,7 +90,10 @@ export class BattleCameraController {
     this.cam.setZoom(nz);
     const after = this.cam.getWorldPoint(sx, sy);
     // Keep the world point under the cursor steady; bounds clamp the scroll.
-    this.cam.setScroll(this.cam.scrollX + (before.x - after.x), this.cam.scrollY + (before.y - after.y));
+    this.cam.setScroll(
+      this.cam.scrollX + (before.x - after.x),
+      this.cam.scrollY + (before.y - after.y),
+    );
     this.consumedGesture = true;
   }
 
@@ -95,7 +105,8 @@ export class BattleCameraController {
     // Two fingers down → pinch zoom around their midpoint.
     if (p1?.isDown && p2?.isDown) {
       const dist = Phaser.Math.Distance.Between(p1.x, p1.y, p2.x, p2.y);
-      const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+      const mx = (p1.x + p2.x) / 2,
+        my = (p1.y + p2.y) / 2;
       if (this.pinching && this.pinchDist > 0) this.zoomToward(dist / this.pinchDist, mx, my);
       this.pinchDist = dist;
       this.pinching = true;
@@ -106,13 +117,22 @@ export class BattleCameraController {
     this.pinchDist = 0;
 
     // One finger / mouse drag → pan, but only when zoomed in past the fit view.
-    if (!p.isDown || !this.isZoomedIn || this.opts.blockAt(p)) { this.lastX = p.x; this.lastY = p.y; return; }
-    const dx = p.x - this.lastX, dy = p.y - this.lastY;
-    this.lastX = p.x; this.lastY = p.y;
+    if (!p.isDown || !this.isZoomedIn || this.opts.blockAt(p)) {
+      this.lastX = p.x;
+      this.lastY = p.y;
+      return;
+    }
+    const dx = p.x - this.lastX,
+      dy = p.y - this.lastY;
+    this.lastX = p.x;
+    this.lastY = p.y;
     if (!this.panning && Math.hypot(p.x - p.downX, p.y - p.downY) < PAN_THRESHOLD) return;
     this.panning = true;
     this.consumedGesture = true;
-    this.cam.setScroll(this.cam.scrollX - dx / this.cam.zoom, this.cam.scrollY - dy / this.cam.zoom);
+    this.cam.setScroll(
+      this.cam.scrollX - dx / this.cam.zoom,
+      this.cam.scrollY - dy / this.cam.zoom,
+    );
   }
 
   destroy(): void {

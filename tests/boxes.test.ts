@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { openBox, tierOfBox, boxOddsText, boxRarityOdds } from "../src/core/boxes.ts";
 import {
-  boxIdForTier, boxRarityName, MATERIALS_MAP,
-  SOUL_JEWEL, SUMMON_SCROLL, OBLIVION_ORB, AWAKENING_CRYSTAL,
+  boxIdForTier,
+  boxRarityName,
+  MATERIALS_MAP,
+  SOUL_JEWEL,
+  SUMMON_SCROLL,
+  OBLIVION_ORB,
+  AWAKENING_CRYSTAL,
 } from "../src/data/materials.ts";
 import { ITEM_CATALOG_MAP } from "../src/data/items.ts";
 import { processStageClear } from "../src/core/drops.ts";
@@ -37,7 +42,7 @@ describe("T15 — boss loot boxes", () => {
     expect(save.materials[boxId]).toBe(0);
     expect(r.crystals).toBeGreaterThan(0);
     expect(save.currency.gold).toBe(crystals0 + r.crystals);
-    expect((r.materials["bless-jewel"] ?? 0)).toBeGreaterThanOrEqual(1);
+    expect(r.materials["bless-jewel"] ?? 0).toBeGreaterThanOrEqual(1);
   });
 
   it("opening with no box returns opened:false and changes nothing", () => {
@@ -133,12 +138,15 @@ describe("T15 — boss loot boxes", () => {
         save.hero.level = 60;
         const id = boxIdForTier(tier);
         save.materials[id] = 1;
-        for (const item of openBox(save, id, new Rng(s * 31 + 7)).items) levels.push(item.requiredLevel!);
+        for (const item of openBox(save, id, new Rng(s * 31 + 7)).items)
+          levels.push(item.requiredLevel!);
       }
       return levels;
     };
-    const lo = Math.round(60 * 0.85), hi = Math.round(60 * 1.15); // ±15% around hero level
-    const t1 = band(1), t5 = band(5);
+    const lo = Math.round(60 * 0.85),
+      hi = Math.round(60 * 1.15); // ±15% around hero level
+    const t1 = band(1),
+      t5 = band(5);
     for (const lvl of [...t1, ...t5]) {
       expect(lvl).toBeGreaterThanOrEqual(lo);
       expect(lvl).toBeLessThanOrEqual(hi);
@@ -172,7 +180,8 @@ describe("T15 — boss loot boxes", () => {
     // Rarity and level are orthogonal: a rookie opening a Unique box gets a
     // real Unique, just scaled to level 8 — NOT degraded to a lower rarity.
     const heroLevel = 8;
-    const lo = Math.round(heroLevel * 0.85), hi = Math.round(heroLevel * 1.15);
+    const lo = Math.round(heroLevel * 0.85),
+      hi = Math.round(heroLevel * 1.15);
     const counts: Record<string, number> = {};
     let seen = 0;
     for (let s = 1; s <= 300; s++) {

@@ -13,6 +13,7 @@
 ### Task 1: Pure procedural-walk module (TDD)
 
 **Files:**
+
 - Create: `src/scenes/enemyWalkTransform.ts`
 - Test: `tests/enemy-walk-transform.test.ts`
 
@@ -25,10 +26,10 @@ import { enemyWalkTransform } from "../src/scenes/enemyWalkTransform.ts";
 
 describe("enemyWalkTransform", () => {
   it("bobs the body up mid-stride and plants at phase 0", () => {
-    const plant = enemyWalkTransform(0);          // sin(0)=0 → foot-plant
-    const mid = enemyWalkTransform(Math.PI / 2);  // sin=1   → mid-swing
+    const plant = enemyWalkTransform(0); // sin(0)=0 → foot-plant
+    const mid = enemyWalkTransform(Math.PI / 2); // sin=1   → mid-swing
     expect(plant.yOff).toBeCloseTo(0, 5);
-    expect(mid.yOff).toBeLessThan(plant.yOff);    // up = more negative
+    expect(mid.yOff).toBeLessThan(plant.yOff); // up = more negative
   });
 
   it("keeps the bob within [-amp*BOB, 0] (never dips below ground)", () => {
@@ -110,9 +111,9 @@ export interface WalkOpts {
   lean?: number;
 }
 
-const BOB = 5;      // body-bob amplitude (px) — legs are no longer authored
+const BOB = 5; // body-bob amplitude (px) — legs are no longer authored
 const WADDLE = 1.5; // lateral sway (px)
-const ROCK = 4;     // body rock (deg)
+const ROCK = 4; // body rock (deg)
 const SQUASH = 0.12; // scaleY drop at full foot-plant
 const STRETCH = 0.08; // scaleX rise at full foot-plant
 
@@ -121,7 +122,7 @@ export function enemyWalkTransform(phase: number, opts: WalkOpts = {}): WalkTran
   const lean = opts.lean ?? 0;
   const s = Math.sin(phase);
   const swing = Math.abs(s); // 0 at foot-plant, 1 mid-swing
-  const plant = 1 - swing;   // weight settling on the planted foot
+  const plant = 1 - swing; // weight settling on the planted foot
   return {
     yOff: -swing * BOB * amp,
     xOff: s * WADDLE * amp,
@@ -150,6 +151,7 @@ git commit -m "feat: pure enemyWalkTransform gait module (TDD)"
 ### Task 2: Wire the gait module into animateEnemy
 
 **Files:**
+
 - Modify: `src/scenes/battleSceneSprites.ts` (the GROUND branch of `animateEnemy`, ~lines 237-249; the shadow `lift`, ~line 277; the doc comment ~177-192; `playSpriteOneShot` enemy base fallback)
 
 - [ ] **Step 1: Import the module**
@@ -192,7 +194,7 @@ Replace the non-flyer shadow branch (currently ~lines 276-280, the `} else {` wi
 
 - [ ] **Step 4: Update the now-stale doc comment**
 
-In the `animateEnemy` doc block (~177-192) replace the sentence referencing the authored sheet — `The 4-frame articulated \`_walk\` sheet (alternating legs, see creatures.mjs) now carries the stride; the *transform* adds weight and ground contact:` — with:
+In the `animateEnemy` doc block (~177-192) replace the sentence referencing the authored sheet — `The 4-frame articulated \`\_walk\` sheet (alternating legs, see creatures.mjs) now carries the stride; the _transform_ adds weight and ground contact:` — with:
 
 ```ts
    * Enemies are a SINGLE z-image (SDXL) sprite; ALL ground locomotion is the
@@ -204,7 +206,7 @@ In the `animateEnemy` doc block (~177-192) replace the sentence referencing the 
 Find the `playSpriteOneShot` enemy call that uses `"walk"` as the base (the hurt handler, ~line 36): `this.playSpriteOneShot(e ?? null, ["hurt"], "walk");` and change the base to `"idle"`:
 
 ```ts
-        this.playSpriteOneShot(e ?? null, ["hurt"], "idle");
+this.playSpriteOneShot(e ?? null, ["hurt"], "idle");
 ```
 
 (The helper already guards both the requested anim and the base with `anims.exists()`, so a missing `hurt`/`idle` anim is a safe no-op.)
@@ -228,6 +230,7 @@ git commit -m "feat: drive enemy walk from enemyWalkTransform; shadow lift decou
 Verified gen-only (grep): no `src/` runtime file imports any of these; only scripts and their own tests do. `passiveGrid.test.ts` is UNRELATED (passive skill grid) — keep it.
 
 **Files:**
+
 - Delete: `scripts/svgart/` (gen.mjs, rig.mjs, pixrig.mjs, poses.mjs, genAwakenIcon.mjs, genChaosIcon.mjs)
 - Delete: `scripts/pixelart/` (gen.mjs, creatures.mjs, canvas.mjs, parts.mjs, specs.mjs, items.mjs)
 - Delete: `scripts/genSprites.ts`, `scripts/genArtPrompts.ts`
@@ -259,9 +262,11 @@ Delete the `"gen:art-prompts": "vite-node scripts/genArtPrompts.ts",` line entir
 - [ ] **Step 3: Confirm nothing dangling references the deleted modules**
 
 Run:
+
 ```bash
 grep -rnE "art/spriteGrid|art/ollamaClient|art/gridPrompt|art/pngEncoder|art/palette|data/artSpec|data/artPrompts|pixelart/|svgart/|genSprites|genArtPrompts" src scripts tests package.json | grep -v "spriteManifest.ts:1:"
 ```
+
 Expected: NO output (the only allowed hit is the `spriteManifest.ts` header comment, fixed in Task 4).
 
 - [ ] **Step 4: Typecheck**
@@ -283,6 +288,7 @@ git commit -m "chore: remove SVG/pixel-art + Ollama art generators (SDXL is the 
 The SD server (`z-image-turbo` @ :8765) must be up — verified ready this session.
 
 **Files:**
+
 - Regenerate: `public/assets/sprites/enemy/*.png` (20 single-frame 300×300 cutouts)
 - Delete: `public/assets/sprites/enemy/*.json` (stale 8-frame sidecars; unused at runtime)
 - Modify: `src/data/spriteManifest.ts` (enemy entries → `frames:1`)
@@ -290,15 +296,18 @@ The SD server (`z-image-turbo` @ :8765) must be up — verified ready this sessi
 - [ ] **Step 1: Generate the 20 enemy base sprites (background)**
 
 Run (≈26s/sprite, ~9 min total):
+
 ```bash
 cd /home/shyaken/Workplace/wibu-tower-defense
 npx vite-node scripts/sdart/sdgen.mjs --only=enemy --force
 ```
+
 Expected: `SD generating 20 sprites`, each `[n/20] enemy/<id>.png` with no `SKIP (gen failed)`.
 
 - [ ] **Step 2: Verify every enemy PNG is a 300×300 RGBA cutout**
 
 Run:
+
 ```bash
 python3 - <<'PY'
 from PIL import Image; import glob, os
@@ -310,11 +319,13 @@ print("count", len(glob.glob("public/assets/sprites/enemy/*.png")))
 print("BAD", bad if bad else "none")
 PY
 ```
+
 Expected: `count 20`, `BAD none`.
 
 - [ ] **Step 3: Rewrite the enemy entries in the manifest**
 
 Run (rewrites only `kind:"enemy"` lines; leaves tower/hero/boss/item untouched; also fixes the header comment):
+
 ```bash
 node - <<'JS'
 const fs=require("fs"); const f="src/data/spriteManifest.ts";
@@ -331,6 +342,7 @@ console.log("rewrote enemy manifest entries");
 JS
 grep -c 'kind:"enemy".*frames:1,names:\["idle"\]' src/data/spriteManifest.ts
 ```
+
 Expected: `rewrote enemy manifest entries` then `20`.
 
 - [ ] **Step 4: Delete stale enemy JSON sidecars (unused at runtime)**
@@ -356,14 +368,17 @@ git commit -m "feat: regenerate all enemies as SDXL base sprites; manifest -> si
 ### Task 5: Verify whole + playtest + memory + ship
 
 **Files:**
+
 - Modify: memory under `~/.claude/.../memory/` (rules + index)
 
 - [ ] **Step 1: Full verification**
 
 Run:
+
 ```bash
 npm run typecheck && npx vitest run && npm run build
 ```
+
 Expected: tsc clean; **all tests pass** (deleted suites gone, gait suite present); `vite build` succeeds.
 
 - [ ] **Step 2: Playtest the enemy walk (CDP)**
@@ -390,7 +405,9 @@ git push origin main
 npm run build
 npx firebase-tools deploy --only hosting
 ```
+
 Expected: push OK; build green; `✔ Deploy complete!` → https://wibu-tower-defense-d8b1c.web.app
+
 ```
 
 ---
@@ -402,3 +419,4 @@ Expected: push OK; build green; `✔ Deploy complete!` → https://wibu-tower-de
 **Placeholder scan:** None — every code/command step is concrete.
 
 **Type consistency:** `enemyWalkTransform(phase, opts)` returns `{yOff,xOff,angle,scaleMulX,scaleMulY,liftNorm}`; Task 2 consumes exactly those names (`t.yOff … t.liftNorm`) and stashes `liftNorm` on sprite data read back in the shadow branch. `WalkOpts {amp?,lean?}` matches both call sites. Names consistent across tasks.
+```

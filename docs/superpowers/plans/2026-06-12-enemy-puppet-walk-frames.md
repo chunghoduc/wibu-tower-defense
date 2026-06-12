@@ -13,6 +13,7 @@
 ### Task 1: Pure warp module `enemyWalkWarp.ts` (TDD)
 
 **Files:**
+
 - Create: `src/scenes/enemyWalkWarp.ts`
 - Test: `tests/enemyWalkWarp.test.ts`
 
@@ -48,8 +49,8 @@ describe("bandWarp — walk", () => {
   });
 
   it("contact bob lifts the body (dy <= 0) and peaks at the passing phase", () => {
-    const contact = bandWarp("walk", 0.2, 1, 0).dy;        // foot planted
-    const passing = bandWarp("walk", 0.2, 1, HALF_PI).dy;  // mid-swing
+    const contact = bandWarp("walk", 0.2, 1, 0).dy; // foot planted
+    const passing = bandWarp("walk", 0.2, 1, HALF_PI).dy; // mid-swing
     expect(passing).toBeLessThanOrEqual(0);
     expect(passing).toBeLessThan(contact);
   });
@@ -148,9 +149,7 @@ export function bandWarp(
   const bob = opts.bob ?? 4;
   const lw = legWeight(yNorm);
   // legs: opposite shear per side (alternating step); torso: gentle counter-lead
-  const dx = lw > 0
-    ? side * legSwing * lw * s
-    : -0.25 * legSwing * s;
+  const dx = lw > 0 ? side * legSwing * lw * s : -0.25 * legSwing * s;
   // body lifts between footfalls (peaks mid-swing, |sin|)
   const dy = -bob * Math.abs(s);
   return { dx, dy };
@@ -176,6 +175,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: Canvas baker `enemyWalkBake.ts`
 
 **Files:**
+
 - Create: `src/scenes/enemyWalkBake.ts`
 - Reference (read for the flyer flag): `src/data/enemies.ts` (`ENEMIES`, each has `id`, `flying`)
 - Reference (texture key convention): `src/scenes/battleSceneSprites.ts` (`enemy__<id>`), `src/scenes/PreloadScene.ts` (anim creation pattern, lines ~74-93)
@@ -195,8 +195,8 @@ import Phaser from "phaser";
 import { ENEMIES } from "../data/enemies.ts";
 import { bandWarp, type MotionProfile } from "./enemyWalkWarp.ts";
 
-const FRAMES = 4;     // 4-frame loop: contact-L → passing → contact-R → passing
-const BANDS = 24;     // horizontal slices per frame (quality/perf knob)
+const FRAMES = 4; // 4-frame loop: contact-L → passing → contact-R → passing
+const BANDS = 24; // horizontal slices per frame (quality/perf knob)
 
 const FLYERS = new Set(ENEMIES.filter((e) => e.flying).map((e) => e.id));
 
@@ -207,7 +207,8 @@ function bakeOne(scene: Phaser.Scene, id: string): void {
   if (scene.anims.exists(`${key}_walk`)) return; // already baked (re-entry safe)
 
   const src = scene.textures.get(key).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
-  const w = src.width, h = src.height;
+  const w = src.width,
+    h = src.height;
   if (!w || !h) return;
 
   const profile: MotionProfile = FLYERS.has(id) ? "flap" : "walk";
@@ -222,16 +223,14 @@ function bakeOne(scene: Phaser.Scene, id: string): void {
     const baseX = f * w;
     for (let b = 0; b < BANDS; b++) {
       const sy = Math.floor((b / BANDS) * h);
-      const sh = Math.ceil(h / BANDS) + 1;          // +1px overlap hides seams
+      const sh = Math.ceil(h / BANDS) + 1; // +1px overlap hides seams
       const yNorm = (sy + sh / 2) / h;
       // left and right halves shear oppositely (alternating legs)
       for (const side of [-1, 1] as const) {
         const sx = side < 0 ? 0 : Math.floor(cx);
         const sw = side < 0 ? Math.ceil(cx) : w - Math.floor(cx);
         const { dx, dy } = bandWarp(profile, yNorm, side, phase);
-        ctx.drawImage(src as CanvasImageSource,
-          sx, sy, sw, sh,
-          baseX + sx + dx, sy + dy, sw, sh);
+        ctx.drawImage(src as CanvasImageSource, sx, sy, sw, sh, baseX + sx + dx, sy + dy, sw, sh);
       }
     }
   }
@@ -278,6 +277,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Wire the baker into PreloadScene
 
 **Files:**
+
 - Modify: `src/scenes/PreloadScene.ts` (`create()`, after the manifest anim-build loop, before `this.scene.start("MainMenuScene")`)
 
 - [ ] **Step 1: Add the import**
@@ -293,8 +293,8 @@ import { bakeEnemyWalks } from "./enemyWalkBake.ts";
 In `create()`, immediately before `this.scene.start("MainMenuScene");`:
 
 ```ts
-    bakeEnemyWalks(this); // synthesize 4-frame walk/flap cycles from each enemy sprite
-    this.scene.start("MainMenuScene");
+bakeEnemyWalks(this); // synthesize 4-frame walk/flap cycles from each enemy sprite
+this.scene.start("MainMenuScene");
 ```
 
 - [ ] **Step 3: Typecheck**
@@ -316,12 +316,13 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Couple playback to travel + damp the redundant body-bob
 
 **Files:**
+
 - Modify: `src/scenes/battleSceneSprites.ts` (`animateEnemy`, lines ~210-248)
 - Modify: `src/scenes/enemyWalkTransform.ts` (reduce `BOB`/`ROCK` when frames carry the step)
 
 **Context:** With baked `_walk` frames now carrying the leg motion, the existing
 whole-body bob/rock in `enemyWalkTransform` double-bobs. We keep the ground-coupled
-gait *phase* (it drives the shadow lift + the new playback rate) and the lean, but
+gait _phase_ (it drives the shadow lift + the new playback rate) and the lean, but
 cut the vertical bob and rock so the body no longer hops on top of the frame motion.
 The frozen / flying / hurt branches are unchanged.
 
@@ -332,9 +333,9 @@ procedural layer only adds subtle weight-shift, letting the baked frames carry t
 step:
 
 ```ts
-const BOB = 1.5;     // was 5 — frames now carry the vertical step; keep a faint settle
-const WADDLE = 1.5;  // lateral sway (px) — unchanged
-const ROCK = 1.5;    // was 4 — frames carry the body motion; keep a faint rock
+const BOB = 1.5; // was 5 — frames now carry the vertical step; keep a faint settle
+const WADDLE = 1.5; // lateral sway (px) — unchanged
+const ROCK = 1.5; // was 4 — frames carry the body motion; keep a faint rock
 const SQUASH = 0.06; // was 0.12 — lighter contact squash over the frame motion
 const STRETCH = 0.04; // was 0.08
 ```
@@ -345,36 +346,40 @@ In `src/scenes/battleSceneSprites.ts`, the ground branch already computes `moved
 and the gait. Find the existing walk-anim block (≈ lines 210-217):
 
 ```ts
-    if (this.anims.exists(`${key}_walk`)) {
-      const cur = s.anims.currentAnim?.key;
-      const inOneShot = s.anims.isPlaying &&
-        (cur === `${key}_attack` || cur === `${key}_skill` || cur === `${key}_hurt`);
-      if (!inOneShot) {
-        if (frozen) { if (s.anims.isPlaying) s.anims.pause(); }
-        else if (cur !== `${key}_walk` || !s.anims.isPlaying) s.play(`${key}_walk`);
-      }
-    }
+if (this.anims.exists(`${key}_walk`)) {
+  const cur = s.anims.currentAnim?.key;
+  const inOneShot =
+    s.anims.isPlaying &&
+    (cur === `${key}_attack` || cur === `${key}_skill` || cur === `${key}_hurt`);
+  if (!inOneShot) {
+    if (frozen) {
+      if (s.anims.isPlaying) s.anims.pause();
+    } else if (cur !== `${key}_walk` || !s.anims.isPlaying) s.play(`${key}_walk`);
+  }
+}
 ```
 
 Replace it with a version that also scales `timeScale` by recent travel (so a
 slowed enemy steps slower and a fast one "runs"):
 
 ```ts
-    if (this.anims.exists(`${key}_walk`)) {
-      const cur = s.anims.currentAnim?.key;
-      const inOneShot = s.anims.isPlaying &&
-        (cur === `${key}_attack` || cur === `${key}_skill` || cur === `${key}_hurt`);
-      if (!inOneShot) {
-        if (frozen) { if (s.anims.isPlaying) s.anims.pause(); }
-        else {
-          if (cur !== `${key}_walk` || !s.anims.isPlaying) s.play(`${key}_walk`);
-          // couple step cadence to actual ground speed: ~1x at a brisk walk,
-          // slower when slowed, up to ~1.8x for fast "runners".
-          const spd = (s.getData("recentMoved") as number) ?? 0;
-          s.anims.timeScale = Math.max(0.35, Math.min(1.8, spd / 3));
-        }
-      }
+if (this.anims.exists(`${key}_walk`)) {
+  const cur = s.anims.currentAnim?.key;
+  const inOneShot =
+    s.anims.isPlaying &&
+    (cur === `${key}_attack` || cur === `${key}_skill` || cur === `${key}_hurt`);
+  if (!inOneShot) {
+    if (frozen) {
+      if (s.anims.isPlaying) s.anims.pause();
+    } else {
+      if (cur !== `${key}_walk` || !s.anims.isPlaying) s.play(`${key}_walk`);
+      // couple step cadence to actual ground speed: ~1x at a brisk walk,
+      // slower when slowed, up to ~1.8x for fast "runners".
+      const spd = (s.getData("recentMoved") as number) ?? 0;
+      s.anims.timeScale = Math.max(0.35, Math.min(1.8, spd / 3));
     }
+  }
+}
 ```
 
 - [ ] **Step 3: Record `recentMoved` near the existing `moved` calc**
@@ -384,8 +389,8 @@ stored (≈ line 225 `s.setData("lastPosX", px); s.setData("lastPosY", py);`), a
 smoothed travel sample so Step 2's `timeScale` has a stable signal:
 
 ```ts
-    const prevMoved = (s.getData("recentMoved") as number) ?? moved;
-    s.setData("recentMoved", prevMoved * 0.8 + moved * 0.2);
+const prevMoved = (s.getData("recentMoved") as number) ?? moved;
+s.setData("recentMoved", prevMoved * 0.8 + moved * 0.2);
 ```
 
 - [ ] **Step 4: Run the existing gait test + typecheck**
@@ -393,7 +398,7 @@ smoothed travel sample so Step 2's `timeScale` has a stable signal:
 Run: `npx vitest run tests/enemy-walk-transform.test.ts && npx tsc --noEmit`
 Expected: gait test PASS (it asserts bob is bounded / inverse squash, which still
 holds at lower amplitudes — if any assertion hard-codes the old `5`/`4`/`0.12`
-magnitudes, update that assertion to the new bound, keeping the *relationship*
+magnitudes, update that assertion to the new bound, keeping the _relationship_
 checks intact), tsc clean.
 
 - [ ] **Step 5: Commit**
@@ -424,6 +429,7 @@ Expected: `tsc --noEmit` clean, `vite build` succeeds, `dist/` emitted.
 - [ ] **Step 3: Playtest (CDP, `window.__game`)**
 
 Launch the dev server, drive a battle via `window.__game`, and confirm:
+
 - enemies spawn in the existing SDXL art style;
 - they show a **visible alternating-leg step** (the silhouette changes frame to
   frame), not a rigid sliding picture;

@@ -45,9 +45,26 @@ export interface ItemRef {
 // Canonical stat ordering so both items list rows the same way (offense → defense
 // → resource → sustain → utility). Unknown keys fall to the end, alphabetical.
 const STAT_ORDER = [
-  "atk", "attackSpeed", "critRate", "critDamage", "range", "armorPen", "magicPen", "skillPower",
-  "maxHp", "hpRegen", "armor", "magicResist", "damageReduction", "critDefense", "tenacity",
-  "manaOnHit", "manaOnKill", "omnivamp", "moveSpeed", "goldFind",
+  "atk",
+  "attackSpeed",
+  "critRate",
+  "critDamage",
+  "range",
+  "armorPen",
+  "magicPen",
+  "skillPower",
+  "maxHp",
+  "hpRegen",
+  "armor",
+  "magicResist",
+  "damageReduction",
+  "critDefense",
+  "tenacity",
+  "manaOnHit",
+  "manaOnKill",
+  "omnivamp",
+  "moveSpeed",
+  "goldFind",
 ];
 
 /** Base/intrinsic stat totals (enhance-scaled), keyed by stat key. */
@@ -69,14 +86,16 @@ function affixTotals(inst: ItemInstanceSave, def: ItemDef): Record<string, numbe
   const mult = enhanceBonus(inst.enhanceLevel ?? 0);
   const out: Record<string, number> = {};
   const pa = inst.rolledPrimaryAffix;
-  if (typeof pa === "number") out[def.primaryAffix.type] = (out[def.primaryAffix.type] ?? 0) + pa * mult;
+  if (typeof pa === "number")
+    out[def.primaryAffix.type] = (out[def.primaryAffix.type] ?? 0) + pa * mult;
   for (const a of inst.rolledAffixes) out[a.type] = (out[a.type] ?? 0) + a.value;
   return out;
 }
 
 function orderKeys(keys: Iterable<string>): string[] {
   return [...new Set(keys)].sort((a, b) => {
-    const ia = STAT_ORDER.indexOf(a), ib = STAT_ORDER.indexOf(b);
+    const ia = STAT_ORDER.indexOf(a),
+      ib = STAT_ORDER.indexOf(b);
     if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     return a < b ? -1 : a > b ? 1 : 0;
   });
@@ -103,12 +122,14 @@ function row(label: string, key: string, eqV: number, bagV: number, asPct: boole
  * `stats`/`affixes` cover the union of both items' keys (missing → 0).
  */
 export function compareItems(bag: ItemRef, equipped: ItemRef): ItemComparison {
-  const bagBase = baseStatTotals(bag.inst), eqBase = baseStatTotals(equipped.inst);
+  const bagBase = baseStatTotals(bag.inst),
+    eqBase = baseStatTotals(equipped.inst);
   const stats = orderKeys([...Object.keys(eqBase), ...Object.keys(bagBase)]).map((k) =>
     row(STAT_LABEL[k] ?? k, k, eqBase[k] ?? 0, bagBase[k] ?? 0, FRACTION.has(k)),
   );
 
-  const bagAff = affixTotals(bag.inst, bag.def), eqAff = affixTotals(equipped.inst, equipped.def);
+  const bagAff = affixTotals(bag.inst, bag.def),
+    eqAff = affixTotals(equipped.inst, equipped.def);
   const affixes = orderKeys([...Object.keys(eqAff), ...Object.keys(bagAff)]).map((k) =>
     row(STAT_LABEL[k] ?? k, k, eqAff[k] ?? 0, bagAff[k] ?? 0, true),
   );

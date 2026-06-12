@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { chapterIndexForStage, chapterThemeForStage, CHAPTER_THEMES } from "../src/data/chapters.ts";
+import {
+  chapterIndexForStage,
+  chapterThemeForStage,
+  CHAPTER_THEMES,
+} from "../src/data/chapters.ts";
 
 describe("chapter themes", () => {
   it("groups stages into 5-stage chapters", () => {

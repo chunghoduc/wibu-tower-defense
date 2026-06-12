@@ -6,7 +6,15 @@
  *
  * Logical play area is 960x540; the scene scales this to the screen.
  */
-import { makeStats, type SpawnEntry, type StageDef, type TerrainFeature, type TerrainType, type Vec2, type WaveDef } from "./schema.ts";
+import {
+  makeStats,
+  type SpawnEntry,
+  type StageDef,
+  type TerrainFeature,
+  type TerrainType,
+  type Vec2,
+  type WaveDef,
+} from "./schema.ts";
 import { Rng } from "../core/rng.ts";
 import { stageThemeForStage } from "./chapters.ts";
 import { EXPANSION_LAYOUTS, BOSS_EXPANSION } from "./stagesExpansion.ts";
@@ -25,63 +33,256 @@ export interface Layout {
 const LAYOUTS: Layout[] = [
   {
     name: "Greywood Trailhead",
-    path: [{ x: -20, y: 120 }, { x: 300, y: 120 }, { x: 300, y: 420 }, { x: 660, y: 420 }, { x: 660, y: 210 }, { x: 900, y: 210 }],
-    air: [{ x: -20, y: 480 }, { x: -20, y: 60 }],
-    slots: [{ x: 200, y: 60 }, { x: 360, y: 230 }, { x: 360, y: 340 }, { x: 520, y: 480 }, { x: 600, y: 340 }, { x: 740, y: 150 }, { x: 820, y: 300 }, { x: 480, y: 200 }],
+    path: [
+      { x: -20, y: 120 },
+      { x: 300, y: 120 },
+      { x: 300, y: 420 },
+      { x: 660, y: 420 },
+      { x: 660, y: 210 },
+      { x: 900, y: 210 },
+    ],
+    air: [
+      { x: -20, y: 480 },
+      { x: -20, y: 60 },
+    ],
+    slots: [
+      { x: 200, y: 60 },
+      { x: 360, y: 230 },
+      { x: 360, y: 340 },
+      { x: 520, y: 480 },
+      { x: 600, y: 340 },
+      { x: 740, y: 150 },
+      { x: 820, y: 300 },
+      { x: 480, y: 200 },
+    ],
   },
   {
     name: "Switchback Gully",
-    path: [{ x: -20, y: 80 }, { x: 760, y: 80 }, { x: 760, y: 260 }, { x: 160, y: 260 }, { x: 160, y: 440 }, { x: 900, y: 440 }],
-    air: [{ x: -20, y: 260 }, { x: -20, y: 500 }],
-    slots: [{ x: 300, y: 150 }, { x: 560, y: 150 }, { x: 680, y: 190 }, { x: 400, y: 200 }, { x: 260, y: 340 }, { x: 540, y: 360 }, { x: 760, y: 360 }, { x: 100, y: 360 }],
+    path: [
+      { x: -20, y: 80 },
+      { x: 760, y: 80 },
+      { x: 760, y: 260 },
+      { x: 160, y: 260 },
+      { x: 160, y: 440 },
+      { x: 900, y: 440 },
+    ],
+    air: [
+      { x: -20, y: 260 },
+      { x: -20, y: 500 },
+    ],
+    slots: [
+      { x: 300, y: 150 },
+      { x: 560, y: 150 },
+      { x: 680, y: 190 },
+      { x: 400, y: 200 },
+      { x: 260, y: 340 },
+      { x: 540, y: 360 },
+      { x: 760, y: 360 },
+      { x: 100, y: 360 },
+    ],
   },
   {
     name: "Twin Fords",
-    path: [{ x: -20, y: 270 }, { x: 240, y: 270 }, { x: 240, y: 90 }, { x: 520, y: 90 }, { x: 520, y: 450 }, { x: 900, y: 450 }],
-    air: [{ x: -20, y: 90 }, { x: -20, y: 450 }],
-    slots: [{ x: 140, y: 200 }, { x: 340, y: 160 }, { x: 420, y: 220 }, { x: 620, y: 200 }, { x: 440, y: 360 }, { x: 620, y: 380 }, { x: 760, y: 380 }, { x: 760, y: 510 }],
+    path: [
+      { x: -20, y: 270 },
+      { x: 240, y: 270 },
+      { x: 240, y: 90 },
+      { x: 520, y: 90 },
+      { x: 520, y: 450 },
+      { x: 900, y: 450 },
+    ],
+    air: [
+      { x: -20, y: 90 },
+      { x: -20, y: 450 },
+    ],
+    slots: [
+      { x: 140, y: 200 },
+      { x: 340, y: 160 },
+      { x: 420, y: 220 },
+      { x: 620, y: 200 },
+      { x: 440, y: 360 },
+      { x: 620, y: 380 },
+      { x: 760, y: 380 },
+      { x: 760, y: 510 },
+    ],
   },
   {
     name: "Hollow Stair",
-    path: [{ x: -20, y: 60 }, { x: 200, y: 60 }, { x: 200, y: 200 }, { x: 440, y: 200 }, { x: 440, y: 340 }, { x: 680, y: 340 }, { x: 680, y: 480 }, { x: 900, y: 480 }],
-    air: [{ x: -20, y: 480 }, { x: -20, y: 270 }],
-    slots: [{ x: 120, y: 150 }, { x: 320, y: 140 }, { x: 360, y: 280 }, { x: 560, y: 280 }, { x: 600, y: 420 }, { x: 800, y: 420 }, { x: 280, y: 420 }, { x: 520, y: 120 }],
+    path: [
+      { x: -20, y: 60 },
+      { x: 200, y: 60 },
+      { x: 200, y: 200 },
+      { x: 440, y: 200 },
+      { x: 440, y: 340 },
+      { x: 680, y: 340 },
+      { x: 680, y: 480 },
+      { x: 900, y: 480 },
+    ],
+    air: [
+      { x: -20, y: 480 },
+      { x: -20, y: 270 },
+    ],
+    slots: [
+      { x: 120, y: 150 },
+      { x: 320, y: 140 },
+      { x: 360, y: 280 },
+      { x: 560, y: 280 },
+      { x: 600, y: 420 },
+      { x: 800, y: 420 },
+      { x: 280, y: 420 },
+      { x: 520, y: 120 },
+    ],
   },
   {
     name: "Serpent Bend",
-    path: [{ x: -20, y: 470 }, { x: 700, y: 470 }, { x: 700, y: 300 }, { x: 120, y: 300 }, { x: 120, y: 120 }, { x: 900, y: 120 }],
-    air: [{ x: -20, y: 120 }, { x: -20, y: 300 }],
-    slots: [{ x: 300, y: 400 }, { x: 560, y: 400 }, { x: 620, y: 380 }, { x: 360, y: 230 }, { x: 540, y: 230 }, { x: 220, y: 210 }, { x: 500, y: 190 }, { x: 760, y: 190 }],
+    path: [
+      { x: -20, y: 470 },
+      { x: 700, y: 470 },
+      { x: 700, y: 300 },
+      { x: 120, y: 300 },
+      { x: 120, y: 120 },
+      { x: 900, y: 120 },
+    ],
+    air: [
+      { x: -20, y: 120 },
+      { x: -20, y: 300 },
+    ],
+    slots: [
+      { x: 300, y: 400 },
+      { x: 560, y: 400 },
+      { x: 620, y: 380 },
+      { x: 360, y: 230 },
+      { x: 540, y: 230 },
+      { x: 220, y: 210 },
+      { x: 500, y: 190 },
+      { x: 760, y: 190 },
+    ],
   },
   {
     name: "Quarry Descent",
-    path: [{ x: -20, y: 150 }, { x: 380, y: 150 }, { x: 380, y: 470 }, { x: 900, y: 470 }],
-    air: [{ x: -20, y: 470 }, { x: -20, y: 300 }],
-    slots: [{ x: 200, y: 80 }, { x: 200, y: 230 }, { x: 460, y: 300 }, { x: 460, y: 400 }, { x: 600, y: 400 }, { x: 740, y: 400 }, { x: 600, y: 530 }, { x: 320, y: 230 }],
+    path: [
+      { x: -20, y: 150 },
+      { x: 380, y: 150 },
+      { x: 380, y: 470 },
+      { x: 900, y: 470 },
+    ],
+    air: [
+      { x: -20, y: 470 },
+      { x: -20, y: 300 },
+    ],
+    slots: [
+      { x: 200, y: 80 },
+      { x: 200, y: 230 },
+      { x: 460, y: 300 },
+      { x: 460, y: 400 },
+      { x: 600, y: 400 },
+      { x: 740, y: 400 },
+      { x: 600, y: 530 },
+      { x: 320, y: 230 },
+    ],
   },
   {
     name: "Cinder Crossroads",
-    path: [{ x: -20, y: 270 }, { x: 300, y: 270 }, { x: 300, y: 110 }, { x: 620, y: 110 }, { x: 620, y: 430 }, { x: 900, y: 430 }],
-    air: [{ x: -20, y: 110 }, { x: -20, y: 430 }],
-    slots: [{ x: 160, y: 200 }, { x: 380, y: 190 }, { x: 460, y: 180 }, { x: 540, y: 200 }, { x: 540, y: 340 }, { x: 700, y: 360 }, { x: 700, y: 510 }, { x: 220, y: 350 }],
+    path: [
+      { x: -20, y: 270 },
+      { x: 300, y: 270 },
+      { x: 300, y: 110 },
+      { x: 620, y: 110 },
+      { x: 620, y: 430 },
+      { x: 900, y: 430 },
+    ],
+    air: [
+      { x: -20, y: 110 },
+      { x: -20, y: 430 },
+    ],
+    slots: [
+      { x: 160, y: 200 },
+      { x: 380, y: 190 },
+      { x: 460, y: 180 },
+      { x: 540, y: 200 },
+      { x: 540, y: 340 },
+      { x: 700, y: 360 },
+      { x: 700, y: 510 },
+      { x: 220, y: 350 },
+    ],
   },
   {
     name: "Mistgrove Loop",
-    path: [{ x: -20, y: 90 }, { x: 820, y: 90 }, { x: 820, y: 470 }, { x: 200, y: 470 }, { x: 200, y: 280 }, { x: 900, y: 280 }],
-    air: [{ x: -20, y: 280 }, { x: -20, y: 470 }],
-    slots: [{ x: 360, y: 160 }, { x: 640, y: 160 }, { x: 740, y: 200 }, { x: 760, y: 390 }, { x: 480, y: 400 }, { x: 300, y: 380 }, { x: 380, y: 350 }, { x: 600, y: 340 }],
+    path: [
+      { x: -20, y: 90 },
+      { x: 820, y: 90 },
+      { x: 820, y: 470 },
+      { x: 200, y: 470 },
+      { x: 200, y: 280 },
+      { x: 900, y: 280 },
+    ],
+    air: [
+      { x: -20, y: 280 },
+      { x: -20, y: 470 },
+    ],
+    slots: [
+      { x: 360, y: 160 },
+      { x: 640, y: 160 },
+      { x: 740, y: 200 },
+      { x: 760, y: 390 },
+      { x: 480, y: 400 },
+      { x: 300, y: 380 },
+      { x: 380, y: 350 },
+      { x: 600, y: 340 },
+    ],
   },
   {
     name: "Broken Aqueduct",
-    path: [{ x: -20, y: 200 }, { x: 180, y: 200 }, { x: 180, y: 60 }, { x: 480, y: 60 }, { x: 480, y: 300 }, { x: 720, y: 300 }, { x: 720, y: 470 }, { x: 900, y: 470 }],
-    air: [{ x: -20, y: 470 }, { x: -20, y: 60 }],
-    slots: [{ x: 100, y: 290 }, { x: 320, y: 130 }, { x: 400, y: 200 }, { x: 560, y: 220 }, { x: 600, y: 360 }, { x: 820, y: 380 }, { x: 360, y: 380 }, { x: 240, y: 130 }],
+    path: [
+      { x: -20, y: 200 },
+      { x: 180, y: 200 },
+      { x: 180, y: 60 },
+      { x: 480, y: 60 },
+      { x: 480, y: 300 },
+      { x: 720, y: 300 },
+      { x: 720, y: 470 },
+      { x: 900, y: 470 },
+    ],
+    air: [
+      { x: -20, y: 470 },
+      { x: -20, y: 60 },
+    ],
+    slots: [
+      { x: 100, y: 290 },
+      { x: 320, y: 130 },
+      { x: 400, y: 200 },
+      { x: 560, y: 220 },
+      { x: 600, y: 360 },
+      { x: 820, y: 380 },
+      { x: 360, y: 380 },
+      { x: 240, y: 130 },
+    ],
   },
   {
     name: "Wardens' Gate",
-    path: [{ x: -20, y: 270 }, { x: 220, y: 270 }, { x: 220, y: 100 }, { x: 700, y: 100 }, { x: 700, y: 440 }, { x: 360, y: 440 }, { x: 360, y: 540 }],
-    air: [{ x: -20, y: 100 }, { x: -20, y: 440 }],
-    slots: [{ x: 120, y: 190 }, { x: 340, y: 180 }, { x: 500, y: 180 }, { x: 640, y: 200 }, { x: 600, y: 360 }, { x: 460, y: 360 }, { x: 760, y: 320 }, { x: 280, y: 360 }],
+    path: [
+      { x: -20, y: 270 },
+      { x: 220, y: 270 },
+      { x: 220, y: 100 },
+      { x: 700, y: 100 },
+      { x: 700, y: 440 },
+      { x: 360, y: 440 },
+      { x: 360, y: 540 },
+    ],
+    air: [
+      { x: -20, y: 100 },
+      { x: -20, y: 440 },
+    ],
+    slots: [
+      { x: 120, y: 190 },
+      { x: 340, y: 180 },
+      { x: 500, y: 180 },
+      { x: 640, y: 200 },
+      { x: 600, y: 360 },
+      { x: 460, y: 360 },
+      { x: 760, y: 320 },
+      { x: 280, y: 360 },
+    ],
   },
 ];
 
@@ -92,8 +293,16 @@ const LAYOUTS: Layout[] = [
 export const BOSS_BY_STAGE = [
   // Ordered weakest→strongest so the boss spike climbs with the stage (overlord
   // 2200 before madarok 2700 — base HP, before the progression curve scales it).
-  "champion", "zabro", "ryomen", "kura", "warden",
-  "akai", "mukade", "overlord", "madarok", "meruon",
+  "champion",
+  "zabro",
+  "ryomen",
+  "kura",
+  "warden",
+  "akai",
+  "mukade",
+  "overlord",
+  "madarok",
+  "meruon",
   ...BOSS_EXPANSION,
 ];
 
@@ -105,26 +314,26 @@ export const BOSS_BY_STAGE = [
  */
 const BOSS_HP_RANK = [
   // Ascending base HP — the canonical difficulty rank (keeps wave-5 ≤ wave-10).
-  "champion",    // 700
-  "zabro",       // 1000
-  "gravemourn",  // 1150
-  "ryomen",      // 1200
-  "vindicator",  // 1350
-  "kura",        // 1450
-  "sundermark",  // 1500
-  "crownfall",   // 1650
-  "warden",      // 1700
-  "unkilling",   // 1950
-  "akai",        // 2000
-  "mukade",      // 2200
-  "overlord",    // 2200
-  "mawborn",     // 2250
-  "devourer",    // 2400
+  "champion", // 700
+  "zabro", // 1000
+  "gravemourn", // 1150
+  "ryomen", // 1200
+  "vindicator", // 1350
+  "kura", // 1450
+  "sundermark", // 1500
+  "crownfall", // 1650
+  "warden", // 1700
+  "unkilling", // 1950
+  "akai", // 2000
+  "mukade", // 2200
+  "overlord", // 2200
+  "mawborn", // 2250
+  "devourer", // 2400
   "crimsonlord", // 2600
-  "madarok",     // 2700
-  "fallenward",  // 3100
-  "meruon",      // 3800
-  "ashghost",    // 4200
+  "madarok", // 2700
+  "fallenward", // 3100
+  "meruon", // 3800
+  "ashghost", // 4200
 ];
 const bossRank = (id: string): number => {
   const r = BOSS_HP_RANK.indexOf(id);
@@ -192,14 +401,21 @@ function buildWaves(n: number): WaveDef[] {
   const w: WaveDef[] = [];
 
   // 1 — rushers. (Cadence tightens on later stages so more enemies overlap.)
-  w.push({ spawns: [spawn("grunt", 5 + n, n >= 6 ? 0.7 : 0.9), spawn("runner", Math.min(2 + n, 8), 0.6, 4)] });
+  w.push({
+    spawns: [
+      spawn("grunt", 5 + n, n >= 6 ? 0.7 : 0.9),
+      spawn("runner", Math.min(2 + n, 8), 0.6, 4),
+    ],
+  });
 
   // 2 — flyers and the first armor.
-  w.push({ spawns: [
-    spawn("grunt", 6 + n, n >= 6 ? 0.55 : 0.7),
-    spawn("gargoyle", 2 + Math.floor(n / 2), 1.2, 3),
-    spawn("brute", Math.max(1, Math.floor(n / 2)), 1.5, 6),
-  ] });
+  w.push({
+    spawns: [
+      spawn("grunt", 6 + n, n >= 6 ? 0.55 : 0.7),
+      spawn("gargoyle", 2 + Math.floor(n / 2), 1.2, 3),
+      spawn("brute", Math.max(1, Math.floor(n / 2)), 1.5, 6),
+    ],
+  });
 
   // 3 — armored archetype mix that grows with the stage.
   const w3: SpawnEntry[] = [
@@ -219,11 +435,13 @@ function buildWaves(n: number): WaveDef[] {
   w.push({ spawns: w4 });
 
   // 5 — MID-BOSS. Hold the line: a leak here costs 10 of your 15 castle HP.
-  w.push({ spawns: [
-    spawn("grunt", 5, 0.5),
-    spawn("brute", 1 + Math.floor(n / 4), 1.5, 2),
-    spawn(midBoss, 1, 1, 6),
-  ] });
+  w.push({
+    spawns: [
+      spawn("grunt", 5, 0.5),
+      spawn("brute", 1 + Math.floor(n / 4), 1.5, 2),
+      spawn(midBoss, 1, 1, 6),
+    ],
+  });
 
   // 6 — heavier mix with walls.
   const w6: SpawnEntry[] = [
@@ -233,7 +451,7 @@ function buildWaves(n: number): WaveDef[] {
   if (n >= 5) w6.push(spawn("phantom", 1 + Math.floor(n / 2), 1.2, 4));
   if (n >= 6) w6.push(spawn("monolith", 1, 2.5, 5)); // magic-immune wall
   if (n >= 12) w6.push(spawn("carrier", 1 + Math.floor(n / 8), 1.5, 4)); // Bloomrot Carrier — space your towers
-  if (n >= 14) w6.push(spawn("prism", 1, 2.5, 6));                        // Prism Behemoth — dual-type wall
+  if (n >= 14) w6.push(spawn("prism", 1, 2.5, 6)); // Prism Behemoth — dual-type wall
   w.push({ spawns: w6 });
 
   // 7 — fast raiders and couriers.
@@ -254,7 +472,7 @@ function buildWaves(n: number): WaveDef[] {
   if (n >= 6) w8.push(spawn("summoner", 1, 1, 4));
   if (n >= 6) w8.push(spawn("hexer", 1, 1, 5)); // tower-slowing healer — a priority kill
   if (n >= 11) w8.push(spawn("dreadwing", 1 + Math.floor(n / 5), 1.5, 3)); // Iron Dreadwing — heavy anti-air
-  if (n >= 13) w8.push(spawn("cantor", 1, 1, 6));                          // Gravewail Cantor — priority kill
+  if (n >= 13) w8.push(spawn("cantor", 1, 1, 6)); // Gravewail Cantor — priority kill
   w.push({ spawns: w8 });
 
   // 9 — pre-finale gauntlet: dense elites.
@@ -289,14 +507,16 @@ const scaleV = (p: Vec2): Vec2 => ({ x: Math.round(p.x * WSX), y: Math.round(p.y
 
 /** Distance from point p to segment a-b. */
 function segDist(p: Vec2, a: Vec2, b: Vec2): number {
-  const dx = b.x - a.x, dy = b.y - a.y;
+  const dx = b.x - a.x,
+    dy = b.y - a.y;
   const l2 = dx * dx + dy * dy || 1;
   let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
   t = Math.max(0, Math.min(1, t));
   return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
 }
 function nearPath(p: Vec2, path: Vec2[], clearance: number): boolean {
-  for (let i = 1; i < path.length; i++) if (segDist(p, path[i - 1], path[i]) < clearance) return true;
+  for (let i = 1; i < path.length; i++)
+    if (segDist(p, path[i - 1], path[i]) < clearance) return true;
   return false;
 }
 
@@ -305,7 +525,12 @@ function nearPath(p: Vec2, path: Vec2[], clearance: number): boolean {
  * The obstacle/decor type pools come from the stage's biome theme so the map
  * matches its backdrop (lava on the lava field, ice on the frozen reach, …).
  */
-function generateTerrain(path: Vec2[], seed: number, block: TerrainType[], decor: TerrainType[]): TerrainFeature[] {
+function generateTerrain(
+  path: Vec2[],
+  seed: number,
+  block: TerrainType[],
+  decor: TerrainType[],
+): TerrainFeature[] {
   const rng = new Rng(seed * 7919 + 13);
   const feats: TerrainFeature[] = [];
   let attempts = 0;
@@ -314,7 +539,7 @@ function generateTerrain(path: Vec2[], seed: number, block: TerrainType[], decor
     const x = 50 + rng.next() * (WORLD_WIDTH - 100);
     const y = 50 + rng.next() * (WORLD_HEIGHT - 100);
     const r = 26 + rng.next() * 36;
-    if (nearPath({ x, y }, path, r + 30)) continue;             // keep the lane walkable + buildable beside it
+    if (nearPath({ x, y }, path, r + 30)) continue; // keep the lane walkable + buildable beside it
     if (feats.some((f) => Math.hypot(f.x - x, f.y - y) < f.r + r + 12)) continue;
     const blocks = rng.next() < 0.6;
     const pool = blocks ? block : decor;
@@ -339,9 +564,10 @@ export const STAGES: StageDef[] = ALL_LAYOUTS.map((l, i) => {
     terrain: generateTerrain(path, i + 1, theme.block, theme.decor),
     // Chapter 1 (stages 1–10) uses the hand-tuned per-stage arc; chapters 2–5
     // keep the procedural builder.
-    waves: i < 10
-      ? buildChapter1Waves(i + 1, BOSS_BY_STAGE[i] ?? "overlord", midBossFor(i + 1))
-      : buildWaves(i + 1),
+    waves:
+      i < 10
+        ? buildChapter1Waves(i + 1, BOSS_BY_STAGE[i] ?? "overlord", midBossFor(i + 1))
+        : buildWaves(i + 1),
   };
 });
 

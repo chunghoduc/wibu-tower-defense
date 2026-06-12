@@ -33,27 +33,44 @@ function countRarityAtLeast(squad: CharacterDef[], min: Rarity): number {
 
 export const SYNERGIES: SynergyDef[] = [
   {
-    id: "vanguard", name: "Vanguard", description: "3+ Damage towers: +12% team ATK.",
-    test: (s) => countRole(s, "damage") >= 3, effect: { atkMul: 1.12 },
+    id: "vanguard",
+    name: "Vanguard",
+    description: "3+ Damage towers: +12% team ATK.",
+    test: (s) => countRole(s, "damage") >= 3,
+    effect: { atkMul: 1.12 },
   },
   {
-    id: "bulwark", name: "Bulwark", description: "2+ Support towers: +15% team HP.",
-    test: (s) => countRole(s, "support") >= 2, effect: { hpMul: 1.15 },
+    id: "bulwark",
+    name: "Bulwark",
+    description: "2+ Support towers: +15% team HP.",
+    test: (s) => countRole(s, "support") >= 2,
+    effect: { hpMul: 1.15 },
   },
   {
-    id: "tempest", name: "Tempest", description: "2+ Chain towers: +10% team attack speed.",
-    test: (s) => countRole(s, "chain") >= 2, effect: { attackSpeedMul: 1.10 },
+    id: "tempest",
+    name: "Tempest",
+    description: "2+ Chain towers: +10% team attack speed.",
+    test: (s) => countRole(s, "chain") >= 2,
+    effect: { attackSpeedMul: 1.1 },
   },
   {
-    id: "affliction", name: "Affliction", description: "2+ DoT or Debuff towers: +10% team ATK.",
-    test: (s) => countRole(s, "dot") + countRole(s, "debuff") >= 2, effect: { atkMul: 1.10 },
+    id: "affliction",
+    name: "Affliction",
+    description: "2+ DoT or Debuff towers: +10% team ATK.",
+    test: (s) => countRole(s, "dot") + countRole(s, "debuff") >= 2,
+    effect: { atkMul: 1.1 },
   },
   {
-    id: "elite-corps", name: "Elite Corps", description: "4+ Legendary or Unique towers: +10% ATK & HP.",
-    test: (s) => countRarityAtLeast(s, "Legendary") >= 4, effect: { atkMul: 1.10, hpMul: 1.10 },
+    id: "elite-corps",
+    name: "Elite Corps",
+    description: "4+ Legendary or Unique towers: +10% ATK & HP.",
+    test: (s) => countRarityAtLeast(s, "Legendary") >= 4,
+    effect: { atkMul: 1.1, hpMul: 1.1 },
   },
   {
-    id: "full-roster", name: "Full Roster", description: "All 6 roles present: +8% ATK, +8% HP, +5% attack speed.",
+    id: "full-roster",
+    name: "Full Roster",
+    description: "All 6 roles present: +8% ATK, +8% HP, +5% attack speed.",
     test: (s) => {
       const roles: TowerRole[] = ["damage", "splash", "chain", "dot", "debuff", "support"];
       return roles.every((r) => countRole(s, r) >= 1);

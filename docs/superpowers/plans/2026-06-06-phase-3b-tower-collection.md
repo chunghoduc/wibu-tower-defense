@@ -12,14 +12,14 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|--------|------|---------------|
-| Modify | `src/data/schema.ts` | Add `TowerCollectionEntry` interface |
-| Modify | `src/core/save.ts` | Add `TowerCollection` type + `collection` field to `HeroSave`; bump to v2; add v1→v2 migration |
-| Create | `src/core/collection.ts` | `addTowerToCollection`, `addTowerDupe`, `isTowerOwned`, `getTowerStars` |
-| Modify | `src/core/battle.ts` | `placeTower`: ownership check + pipeline-resolved stats |
-| Create | `tests/collection.test.ts` | Unit tests for all collection helpers |
-| Create | `tests/phase3b.test.ts` | Integration: stars boost stats in battle, unowned tower rejected |
+| Action | Path                       | Responsibility                                                                                 |
+| ------ | -------------------------- | ---------------------------------------------------------------------------------------------- |
+| Modify | `src/data/schema.ts`       | Add `TowerCollectionEntry` interface                                                           |
+| Modify | `src/core/save.ts`         | Add `TowerCollection` type + `collection` field to `HeroSave`; bump to v2; add v1→v2 migration |
+| Create | `src/core/collection.ts`   | `addTowerToCollection`, `addTowerDupe`, `isTowerOwned`, `getTowerStars`                        |
+| Modify | `src/core/battle.ts`       | `placeTower`: ownership check + pipeline-resolved stats                                        |
+| Create | `tests/collection.test.ts` | Unit tests for all collection helpers                                                          |
+| Create | `tests/phase3b.test.ts`    | Integration: stars boost stats in battle, unowned tower rejected                               |
 
 ---
 
@@ -49,7 +49,14 @@ describe("HeroSave v2 — collection field", () => {
     const v1: any = {
       version: 1,
       heroId: "h1",
-      hero: { level: 5, totalXp: 1000, skillPoints: 4, unlockedNodes: [], obtainedSkills: [], equippedSkillId: null },
+      hero: {
+        level: 5,
+        totalXp: 1000,
+        skillPoints: 4,
+        unlockedNodes: [],
+        obtainedSkills: [],
+        equippedSkillId: null,
+      },
       inventory: { items: [], equipped: {} },
       lastSavedAt: 0,
     };
@@ -86,13 +93,14 @@ export type TowerCollection = Record<string, TowerCollectionEntry>;
 ```
 
 Add `collection: TowerCollection` to `HeroSave`:
+
 ```ts
 export interface HeroSave {
   version: number;
   heroId: string;
   hero: HeroProgressSave;
   inventory: InventorySave;
-  collection: TowerCollection;   // NEW
+  collection: TowerCollection; // NEW
   lastSavedAt: number;
 }
 ```
@@ -100,6 +108,7 @@ export interface HeroSave {
 Add `collection: {}` to `createFreshSave()`.
 
 Add migration in `loadAndMigrate`:
+
 ```ts
 export function loadAndMigrate(raw: unknown): HeroSave {
   if (!raw || typeof raw !== "object") return createFreshSave();
@@ -111,7 +120,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
 ```
 
 - [ ] **Run tests:** `npm run typecheck && npm test -- tests/save-v2.test.ts 2>&1 | tail -10`
-  Expected: 3 tests pass.
+      Expected: 3 tests pass.
 
 - [ ] **Run full suite:** `npm test 2>&1 | tail -8` — all 135+ tests still pass.
 
@@ -235,7 +244,7 @@ export function getTowerStars(save: HeroSave, towerId: string): number {
 ```
 
 - [ ] **Run tests:** `npm run typecheck && npm test -- tests/collection.test.ts 2>&1 | tail -10`
-  Expected: all 7 tests pass.
+      Expected: all 7 tests pass.
 
 - [ ] **Commit:** `git add src/core/collection.ts tests/collection.test.ts && git commit -m "feat(core): tower collection helpers — add, dupe, star rank (1-5)"`
 
@@ -337,12 +346,14 @@ describe("BattleState tower collection — Phase 3b", () => {
 - [ ] **Modify `src/core/battle.ts`**:
 
 Add import:
+
 ```ts
 import { isTowerOwned, getTowerStars } from "./collection.ts";
 import { towerStatPipeline } from "./stats.ts";
 ```
 
 In `placeTower`, change the tower stat initialization and add ownership check. Find:
+
 ```ts
     this.gold -= def.cost;
     this.towers.push({
@@ -352,6 +363,7 @@ In `placeTower`, change the tower stat initialization and add ownership check. F
 ```
 
 Replace with:
+
 ```ts
     // Ownership check when heroSave is present
     if (this._heroSave && !isTowerOwned(this._heroSave, characterId)) return false;
@@ -367,20 +379,22 @@ Replace with:
 ```
 
 Also store `heroSave` as a private field. Add to the class body:
+
 ```ts
   private _heroSave: import("./save.ts").HeroSave | undefined;
 ```
 
 In the constructor, after `if (opts.heroSave) { ... }`, add:
+
 ```ts
-    this._heroSave = opts.heroSave;
+this._heroSave = opts.heroSave;
 ```
 
 Also update `TowerRuntime` hp initialization to use `resolvedStats`:
 Find `hp: def.baseStats.maxHp,` (inside towers.push) and change to `hp: resolvedStats.maxHp,`.
 
 - [ ] **Run full suite:** `npm run typecheck && npm test 2>&1 | tail -15`
-  Expected: all tests pass (135+ original + 5 new = 140+).
+      Expected: all tests pass (135+ original + 5 new = 140+).
 
 - [ ] **Commit:** `git add src/core/battle.ts tests/phase3b.test.ts && git commit -m "feat(core): tower collection wired into BattleState — ownership check + star/level scaling"`
 
@@ -391,4 +405,4 @@ Find `hp: def.baseStats.maxHp,` (inside towers.push) and change to `hp: resolved
 - [ ] **Commit specs:** `git add docs/superpowers/specs/ && git commit -m "docs: Phase 3b + 3c design specs"`
 
 - [ ] **Final verification:** `npm run typecheck && npm test && npm run build 2>&1 | tail -12`
-  Expected: all tests pass, build succeeds.
+      Expected: all tests pass, build succeeds.

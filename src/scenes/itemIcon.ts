@@ -30,7 +30,12 @@ export function iconFitScale(nativeW: number, nativeH: number, fit: number): num
  * `obj.type === "Image"` when an icon-only effect (e.g. hover-pop) is wanted.
  */
 export function makeFitIcon(
-  scene: Phaser.Scene, x: number, y: number, key: string, fit: number, fallback: string,
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  key: string,
+  fit: number,
+  fallback: string,
 ): Phaser.GameObjects.Image | Phaser.GameObjects.Text {
   if (key && scene.textures.exists(key)) {
     const img = scene.add.image(x, y, key).setOrigin(0.5);

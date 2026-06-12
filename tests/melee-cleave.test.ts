@@ -23,7 +23,10 @@ function stackedWorld(towerOver = {}) {
   });
   const stage = mkStage([{ spawns: [{ enemyId: "grunt", count: 2, interval: 0, delay: 0 }] }], {
     castleHp: 1e9,
-    path: [{ x: 0, y: 0 }, { x: 300, y: 0 }],
+    path: [
+      { x: 0, y: 0 },
+      { x: 300, y: 0 },
+    ],
     slots: [{ x: 40, y: 0 }],
   });
   const b = world([grunt], [tower], stage, { hero: inertHero });
@@ -55,7 +58,9 @@ describe("melee cleave", () => {
 
   it("a ranged tower stays single-target — only one stacked enemy is hit", () => {
     // No weapon keyword + long reach → "arrow" → ranged → no cleave.
-    const b = stackedWorld({ baseStats: makeStats({ atk: 50, attackSpeed: 4, range: 400, maxHp: 100 }) });
+    const b = stackedWorld({
+      baseStats: makeStats({ atk: 50, attackSpeed: 4, range: 400, maxHp: 100 }),
+    });
     b.placeTower("turret", 0);
     runFor(b, 5);
     const hits = b.enemies.filter((e) => e.hp < e.stats.maxHp).length;

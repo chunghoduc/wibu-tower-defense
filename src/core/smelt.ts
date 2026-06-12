@@ -16,7 +16,11 @@ import { CHAOS_JEWEL } from "../data/materials.ts";
 
 /** Jewels of Chaos minted by smelting an item of each rarity (×2 per step). */
 export const SMELT_YIELD: Record<Rarity, number> = {
-  Common: 1, Magic: 2, Rare: 4, Legendary: 8, Unique: 16,
+  Common: 1,
+  Magic: 2,
+  Rare: 4,
+  Legendary: 8,
+  Unique: 16,
 };
 
 export function smeltYield(rarity: Rarity): number {

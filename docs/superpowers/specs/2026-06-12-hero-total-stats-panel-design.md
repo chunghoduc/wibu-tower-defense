@@ -8,8 +8,8 @@
 The Inventory loadout screen (`HeroScene`) shows an equipment paper-doll and a
 draggable bag, but nowhere does it surface the **hero's aggregate stats**. A
 player equipping gear can't see what the gear actually does to their hero's
-totals (ATK, HP, crit, etc.). The request: *show the hero's total stats
-beside/under the doll.*
+totals (ATK, HP, crit, etc.). The request: _show the hero's total stats
+beside/under the doll._
 
 ## Constraints
 
@@ -28,15 +28,16 @@ beside/under the doll.*
 
 **Shrink the doll panel and add a stats panel beneath it in the left column.**
 
-The doll's slots are positioned by *normalized* anchors (`nx`/`ny` in `0..1`) and
+The doll's slots are positioned by _normalized_ anchors (`nx`/`ny` in `0..1`) and
 the mannequin image auto-scales to the panel, so reducing the panel height
 reflows everything cleanly. This frees vertical room in the left column for a
 dedicated stats panel directly under the doll — grouping the doll + totals as one
 "character sheet" on the left, with the bag on the right.
 
 Rejected alternatives:
-- *Beside the doll* (in the 34px gap) — too narrow for labels + values.
-- *Below the inventory* (right column, 64px strip) — physically far from the
+
+- _Beside the doll_ (in the 34px gap) — too narrow for labels + values.
+- _Below the inventory_ (right column, 64px strip) — physically far from the
   doll and disconnected from the loadout the player is editing.
 
 ## Layout changes
@@ -54,20 +55,20 @@ Two exports — one pure (testable), one presentational.
 
 Selects the ~12 hero-relevant stats in display order and formats each:
 
-| key | label | format |
-|-----|-------|--------|
-| atk | ATK | integer |
-| attackSpeed | Atk Spd | 1 decimal |
-| range | Range | integer |
-| critRate | Crit | percent |
-| critDamage | Crit Dmg | `×` multiplier (1 dp) |
-| maxHp | HP | integer |
-| hpRegen | HP Regen | 1 decimal |
-| armor | Armor | integer |
-| magicResist | M.Resist | integer |
-| skillPower | Skill Pwr | `×` multiplier (1 dp) |
-| omnivamp | Omnivamp | percent |
-| moveSpeed | Move Spd | integer |
+| key         | label     | format                |
+| ----------- | --------- | --------------------- |
+| atk         | ATK       | integer               |
+| attackSpeed | Atk Spd   | 1 decimal             |
+| range       | Range     | integer               |
+| critRate    | Crit      | percent               |
+| critDamage  | Crit Dmg  | `×` multiplier (1 dp) |
+| maxHp       | HP        | integer               |
+| hpRegen     | HP Regen  | 1 decimal             |
+| armor       | Armor     | integer               |
+| magicResist | M.Resist  | integer               |
+| skillPower  | Skill Pwr | `×` multiplier (1 dp) |
+| omnivamp    | Omnivamp  | percent               |
+| moveSpeed   | Move Spd  | integer               |
 
 Formatters mirror the conventions already used in `squadInfoPanel.ts`
 (`n0`/`n1`/`pct`/`mult`). This function is the unit under test.
@@ -94,6 +95,7 @@ lifecycle (clear-and-rebuild on refresh).
 ## Testing (TDD)
 
 `tests/heroStatsPanel.test.ts`:
+
 - `heroStatRows` returns rows in the documented order with the documented labels.
 - Formatting: `atk` → integer string; `critRate` 0.25 → `"25%"`; `critDamage`
   1.5 → `"1.5×"`; `attackSpeed` 1.1 → `"1.1"`.

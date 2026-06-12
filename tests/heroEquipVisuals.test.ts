@@ -23,7 +23,10 @@ describe("resolveHeroLayers", () => {
   it("returns all-null config when nothing is equipped", () => {
     const result = resolveHeroLayers(makeInventory());
     expect(result).toEqual({
-      weaponKey: null, weaponType: null, wingKey: null, petKey: null,
+      weaponKey: null,
+      weaponType: null,
+      wingKey: null,
+      petKey: null,
     });
   });
 

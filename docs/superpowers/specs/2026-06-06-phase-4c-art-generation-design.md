@@ -23,6 +23,7 @@ images. The workable path, validated by a live test against `gemma4:latest`:
 The model decides every pixel; we encode. Fully automated through Ollama.
 
 **Validated reality (live test, 16×16 fire-wizard prompt):**
+
 - The model produces a recognizable sprite grid.
 - BUT raw output is noisy: line lengths drift, it invents palette symbols, ~45 s/sprite.
 - Therefore the harness MUST sanitize, validate, and retry; a full run is a
@@ -30,14 +31,14 @@ The model decides every pixel; we encode. Fully automated through Ollama.
 
 ## 3. Asset Inventory
 
-| Category | Count | Frames each | Frame names |
-|---|---|---|---|
-| Towers (characters) | 32 | 3 | idle, attack, death |
-| Enemies + minions | 15 | 4 | walk, attack, hit, death |
-| Bosses | 3 | 4 | walk, attack, hit, death |
-| Hero | 1 | 5 | idle, walk, attack, hit, death |
-| Item icons | 20 | 1 | icon |
-| Skill VFX | ~14 | 1–2 | cast (+ impact) |
+| Category            | Count | Frames each | Frame names                    |
+| ------------------- | ----- | ----------- | ------------------------------ |
+| Towers (characters) | 32    | 3           | idle, attack, death            |
+| Enemies + minions   | 15    | 4           | walk, attack, hit, death       |
+| Bosses              | 3     | 4           | walk, attack, hit, death       |
+| Hero                | 1     | 5           | idle, walk, attack, hit, death |
+| Item icons          | 20    | 1           | icon                           |
+| Skill VFX           | ~14   | 1–2         | cast (+ impact)                |
 
 ≈ **71 base (primary-frame) sprites**, then ≈ **210 animation frames**.
 
@@ -48,12 +49,12 @@ frames and render integration are Phase 4d.
 
 Generate small, upscale at render (Phaser nearest-neighbor = crisp retro):
 
-| Class | Generation grid | Render target (from artSpec) |
-|---|---|---|
-| tower / hero | 16×16 | 32×32 |
-| enemy | 16×16 | 24×24 |
-| boss | 24×24 | 48×48 |
-| item | 12×12 | 16×16 |
+| Class        | Generation grid | Render target (from artSpec) |
+| ------------ | --------------- | ---------------------------- |
+| tower / hero | 16×16           | 32×32                        |
+| enemy        | 16×16           | 24×24                        |
+| boss         | 24×24           | 48×48                        |
+| item         | 12×12           | 16×16                        |
 
 Small grids are markedly more coherent from an LLM and ~4× faster than 32×32.
 
@@ -84,6 +85,7 @@ scripts/genSprites.ts   Orchestrator. CLI flags: --only=<kind>, --id=<id>,
 ### 5.1 Sanitization rules (spriteGrid.ts)
 
 Given raw model text and target (W, H):
+
 1. Strip code fences / prose; keep lines that look like grid rows.
 2. Take the first H grid-like lines; if fewer, pad with all-transparent rows.
 3. Each line: truncate to W; if shorter, pad right with transparent.
@@ -113,6 +115,7 @@ precomputed table. No third-party packages.
 ## 6. Palette Resolution
 
 `paletteFor(entry)` returns the allowed symbol→RGBA map for an entity:
+
 - Always: `.` transparent, `K` outline (near-black).
 - Character/enemy: skin/cloth/metal families + the **rarity accent** colour
   (matching RARITY_PALETTE) so rarity reads on the board.
@@ -130,6 +133,7 @@ no change. Base frame filename = `<id>.png`; Phase 4d adds `<id>__<frame>.png`.
 ## 8. Testing
 
 Pure units, Vitest:
+
 - `pngEncoder`: encode a known 2×2 RGBA → assert PNG signature, IHDR dimensions,
   decodes round-trip via `zlib.inflateSync` of IDAT to the original scanlines.
 - `spriteGrid`: sanitize ragged/short/over-long/garbage input → exact W×H, only

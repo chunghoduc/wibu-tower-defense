@@ -6,13 +6,30 @@ import { getAwakening, canAwaken, awaken } from "./awakening.ts";
 import { ensureWishlist, setWishlist, canClaimSpark, claimSpark } from "./banner.ts";
 import { craftAlchemy, exchangeCopies } from "./alchemy.ts";
 import {
-  expeditionActive, expeditionPendingGold, startExpedition, collectExpedition,
-  expeditionGoldPerHour, expeditionGoldPerHourFor, expeditionCanCollect,
-  expeditionCollectReadyAt, expeditionEligibleTowerIds,
+  expeditionActive,
+  expeditionPendingGold,
+  startExpedition,
+  collectExpedition,
+  expeditionGoldPerHour,
+  expeditionGoldPerHourFor,
+  expeditionCanCollect,
+  expeditionCollectReadyAt,
+  expeditionEligibleTowerIds,
 } from "./expedition.ts";
-import { bestEndlessWave, recordEndlessWave, claimEndlessRun, endlessEntryCost, payEndlessEntry } from "./endless.ts";
+import {
+  bestEndlessWave,
+  recordEndlessWave,
+  claimEndlessRun,
+  endlessEntryCost,
+  payEndlessEntry,
+} from "./endless.ts";
 import { rolloverBossRush, recordBossRushTier } from "./bossRush.ts";
-import { claimableMilestoneCount, nextClaimableTier, claimMilestone, unlockedTitles } from "./milestones.ts";
+import {
+  claimableMilestoneCount,
+  nextClaimableTier,
+  claimMilestone,
+  unlockedTitles,
+} from "./milestones.ts";
 import { powerRating, profileSummary, setTitle } from "./profile.ts";
 import { claimStreak, streakClaimable, type StreakClaim } from "./streak.ts";
 import { spin, freeSpinAvailable, PAID_SPIN_COST, type SpinResult } from "./spin.ts";
@@ -30,12 +47,20 @@ export { RESPEC_DIAMOND_COST };
  */
 export class SaveManager extends SaveManagerCore {
   // ── F6 Tower mastery (read-only; XP is earned in battle) ───────────────────
-  masteryLevel(towerId: string): number { return getMasteryLevel(this.save, towerId); }
-  masteryXp(towerId: string): number { return getMasteryXp(this.save, towerId); }
+  masteryLevel(towerId: string): number {
+    return getMasteryLevel(this.save, towerId);
+  }
+  masteryXp(towerId: string): number {
+    return getMasteryXp(this.save, towerId);
+  }
 
   // ── F7 Awakening ───────────────────────────────────────────────────────────
-  awakeningRank(towerId: string): number { return getAwakening(this.save, towerId); }
-  canAwaken(towerId: string): ReturnType<typeof canAwaken> { return canAwaken(this.save, towerId); }
+  awakeningRank(towerId: string): number {
+    return getAwakening(this.save, towerId);
+  }
+  canAwaken(towerId: string): ReturnType<typeof canAwaken> {
+    return canAwaken(this.save, towerId);
+  }
   /** Awaken a 5★ tower one rank (spends Awakening Crystals). Returns new rank or -1. */
   awaken(towerId: string): number {
     const rank = awaken(this.save, towerId);
@@ -44,16 +69,23 @@ export class SaveManager extends SaveManagerCore {
   }
 
   // ── F10 Spotlight banner + spark ────────────────────────────────────────────
-  sparks(): number { return this.save.meta.banner.sparks; }
+  sparks(): number {
+    return this.save.meta.banner.sparks;
+  }
   /** Roll the featured rotation forward + default the wishlist for the week. */
-  ensureBanner(weekKey: string): void { ensureWishlist(this.save, weekKey); this.persist(); }
+  ensureBanner(weekKey: string): void {
+    ensureWishlist(this.save, weekKey);
+    this.persist();
+  }
   /** Choose which featured Unique the spark guarantee targets. */
   setWishlist(towerId: string): boolean {
     const ok = setWishlist(this.save, towerId);
     if (ok) this.persist();
     return ok;
   }
-  canClaimSpark(): boolean { return canClaimSpark(this.save); }
+  canClaimSpark(): boolean {
+    return canClaimSpark(this.save);
+  }
   /** Claim the spark guarantee — grant the wishlisted Unique. Returns its id or null. */
   claimSpark(): string | null {
     const id = claimSpark(this.save);
@@ -76,8 +108,12 @@ export class SaveManager extends SaveManagerCore {
   }
 
   // ── F15 Milestones ──────────────────────────────────────────────────────────
-  claimableMilestoneCount(): number { return claimableMilestoneCount(this.save); }
-  nextClaimableTier(milestoneId: string): number { return nextClaimableTier(this.save, milestoneId); }
+  claimableMilestoneCount(): number {
+    return claimableMilestoneCount(this.save);
+  }
+  nextClaimableTier(milestoneId: string): number {
+    return nextClaimableTier(this.save, milestoneId);
+  }
   /** Claim the next available milestone tier. Returns the reward or null. */
   claimMilestone(milestoneId: string): Reward | null {
     const r = claimMilestone(this.save, milestoneId);
@@ -99,9 +135,15 @@ export class SaveManager extends SaveManagerCore {
   }
 
   // ── F16 Profile / power / titles ─────────────────────────────────────────────
-  powerRating(): number { return powerRating(this.save); }
-  profileSummary(): ReturnType<typeof profileSummary> { return profileSummary(this.save); }
-  unlockedTitles(): string[] { return unlockedTitles(this.save); }
+  powerRating(): number {
+    return powerRating(this.save);
+  }
+  profileSummary(): ReturnType<typeof profileSummary> {
+    return profileSummary(this.save);
+  }
+  unlockedTitles(): string[] {
+    return unlockedTitles(this.save);
+  }
   /** Equip an unlocked title (or "" to clear). Returns false if locked. */
   setTitle(titleId: string): boolean {
     const ok = setTitle(this.save, titleId);
@@ -110,13 +152,27 @@ export class SaveManager extends SaveManagerCore {
   }
 
   // ── F2 Idle expedition ──────────────────────────────────────────────────────
-  expeditionActive(): boolean { return expeditionActive(this.save); }
-  expeditionPendingGold(nowMs = Date.now()): number { return expeditionPendingGold(this.save, nowMs); }
-  expeditionGoldPerHour(): number { return expeditionGoldPerHour(this.save); }
-  expeditionGoldPerHourFor(towerIds: string[]): number { return expeditionGoldPerHourFor(this.save, towerIds); }
-  expeditionCanCollect(nowMs = Date.now()): boolean { return expeditionCanCollect(this.save, nowMs); }
-  expeditionCollectReadyAt(): number { return expeditionCollectReadyAt(this.save); }
-  expeditionEligibleTowerIds(): string[] { return expeditionEligibleTowerIds(this.save); }
+  expeditionActive(): boolean {
+    return expeditionActive(this.save);
+  }
+  expeditionPendingGold(nowMs = Date.now()): number {
+    return expeditionPendingGold(this.save, nowMs);
+  }
+  expeditionGoldPerHour(): number {
+    return expeditionGoldPerHour(this.save);
+  }
+  expeditionGoldPerHourFor(towerIds: string[]): number {
+    return expeditionGoldPerHourFor(this.save, towerIds);
+  }
+  expeditionCanCollect(nowMs = Date.now()): boolean {
+    return expeditionCanCollect(this.save, nowMs);
+  }
+  expeditionCollectReadyAt(): number {
+    return expeditionCollectReadyAt(this.save);
+  }
+  expeditionEligibleTowerIds(): string[] {
+    return expeditionEligibleTowerIds(this.save);
+  }
   startExpedition(towerIds: string[], nowMs = Date.now()): void {
     startExpedition(this.save, towerIds, nowMs);
     this.persist();
@@ -128,9 +184,13 @@ export class SaveManager extends SaveManagerCore {
   }
 
   // ── F11 Endless survival ────────────────────────────────────────────────────
-  bestEndlessWave(stageId: string): number { return bestEndlessWave(this.save, stageId); }
+  bestEndlessWave(stageId: string): number {
+    return bestEndlessWave(this.save, stageId);
+  }
   /** Gold needed to start an endless run on this stage (scales with the player's best wave). */
-  endlessEntryCost(stageId: string): number { return endlessEntryCost(bestEndlessWave(this.save, stageId)); }
+  endlessEntryCost(stageId: string): number {
+    return endlessEntryCost(bestEndlessWave(this.save, stageId));
+  }
   /** Spend the endless entry fee; returns gold paid, or -1 if too poor. Persists on success. */
   payEndlessEntry(stageId: string): number {
     const paid = payEndlessEntry(this.save, stageId);
@@ -151,7 +211,9 @@ export class SaveManager extends SaveManagerCore {
   }
 
   // ── F12 Boss rush (weekly) ──────────────────────────────────────────────────
-  bestBossRushTier(): number { return this.save.meta.bossRush.bestTier; }
+  bestBossRushTier(): number {
+    return this.save.meta.bossRush.bestTier;
+  }
   refreshBossRush(weekKey: string): void {
     if (this.save.meta.bossRush.weekKey === weekKey) return;
     rolloverBossRush(this.save, weekKey);
@@ -172,10 +234,14 @@ export class SaveManager extends SaveManagerCore {
     if (claim) this.persist();
     return claim;
   }
-  streakClaimable(todayIso: string): boolean { return streakClaimable(this.save, todayIso); }
+  streakClaimable(todayIso: string): boolean {
+    return streakClaimable(this.save, todayIso);
+  }
 
   // ── F4 Lucky spin ─────────────────────────────────────────────────────────
-  freeSpinAvailable(todayIso: string): boolean { return freeSpinAvailable(this.save, todayIso); }
+  freeSpinAvailable(todayIso: string): boolean {
+    return freeSpinAvailable(this.save, todayIso);
+  }
   /** Spin the daily free wheel. Null if today's free spin is already used. */
   spinFree(todayIso: string, rng: Rng = new Rng((Math.random() * 1e9) | 0)): SpinResult | null {
     if (!freeSpinAvailable(this.save, todayIso)) return null;

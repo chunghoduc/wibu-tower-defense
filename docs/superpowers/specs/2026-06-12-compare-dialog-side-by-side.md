@@ -19,7 +19,7 @@ Redesign the compare UI so:
 2. The button **under the left (selected) item is Enhance**; the button **under the
    right (equipping) item is Replace**.
 3. The **compare deltas move to the left side** — shown in a bracket next to the
-   *selected* item's stat values. If the equipping item has a stat the selected item
+   _selected_ item's stat values. If the equipping item has a stat the selected item
    lacks, **add that row** (left side shows the selected value as 0 with its negative
    bracket).
 
@@ -34,7 +34,7 @@ Zero gameplay/sim change — pure UI + a small additive data change. `HeroScene`
 `CompareRow` gains one additive field:
 
 - `bag: string` — the **selected** item's value, formatted the same way as `equipped`
-  (flat for base stats, `%` for fractional/affix). The number the player would *gain*.
+  (flat for base stats, `%` for fractional/affix). The number the player would _gain_.
 
 Everything else is unchanged: `equipped` (the right column's value), `delta`
 (`bag − equipped`, signed), `dir` (1 upgrade / 0 same / −1 downgrade). `compareItems`

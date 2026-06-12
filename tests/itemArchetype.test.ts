@@ -1,19 +1,37 @@
 // tests/itemArchetype.test.ts
 import { describe, it, expect } from "vitest";
 import {
-  archetypeFor, archetypeForPrimary, ARCHETYPES, type ItemArchetype,
+  archetypeFor,
+  archetypeForPrimary,
+  ARCHETYPES,
+  type ItemArchetype,
 } from "../src/data/itemArchetype.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 
 describe("archetypeForPrimary (derivation)", () => {
   const cases: [string, ItemArchetype][] = [
-    ["physicalDamage", "physical"], ["critRate", "physical"], ["critDamage", "physical"],
-    ["armorPen", "physical"], ["attackSpeed", "physical"], ["omnivamp", "physical"], ["atk", "physical"],
-    ["magicDamage", "magic"], ["skillPower", "magic"], ["magicPen", "magic"],
-    ["manaOnHit", "magic"], ["manaOnKill", "magic"],
-    ["maxHp", "defense"], ["armor", "defense"], ["magicResist", "defense"],
-    ["damageReduction", "defense"], ["critDefense", "defense"], ["tenacity", "defense"], ["hpRegen", "defense"],
-    ["goldFind", "utility"], ["moveSpeed", "utility"], ["range", "utility"],
+    ["physicalDamage", "physical"],
+    ["critRate", "physical"],
+    ["critDamage", "physical"],
+    ["armorPen", "physical"],
+    ["attackSpeed", "physical"],
+    ["omnivamp", "physical"],
+    ["atk", "physical"],
+    ["magicDamage", "magic"],
+    ["skillPower", "magic"],
+    ["magicPen", "magic"],
+    ["manaOnHit", "magic"],
+    ["manaOnKill", "magic"],
+    ["maxHp", "defense"],
+    ["armor", "defense"],
+    ["magicResist", "defense"],
+    ["damageReduction", "defense"],
+    ["critDefense", "defense"],
+    ["tenacity", "defense"],
+    ["hpRegen", "defense"],
+    ["goldFind", "utility"],
+    ["moveSpeed", "utility"],
+    ["range", "utility"],
   ];
   for (const [primary, expected] of cases) {
     it(`'${primary}' → ${expected}`, () => {

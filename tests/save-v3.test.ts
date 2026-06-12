@@ -24,7 +24,14 @@ describe("HeroSave v3", () => {
     const v1: any = {
       version: 1,
       heroId: "h1",
-      hero: { level: 1, totalXp: 0, skillPoints: 0, unlockedNodes: [], obtainedSkills: [], equippedSkillId: null },
+      hero: {
+        level: 1,
+        totalXp: 0,
+        skillPoints: 0,
+        unlockedNodes: [],
+        obtainedSkills: [],
+        equippedSkillId: null,
+      },
       inventory: { items: [], equipped: {} },
       lastSavedAt: 0,
     };
@@ -39,7 +46,14 @@ describe("HeroSave v3", () => {
     const v2: any = {
       version: 2,
       heroId: "h2",
-      hero: { level: 10, totalXp: 5000, skillPoints: 9, unlockedNodes: [], obtainedSkills: [], equippedSkillId: null },
+      hero: {
+        level: 10,
+        totalXp: 5000,
+        skillPoints: 9,
+        unlockedNodes: [],
+        obtainedSkills: [],
+        equippedSkillId: null,
+      },
       inventory: { items: [], equipped: {} },
       collection: { "zoran-thricedraw": { stars: 3 } },
       lastSavedAt: 0,

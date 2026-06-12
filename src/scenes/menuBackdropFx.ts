@@ -14,11 +14,14 @@ import { motePos, emberPos, rayAlpha, flicker } from "./menuAtmosphere.ts";
 const ADD = Phaser.BlendModes.ADD;
 
 export class MenuBackdropFx {
-  private base: Phaser.GameObjects.Graphics;   // static, normal blend (darken + vignette)
-  private glow: Phaser.GameObjects.Graphics;   // static, additive (key light + ray cones)
-  private anim: Phaser.GameObjects.Graphics;   // per-frame, additive
+  private base: Phaser.GameObjects.Graphics; // static, normal blend (darken + vignette)
+  private glow: Phaser.GameObjects.Graphics; // static, additive (key light + ray cones)
+  private anim: Phaser.GameObjects.Graphics; // per-frame, additive
 
-  constructor(scene: Phaser.Scene, private spec: MenuAtmosphereSpec) {
+  constructor(
+    scene: Phaser.Scene,
+    private spec: MenuAtmosphereSpec,
+  ) {
     this.base = scene.add.graphics().setDepth(-8);
     this.glow = scene.add.graphics().setDepth(-8).setBlendMode(ADD);
     this.anim = scene.add.graphics().setDepth(-7).setBlendMode(ADD);
@@ -30,7 +33,8 @@ export class MenuBackdropFx {
     // Whole-screen darken so the busy painted hall recedes behind the lit diorama.
     this.base.fillStyle(0x05070c, 0.36).fillRect(0, 0, dims.width, dims.height);
     // Radial vignette: stacked translucent rings, dark at the rim, clear at the hero.
-    const RINGS = 18, ringW = (v.outerR - v.innerR) / RINGS + 3;
+    const RINGS = 18,
+      ringW = (v.outerR - v.innerR) / RINGS + 3;
     for (let i = 1; i <= RINGS; i++) {
       const t = i / RINGS;
       this.base.lineStyle(ringW, 0x000000, (v.edgeAlpha * t * t) / 3);
@@ -73,7 +77,7 @@ export class MenuBackdropFx {
     // Torch flicker pools.
     for (const tr of torches) {
       const f = flicker(t, tr.phase);
-      g.fillStyle(tr.color, 0.10 + 0.16 * f);
+      g.fillStyle(tr.color, 0.1 + 0.16 * f);
       g.fillCircle(tr.x, tr.y, tr.r * (0.85 + 0.25 * f));
     }
     // Dust motes (cool/white) and rising embers (warm).

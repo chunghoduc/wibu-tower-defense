@@ -11,10 +11,10 @@ import { arcControl, bezierPoint } from "./lootFlyArc.ts";
 import { iconFitScale } from "./itemIcon.ts";
 
 export interface LootFlyOpts {
-  iconKey?: string;        // when set + loaded, fly the real art (item__/box__)
-  fallbackColor?: number;  // circle colour when no icon/texture
-  delay?: number;          // stagger multiple coins
-  iconFit?: number;        // longest-edge px for an icon (default 22)
+  iconKey?: string; // when set + loaded, fly the real art (item__/box__)
+  fallbackColor?: number; // circle colour when no icon/texture
+  delay?: number; // stagger multiple coins
+  iconFit?: number; // longest-edge px for an icon (default 22)
 }
 
 type FlyObject = Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject;
@@ -36,7 +36,12 @@ export class LootFlyFx {
     const ey = from.y - Phaser.Math.Between(10, 24);
     const baseScale = obj.scale;
     this.scene.tweens.add({
-      targets: obj, x: ex, y: ey, scale: baseScale * 1.15, duration: 160, delay,
+      targets: obj,
+      x: ex,
+      y: ey,
+      scale: baseScale * 1.15,
+      duration: 160,
+      delay,
       ease: "Quad.easeOut",
       onComplete: () => this.flyToHero({ x: ex, y: ey }, to, obj, baseScale),
     });
@@ -47,20 +52,33 @@ export class LootFlyFx {
     const ctrl = arcControl(start, to, 46);
     const proxy = { t: 0 };
     this.scene.tweens.add({
-      targets: proxy, t: 1, duration: 760, ease: "Sine.easeInOut",
+      targets: proxy,
+      t: 1,
+      duration: 760,
+      ease: "Sine.easeInOut",
       onUpdate: () => {
         const p = bezierPoint(start, ctrl, to, proxy.t);
         obj.setPosition(p.x, p.y);
         obj.setScale(baseScale * (1 - 0.5 * proxy.t));
       },
-      onComplete: () => { this.absorb(to); obj.destroy(); },
+      onComplete: () => {
+        this.absorb(to);
+        obj.destroy();
+      },
     });
   }
 
   /** A quick white flash where the loot meets the hero. */
   private absorb(at: Vec2): void {
     const flash = this.fac.circle(at.x, at.y, 7, 0xffffff, 0.85).setDepth(this.depth + 3);
-    this.scene.tweens.add({ targets: flash, scale: 1.9, alpha: 0, duration: 220, ease: "Quad.easeOut", onComplete: () => flash.destroy() });
+    this.scene.tweens.add({
+      targets: flash,
+      scale: 1.9,
+      alpha: 0,
+      duration: 220,
+      ease: "Quad.easeOut",
+      onComplete: () => flash.destroy(),
+    });
   }
 
   private makeObject(from: Vec2, kind: "coin" | "icon", opts: LootFlyOpts): FlyObject {
@@ -69,7 +87,9 @@ export class LootFlyFx {
       img.setScale(iconFitScale(img.width, img.height, opts.iconFit ?? 22));
       return img;
     }
-    return this.fac.circle(from.x, from.y, 5, opts.fallbackColor ?? 0xffd34d)
-      .setStrokeStyle(1, 0xa9722a).setDepth(this.depth + 2);
+    return this.fac
+      .circle(from.x, from.y, 5, opts.fallbackColor ?? 0xffd34d)
+      .setStrokeStyle(1, 0xa9722a)
+      .setDepth(this.depth + 2);
   }
 }

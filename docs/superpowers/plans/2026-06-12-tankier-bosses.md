@@ -13,6 +13,7 @@
 ### Task 1: Lock the new boss-tankiness values with a test
 
 **Files:**
+
 - Test: `tests/bossTankiness.test.ts` (create)
 - Source: `src/data/schema.ts` (read for import)
 

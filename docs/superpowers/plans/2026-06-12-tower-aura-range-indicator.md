@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Draw an always-on, softly pulsing aquamarine ring at the *true* aura radius of every tower that buffs nearby towers, so players can see aura coverage in battle.
+**Goal:** Draw an always-on, softly pulsing aquamarine ring at the _true_ aura radius of every tower that buffs nearby towers, so players can see aura coverage in battle.
 
 **Architecture:** A pure Phaser-free helper (`src/core/auraIndicator.ts`) answers "does this tower have an active tower-buff aura and at what true radius" (mirroring the sim's `recomputeTowerBuffs` gate) plus a per-tower glow pulse. A thin render method `drawAuraRing` in `battleSceneRender.ts` consumes the helper and draws the ring/fill, called in a pre-pass under the existing tower bodies. Presentation-only: no gameplay, data, or art changes.
 
@@ -13,6 +13,7 @@
 ### Task 1: Pure aura-indicator helper
 
 **Files:**
+
 - Create: `src/core/auraIndicator.ts`
 - Test: `tests/auraIndicator.test.ts`
 
@@ -26,7 +27,10 @@ import { auraRadiusOf, auraPulse, AURA_RING_COLOR } from "../src/core/auraIndica
 import type { TowerRuntime } from "../src/core/battleTypes.ts";
 
 // Minimal TowerRuntime stub — only the fields auraRadiusOf reads.
-function tower(role: string, buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number }): TowerRuntime {
+function tower(
+  role: string,
+  buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number },
+): TowerRuntime {
   return {
     def: { role } as TowerRuntime["def"],
     behavior: { buffAura } as TowerRuntime["behavior"],
@@ -144,6 +148,7 @@ This catches authoring mistakes: a tower with a `buffAura` whose role is not
 show a ring. The test makes that contradiction loud.
 
 **Files:**
+
 - Modify (append a describe block): `tests/auraIndicator.test.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -155,7 +160,9 @@ import { TOWERS } from "../src/data/towers.ts";
 
 describe("buffAura data integrity", () => {
   it("every tower def with a buffAura is role 'support' (else its aura never applies)", () => {
-    const offenders = TOWERS.filter((d) => d.behavior?.buffAura && d.role !== "support").map((d) => d.id);
+    const offenders = TOWERS.filter((d) => d.behavior?.buffAura && d.role !== "support").map(
+      (d) => d.id,
+    );
     expect(offenders).toEqual([]);
   });
 
@@ -186,6 +193,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Render the aura ring in the battle scene
 
 **Files:**
+
 - Modify: `src/scenes/battleSceneRender.ts` — add import, add `drawAuraRing` method, add pre-pass loop in `draw()`.
 
 - [ ] **Step 1: Add the import**
@@ -202,14 +210,14 @@ import { auraRadiusOf, auraPulse, AURA_RING_COLOR } from "../core/auraIndicator.
 In `draw()`, find this existing line:
 
 ```ts
-    for (const t of this.battle.towers) this.drawTower(g, t);
+for (const t of this.battle.towers) this.drawTower(g, t);
 ```
 
 Insert the aura pre-pass immediately BEFORE it (so rings draw under tower bodies):
 
 ```ts
-    for (const t of this.battle.towers) this.drawAuraRing(g, t);
-    for (const t of this.battle.towers) this.drawTower(g, t);
+for (const t of this.battle.towers) this.drawAuraRing(g, t);
+for (const t of this.battle.towers) this.drawTower(g, t);
 ```
 
 - [ ] **Step 3: Add the `drawAuraRing` method**
@@ -259,6 +267,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Verify whole — build, playtest, memory
 
 **Files:**
+
 - Modify (memory, outside repo): `memory/MEMORY.md`, `memory/project_skill_vfx_signatures.md` (or a new memory file).
 
 - [ ] **Step 1: Build**
@@ -307,6 +316,7 @@ Expected: typecheck clean, all tests pass. Report the final counts to the user.
 ## Self-Review
 
 **Spec coverage:**
+
 - "Glowing ring at true radius for aura towers" → Task 1 (`auraRadiusOf` reads live
   radius) + Task 3 (`drawAuraRing`). ✓
 - "Glows (pulse), distinct color" → Task 1 (`auraPulse`, `AURA_RING_COLOR`) + Task 3. ✓

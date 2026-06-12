@@ -22,18 +22,20 @@ A jewel is just another such bag. Modelling jewels as stat bags that pigg-back o
 ## Data model
 
 ### JewelDef (`src/data/jewels.ts`)
+
 ```ts
 interface JewelDef {
   id: string;
   name: string;
-  rarity: Rarity;            // reuse existing Rarity union
+  rarity: Rarity; // reuse existing Rarity union
   description: string;
   flat?: Partial<Stats>;
   increased?: Partial<Stats>;
   more?: Partial<Stats>;
-  artRef: string;           // "placeholder" until SDXL art lands
+  artRef: string; // "placeholder" until SDXL art lands
 }
 ```
+
 Validated by `validateJewelDef` (id/name non-empty, valid rarity, at least one
 stat bag present). `JEWEL_CATALOG` holds 50 defs; `JEWEL_CATALOG_MAP` indexes by id.
 
@@ -41,11 +43,14 @@ Jewels are **not** rolled with per-instance variance (unlike items) — a jewel'
 mods are fixed by its def. This keeps them readable and discrete.
 
 ### Save (`src/core/save.ts`, v5 → v6)
+
 `HeroProgressSave` gains:
+
 ```ts
 jewels: JewelInstanceSave[];                 // owned, un-socketed + socketed both live here
 socketedJewels: Record<string, string>;      // nodeId → jewel instance id
 ```
+
 `JewelInstanceSave = { id: string; defId: string }`. Migration v6 backfills both
 to `[]` / `{}`; the defensive backfill block also ensures they exist.
 
@@ -63,8 +68,8 @@ as PoE. These bags are appended to the `passiveNodes` array fed to
   jewel-socket, jewel must be owned and not already socketed elsewhere. Sets the
   map entry. Persists.
 - `unsocketJewel(nodeId): boolean` — clears the map entry (jewel returns to the
-  owned pool but stays in `jewels`). Persists. *(internal helper; UI's "remove"
-  uses discard, below.)*
+  owned pool but stays in `jewels`). Persists. _(internal helper; UI's "remove"
+  uses discard, below.)_
 - `discardJewel(jewelInstanceId): boolean` — **destroys** the jewel forever:
   removes it from `jewels` and from any socket. Persists. This backs the UI's
   "Remove / destroy" action.
@@ -87,6 +92,7 @@ common, uniques rare). The dropped jewel lands in `save.hero.jewels`.
 ## UI (`PassiveGridScene` + jewel overlay)
 
 Selecting a jewel-socket node:
+
 - **Not allocated** → normal Unlock flow (it's a passive node).
 - **Allocated + empty** → side panel shows "Empty socket" + a **Socket Jewel**
   button → opens an overlay listing owned, un-socketed jewels (icon, name, mods).

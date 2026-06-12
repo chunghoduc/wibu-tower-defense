@@ -6,17 +6,38 @@ describe("heroStatRows", () => {
   it("returns the 12 hero stats in display order with correct labels", () => {
     const rows = heroStatRows(makeStats({}));
     expect(rows.map((r) => r.label)).toEqual([
-      "ATK", "Atk Spd", "Range", "Crit", "Crit Dmg", "HP",
-      "HP Regen", "Armor", "M.Resist", "Skill Pwr", "Omnivamp", "Move Spd",
+      "ATK",
+      "Atk Spd",
+      "Range",
+      "Crit",
+      "Crit Dmg",
+      "HP",
+      "HP Regen",
+      "Armor",
+      "M.Resist",
+      "Skill Pwr",
+      "Omnivamp",
+      "Move Spd",
     ]);
   });
 
   it("formats scalar, percent and multiplier stats correctly", () => {
-    const rows = heroStatRows(makeStats({
-      atk: 142.7, attackSpeed: 1.14, range: 130.6, critRate: 0.25,
-      critDamage: 1.5, maxHp: 812.3, hpRegen: 8.2, armor: 30.6,
-      magicResist: 12, skillPower: 1.5, omnivamp: 0.08, moveSpeed: 160.4,
-    }));
+    const rows = heroStatRows(
+      makeStats({
+        atk: 142.7,
+        attackSpeed: 1.14,
+        range: 130.6,
+        critRate: 0.25,
+        critDamage: 1.5,
+        maxHp: 812.3,
+        hpRegen: 8.2,
+        armor: 30.6,
+        magicResist: 12,
+        skillPower: 1.5,
+        omnivamp: 0.08,
+        moveSpeed: 160.4,
+      }),
+    );
     const by = (l: string) => rows.find((r) => r.label === l)!.value;
     expect(by("ATK")).toBe("143");
     expect(by("Atk Spd")).toBe("1.1");

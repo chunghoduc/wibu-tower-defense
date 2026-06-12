@@ -23,15 +23,19 @@ const HOUR_MS = 60 * 60 * 1000;
 /** Base gold/hour contributed by a single 1★ Common tower at zero progress. */
 const BASE_GOLD_PER_HOUR = 120;
 /** Each cleared stage adds 10% to the rate (deeper progress → richer expeditions). */
-const PROGRESS_BONUS = 0.10;
+const PROGRESS_BONUS = 0.1;
 /** Per-hour chance to also bring back a Bless jewel. */
 const MATERIAL_CHANCE_PER_HOUR = 0.25;
 /** Gold weight per rarity (a stronger hero gathers more). */
 const RARITY_WEIGHT: Record<Rarity, number> = {
-  Common: 1, Magic: 1.4, Rare: 2, Legendary: 3, Unique: 4.5,
+  Common: 1,
+  Magic: 1.4,
+  Rare: 2,
+  Legendary: 3,
+  Unique: 4.5,
 };
 /** Each star above the first adds 20% to that tower's contribution. */
-const STAR_STEP = 0.20;
+const STAR_STEP = 0.2;
 
 const TOWER_RARITY = new Map<string, Rarity>(TOWERS.map((t) => [t.id, t.rarity]));
 

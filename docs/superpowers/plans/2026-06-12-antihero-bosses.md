@@ -29,6 +29,7 @@
 ## Task 1: The 10 boss definitions + catalog wiring (TDD)
 
 **Files:**
+
 - Create: `tests/antiheroBosses.test.ts`
 - Create: `src/data/enemiesAntiheroes.ts`
 - Modify: `src/data/enemies.ts`
@@ -45,8 +46,16 @@ import { ANTIHERO_BOSSES } from "../src/data/enemiesAntiheroes.ts";
 import { validateEnemy } from "../src/data/schema.ts";
 
 const IDS = [
-  "gravemourn", "vindicator", "sundermark", "crownfall", "unkilling",
-  "mawborn", "devourer", "crimsonlord", "fallenward", "ashghost",
+  "gravemourn",
+  "vindicator",
+  "sundermark",
+  "crownfall",
+  "unkilling",
+  "mawborn",
+  "devourer",
+  "crimsonlord",
+  "fallenward",
+  "ashghost",
 ];
 const byId = (id: string) => ENEMIES.find((e) => e.id === id)!;
 
@@ -65,15 +74,15 @@ describe("Antihero Gallery — catalog integrity", () => {
     for (const id of IDS) {
       const def = byId(id);
       expect(def.archetype, id).toBe("Boss");
-      expect(def.immunity, id).toBeNull();          // bosses must always be answerable
+      expect(def.immunity, id).toBeNull(); // bosses must always be answerable
       expect(castleLeakDamage(def), id).toBe(BOSS_CASTLE_DAMAGE);
     }
   });
   it("carries each boss's designed signature mechanic", () => {
     expect(byId("gravemourn").boss?.enrage).toBeDefined();
-    expect(byId("gravemourn").special?.frenzy).toBeDefined();   // double sub-50% spike
+    expect(byId("gravemourn").special?.frenzy).toBeDefined(); // double sub-50% spike
     expect(byId("vindicator").special?.attacksTowers).toBeDefined();
-    expect(byId("vindicator").boss?.enrage).toBeUndefined();     // the cold gunman never enrages
+    expect(byId("vindicator").boss?.enrage).toBeUndefined(); // the cold gunman never enrages
     expect(byId("sundermark").boss?.towerDisable).toBeDefined();
     expect(byId("crownfall").boss?.enrage?.atkMult).toBeGreaterThanOrEqual(1.9);
     expect(byId("crownfall").boss?.skill?.type).toBe("barrier");
@@ -95,12 +104,22 @@ describe("Antihero Gallery — mechanics fire in-sim (smoke)", () => {
   // long lane and tick. Asserts no throw and that summon/disable mechanics land.
   function bossWorld(bossId: string) {
     const boss = byId(bossId);
-    const imp = byId("imp"), brute = byId("brute");
+    const imp = byId("imp"),
+      brute = byId("brute");
     // Sturdy, harmless-to-itself tower far enough to never die; high range to engage.
-    const tower = mkTower({ baseStats: { ...mkTower().baseStats, atk: 20, attackSpeed: 2, range: 9999, maxHp: 1e9 } });
-    const stage = mkStage([{ spawns: [{ enemyId: bossId, count: 1, interval: 1, delay: 0 }] }],
-      { slots: [{ x: 60, y: 0 }], path: [{ x: 0, y: 0 }, { x: 6000, y: 0 }] });
-    const b = world([boss, imp, brute, tower as never].filter(Boolean) as never, [tower], stage, { seed: 7 });
+    const tower = mkTower({
+      baseStats: { ...mkTower().baseStats, atk: 20, attackSpeed: 2, range: 9999, maxHp: 1e9 },
+    });
+    const stage = mkStage([{ spawns: [{ enemyId: bossId, count: 1, interval: 1, delay: 0 }] }], {
+      slots: [{ x: 60, y: 0 }],
+      path: [
+        { x: 0, y: 0 },
+        { x: 6000, y: 0 },
+      ],
+    });
+    const b = world([boss, imp, brute, tower as never].filter(Boolean) as never, [tower], stage, {
+      seed: 7,
+    });
     b.placeTower("turret", 0);
     return b;
   }
@@ -155,133 +174,364 @@ import { makeStats, type EnemyDef } from "./schema.ts";
 
 export const ANTIHERO_BOSSES: EnemyDef[] = [
   {
-    id: "gravemourn", name: "Gravemourn the Black Reaver", // homage: Guts (Berserk)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
-    bounty: 90, castleDamage: 8,
-    baseStats: makeStats({ maxHp: 1150, armor: 30, moveSpeed: 34, atk: 40, attackSpeed: 1.2, tenacity: 0.5 }),
-    weapon: { family: "sword", display: "a slab of iron too large to be called a sword", heavy: true },
-    special: { attacksTowers: { range: 100 }, frenzy: { belowHpPct: 0.5, speedMult: 1.5, atkMult: 1.5 } },
+    id: "gravemourn",
+    name: "Gravemourn the Black Reaver", // homage: Guts (Berserk)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 90,
+    castleDamage: 8,
+    baseStats: makeStats({
+      maxHp: 1150,
+      armor: 30,
+      moveSpeed: 34,
+      atk: 40,
+      attackSpeed: 1.2,
+      tenacity: 0.5,
+    }),
+    weapon: {
+      family: "sword",
+      display: "a slab of iron too large to be called a sword",
+      heavy: true,
+    },
+    special: {
+      attacksTowers: { range: 100 },
+      frenzy: { belowHpPct: 0.5, speedMult: 1.5, atkMult: 1.5 },
+    },
     boss: {
       enrage: { belowHpPct: 0.5, atkMult: 1.6, speedMult: 1.6 },
-      skill: { id: "gravemourn-cleave", name: "Berserker Cleave", description: "A wild horizontal cleave staggers nearby towers and rends the hero.", manaCost: 95, type: "quake", radius: 150, power: 0.16 },
+      skill: {
+        id: "gravemourn-cleave",
+        name: "Berserker Cleave",
+        description: "A wild horizontal cleave staggers nearby towers and rends the hero.",
+        manaCost: 95,
+        type: "quake",
+        radius: 150,
+        power: 0.16,
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "vindicator", name: "The Vindicator", // homage: The Punisher (Marvel)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
-    bounty: 110, castleDamage: 9,
-    baseStats: makeStats({ maxHp: 1350, armor: 35, moveSpeed: 28, atk: 52, attackSpeed: 1.3, tenacity: 0.5 }),
+    id: "vindicator",
+    name: "The Vindicator", // homage: The Punisher (Marvel)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 110,
+    castleDamage: 9,
+    baseStats: makeStats({
+      maxHp: 1350,
+      armor: 35,
+      moveSpeed: 28,
+      atk: 52,
+      attackSpeed: 1.3,
+      tenacity: 0.5,
+    }),
     weapon: { family: "thrown", display: "a relentless barrage of gunfire" },
     special: { attacksTowers: { range: 170 } }, // outranges the line — a race to kill
     boss: {
-      skill: { id: "vindicator-barrage", name: "Suppressing Fire", description: "Rakes the line with fire — stuns nearby towers and batters the hero.", manaCost: 100, type: "quake", radius: 160, power: 0.18 },
+      skill: {
+        id: "vindicator-barrage",
+        name: "Suppressing Fire",
+        description: "Rakes the line with fire — stuns nearby towers and batters the hero.",
+        manaCost: 100,
+        type: "quake",
+        radius: 160,
+        power: 0.18,
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "sundermark", name: "Sundermark the Vagrant", // homage: Scar (Fullmetal Alchemist)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
-    bounty: 120, castleDamage: 10,
-    baseStats: makeStats({ maxHp: 1500, armor: 28, magicResist: 30, moveSpeed: 30, atk: 44, attackSpeed: 1.0, tenacity: 0.55 }),
+    id: "sundermark",
+    name: "Sundermark the Vagrant", // homage: Scar (Fullmetal Alchemist)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 120,
+    castleDamage: 10,
+    baseStats: makeStats({
+      maxHp: 1500,
+      armor: 28,
+      magicResist: 30,
+      moveSpeed: 30,
+      atk: 44,
+      attackSpeed: 1.0,
+      tenacity: 0.55,
+    }),
     weapon: { family: "fist", display: "a destroying right hand" },
     special: { attacksTowers: { range: 110 } },
     boss: {
       towerDisable: { radius: 120, duration: 2.5, interval: 9 },
-      skill: { id: "sundermark-deconstruct", name: "Deconstruction", description: "Unmakes the matter of nearby towers and savages the hero.", manaCost: 105, type: "quake", radius: 150, power: 0.18 },
+      skill: {
+        id: "sundermark-deconstruct",
+        name: "Deconstruction",
+        description: "Unmakes the matter of nearby towers and savages the hero.",
+        manaCost: 105,
+        type: "quake",
+        radius: 150,
+        power: 0.18,
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "crownfall", name: "Crownfall the Proud", // homage: Vegeta (Dragon Ball)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
-    bounty: 130, castleDamage: 10,
-    baseStats: makeStats({ maxHp: 1650, armor: 32, magicResist: 28, moveSpeed: 30, atk: 46, attackSpeed: 1.0, tenacity: 0.6 }),
-    weapon: { family: "fist", display: "searing fists of energy", element: "fire", enchanted: true },
+    id: "crownfall",
+    name: "Crownfall the Proud", // homage: Vegeta (Dragon Ball)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 130,
+    castleDamage: 10,
+    baseStats: makeStats({
+      maxHp: 1650,
+      armor: 32,
+      magicResist: 28,
+      moveSpeed: 30,
+      atk: 46,
+      attackSpeed: 1.0,
+      tenacity: 0.6,
+    }),
+    weapon: {
+      family: "fist",
+      display: "searing fists of energy",
+      element: "fire",
+      enchanted: true,
+    },
     boss: {
       summon: { enemyId: "imp", count: 2, interval: 7 },
       enrage: { belowHpPct: 0.45, atkMult: 2.0, speedMult: 1.7 }, // prideful power-up
-      skill: { id: "crownfall-pride", name: "Galick Pride", description: "Erupts a prideful aura, shielding itself and its minions.", manaCost: 110, type: "barrier", radius: 180, power: 0.32 },
+      skill: {
+        id: "crownfall-pride",
+        name: "Galick Pride",
+        description: "Erupts a prideful aura, shielding itself and its minions.",
+        manaCost: 110,
+        type: "barrier",
+        radius: 180,
+        power: 0.32,
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "unkilling", name: "The Unkilling", // homage: Wolverine (X-Men)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
-    bounty: 150, castleDamage: 11,
-    baseStats: makeStats({ maxHp: 1950, armor: 34, moveSpeed: 32, atk: 42, attackSpeed: 1.3, hpRegen: 60, tenacity: 0.7 }),
+    id: "unkilling",
+    name: "The Unkilling", // homage: Wolverine (X-Men)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 150,
+    castleDamage: 11,
+    baseStats: makeStats({
+      maxHp: 1950,
+      armor: 34,
+      moveSpeed: 32,
+      atk: 42,
+      attackSpeed: 1.3,
+      hpRegen: 60,
+      tenacity: 0.7,
+    }),
     weapon: { family: "fist", display: "three slashing claws" },
     special: { frenzy: { belowHpPct: 0.4, speedMult: 1.5, atkMult: 1.6 } },
     boss: {
       enrage: { belowHpPct: 0.4, atkMult: 1.5, speedMult: 1.4 },
-      skill: { id: "unkilling-mend", name: "Healing Factor", description: "Knits its wounds shut, restoring a burst of health.", manaCost: 90, type: "rally", radius: 120, power: 0.22 },
+      skill: {
+        id: "unkilling-mend",
+        name: "Healing Factor",
+        description: "Knits its wounds shut, restoring a burst of health.",
+        manaCost: 90,
+        type: "rally",
+        radius: 120,
+        power: 0.22,
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "mawborn", name: "The Hungering Other", // homage: Venom (symbiote)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
-    bounty: 170, castleDamage: 12,
-    baseStats: makeStats({ maxHp: 2250, armor: 36, moveSpeed: 28, atk: 48, attackSpeed: 1.0, tenacity: 0.6 }),
+    id: "mawborn",
+    name: "The Hungering Other", // homage: Venom (symbiote)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 170,
+    castleDamage: 12,
+    baseStats: makeStats({
+      maxHp: 2250,
+      armor: 36,
+      moveSpeed: 28,
+      atk: 48,
+      attackSpeed: 1.0,
+      tenacity: 0.6,
+    }),
     weapon: { family: "fist", display: "lashing symbiotic tendrils" },
     special: { splitInto: { enemyId: "imp", count: 3 } },
     boss: {
       summon: { enemyId: "imp", count: 2, interval: 6 },
       enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.5 },
-      skill: { id: "mawborn-swarm", name: "Spawn the Brood", description: "Splits off a writhing brood of spawn.", manaCost: 110, type: "summon-surge", power: 4, summonId: "imp" },
+      skill: {
+        id: "mawborn-swarm",
+        name: "Spawn the Brood",
+        description: "Splits off a writhing brood of spawn.",
+        manaCost: 110,
+        type: "summon-surge",
+        power: 4,
+        summonId: "imp",
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "devourer", name: "The Devouring Heir", // homage: Eren Yeager / the Titans (Attack on Titan)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
-    bounty: 185, castleDamage: 13,
-    baseStats: makeStats({ maxHp: 2400, armor: 40, moveSpeed: 22, atk: 54, attackSpeed: 0.85, tenacity: 0.65 }),
+    id: "devourer",
+    name: "The Devouring Heir", // homage: Eren Yeager / the Titans (Attack on Titan)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 185,
+    castleDamage: 13,
+    baseStats: makeStats({
+      maxHp: 2400,
+      armor: 40,
+      moveSpeed: 22,
+      atk: 54,
+      attackSpeed: 0.85,
+      tenacity: 0.65,
+    }),
     weapon: { family: "fist", display: "titanic crushing fists" },
     boss: {
       summon: { enemyId: "brute", count: 1, interval: 9 }, // a wall that breeds walls
       enrage: { belowHpPct: 0.4, atkMult: 1.7, speedMult: 1.5 },
-      skill: { id: "devourer-rumbling", name: "The Rumbling", description: "Calls a march of lesser titans to trample the line.", manaCost: 120, type: "summon-surge", power: 3, summonId: "brute" },
+      skill: {
+        id: "devourer-rumbling",
+        name: "The Rumbling",
+        description: "Calls a march of lesser titans to trample the line.",
+        manaCost: 120,
+        type: "summon-surge",
+        power: 3,
+        summonId: "brute",
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "crimsonlord", name: "The Crimson Sovereign", // homage: Alucard (Hellsing)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
-    bounty: 200, castleDamage: 13,
-    baseStats: makeStats({ maxHp: 2600, armor: 30, magicResist: 38, moveSpeed: 26, atk: 50, attackSpeed: 1.1, hpRegen: 40, tenacity: 0.65 }),
+    id: "crimsonlord",
+    name: "The Crimson Sovereign", // homage: Alucard (Hellsing)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 200,
+    castleDamage: 13,
+    baseStats: makeStats({
+      maxHp: 2600,
+      armor: 30,
+      magicResist: 38,
+      moveSpeed: 26,
+      atk: 50,
+      attackSpeed: 1.1,
+      hpRegen: 40,
+      tenacity: 0.65,
+    }),
     weapon: { family: "thrown", display: "twin blessed long-barreled pistols" },
     boss: {
       summon: { enemyId: "imp", count: 2, interval: 7 }, // raises familiars
       enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.5 },
-      skill: { id: "crimsonlord-drain", name: "Crimson Feast", description: "Drains vitality from the field to heal itself and its familiars.", manaCost: 105, type: "rally", radius: 190, power: 0.2 },
+      skill: {
+        id: "crimsonlord-drain",
+        name: "Crimson Feast",
+        description: "Drains vitality from the field to heal itself and its familiars.",
+        manaCost: 105,
+        type: "rally",
+        radius: 190,
+        power: 0.2,
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "fallenward", name: "The Fallen Warden", // homage: Darth Vader (Star Wars)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Magic",
-    bounty: 230, castleDamage: 15,
-    baseStats: makeStats({ maxHp: 3100, armor: 45, magicResist: 35, moveSpeed: 24, atk: 56, attackSpeed: 0.9, tenacity: 0.7 }),
-    weapon: { family: "sword", display: "a humming crimson energy blade", element: "fire", enchanted: true },
+    id: "fallenward",
+    name: "The Fallen Warden", // homage: Darth Vader (Star Wars)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Magic",
+    bounty: 230,
+    castleDamage: 15,
+    baseStats: makeStats({
+      maxHp: 3100,
+      armor: 45,
+      magicResist: 35,
+      moveSpeed: 24,
+      atk: 56,
+      attackSpeed: 0.9,
+      tenacity: 0.7,
+    }),
+    weapon: {
+      family: "sword",
+      display: "a humming crimson energy blade",
+      element: "fire",
+      enchanted: true,
+    },
     boss: {
       towerDisable: { radius: 150, duration: 3.5, interval: 10 }, // dread "force choke"
       enrage: { belowHpPct: 0.4, atkMult: 1.6, speedMult: 1.4 },
-      skill: { id: "fallenward-choke", name: "Dread Choke", description: "An unseen grip silences the towers and crushes the hero.", manaCost: 115, type: "barrier", radius: 180, power: 0.34 },
+      skill: {
+        id: "fallenward-choke",
+        name: "Dread Choke",
+        description: "An unseen grip silences the towers and crushes the hero.",
+        manaCost: 115,
+        type: "barrier",
+        radius: 180,
+        power: 0.34,
+      },
     },
     artRef: "placeholder",
   },
   {
-    id: "ashghost", name: "The Ashen Ghost", // homage: Kratos (God of War)
-    archetype: "Boss", flying: false, immunity: null, damageType: "Physical",
-    bounty: 300, castleDamage: 20,
-    baseStats: makeStats({ maxHp: 4200, armor: 55, magicResist: 35, moveSpeed: 24, atk: 70, attackSpeed: 1.0, hpRegen: 16, tenacity: 0.8 }),
-    weapon: { family: "thrown", display: "twin chained blades wreathed in ash", element: "fire", enchanted: true },
-    boss: { // the apex: the works
+    id: "ashghost",
+    name: "The Ashen Ghost", // homage: Kratos (God of War)
+    archetype: "Boss",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 300,
+    castleDamage: 20,
+    baseStats: makeStats({
+      maxHp: 4200,
+      armor: 55,
+      magicResist: 35,
+      moveSpeed: 24,
+      atk: 70,
+      attackSpeed: 1.0,
+      hpRegen: 16,
+      tenacity: 0.8,
+    }),
+    weapon: {
+      family: "thrown",
+      display: "twin chained blades wreathed in ash",
+      element: "fire",
+      enchanted: true,
+    },
+    boss: {
+      // the apex: the works
       summon: { enemyId: "imp", count: 2, interval: 7 },
       towerDisable: { radius: 140, duration: 3, interval: 11 },
       enrage: { belowHpPct: 0.4, atkMult: 2.0, speedMult: 1.7 },
-      skill: { id: "ashghost-rage", name: "Spartan Rage", description: "An eruption of ash and fury devastates the hero and silences nearby towers.", manaCost: 120, type: "quake", radius: 200, power: 0.24 },
+      skill: {
+        id: "ashghost-rage",
+        name: "Spartan Rage",
+        description: "An eruption of ash and fury devastates the hero and silences nearby towers.",
+        manaCost: 120,
+        type: "quake",
+        radius: 200,
+        power: 0.24,
+      },
     },
     artRef: "placeholder",
   },
@@ -332,6 +582,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 2: Stage placement + difficulty-rank wiring (TDD)
 
 **Files:**
+
 - Create: `tests/bossPlacement.test.ts`
 - Modify: `src/data/stagesExpansion.ts` (`BOSS_EXPANSION`)
 - Modify: `src/data/stage.ts` (`BOSS_HP_RANK`)
@@ -346,8 +597,16 @@ import { BOSS_BY_STAGE, midBossFor } from "../src/data/stage.ts";
 import { ENEMIES } from "../src/data/enemies.ts";
 
 const NEW = [
-  "gravemourn", "vindicator", "sundermark", "crownfall", "unkilling",
-  "mawborn", "devourer", "crimsonlord", "fallenward", "ashghost",
+  "gravemourn",
+  "vindicator",
+  "sundermark",
+  "crownfall",
+  "unkilling",
+  "mawborn",
+  "devourer",
+  "crimsonlord",
+  "fallenward",
+  "ashghost",
 ];
 const hp = (id: string) => ENEMIES.find((e) => e.id === id)!.baseStats.maxHp;
 
@@ -373,8 +632,10 @@ describe("Difficulty monotonic law", () => {
     for (let ch = 0; ch < 6; ch++) {
       const slice = BOSS_BY_STAGE.slice(ch * 5, ch * 5 + 5);
       for (let i = 1; i < slice.length; i++) {
-        expect(hp(slice[i]), `ch${ch + 1} stage ${i + 1}: ${slice[i]} (${hp(slice[i])}) < ${slice[i - 1]} (${hp(slice[i - 1])})`)
-          .toBeGreaterThanOrEqual(hp(slice[i - 1]));
+        expect(
+          hp(slice[i]),
+          `ch${ch + 1} stage ${i + 1}: ${slice[i]} (${hp(slice[i])}) < ${slice[i - 1]} (${hp(slice[i - 1])})`,
+        ).toBeGreaterThanOrEqual(hp(slice[i - 1]));
       }
     }
   });
@@ -382,8 +643,10 @@ describe("Difficulty monotonic law", () => {
     for (let n = 1; n <= 30; n++) {
       const final = BOSS_BY_STAGE[n - 1];
       const mid = midBossFor(n);
-      expect(hp(mid), `stage ${n}: mid ${mid} (${hp(mid)}) > final ${final} (${hp(final)})`)
-        .toBeLessThanOrEqual(hp(final));
+      expect(
+        hp(mid),
+        `stage ${n}: mid ${mid} (${hp(mid)}) > final ${final} (${hp(final)})`,
+      ).toBeLessThanOrEqual(hp(final));
     }
   });
 });
@@ -409,13 +672,29 @@ In `src/data/stagesExpansion.ts`, replace the entire `export const BOSS_EXPANSIO
  */
 export const BOSS_EXPANSION = [
   // Chapter 2 — Sunscar Wastes (11–15) → climax: overlord (2200)
-  "gravemourn", "vindicator", "sundermark", "crownfall", "overlord",
+  "gravemourn",
+  "vindicator",
+  "sundermark",
+  "crownfall",
+  "overlord",
   // Chapter 3 — Emberfall (16–20) → climax: madarok (2700)
-  "unkilling", "mukade", "mawborn", "devourer", "madarok",
+  "unkilling",
+  "mukade",
+  "mawborn",
+  "devourer",
+  "madarok",
   // Chapter 4 — Mire Hollow (21–25) → climax: meruon (3800)
-  "akai", "crimsonlord", "madarok", "fallenward", "meruon",
+  "akai",
+  "crimsonlord",
+  "madarok",
+  "fallenward",
+  "meruon",
   // Chapter 5 — The Blight (26–30) → climax: ashghost (4200), the final boss
-  "crimsonlord", "madarok", "fallenward", "meruon", "ashghost",
+  "crimsonlord",
+  "madarok",
+  "fallenward",
+  "meruon",
+  "ashghost",
 ];
 ```
 
@@ -426,26 +705,26 @@ In `src/data/stage.ts`, replace the `BOSS_HP_RANK` array (near line 106) with th
 ```ts
 const BOSS_HP_RANK = [
   // Ascending base HP — the canonical difficulty rank (keeps wave-5 ≤ wave-10).
-  "champion",   // 700
-  "zabro",      // 1000
+  "champion", // 700
+  "zabro", // 1000
   "gravemourn", // 1150
-  "ryomen",     // 1200
+  "ryomen", // 1200
   "vindicator", // 1350
-  "kura",       // 1450
+  "kura", // 1450
   "sundermark", // 1500
-  "crownfall",  // 1650
-  "warden",     // 1700
-  "unkilling",  // 1950
-  "akai",       // 2000
-  "mukade",     // 2200
-  "overlord",   // 2200
-  "mawborn",    // 2250
-  "devourer",   // 2400
-  "crimsonlord",// 2600
-  "madarok",    // 2700
+  "crownfall", // 1650
+  "warden", // 1700
+  "unkilling", // 1950
+  "akai", // 2000
+  "mukade", // 2200
+  "overlord", // 2200
+  "mawborn", // 2250
+  "devourer", // 2400
+  "crimsonlord", // 2600
+  "madarok", // 2700
   "fallenward", // 3100
-  "meruon",     // 3800
-  "ashghost",   // 4200
+  "meruon", // 3800
+  "ashghost", // 4200
 ];
 ```
 
@@ -476,6 +755,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 3: Boss sprite art (SDXL) + manifest
 
 **Files:**
+
 - Modify: `scripts/sdart/prompts.mjs` (`BOSS_VISUAL`)
 - Create: `public/assets/sprites/boss/<id>.png` + `<id>.json` (×10)
 - Modify: `src/data/spriteManifest.ts`
@@ -573,10 +853,10 @@ import { SPRITE_MANIFEST } from "../src/data/spriteManifest.ts";
 Then add inside the `catalog integrity` describe block:
 
 ```ts
-  it("each boss has a boss__<id> sprite-manifest entry", () => {
-    const keys = new Set(SPRITE_MANIFEST.map((m: { key: string }) => m.key));
-    for (const id of IDS) expect(keys.has(`boss__${id}`), id).toBe(true);
-  });
+it("each boss has a boss__<id> sprite-manifest entry", () => {
+  const keys = new Set(SPRITE_MANIFEST.map((m: { key: string }) => m.key));
+  for (const id of IDS) expect(keys.has(`boss__${id}`), id).toBe(true);
+});
 ```
 
 - [ ] **Step 6: Run the test + typecheck**
@@ -619,13 +899,13 @@ clean. Example page-eval (adapt selectors to the project's CDP harness):
 
 ```js
 const g = window.__game;
-const m = await import('/src/data/stage.ts');
-g.registry.set('selectedStage', m.STAGES[29]); // ch5-s30
-g.scene.start('BattleScene');
+const m = await import("/src/data/stage.ts");
+g.registry.set("selectedStage", m.STAGES[29]); // ch5-s30
+g.scene.start("BattleScene");
 // … let it run to wave 10 …
-const battle = g.scene.getScene('BattleScene').battle;
-const present = [...new Set(battle.enemies.map(e => e.def.id))];
-({ stage: 'ch5-s30', hasAshghost: battle.enemies.some(e => e.def.id === 'ashghost'), present });
+const battle = g.scene.getScene("BattleScene").battle;
+const present = [...new Set(battle.enemies.map((e) => e.def.id))];
+({ stage: "ch5-s30", hasAshghost: battle.enemies.some((e) => e.def.id === "ashghost"), present });
 ```
 
 Also spot-check a Chapter-2 stage (ch2-s11, index 10) to confirm `gravemourn`
@@ -668,6 +948,7 @@ tweak from Step 4 changed source.)
 ## Self-Review
 
 **Spec coverage:**
+
 - §5 roster (10 bosses) → Task 1 (defs) ✓
 - §6 placement + monotonic law + midBoss → Task 2 ✓
 - §7 architecture (new file, spread, BOSS_HP_RANK, art, codex-auto) → Tasks 1–3 ✓ (codex needs no change: all `archetype:"Boss"`)

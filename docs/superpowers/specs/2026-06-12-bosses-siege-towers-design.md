@@ -8,7 +8,7 @@ Status: Approved (full-auto session — design decisions made by the agent on th
 Two coupled issues with how bosses interact with the player's towers:
 
 1. **Bosses steamroll past towers.** `enemyTowerAttack()` (src/core/enemyCombat.ts)
-   returns `whileMoving: true` for every boss, so a boss swipes a tower *in passing*
+   returns `whileMoving: true` for every boss, so a boss swipes a tower _in passing_
    and never halts. The marquee threat blows through the player's wall as if it
    weren't there — there is no "the boss is stuck on my front line" moment, and
    tank towers (whose entire job is to body-block) have nothing to block.
@@ -19,7 +19,7 @@ Two coupled issues with how bosses interact with the player's towers:
    so "stop and siege" would feel pointless — the tower is gone before the player
    can react.
 
-The two are inseparable: making bosses *stop* on towers is only good play if a
+The two are inseparable: making bosses _stop_ on towers is only good play if a
 purpose-built tank tower can **hold the boss for a while** (buying the player time
 to focus fire), rather than evaporating.
 
@@ -55,7 +55,7 @@ so **no sim/loop change is needed** — only the profile flips.
 
 Add `BOSS_TOWER_DAMAGE_MULT` to battleTypes.ts and multiply it into the damage in
 `dealDamageToTower()` **only when the attacker is a boss** (`attacker.def.boss`).
-This scales down a boss's per-hit damage *against towers only* — its hits on the
+This scales down a boss's per-hit damage _against towers only_ — its hits on the
 hero and castle (`dealDamageToHero`, castle damage) are untouched, so boss threat
 to the things that end the run is unchanged. Sappers/raiders and ordinary melee
 keep full tower damage; this is a boss-specific concession that makes the new
@@ -71,10 +71,10 @@ nudged if the probe shows the window is too short or effectively infinite.
 ### Alternatives considered
 
 1. **Lower `bossAtkMult` in `DIFFICULTY_SCALING`.** Rejected: it also weakens the
-   boss against the hero and castle — bosses *should* still threaten what ends the
+   boss against the hero and castle — bosses _should_ still threaten what ends the
    run. We only want to soften boss-vs-tower.
 2. **Give the `tanker` role flat boss damage reduction.** Rejected: a new
-   role-conditional code path in the damage pipeline, and it would make *only*
+   role-conditional code path in the damage pipeline, and it would make _only_
    tank towers viable speed-bumps; a global boss→tower scalar lets any front-line
    tower buy a little time (a tank just buys the most), which reads better.
 3. **Boss→tower scalar + ground bosses block (chosen).** Two constants/branches,
@@ -100,7 +100,7 @@ Pure/sim tests, Phaser-free (run under the existing fixtures):
    `whileMoving:false` (it halts); a flying boss stays `whileMoving:true`. The
    range derivation (weapon → reach) is unchanged.
 2. **Boss-vs-tower scalar (unit, `battleTypes`/new test):** `BOSS_TOWER_DAMAGE_MULT`
-   is in `(0,1)` — a boss hits towers for *less* than full, but more than nothing.
+   is in `(0,1)` — a boss hits towers for _less_ than full, but more than nothing.
 3. **Behavior — boss halts on a tower (sim, new `bossSiege.test.ts`):** a boss
    marching a lane with a tower in reach **stops** (its distance-along the route
    plateaus while the tower lives) and chips the tower, rather than walking past.

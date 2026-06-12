@@ -5,7 +5,15 @@ import { addTowerToCollection } from "../src/core/collection.ts";
 
 function mgr() {
   let stored: HeroSave | null = null;
-  const prov: SaveProvider = { load: () => stored, persist: (d) => { stored = d; }, clear: () => { stored = null; } };
+  const prov: SaveProvider = {
+    load: () => stored,
+    persist: (d) => {
+      stored = d;
+    },
+    clear: () => {
+      stored = null;
+    },
+  };
   return new SaveManager(prov);
 }
 
@@ -30,7 +38,15 @@ describe("SaveManager.setSquad", () => {
 
   it("persists the squad across reload", () => {
     let stored: HeroSave | null = null;
-    const prov: SaveProvider = { load: () => stored, persist: (d) => { stored = d; }, clear: () => { stored = null; } };
+    const prov: SaveProvider = {
+      load: () => stored,
+      persist: (d) => {
+        stored = d;
+      },
+      clear: () => {
+        stored = null;
+      },
+    };
     const m1 = new SaveManager(prov);
     addTowerToCollection(m1.getSave(), "keep-me");
     m1.setSquad(["keep-me"]);

@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
 import {
-  featuredForWeek, featuredIds, setWishlist, canClaimSpark, claimSpark, ensureWishlist, SPARK_PITY,
+  featuredForWeek,
+  featuredIds,
+  setWishlist,
+  canClaimSpark,
+  claimSpark,
+  ensureWishlist,
+  SPARK_PITY,
 } from "../src/core/banner.ts";
 import { TOWERS } from "../src/data/towers.ts";
 

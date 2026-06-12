@@ -7,8 +7,13 @@ describe("entity icon resolvers", () => {
   it("resolves an owned item instance to item__<defId> + rarity color", () => {
     const def = ITEM_CATALOG[0];
     const inst = {
-      id: "inst-1", defId: def.id, acquiredLevel: 1, rolledStats: {},
-      rolledPrimaryAffix: 0, rolledAffixes: [], enhanceLevel: 0,
+      id: "inst-1",
+      defId: def.id,
+      acquiredLevel: 1,
+      rolledStats: {},
+      rolledPrimaryAffix: 0,
+      rolledAffixes: [],
+      enhanceLevel: 0,
     };
     const v = itemInstanceIcon(inst);
     expect(v.iconKey).toBe(`item__${def.id}`);

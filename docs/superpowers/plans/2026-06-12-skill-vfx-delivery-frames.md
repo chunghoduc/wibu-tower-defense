@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make every hero skill cast visibly *arrive from a source* (fly from caster, fall from sky, erupt from ground, beam from caster) as a ≥4-beat animated sequence, so casts read as cool, impressive and lively.
+**Goal:** Make every hero skill cast visibly _arrive from a source_ (fly from caster, fall from sky, erupt from ground, beam from caster) as a ≥4-beat animated sequence, so casts read as cool, impressive and lively.
 
-**Architecture:** Thread the caster's world position (`from`) end-to-end into the `cast` FxEvent. Add a data-driven `delivery` archetype per skill plus a reusable `renderDelivery` choreography layer that plays *before* the existing impact signature and calls `onArrive()` to fire it. Extract the shared `VfxDraw` kit into its own module so all touched files stay under the 500-line limit. Pure presentation — no gameplay/damage change.
+**Architecture:** Thread the caster's world position (`from`) end-to-end into the `cast` FxEvent. Add a data-driven `delivery` archetype per skill plus a reusable `renderDelivery` choreography layer that plays _before_ the existing impact signature and calls `onArrive()` to fire it. Extract the shared `VfxDraw` kit into its own module so all touched files stay under the 500-line limit. Pure presentation — no gameplay/damage change.
 
 **Tech Stack:** TypeScript, Phaser 3 (tweens + shapes, no art assets), Vitest.
 
@@ -31,6 +31,7 @@
 This is the enabling change: without `from`, "fly from source" cannot be rendered. Damage still lands at `at`; `from` is presentation-only.
 
 **Files:**
+
 - Modify: `src/core/battleTypes.ts:46`
 - Modify: `src/core/battleDamage.ts:250-262`
 - Modify: `src/core/battle.ts:482`
@@ -41,23 +42,23 @@ This is the enabling change: without `from`, "fly from source" cannot be rendere
 - [x] **Step 1: Write the failing test** — append to the `hero cast plumbing` describe block in `tests/skillVfx.test.ts` (before its closing `});`):
 
 ```ts
-  it("tags the cast event with the caster's position (fly-from-source plumbing)", () => {
-    const b = heroBattleCasting("execute-slash");
-    b.hero.stats.range = 400;
-    b.hero.stats.attackSpeed = 10;
-    let castFrom: { x: number; y: number } | null = null;
-    let heroPos: { x: number; y: number } | null = null;
-    for (let t = 0; t < 160 && castFrom === null; t++) {
-      b.hero.mana = MANA_MAX;
-      heroPos = { x: b.hero.pos.x, y: b.hero.pos.y };
-      b.tick(0.05);
-      for (const fx of b.fx) if (fx.type === "cast" && fx.source === "hero") castFrom = fx.from;
-    }
-    expect(castFrom).not.toBeNull();
-    // `from` is the hero's own position at cast time, distinct from the target `at`.
-    expect(castFrom!.x).toBeCloseTo(heroPos!.x, 1);
-    expect(castFrom!.y).toBeCloseTo(heroPos!.y, 1);
-  });
+it("tags the cast event with the caster's position (fly-from-source plumbing)", () => {
+  const b = heroBattleCasting("execute-slash");
+  b.hero.stats.range = 400;
+  b.hero.stats.attackSpeed = 10;
+  let castFrom: { x: number; y: number } | null = null;
+  let heroPos: { x: number; y: number } | null = null;
+  for (let t = 0; t < 160 && castFrom === null; t++) {
+    b.hero.mana = MANA_MAX;
+    heroPos = { x: b.hero.pos.x, y: b.hero.pos.y };
+    b.tick(0.05);
+    for (const fx of b.fx) if (fx.type === "cast" && fx.source === "hero") castFrom = fx.from;
+  }
+  expect(castFrom).not.toBeNull();
+  // `from` is the hero's own position at cast time, distinct from the target `at`.
+  expect(castFrom!.x).toBeCloseTo(heroPos!.x, 1);
+  expect(castFrom!.y).toBeCloseTo(heroPos!.y, 1);
+});
 ```
 
 - [x] **Step 2: Run it to verify it fails**
@@ -101,37 +102,77 @@ to:
 - [x] **Step 5: Pass `h.pos` at the hero call site** — in `src/core/battle.ts` line 482, change:
 
 ```ts
-      this.castActive(h.stats, h.stats.atk, h.activeDamageType ?? h.damageType, target.pos, "hero", -1, h.equippedSkillId, undefined, h.activeMult ?? 2);
+this.castActive(
+  h.stats,
+  h.stats.atk,
+  h.activeDamageType ?? h.damageType,
+  target.pos,
+  "hero",
+  -1,
+  h.equippedSkillId,
+  undefined,
+  h.activeMult ?? 2,
+);
 ```
 
 to (insert `h.pos` after `target.pos`):
 
 ```ts
-      this.castActive(h.stats, h.stats.atk, h.activeDamageType ?? h.damageType, target.pos, h.pos, "hero", -1, h.equippedSkillId, undefined, h.activeMult ?? 2);
+this.castActive(
+  h.stats,
+  h.stats.atk,
+  h.activeDamageType ?? h.damageType,
+  target.pos,
+  h.pos,
+  "hero",
+  -1,
+  h.equippedSkillId,
+  undefined,
+  h.activeMult ?? 2,
+);
 ```
 
 - [x] **Step 6: Pass `t.pos` at the tower call site** — in `src/core/battleTowers.ts` line 77, change:
 
 ```ts
-        this.castActive(t.stats, effAtk, activeType, target.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
+this.castActive(
+  t.stats,
+  effAtk,
+  activeType,
+  target.pos,
+  "tower",
+  t.uid,
+  t.def.active ?? undefined,
+  t.behavior?.defenseScale,
+);
 ```
 
 to (insert `t.pos` after `target.pos`):
 
 ```ts
-        this.castActive(t.stats, effAtk, activeType, target.pos, t.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
+this.castActive(
+  t.stats,
+  effAtk,
+  activeType,
+  target.pos,
+  t.pos,
+  "tower",
+  t.uid,
+  t.def.active ?? undefined,
+  t.behavior?.defenseScale,
+);
 ```
 
 - [x] **Step 7: Forward `from` in the FX dispatcher** — in `src/scenes/fx.ts` line 80, change:
 
 ```ts
-        this.skillVfx.cast(e.at, e.radius, e.skillId, e.source);
+this.skillVfx.cast(e.at, e.radius, e.skillId, e.source);
 ```
 
 to:
 
 ```ts
-        this.skillVfx.cast(e.from, e.at, e.radius, e.skillId, e.source);
+this.skillVfx.cast(e.from, e.at, e.radius, e.skillId, e.source);
 ```
 
 - [x] **Step 8: Update `SkillVfx.cast` to accept `from`** — in `src/scenes/skillVfx.ts`, change the method signature (line 36) only — body unchanged for now:
@@ -168,6 +209,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 `skillSignatures.ts` is 353 lines and both signatures and the new delivery layer need the kit. Extract it (keeps both files small) and add the primitives delivery needs.
 
 **Files:**
+
 - Create: `src/scenes/vfxDraw.ts`
 - Modify: `src/scenes/skillSignatures.ts:9-149` (remove the inline `VfxDraw`, import it)
 
@@ -201,51 +243,164 @@ export class VfxDraw {
 
   /** A gather/charge glow that swells then implodes at a point (anticipation beat). */
   chargeGlow(at: V, color: number, r: number, dur: number): void {
-    const c = this.fac.circle(at.x, at.y, r, color, 0.5).setDepth(this.depth + 2).setBlendMode(Phaser.BlendModes.ADD).setScale(0.2);
-    this.scene.tweens.add({ targets: c, scale: 1, duration: dur * 0.6, ease: "Quad.easeOut",
-      onComplete: () => this.go(c, { scale: 0.1, alpha: 0 }, dur * 0.4, "Quad.easeIn") });
+    const c = this.fac
+      .circle(at.x, at.y, r, color, 0.5)
+      .setDepth(this.depth + 2)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setScale(0.2);
+    this.scene.tweens.add({
+      targets: c,
+      scale: 1,
+      duration: dur * 0.6,
+      ease: "Quad.easeOut",
+      onComplete: () => this.go(c, { scale: 0.1, alpha: 0 }, dur * 0.4, "Quad.easeIn"),
+    });
     this.spark(at, color, 6, r * 1.6);
   }
 
   /** A glowing orb that flies from→to leaving a fading trail, then `onArrive`. */
-  orbTravel(from: V, to: V, color: number, hot: number, r: number, dur: number, onArrive: () => void): void {
-    const glow = this.fac.circle(from.x, from.y, r + 3, color, 0.35).setDepth(this.depth + 1).setBlendMode(Phaser.BlendModes.ADD);
-    const body = this.fac.circle(from.x, from.y, r, hot).setStrokeStyle(2, color, 0.9).setDepth(this.depth + 3).setBlendMode(Phaser.BlendModes.ADD);
+  orbTravel(
+    from: V,
+    to: V,
+    color: number,
+    hot: number,
+    r: number,
+    dur: number,
+    onArrive: () => void,
+  ): void {
+    const glow = this.fac
+      .circle(from.x, from.y, r + 3, color, 0.35)
+      .setDepth(this.depth + 1)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    const body = this.fac
+      .circle(from.x, from.y, r, hot)
+      .setStrokeStyle(2, color, 0.9)
+      .setDepth(this.depth + 3)
+      .setBlendMode(Phaser.BlendModes.ADD);
     let last = { x: from.x, y: from.y };
-    const trail = this.scene.time.addEvent({ delay: 24, loop: true, callback: () => {
-      const t = this.fac.circle(last.x, last.y, r * 0.7, color, 0.5).setDepth(this.depth).setBlendMode(Phaser.BlendModes.ADD);
-      this.go(t, { scale: 0.2, alpha: 0 }, 220);
-      last = { x: body.x, y: body.y };
-    } });
-    this.scene.tweens.add({ targets: [glow, body], x: to.x, y: to.y, duration: dur, ease: "Quad.easeIn",
-      onComplete: () => { trail.remove(); glow.destroy(); body.destroy(); onArrive(); } });
+    const trail = this.scene.time.addEvent({
+      delay: 24,
+      loop: true,
+      callback: () => {
+        const t = this.fac
+          .circle(last.x, last.y, r * 0.7, color, 0.5)
+          .setDepth(this.depth)
+          .setBlendMode(Phaser.BlendModes.ADD);
+        this.go(t, { scale: 0.2, alpha: 0 }, 220);
+        last = { x: body.x, y: body.y };
+      },
+    });
+    this.scene.tweens.add({
+      targets: [glow, body],
+      x: to.x,
+      y: to.y,
+      duration: dur,
+      ease: "Quad.easeIn",
+      onComplete: () => {
+        trail.remove();
+        glow.destroy();
+        body.destroy();
+        onArrive();
+      },
+    });
   }
 
   /** A vertical streak that plummets from `sky` down to `to`, then `onArrive`. */
-  fallStreak(to: V, height: number, color: number, hot: number, width: number, dur: number, onArrive: () => void): void {
+  fallStreak(
+    to: V,
+    height: number,
+    color: number,
+    hot: number,
+    width: number,
+    dur: number,
+    onArrive: () => void,
+  ): void {
     const sky = { x: to.x, y: to.y - height };
-    const streak = this.fac.rectangle(sky.x, sky.y, width, height, color, 0.85).setOrigin(0.5, 0).setDepth(this.depth + 2).setBlendMode(Phaser.BlendModes.ADD).setScale(1, 0.1);
-    const head = this.fac.circle(sky.x, sky.y, width * 0.9, hot).setDepth(this.depth + 3).setBlendMode(Phaser.BlendModes.ADD);
-    this.scene.tweens.add({ targets: streak, scaleY: 1, duration: dur, ease: "Quad.easeIn", onComplete: () => this.go(streak, { alpha: 0 }, 120) });
-    this.scene.tweens.add({ targets: head, y: to.y, duration: dur, ease: "Quad.easeIn",
-      onComplete: () => { head.destroy(); onArrive(); } });
+    const streak = this.fac
+      .rectangle(sky.x, sky.y, width, height, color, 0.85)
+      .setOrigin(0.5, 0)
+      .setDepth(this.depth + 2)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setScale(1, 0.1);
+    const head = this.fac
+      .circle(sky.x, sky.y, width * 0.9, hot)
+      .setDepth(this.depth + 3)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.scene.tweens.add({
+      targets: streak,
+      scaleY: 1,
+      duration: dur,
+      ease: "Quad.easeIn",
+      onComplete: () => this.go(streak, { alpha: 0 }, 120),
+    });
+    this.scene.tweens.add({
+      targets: head,
+      y: to.y,
+      duration: dur,
+      ease: "Quad.easeIn",
+      onComplete: () => {
+        head.destroy();
+        onArrive();
+      },
+    });
   }
 
   /** A column of energy/shards that erupts upward from the ground at `at`, then `onArrive`. */
-  riser(at: V, color: number, hot: number, height: number, dur: number, onArrive: () => void): void {
-    const col = this.fac.rectangle(at.x, at.y, 10, height, color, 0.55).setOrigin(0.5, 1).setDepth(this.depth + 1).setBlendMode(Phaser.BlendModes.ADD).setScale(1, 0);
-    this.scene.tweens.add({ targets: col, scaleY: 1, duration: dur * 0.6, ease: "Cubic.easeOut", onComplete: () => this.go(col, { alpha: 0, scaleX: 0.4 }, dur * 0.4) });
+  riser(
+    at: V,
+    color: number,
+    hot: number,
+    height: number,
+    dur: number,
+    onArrive: () => void,
+  ): void {
+    const col = this.fac
+      .rectangle(at.x, at.y, 10, height, color, 0.55)
+      .setOrigin(0.5, 1)
+      .setDepth(this.depth + 1)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setScale(1, 0);
+    this.scene.tweens.add({
+      targets: col,
+      scaleY: 1,
+      duration: dur * 0.6,
+      ease: "Cubic.easeOut",
+      onComplete: () => this.go(col, { alpha: 0, scaleX: 0.4 }, dur * 0.4),
+    });
     for (let i = 0; i < 5; i++) {
-      const s = this.fac.triangle(at.x + Phaser.Math.Between(-12, 12), at.y, 0, 0, 5, -16, 10, 0, hot).setDepth(this.depth + 2).setBlendMode(Phaser.BlendModes.ADD);
-      this.scene.tweens.add({ targets: s, y: at.y - Phaser.Math.Between(18, height), alpha: 0, duration: dur, ease: "Quad.easeOut", delay: i * 18, onComplete: () => s.destroy() });
+      const s = this.fac
+        .triangle(at.x + Phaser.Math.Between(-12, 12), at.y, 0, 0, 5, -16, 10, 0, hot)
+        .setDepth(this.depth + 2)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({
+        targets: s,
+        y: at.y - Phaser.Math.Between(18, height),
+        alpha: 0,
+        duration: dur,
+        ease: "Quad.easeOut",
+        delay: i * 18,
+        onComplete: () => s.destroy(),
+      });
     }
     this.after(Math.round(dur * 0.6), onArrive);
   }
 
   /** A ground target-marker reticle that blooms then snaps (skyfall telegraph). */
   marker(at: V, radius: number, color: number, dur: number): void {
-    const c = this.fac.circle(at.x, at.y, radius).setStrokeStyle(2, color, 0.8).setDepth(this.depth).setScale(1.4).setAlpha(0);
-    this.scene.tweens.add({ targets: c, scale: 1, alpha: 0.9, duration: dur, ease: "Quad.easeOut", onComplete: () => this.go(c, { scale: 0.85, alpha: 0 }, 140) });
+    const c = this.fac
+      .circle(at.x, at.y, radius)
+      .setStrokeStyle(2, color, 0.8)
+      .setDepth(this.depth)
+      .setScale(1.4)
+      .setAlpha(0);
+    this.scene.tweens.add({
+      targets: c,
+      scale: 1,
+      alpha: 0.9,
+      duration: dur,
+      ease: "Quad.easeOut",
+      onComplete: () => this.go(c, { scale: 0.85, alpha: 0 }, 140),
+    });
   }
 }
 ```
@@ -293,6 +448,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 3: Add `delivery` metadata + `deliveryForStyle` (data, TDD)
 
 **Files:**
+
 - Modify: `src/data/skillVfxMeta.ts`
 - Test: `tests/skillVfx.test.ts`
 
@@ -300,7 +456,12 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ```ts
 // add to the existing import from skillVfxMeta.ts:
-import { SKILL_VFX, skillVfxSpec, DELIVERY_KINDS, deliveryForStyle } from "../src/data/skillVfxMeta.ts";
+import {
+  SKILL_VFX,
+  skillVfxSpec,
+  DELIVERY_KINDS,
+  deliveryForStyle,
+} from "../src/data/skillVfxMeta.ts";
 ```
 
 ```ts
@@ -308,7 +469,9 @@ describe("skill VFX delivery", () => {
   it("gives every active skill a known delivery archetype", () => {
     for (const s of ACTIVE_SKILLS) {
       const spec = SKILL_VFX[s.id];
-      expect(DELIVERY_KINDS.includes(spec.delivery), `${s.id}.delivery="${spec.delivery}"`).toBe(true);
+      expect(DELIVERY_KINDS.includes(spec.delivery), `${s.id}.delivery="${spec.delivery}"`).toBe(
+        true,
+      );
     }
   });
 
@@ -340,14 +503,20 @@ import type { SkillStyle } from "./attackStyle.ts";
 export type DeliveryKind = "bolt" | "beam" | "skyfall" | "ground" | "cast";
 
 /** Runtime-checkable list of every delivery kind (keep in sync with DeliveryKind). */
-export const DELIVERY_KINDS: readonly DeliveryKind[] = ["bolt", "beam", "skyfall", "ground", "cast"];
+export const DELIVERY_KINDS: readonly DeliveryKind[] = [
+  "bolt",
+  "beam",
+  "skyfall",
+  "ground",
+  "cast",
+];
 ```
 
 Add `delivery` to the `SkillVfxSpec` interface (inside it, after `signature`):
 
 ```ts
-  /** How the cast arrives — caster→target, sky-fall, ground-erupt, etc. */
-  delivery: DeliveryKind;
+/** How the cast arrives — caster→target, sky-fall, ground-erupt, etc. */
+delivery: DeliveryKind;
 ```
 
 - [x] **Step 4: Set `delivery` on each of the 14 specs** — add the field to every entry in `SKILL_VFX` per this mapping (place it right after each `signature:` line):
@@ -414,6 +583,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 4: Build the delivery choreographies + wire `SkillVfx.cast`
 
 **Files:**
+
 - Create: `src/scenes/skillDelivery.ts`
 - Modify: `src/scenes/skillVfx.ts`
 
@@ -430,12 +600,21 @@ import { VfxDraw, type V } from "./vfxDraw.ts";
 import type { DeliveryKind } from "../data/skillVfxMeta.ts";
 
 type Palette = { core: number; hot: number; deep: number };
-type DeliveryFn = (d: VfxDraw, from: V, at: V, p: Palette, radius: number, onArrive: () => void) => void;
+type DeliveryFn = (
+  d: VfxDraw,
+  from: V,
+  at: V,
+  p: Palette,
+  radius: number,
+  onArrive: () => void,
+) => void;
 
 // Travel from caster: charge, then an orb streaks to the target.
 const bolt: DeliveryFn = (d, from, at, p, radius, onArrive) => {
   d.chargeGlow(from, p.core, 10, 180);
-  d.after(120, () => d.orbTravel(from, at, p.core, p.hot, 6, Math.min(220, 80 + dist(from, at) * 0.5), onArrive));
+  d.after(120, () =>
+    d.orbTravel(from, at, p.core, p.hot, 6, Math.min(220, 80 + dist(from, at) * 0.5), onArrive),
+  );
 };
 
 // Instant lance/beam from caster straight to target.
@@ -479,7 +658,13 @@ function dist(a: V, b: V): number {
 
 /** Play the delivery for `kind`, firing `onArrive` when the cast reaches the target. */
 export function renderDelivery(
-  d: VfxDraw, kind: DeliveryKind, from: V, at: V, palette: Palette, radius: number, onArrive: () => void,
+  d: VfxDraw,
+  kind: DeliveryKind,
+  from: V,
+  at: V,
+  palette: Palette,
+  radius: number,
+  onArrive: () => void,
 ): void {
   DELIVERIES[kind](d, from, at, palette, radius, onArrive);
 }
@@ -559,9 +744,10 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ## Task 5: Top up the three thinnest impact signatures to a clear aftermath beat
 
-`triple-volley`, `piercing-lance`, and `muzzle-barrage` are the shortest set-pieces. With delivery added they already exceed 4 beats overall, but give each a distinct settling beat so the *impact itself* stays satisfying.
+`triple-volley`, `piercing-lance`, and `muzzle-barrage` are the shortest set-pieces. With delivery added they already exceed 4 beats overall, but give each a distinct settling beat so the _impact itself_ stays satisfying.
 
 **Files:**
+
 - Modify: `src/scenes/skillSignatures.ts`
 
 - [x] **Step 1: Add an aftermath beat to `tripleVolley`** — in `src/scenes/skillSignatures.ts`, change the `tripleVolley` body to append rising motes + a lingering ring after the arrows land:
@@ -569,12 +755,14 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```ts
 const tripleVolley: SigFn = (d, at, s, radius) => {
   const { core, hot, deep } = s.palette;
-  [-32, 0, 32].forEach((deg, i) => d.after(i * 45, () => {
-    const a = Phaser.Math.DegToRad(deg);
-    d.beam(at, a, radius * 1.1, core, 3, 240);
-    const tip = { x: at.x + Math.cos(a) * radius, y: at.y + Math.sin(a) * radius };
-    d.spark(tip, hot, 5, 12);
-  }));
+  [-32, 0, 32].forEach((deg, i) =>
+    d.after(i * 45, () => {
+      const a = Phaser.Math.DegToRad(deg);
+      d.beam(at, a, radius * 1.1, core, 3, 240);
+      const tip = { x: at.x + Math.cos(a) * radius, y: at.y + Math.sin(a) * radius };
+      d.spark(tip, hot, 5, 12);
+    }),
+  );
   d.ring(at, radius * 0.7, deep, 360, 2);
   d.after(180, () => d.motes(at, radius, 8, () => (Math.random() < 0.5 ? core : hot), -1)); // verdant drift settles
 };
@@ -585,12 +773,15 @@ const tripleVolley: SigFn = (d, at, s, radius) => {
 ```ts
 const piercingLance: SigFn = (d, at, s, radius) => {
   const { core, hot, deep } = s.palette;
-  d.ring(at, 30, hot, 220, 4);             // sonic muzzle ring
+  d.ring(at, 30, hot, 220, 4); // sonic muzzle ring
   d.beam(at, 0, radius * 2.2, core, 6, 260);
   d.beam(at, 0, radius * 2.2, hot, 2, 220);
   d.after(40, () => d.beam(at, Math.PI, radius * 0.4, deep, 3, 200)); // recoil flick
   d.spark(at, hot, 7, 16);
-  d.after(200, () => { d.ring(at, radius * 1.1, core, 320, 2); d.smoke(at, deep, 8); }); // pierce-wake
+  d.after(200, () => {
+    d.ring(at, radius * 1.1, core, 320, 2);
+    d.smoke(at, deep, 8);
+  }); // pierce-wake
 };
 ```
 
@@ -599,13 +790,17 @@ const piercingLance: SigFn = (d, at, s, radius) => {
 ```ts
 const muzzleBarrage: SigFn = (d, at, s, radius) => {
   const { core, hot, deep } = s.palette;
-  for (let i = 0; i < 5; i++) d.after(i * 55, () => {
-    const off = { x: at.x + (i - 2) * 8, y: at.y };
-    d.disc(off, 9, hot, 0.9, 1.6, 160);                  // muzzle flash
-    d.beam(off, Phaser.Math.FloatBetween(-0.15, 0.15), radius, core, 3, 200); // tracer
-    d.smoke({ x: off.x, y: off.y }, deep, 6);
-  });
-  d.after(320, () => { d.spark(at, hot, 8, 20); d.smoke(at, deep, 12); }); // gunsmoke settles
+  for (let i = 0; i < 5; i++)
+    d.after(i * 55, () => {
+      const off = { x: at.x + (i - 2) * 8, y: at.y };
+      d.disc(off, 9, hot, 0.9, 1.6, 160); // muzzle flash
+      d.beam(off, Phaser.Math.FloatBetween(-0.15, 0.15), radius, core, 3, 200); // tracer
+      d.smoke({ x: off.x, y: off.y }, deep, 6);
+    });
+  d.after(320, () => {
+    d.spark(at, hot, 8, 20);
+    d.smoke(at, deep, 12);
+  }); // gunsmoke settles
 };
 ```
 
@@ -628,6 +823,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 6: Verify whole — build, playtest, document
 
 **Files:**
+
 - Modify: memory `project_skill_vfx_signatures.md` (+ MEMORY.md pointer if needed)
 
 - [x] **Step 1: Production build**
@@ -661,6 +857,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Self-Review
 
 **1. Spec coverage:**
+
 - Source delivery (fly/fall/grow/beam) → Tasks 1 (plumbing), 3 (data), 4 (choreography). ✓
 - ≥4 beats per effect → delivery (≥2 beats) + impact + aftermath; Task 5 tops up the thin ones. ✓
 - All 14 hero skills → Task 3 maps every one; Task 4 wires the hero path. ✓

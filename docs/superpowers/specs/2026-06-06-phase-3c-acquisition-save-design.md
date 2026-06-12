@@ -9,7 +9,9 @@
 ## Design Decisions (autonomous)
 
 ### Currency
+
 Single soft currency: **Crystals** (icon 💎, id: `crystals`). Earned from:
+
 - Stage clear: 20 crystals (Normal), 30 (Hard), 50 (Nightmare)
 - First clear bonus: +50 crystals per stage per difficulty
 - Daily login: 10 crystals (tracked in save)
@@ -20,15 +22,16 @@ No premium hard currency in v1 — all crystals are earnable. Monetization is de
 **Pull cost:** 160 crystals per single pull, 1440 for 10-pull (10% discount). These are tunable constants.
 
 ### Gacha Banner — Pull Rates
+
 Single "Standard" banner covering all characters.
 
-| Rarity | Base rate | Notes |
-|--------|-----------|-------|
-| Unique | 0.6% | Soft pity at pull 75, hard pity at pull 90 |
-| Legendary | 5.1% | No pity |
-| Rare | 12.0% | No pity |
-| Magic | 25.6% | No pity |
-| Common | 56.7% | No pity |
+| Rarity    | Base rate | Notes                                      |
+| --------- | --------- | ------------------------------------------ |
+| Unique    | 0.6%      | Soft pity at pull 75, hard pity at pull 90 |
+| Legendary | 5.1%      | No pity                                    |
+| Rare      | 12.0%     | No pity                                    |
+| Magic     | 25.6%     | No pity                                    |
+| Common    | 56.7%     | No pity                                    |
 
 **Soft pity (Unique):** Starting at pull 75 (without a Unique since last Unique), the Unique rate increases by +6.0% per pull. At pull 89 the rate exceeds 82%. Pull 90 is the hard pity — guaranteed Unique.
 
@@ -39,32 +42,41 @@ Single "Standard" banner covering all characters.
 **Note:** The Granblue Fantasy "pity originated in 2016 / is theoretically optimal worst-case insurance" claim was REFUTED in the deep research. Do not encode it.
 
 ### What you can get from pulls
+
 All 32 characters in the catalog. Rarity determines pull rate — Common characters are weighted in the Common bucket, Legendary in the Legendary bucket, etc. Equal weight within each rarity tier.
 
 Pulling a duplicate adds a star rank to the owned tower.
 
 ### Campaign Drops
+
 After clearing a stage, `processStageClear` runs and may award:
+
 - **Crystals** (always, see above)
 - **Item drop** (30% chance, item's requiredLevel = stage index × 8 + 5, rarity weighted by stage)
 - **Active skill drop** (15% chance, from skills not yet owned — skills are unique collectibles)
 - **Character drop** (5% chance, from characters not yet owned at Common/Magic rarity only — Rare+ only from gacha)
 
 ### Shop
+
 A small static shop refreshed daily (tracked in save). Sells:
+
 - Specific Common/Magic items for crystals
 - A rotating "featured character" (Magic rarity) for 800 crystals
 - Pity insurance: "guaranteed next pull is Rare+" for 400 crystals
 
 ### Achievement Unlocks
+
 Two characters are unlocked via achievements (not pullable from gacha), to give F2P players progression goals:
+
 - `tobi-skipstone` (Common chain) — unlocked: "clear stage 3 on any difficulty"
 - `mochi-morale-sprite` (Common support) — unlocked: "place 50 towers total"
 
 These are hardcoded in an `ACHIEVEMENT_UNLOCKS` catalog.
 
 ### Local Save — Complete Integration
+
 Phase 3c completes the save layer by adding:
+
 - `currency: CurrencySave` (crystals, daily login timestamp, shop refresh state)
 - `progress: ProgressSave` (stage clears per difficulty, achievement flags)
 - Save version bumps to **3**
@@ -77,11 +89,11 @@ Phase 3c completes the save layer by adding:
 ### New types in `src/core/save.ts`
 
 ```ts
-export const CURRENT_SAVE_VERSION = 3;  // bumped from 2
+export const CURRENT_SAVE_VERSION = 3; // bumped from 2
 
 export interface CurrencySave {
   crystals: number;
-  pityCount: number;          // pulls since last Unique
+  pityCount: number; // pulls since last Unique
   lastDailyLoginDate: string; // ISO date string "2026-06-06"
 }
 
@@ -92,8 +104,8 @@ export interface StageClearRecord {
 }
 
 export interface ProgressSave {
-  stageClearMap: Record<string, StageClearRecord>;  // keyed by stageId
-  achievementFlags: Record<string, boolean>;         // keyed by achievementId
+  stageClearMap: Record<string, StageClearRecord>; // keyed by stageId
+  achievementFlags: Record<string, boolean>; // keyed by achievementId
   totalTowersPlaced: number;
 }
 
@@ -114,6 +126,7 @@ export interface HeroSave {
 ## New Modules
 
 ### `src/core/gacha.ts`
+
 ```ts
 performSummon(save: HeroSave, rng: Rng): SummonResult
 performMultiSummon(save: HeroSave, rng: Rng, count: number): SummonResult[]
@@ -129,6 +142,7 @@ interface SummonResult {
 ```
 
 ### `src/core/drops.ts`
+
 ```ts
 processStageClear(save: HeroSave, stageId: string, difficulty: Difficulty, rng: Rng): DropResult
 interface DropResult {
@@ -141,6 +155,7 @@ interface DropResult {
 ```
 
 ### `src/core/shop.ts`
+
 ```ts
 SHOP_CATALOG: ShopEntry[]
 interface ShopEntry {
@@ -154,6 +169,7 @@ purchaseShopItem(save: HeroSave, entryId: string): PurchaseResult
 ```
 
 ### `src/core/achievements.ts`
+
 ```ts
 ACHIEVEMENT_UNLOCKS: AchievementUnlock[]
 interface AchievementUnlock {
@@ -166,14 +182,20 @@ checkAndGrantAchievements(save: HeroSave): string[]  // returns newly granted ch
 ```
 
 ### `src/core/saveManager.ts`
+
 ```ts
 class SaveManager {
-  constructor(provider: SaveProvider)
-  getSave(): HeroSave
-  afterBattle(stageId: string, outcome: "won" | "lost", difficulty: Difficulty, rng: Rng): DropResult | null
-  afterSummon(count: 1 | 10, rng: Rng): SummonResult[]
-  afterShopPurchase(entryId: string): PurchaseResult
-  grantDailyLogin(): number  // returns crystals granted (0 if already claimed today)
+  constructor(provider: SaveProvider);
+  getSave(): HeroSave;
+  afterBattle(
+    stageId: string,
+    outcome: "won" | "lost",
+    difficulty: Difficulty,
+    rng: Rng,
+  ): DropResult | null;
+  afterSummon(count: 1 | 10, rng: Rng): SummonResult[];
+  afterShopPurchase(entryId: string): PurchaseResult;
+  grantDailyLogin(): number; // returns crystals granted (0 if already claimed today)
 }
 ```
 
@@ -183,7 +205,9 @@ class SaveManager {
 
 ```ts
 // v1 → v2: add collection
-function migrate_v1_to_v2(save): HeroSave { return { ...save, collection: {}, version: 2 }; }
+function migrate_v1_to_v2(save): HeroSave {
+  return { ...save, collection: {}, version: 2 };
+}
 
 // v2 → v3: add currency + progress
 function migrate_v2_to_v3(save): HeroSave {
@@ -199,6 +223,7 @@ function migrate_v2_to_v3(save): HeroSave {
 ---
 
 ## What Phase 3c Does NOT Include
+
 - Premium currency / real-money purchases (Phase 5)
 - Cloud save sync (Phase 5)
 - Banner UI / summon animation (Phase 4)

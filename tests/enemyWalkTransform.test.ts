@@ -10,13 +10,17 @@ import { enemyWalkTransform } from "../src/scenes/enemyWalkTransform.ts";
 const TWO_PI = Math.PI * 2;
 
 function cycleExtents(amp = 1) {
-  let maxLift = 0, maxSway = 0, minScaleY = 1, maxScaleX = 1, maxLiftNorm = 0;
+  let maxLift = 0,
+    maxSway = 0,
+    minScaleY = 1,
+    maxScaleX = 1,
+    maxLiftNorm = 0;
   for (let p = 0; p <= TWO_PI; p += 0.05) {
     const t = enemyWalkTransform(p, { amp });
-    maxLift = Math.max(maxLift, -t.yOff);          // yOff <= 0; lift is positive
+    maxLift = Math.max(maxLift, -t.yOff); // yOff <= 0; lift is positive
     maxSway = Math.max(maxSway, Math.abs(t.xOff));
-    minScaleY = Math.min(minScaleY, t.scaleMulY);  // squash dips below 1
-    maxScaleX = Math.max(maxScaleX, t.scaleMulX);   // stretch rises above 1
+    minScaleY = Math.min(minScaleY, t.scaleMulY); // squash dips below 1
+    maxScaleX = Math.max(maxScaleX, t.scaleMulX); // stretch rises above 1
     maxLiftNorm = Math.max(maxLiftNorm, t.liftNorm);
   }
   return { maxLift, maxSway, minScaleY, maxScaleX, maxLiftNorm };
@@ -38,10 +42,10 @@ describe("enemyWalkTransform — lively gait", () => {
   });
 
   it("the contact phase (sin=0) plants the foot: full squash, no lift", () => {
-    const planted = enemyWalkTransform(0);          // sin(0)=0 → fully planted
-    expect(planted.yOff).toBeCloseTo(0, 6);         // grounded
+    const planted = enemyWalkTransform(0); // sin(0)=0 → fully planted
+    expect(planted.yOff).toBeCloseTo(0, 6); // grounded
     expect(planted.liftNorm).toBeCloseTo(0, 6);
-    expect(planted.scaleMulY).toBeLessThan(1);      // squashed under the weight
+    expect(planted.scaleMulY).toBeLessThan(1); // squashed under the weight
   });
 
   it("liftNorm spans roughly 0..1 across a stride (drives the ground shadow)", () => {

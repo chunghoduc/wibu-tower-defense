@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  smeltItem, smeltYield, SMELT_YIELD,
-  bulkSmelt, bulkSmeltPreview, AUTO_SMELT_RARITIES,
+  smeltItem,
+  smeltYield,
+  SMELT_YIELD,
+  bulkSmelt,
+  bulkSmeltPreview,
+  AUTO_SMELT_RARITIES,
 } from "../src/core/smelt.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { rollItem, ITEM_CATALOG } from "../src/data/items.ts";

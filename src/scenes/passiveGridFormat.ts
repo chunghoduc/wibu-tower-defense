@@ -30,15 +30,25 @@ export function formatStatBonuses(node: PassiveNodeDef): string {
 }
 
 const STAT_LABELS: Record<string, string> = {
-  atk: "ATK", attackSpeed: "Atk Speed", range: "Range",
-  critRate: "Crit Rate", critDamage: "Crit Dmg", armorPen: "Armor Pen",
-  magicPen: "Magic Pen", skillPower: "Skill Power",
-  maxHp: "Max HP", hpRegen: "HP Regen", armor: "Armor",
-  magicResist: "Magic Resist", damageReduction: "Dmg Reduction",
+  atk: "ATK",
+  attackSpeed: "Atk Speed",
+  range: "Range",
+  critRate: "Crit Rate",
+  critDamage: "Crit Dmg",
+  armorPen: "Armor Pen",
+  magicPen: "Magic Pen",
+  skillPower: "Skill Power",
+  maxHp: "Max HP",
+  hpRegen: "HP Regen",
+  armor: "Armor",
+  magicResist: "Magic Resist",
+  damageReduction: "Dmg Reduction",
   tenacity: "Tenacity",
-  manaOnHit: "Mana/Hit", manaOnKill: "Mana/Kill",
+  manaOnHit: "Mana/Hit",
+  manaOnKill: "Mana/Kill",
   omnivamp: "Omnivamp",
-  moveSpeed: "Move Speed", goldFind: "Gold Find",
+  moveSpeed: "Move Speed",
+  goldFind: "Gold Find",
 };
 
 function statLabel(key: string): string {

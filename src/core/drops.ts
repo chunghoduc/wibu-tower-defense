@@ -5,7 +5,13 @@ import { ACTIVE_SKILLS } from "../data/skills.ts";
 import { TOWERS } from "../data/towers.ts";
 import { addTowerToCollection } from "./collection.ts";
 import { Rng } from "./rng.ts";
-import { BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, OBLIVION_ORB, boxIdForTier } from "../data/materials.ts";
+import {
+  BLESS_JEWEL,
+  SOUL_JEWEL,
+  SUMMON_SCROLL,
+  OBLIVION_ORB,
+  boxIdForTier,
+} from "../data/materials.ts";
 import { boxTierForStage, stageNumber } from "../data/stage.ts";
 import type { HeroSave, ItemInstanceSave, JewelInstanceSave } from "./save.ts";
 import { incrementQuestKey } from "./questTracker.ts";
@@ -42,7 +48,7 @@ export const DIAMOND_BASE: Record<Difficulty, number> = { Normal: 3, Hard: 6, Ni
 const DIAMOND_PER_STAGE = 2;
 const FIRST_CLEAR_DIAMOND_BONUS = 5;
 
-const ITEM_DROP_CHANCE = 0.30;
+const ITEM_DROP_CHANCE = 0.3;
 const SKILL_DROP_CHANCE = 0.15;
 const CHARACTER_DROP_CHANCE = 0.05;
 const JEWEL_DROP_CHANCE = 0.12;
@@ -101,7 +107,10 @@ export function processStageClear(
 
   // Diamonds — premium currency, scales with stage number so late-game earns more.
   const idx = Math.max(0, stageNumber(stageId) - 1);
-  const diamondsAwarded = DIAMOND_BASE[difficulty] + idx * DIAMOND_PER_STAGE + (isFirstClear ? FIRST_CLEAR_DIAMOND_BONUS : 0);
+  const diamondsAwarded =
+    DIAMOND_BASE[difficulty] +
+    idx * DIAMOND_PER_STAGE +
+    (isFirstClear ? FIRST_CLEAR_DIAMOND_BONUS : 0);
   save.currency.diamonds += diamondsAwarded;
 
   const itemLevel = itemLevelForStage(stageId);
@@ -128,7 +137,9 @@ export function processStageClear(
 
   let characterDropped: string | null = null;
   if (rng.next() < CHARACTER_DROP_CHANCE) {
-    const pool = TOWERS.filter((t) => (t.rarity === "Common" || t.rarity === "Magic") && !(t.id in save.collection));
+    const pool = TOWERS.filter(
+      (t) => (t.rarity === "Common" || t.rarity === "Magic") && !(t.id in save.collection),
+    );
     if (pool.length > 0) {
       const char = pool[Math.floor(rng.next() * pool.length)];
       addTowerToCollection(save, char.id);
@@ -150,5 +161,14 @@ export function processStageClear(
   if (rng.next() < SCROLL_DROP_CHANCE + diffBonus * 0.5) giveMat(SUMMON_SCROLL, 1);
   if (rng.next() < ORB_DROP_CHANCE + diffBonus * 0.25) giveMat(OBLIVION_ORB, 1);
 
-  return { goldAwarded, diamondsAwarded, itemDropped, skillDropped, characterDropped, jewelDropped, isFirstClear, materialsDropped };
+  return {
+    goldAwarded,
+    diamondsAwarded,
+    itemDropped,
+    skillDropped,
+    characterDropped,
+    jewelDropped,
+    isFirstClear,
+    materialsDropped,
+  };
 }

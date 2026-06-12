@@ -16,7 +16,14 @@ describe("HeroSave v2 — collection field", () => {
     const v1: any = {
       version: 1,
       heroId: "h1",
-      hero: { level: 5, totalXp: 1000, skillPoints: 4, unlockedNodes: [], obtainedSkills: [], equippedSkillId: null },
+      hero: {
+        level: 5,
+        totalXp: 1000,
+        skillPoints: 4,
+        unlockedNodes: [],
+        obtainedSkills: [],
+        equippedSkillId: null,
+      },
       inventory: { items: [], equipped: {} },
       lastSavedAt: 0,
     };

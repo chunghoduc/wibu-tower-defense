@@ -1,11 +1,20 @@
 // Animation-sheet prompts: every character's frames in ONE image (guaranteed
 // consistent outfit/style), framed explicitly as a 2D game asset. Reuses the
 // homage visual descriptors. The slicer cuts frames by position afterwards.
-import { TOWER_VISUAL, ENEMY_VISUAL, BOSS_VISUAL, ITEM_VISUAL, HERO_BASE, HERO_WEAPON, itemStyle } from "./prompts.mjs";
+import {
+  TOWER_VISUAL,
+  ENEMY_VISUAL,
+  BOSS_VISUAL,
+  ITEM_VISUAL,
+  HERO_BASE,
+  HERO_WEAPON,
+  itemStyle,
+} from "./prompts.mjs";
 
 export { TOWER_VISUAL, ENEMY_VISUAL, BOSS_VISUAL, ITEM_VISUAL, HERO_BASE, HERO_WEAPON, itemStyle };
 
-const SHEET_NEG = "turnaround, rotation, character rotating, arms crossed repeated, T-pose, many tiny figures, crowd, dense packed grid, second character, different outfit, outfit color change, inconsistent design, two characters touching, overlapping bodies, frame borders, panel lines, grid lines, text, labels, numbers, ui, background scenery, environment, ground, floor, shadow, props, blurry, lowres, extra limbs, deformed";
+const SHEET_NEG =
+  "turnaround, rotation, character rotating, arms crossed repeated, T-pose, many tiny figures, crowd, dense packed grid, second character, different outfit, outfit color change, inconsistent design, two characters touching, overlapping bodies, frame borders, panel lines, grid lines, text, labels, numbers, ui, background scenery, environment, ground, floor, shadow, props, blurry, lowres, extra limbs, deformed";
 
 export const SHEET_NEGATIVE = SHEET_NEG;
 

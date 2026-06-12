@@ -20,12 +20,7 @@
  * state stays on this class; the merged methods read it through `this`. Fields
  * those modules touch are public-but-internal — not part of the external API.
  */
-import {
-  type CharacterDef,
-  type Difficulty,
-  type StageDef,
-  type Vec2,
-} from "../data/schema.ts";
+import { type CharacterDef, type Difficulty, type StageDef, type Vec2 } from "../data/schema.ts";
 import { dist, lerp, pathLength } from "./path.ts";
 import { Rng } from "./rng.ts";
 import { addHeroShare, towerStatPipeline } from "./stats.ts";
@@ -45,13 +40,26 @@ import { getAwakening, awakeningStatMul } from "./awakening.ts";
 import { squadSynergyMul } from "../data/synergies.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
 import {
-  type Catalogs, type Outcome, type FxEvent,
-  type EnemyRuntime, type TowerRuntime, type HeroRuntime,
-  type BattleOptions, type ScheduledSpawn, type SpawnRequest,
-  segDist, HERO_FILTER,
-  INTER_WAVE_DELAY, COMBO_MAX_MULT, COMBO_KILLS_FOR_MAX,
-  LANE_CLEARANCE, MIN_TOWER_DIST, PLACE_MARGIN,
-  MAX_TOWER_UPGRADES, TOWER_SELL_REFUND, MANA_MAX,
+  type Catalogs,
+  type Outcome,
+  type FxEvent,
+  type EnemyRuntime,
+  type TowerRuntime,
+  type HeroRuntime,
+  type BattleOptions,
+  type ScheduledSpawn,
+  type SpawnRequest,
+  segDist,
+  HERO_FILTER,
+  INTER_WAVE_DELAY,
+  COMBO_MAX_MULT,
+  COMBO_KILLS_FOR_MAX,
+  LANE_CLEARANCE,
+  MIN_TOWER_DIST,
+  PLACE_MARGIN,
+  MAX_TOWER_UPGRADES,
+  TOWER_SELL_REFUND,
+  MANA_MAX,
 } from "./battleTypes.ts";
 import { waveMethods, type WaveMethods } from "./battleWaves.ts";
 import { enemyMethods, type EnemyMethods } from "./battleEnemies.ts";
@@ -120,7 +128,11 @@ export class BattleState {
   /** @internal F6: distinct tower defIds fielded this battle — each earns mastery XP per kill. */
   readonly deployedTowerIds = new Set<string>();
   /** F8: team stat multipliers from the chosen squad's active synergies. */
-  private synergyMul: { atkMul: number; hpMul: number; attackSpeedMul: number } = { atkMul: 1, hpMul: 1, attackSpeedMul: 1 };
+  private synergyMul: { atkMul: number; hpMul: number; attackSpeedMul: number } = {
+    atkMul: 1,
+    hpMul: 1,
+    attackSpeedMul: 1,
+  };
   /** @internal F13 combo: consecutive-kill streak + decay timer (seconds). */
   combo = 0;
   /** @internal */ comboTimer = 0;
@@ -153,7 +165,8 @@ export class BattleState {
     this.eliteThisBattle = this.rng.next() < eliteChance;
     if (this.eliteThisBattle) {
       const eligible = this.countEligibleWaveSpawns(stage, catalogs);
-      this.eliteTargetIndex = eligible > 0 ? Math.floor(this.rng.next() * Math.ceil(eligible * 0.7)) : -1;
+      this.eliteTargetIndex =
+        eligible > 0 ? Math.floor(this.rng.next() * Math.ceil(eligible * 0.7)) : -1;
     } else {
       this.eliteTargetIndex = -1;
     }
@@ -182,7 +195,11 @@ export class BattleState {
       // Items + passive tree + jewels + level all fold into the hero's stats here
       // (and flow on to towers via the 60% share). Resolution lives in one tested
       // place — resolveHeroBattleStats — so the math stays auditable.
-      const { stats: resolvedStats, petGoldPerSec, weaponType } = resolveHeroBattleStats(opts.heroSave, opts.hero.stats);
+      const {
+        stats: resolvedStats,
+        petGoldPerSec,
+        weaponType,
+      } = resolveHeroBattleStats(opts.heroSave, opts.hero.stats);
       if (petGoldPerSec > 0) this.petGoldPerSec = petGoldPerSec;
 
       const active = heroActiveBurst(opts.heroSave);
@@ -244,7 +261,13 @@ export class BattleState {
 
   /** Whether a free-placement position is buildable (bounds, lane, obstacles, spacing). */
   canPlaceAt(pos: Vec2): boolean {
-    if (pos.x < PLACE_MARGIN || pos.y < PLACE_MARGIN || pos.x > WORLD_WIDTH - PLACE_MARGIN || pos.y > WORLD_HEIGHT - PLACE_MARGIN) return false;
+    if (
+      pos.x < PLACE_MARGIN ||
+      pos.y < PLACE_MARGIN ||
+      pos.x > WORLD_WIDTH - PLACE_MARGIN ||
+      pos.y > WORLD_HEIGHT - PLACE_MARGIN
+    )
+      return false;
     // Block placement on ANY road: the single campaign lane, or every arena corridor.
     const roads = this.stage.arena ? this.stage.arena.routes : [this.stage.path];
     for (const road of roads) {
@@ -286,7 +309,8 @@ export class BattleState {
     );
     // F6 mastery × F7 awakening (per-tower permanent growth) × F8 squad synergy.
     const mMul = this._heroSave
-      ? masteryStatMul(getMasteryLevel(this._heroSave, characterId)) * awakeningStatMul(getAwakening(this._heroSave, characterId))
+      ? masteryStatMul(getMasteryLevel(this._heroSave, characterId)) *
+        awakeningStatMul(getAwakening(this._heroSave, characterId))
       : 1;
     resolvedStats.atk *= mMul * this.synergyMul.atkMul;
     resolvedStats.maxHp *= mMul * this.synergyMul.hpMul;
@@ -383,7 +407,8 @@ export class BattleState {
     );
     // Re-apply F6 mastery + F7 awakening + F8 synergy so upgrading never drops it.
     const mMul = this._heroSave
-      ? masteryStatMul(getMasteryLevel(this._heroSave, t.def.id)) * awakeningStatMul(getAwakening(this._heroSave, t.def.id))
+      ? masteryStatMul(getMasteryLevel(this._heroSave, t.def.id)) *
+        awakeningStatMul(getAwakening(this._heroSave, t.def.id))
       : 1;
     t.stats.atk *= mMul * this.synergyMul.atkMul;
     t.stats.maxHp *= mMul * this.synergyMul.hpMul;
@@ -445,9 +470,13 @@ export class BattleState {
     return 1 + (COMBO_MAX_MULT - 1) * t;
   }
   /** F13 current combo count (for the battle HUD). */
-  getCombo(): number { return this.combo; }
+  getCombo(): number {
+    return this.combo;
+  }
   /** F14 flawless victory: won the stage with zero leaks (drives a bonus chest). */
-  wasFlawless(): boolean { return this.outcome === "won" && !this.anyLeak; }
+  wasFlawless(): boolean {
+    return this.outcome === "won" && !this.anyLeak;
+  }
 
   // ---- Hero --------------------------------------------------------------
 
@@ -477,12 +506,33 @@ export class BattleState {
     const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
     if (!target) return;
 
-    this.performAttack(h, h.pos, h.stats.atk, h.damageType, target, "hero", "hero", -1, heroAttackStyle(h.weaponType, h.damageType, h.stats.range));
+    this.performAttack(
+      h,
+      h.pos,
+      h.stats.atk,
+      h.damageType,
+      target,
+      "hero",
+      "hero",
+      -1,
+      heroAttackStyle(h.weaponType, h.damageType, h.stats.range),
+    );
     if (h.mana >= MANA_MAX) {
       // The equipped active drives both the burst size (its levelled power) and
       // the damage type — a True/Magic skill casts True/Magic even on a Physical
       // weapon. Falls back to the legacy ×2 / weapon type when nothing is equipped.
-      this.castActive(h.stats, h.stats.atk, h.activeDamageType ?? h.damageType, target.pos, h.pos, "hero", -1, h.equippedSkillId, undefined, h.activeMult ?? 2);
+      this.castActive(
+        h.stats,
+        h.stats.atk,
+        h.activeDamageType ?? h.damageType,
+        target.pos,
+        h.pos,
+        "hero",
+        -1,
+        h.equippedSkillId,
+        undefined,
+        h.activeMult ?? 2,
+      );
       h.mana = 0;
       // Skill leveling (spec: +1 use-XP per cast, capped at the hero's level).
       // Written straight into the live save like kill XP; the scene flushes after

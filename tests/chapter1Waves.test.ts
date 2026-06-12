@@ -12,14 +12,22 @@ const ehp = (id: string) => {
 };
 /** Total non-boss toughness of a wave (the throughput the board must chew). */
 const trashThreat = (wave: WaveDef) =>
-  wave.spawns
-    .filter((s) => !isBoss(s.enemyId))
-    .reduce((t, s) => t + s.count * ehp(s.enemyId), 0);
+  wave.spawns.filter((s) => !isBoss(s.enemyId)).reduce((t, s) => t + s.count * ehp(s.enemyId), 0);
 
 // Boss for stage n is the nth entry; mid-boss is the previous tier.
-const BOSSES = ["champion", "zabro", "ryomen", "kura", "warden", "akai", "mukade", "madarok", "overlord", "meruon"];
-const wavesFor = (n: number) =>
-  buildChapter1Waves(n, BOSSES[n - 1], BOSSES[Math.max(0, n - 2)]);
+const BOSSES = [
+  "champion",
+  "zabro",
+  "ryomen",
+  "kura",
+  "warden",
+  "akai",
+  "mukade",
+  "madarok",
+  "overlord",
+  "meruon",
+];
+const wavesFor = (n: number) => buildChapter1Waves(n, BOSSES[n - 1], BOSSES[Math.max(0, n - 2)]);
 
 const STAGES = Array.from({ length: 10 }, (_, i) => i + 1);
 

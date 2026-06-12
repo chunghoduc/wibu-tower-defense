@@ -141,7 +141,12 @@ export function backfillMeta(meta: Partial<MetaSave> | undefined): MetaSave {
   return {
     streak: { ...d.streak, ...meta.streak },
     expedition: { ...d.expedition, ...meta.expedition },
-    bounties: { ...d.bounties, ...meta.bounties, progress: meta.bounties?.progress ?? {}, claimed: meta.bounties?.claimed ?? [] },
+    bounties: {
+      ...d.bounties,
+      ...meta.bounties,
+      progress: meta.bounties?.progress ?? {},
+      claimed: meta.bounties?.claimed ?? [],
+    },
     spin: { ...d.spin, ...meta.spin },
     challenge: { ...d.challenge, ...meta.challenge },
     mastery: meta.mastery ?? {},
@@ -162,6 +167,6 @@ export function isoWeekKey(date: Date): string {
   const day = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - day);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const week = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
 }

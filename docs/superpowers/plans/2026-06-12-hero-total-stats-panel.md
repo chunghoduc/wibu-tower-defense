@@ -13,6 +13,7 @@
 ### Task 1: Pure `heroStatRows` formatter (TDD)
 
 **Files:**
+
 - Create: `src/scenes/heroStatsPanel.ts`
 - Test: `tests/heroStatsPanel.test.ts`
 
@@ -29,17 +30,38 @@ describe("heroStatRows", () => {
   it("returns the 12 hero stats in display order with correct labels", () => {
     const rows = heroStatRows(makeStats({}));
     expect(rows.map((r) => r.label)).toEqual([
-      "ATK", "Atk Spd", "Range", "Crit", "Crit Dmg", "HP",
-      "HP Regen", "Armor", "M.Resist", "Skill Pwr", "Omnivamp", "Move Spd",
+      "ATK",
+      "Atk Spd",
+      "Range",
+      "Crit",
+      "Crit Dmg",
+      "HP",
+      "HP Regen",
+      "Armor",
+      "M.Resist",
+      "Skill Pwr",
+      "Omnivamp",
+      "Move Spd",
     ]);
   });
 
   it("formats scalar, percent and multiplier stats correctly", () => {
-    const rows = heroStatRows(makeStats({
-      atk: 142.7, attackSpeed: 1.14, range: 130.6, critRate: 0.25,
-      critDamage: 1.5, maxHp: 812.3, hpRegen: 8.2, armor: 30.6,
-      magicResist: 12, skillPower: 1.5, omnivamp: 0.08, moveSpeed: 160.4,
-    }));
+    const rows = heroStatRows(
+      makeStats({
+        atk: 142.7,
+        attackSpeed: 1.14,
+        range: 130.6,
+        critRate: 0.25,
+        critDamage: 1.5,
+        maxHp: 812.3,
+        hpRegen: 8.2,
+        armor: 30.6,
+        magicResist: 12,
+        skillPower: 1.5,
+        omnivamp: 0.08,
+        moveSpeed: 160.4,
+      }),
+    );
     const by = (l: string) => rows.find((r) => r.label === l)!.value;
     expect(by("ATK")).toBe("143");
     expect(by("Atk Spd")).toBe("1.1");
@@ -79,10 +101,18 @@ const mult = (v: number) => `${v.toFixed(1)}×`;
 
 // The hero stats worth surfacing, in display order, with a formatter.
 const HERO_STAT_ROWS: [keyof Stats, string, (v: number) => string][] = [
-  ["atk", "ATK", n0], ["attackSpeed", "Atk Spd", n1], ["range", "Range", n0],
-  ["critRate", "Crit", pct], ["critDamage", "Crit Dmg", mult], ["maxHp", "HP", n0],
-  ["hpRegen", "HP Regen", n1], ["armor", "Armor", n0], ["magicResist", "M.Resist", n0],
-  ["skillPower", "Skill Pwr", mult], ["omnivamp", "Omnivamp", pct], ["moveSpeed", "Move Spd", n0],
+  ["atk", "ATK", n0],
+  ["attackSpeed", "Atk Spd", n1],
+  ["range", "Range", n0],
+  ["critRate", "Crit", pct],
+  ["critDamage", "Crit Dmg", mult],
+  ["maxHp", "HP", n0],
+  ["hpRegen", "HP Regen", n1],
+  ["armor", "Armor", n0],
+  ["magicResist", "M.Resist", n0],
+  ["skillPower", "Skill Pwr", mult],
+  ["omnivamp", "Omnivamp", pct],
+  ["moveSpeed", "Move Spd", n0],
 ];
 
 /** Selected hero stats as display-ready { label, value } rows. Pure. */
@@ -110,6 +140,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: `renderHeroStats` presenter
 
 **Files:**
+
 - Modify: `src/scenes/heroStatsPanel.ts`
 
 - [ ] **Step 1: Add the presenter**
@@ -125,7 +156,12 @@ import { defaultHeroStats } from "../data/stage.ts";
 ```
 
 ```typescript
-export interface PanelBox { x: number; y: number; w: number; h: number }
+export interface PanelBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 /**
  * Render the hero's resolved total stats into `container` within `box`.
@@ -133,24 +169,40 @@ export interface PanelBox { x: number; y: number; w: number; h: number }
  * only appends the header + a 2-column stat grid (frame is drawn by the caller).
  */
 export function renderHeroStats(
-  scene: Phaser.Scene, container: Phaser.GameObjects.Container, box: PanelBox, save: HeroSave,
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  box: PanelBox,
+  save: HeroSave,
 ): void {
   const stats = resolveHeroBattleStats(save, defaultHeroStats()).stats;
   const rows = heroStatRows(stats);
 
-  const px = box.x + 10, py = box.y + 8;
-  container.add(crispText(scene, px, py, "Total Stats",
-    { fontSize: "11px", color: "#ffd86a", fontStyle: "bold" }));
+  const px = box.x + 10,
+    py = box.y + 8;
+  container.add(
+    crispText(scene, px, py, "Total Stats", {
+      fontSize: "11px",
+      color: "#ffd86a",
+      fontStyle: "bold",
+    }),
+  );
 
   const gridTop = py + 18;
   const colW = (box.w - 20) / 2;
   const perCol = Math.ceil(rows.length / 2);
   rows.forEach(({ label, value }, i) => {
-    const col = Math.floor(i / perCol), row = i % perCol;
-    const cx = px + col * colW, cy = gridTop + row * 16;
+    const col = Math.floor(i / perCol),
+      row = i % perCol;
+    const cx = px + col * colW,
+      cy = gridTop + row * 16;
     container.add(crispText(scene, cx, cy, label, { fontSize: "9px", color: "#8fa0b4" }));
-    container.add(crispText(scene, cx + colW - 12, cy, value,
-      { fontSize: "9px", color: "#e8eef6", fontStyle: "bold" }).setOrigin(1, 0));
+    container.add(
+      crispText(scene, cx + colW - 12, cy, value, {
+        fontSize: "9px",
+        color: "#e8eef6",
+        fontStyle: "bold",
+      }).setOrigin(1, 0),
+    );
   });
 }
 ```
@@ -179,6 +231,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Shrink the doll panel to free left-column room
 
 **Files:**
+
 - Modify: `src/data/heroDoll.ts:32`
 
 - [ ] **Step 1: Reduce the panel height**
@@ -212,6 +265,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Wire the stats panel into HeroScene
 
 **Files:**
+
 - Modify: `src/scenes/HeroScene.ts` (imports, a new `statsBox` field, `create()`, `refresh()`)
 
 - [ ] **Step 1: Add the import**
@@ -240,12 +294,12 @@ In `create()`, immediately after the inventory background drop-zone block (the
 `this.tiles = this.add.container(...)`, add:
 
 ```typescript
-    // Hero total-stats panel — sits directly under the paper-doll (left column).
-    const sp = HeroScene.STATS_PANEL;
-    const spG = this.add.graphics();
-    spG.fillStyle(0x0e1622, 0.92).fillRoundedRect(sp.x, sp.y, sp.w, sp.h, 10);
-    spG.lineStyle(2, 0x2a3a56, 1).strokeRoundedRect(sp.x, sp.y, sp.w, sp.h, 10);
-    this.statsBox = this.add.container(0, 0).setDepth(6);
+// Hero total-stats panel — sits directly under the paper-doll (left column).
+const sp = HeroScene.STATS_PANEL;
+const spG = this.add.graphics();
+spG.fillStyle(0x0e1622, 0.92).fillRoundedRect(sp.x, sp.y, sp.w, sp.h, 10);
+spG.lineStyle(2, 0x2a3a56, 1).strokeRoundedRect(sp.x, sp.y, sp.w, sp.h, 10);
+this.statsBox = this.add.container(0, 0).setDepth(6);
 ```
 
 - [ ] **Step 4: Re-render the stats in `refresh()`**
@@ -253,8 +307,8 @@ In `create()`, immediately after the inventory background drop-zone block (the
 In `refresh()`, after `const save = this.mgr.getSave();` (line 206), add:
 
 ```typescript
-    this.statsBox.removeAll(true);
-    renderHeroStats(this, this.statsBox, HeroScene.STATS_PANEL, save);
+this.statsBox.removeAll(true);
+renderHeroStats(this, this.statsBox, HeroScene.STATS_PANEL, save);
 ```
 
 - [ ] **Step 5: Typecheck + file-size guard**
@@ -308,6 +362,7 @@ are legible in 2 columns; equipping/unequipping an item updates the totals.
 ## Self-Review
 
 **Spec coverage:**
+
 - Shrink doll panel (418→300) → Task 3. ✓
 - New `heroStatsPanel.ts` with pure `heroStatRows` + `renderHeroStats` → Tasks 1–2. ✓
 - Stat table (12 stats, labels, formatters) → Task 1 (matches spec table). ✓

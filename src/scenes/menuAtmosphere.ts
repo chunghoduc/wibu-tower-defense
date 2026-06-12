@@ -7,17 +7,62 @@
  */
 import { Rng } from "../core/rng.ts";
 
-export interface Dims { width: number; height: number; }
-export interface Vignette { cx: number; cy: number; innerR: number; outerR: number; edgeAlpha: number; }
-export interface KeyLight { x: number; y: number; r: number; color: number; }
+export interface Dims {
+  width: number;
+  height: number;
+}
+export interface Vignette {
+  cx: number;
+  cy: number;
+  innerR: number;
+  outerR: number;
+  edgeAlpha: number;
+}
+export interface KeyLight {
+  x: number;
+  y: number;
+  r: number;
+  color: number;
+}
 /** A volumetric god-ray shaft falling from the top edge. */
-export interface Ray { x: number; topW: number; botW: number; len: number; tilt: number; color: number; baseAlpha: number; phase: number; }
+export interface Ray {
+  x: number;
+  topW: number;
+  botW: number;
+  len: number;
+  tilt: number;
+  color: number;
+  baseAlpha: number;
+  phase: number;
+}
 /** Slow floating dust speck: gentle drift + bob, wraps in x. */
-export interface Mote { x: number; y: number; r: number; drift: number; rise: number; phase: number; alpha: number; }
+export interface Mote {
+  x: number;
+  y: number;
+  r: number;
+  drift: number;
+  rise: number;
+  phase: number;
+  alpha: number;
+}
 /** Warm ember rising from a brazier: steady rise (wraps) + sine sway. */
-export interface Ember { x: number; y: number; r: number; speed: number; drift: number; phase: number; alpha: number; }
+export interface Ember {
+  x: number;
+  y: number;
+  r: number;
+  speed: number;
+  drift: number;
+  phase: number;
+  alpha: number;
+}
 /** A flickering torch/brazier light point. */
-export interface Torch { x: number; y: number; r: number; color: number; phase: number; }
+export interface Torch {
+  x: number;
+  y: number;
+  r: number;
+  color: number;
+  phase: number;
+}
 
 export interface MenuAtmosphereSpec {
   vignette: Vignette;
@@ -40,10 +85,13 @@ export function buildMenuAtmosphere(W: number, H: number, seed: number): MenuAtm
   const outerR = Math.hypot(W, H) / 2;
 
   const vignette: Vignette = {
-    cx: W / 2, cy: H * 0.44,
-    innerR: Math.round(outerR * 0.30), outerR: Math.round(outerR * 1.02), edgeAlpha: 0.72,
+    cx: W / 2,
+    cy: H * 0.44,
+    innerR: Math.round(outerR * 0.3),
+    outerR: Math.round(outerR * 1.02),
+    edgeAlpha: 0.72,
   };
-  const keyLight: KeyLight = { x: W / 2, y: H * 0.40, r: Math.round(H * 0.42), color: 0xffd27a };
+  const keyLight: KeyLight = { x: W / 2, y: H * 0.4, r: Math.round(H * 0.42), color: 0xffd27a };
 
   // God-rays: a few wide soft shafts slanting down from the top windows.
   const rays: Ray[] = [];
@@ -65,7 +113,8 @@ export function buildMenuAtmosphere(W: number, H: number, seed: number): MenuAtm
   const motes: Mote[] = [];
   for (let i = 0; i < MOTE_COUNT; i++) {
     motes.push({
-      x: rng.next() * W, y: rng.next() * H,
+      x: rng.next() * W,
+      y: rng.next() * H,
       r: 0.6 + rng.next() * 1.6,
       drift: 8 + rng.next() * 20,
       rise: 4 + rng.next() * 10,
@@ -78,9 +127,10 @@ export function buildMenuAtmosphere(W: number, H: number, seed: number): MenuAtm
   const embers: Ember[] = [];
   for (let i = 0; i < EMBER_COUNT; i++) {
     const left = i % 2 === 0;
-    const bx = left ? W * (0.14 + rng.next() * 0.06) : W * (0.80 + rng.next() * 0.06);
+    const bx = left ? W * (0.14 + rng.next() * 0.06) : W * (0.8 + rng.next() * 0.06);
     embers.push({
-      x: bx, y: H * (0.55 + rng.next() * 0.45),
+      x: bx,
+      y: H * (0.55 + rng.next() * 0.45),
       r: 1 + rng.next() * 2.2,
       speed: 10 + rng.next() * 26,
       drift: 5 + rng.next() * 12,
@@ -122,6 +172,6 @@ export function rayAlpha(r: Ray, tSec: number): number {
 
 /** Torch flicker multiplier in [0,1]: layered sines so it reads as fire. Pure. */
 export function flicker(tSec: number, phase: number): number {
-  const v = 0.72 + 0.18 * Math.sin(tSec * 11 + phase) + 0.10 * Math.sin(tSec * 23 + phase * 1.7);
+  const v = 0.72 + 0.18 * Math.sin(tSec * 11 + phase) + 0.1 * Math.sin(tSec * 23 + phase * 1.7);
   return Math.max(0, Math.min(1, v));
 }

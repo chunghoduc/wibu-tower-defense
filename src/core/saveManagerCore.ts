@@ -3,7 +3,13 @@ import { processStageClear, type DropResult } from "./drops.ts";
 import { performMultiSummon, performSummon, type SummonResult } from "./gacha.ts";
 import { awardHeroXp } from "./hero.ts";
 import { equipItem, equipSkill, unequipSkill, unequipSlot } from "./loadout.ts";
-import { ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, type PurchaseResult } from "./shop.ts";
+import {
+  ensureShopStock,
+  refreshShop,
+  shopRefreshCost,
+  buyShopSlot,
+  type PurchaseResult,
+} from "./shop.ts";
 import { smeltItem, bulkSmelt, type SmeltResult, type BulkSmeltResult } from "./smelt.ts";
 import { reforgeItem, type ReforgeResult } from "./reforge.ts";
 import { SUMMON_SCROLL, OBLIVION_ORB } from "../data/materials.ts";
@@ -31,12 +37,12 @@ const STARTER_GOLD = 2000; // enough to enhance a few items
 
 /** A common-rarity character per role, granted to new players so they can play immediately. */
 const STARTER_SQUAD = [
-  "yamo-desert-bandit",   // damage
-  "pip-powderkeg",        // splash
-  "tobi-skipstone",       // chain
-  "bram-thornling",       // dot
-  "doro-mire-spirit",     // debuff
-  "mochi-morale-sprite",  // support
+  "yamo-desert-bandit", // damage
+  "pip-powderkeg", // splash
+  "tobi-skipstone", // chain
+  "bram-thornling", // dot
+  "doro-mire-spirit", // debuff
+  "mochi-morale-sprite", // support
 ];
 
 const XP_BY_DIFFICULTY: Record<Difficulty, number> = {
@@ -68,7 +74,8 @@ export class SaveManagerCore {
     save.currency.diamonds = STARTER_DIAMONDS;
     for (const id of STARTER_SQUAD) addTowerToCollection(save, id);
     // Every hero starts with two weapon-free active skills (one Physical, one Magic).
-    for (const id of STARTER_SKILL_IDS) save.hero.obtainedSkills.push({ skillId: id, level: 1, useXp: 0 });
+    for (const id of STARTER_SKILL_IDS)
+      save.hero.obtainedSkills.push({ skillId: id, level: 1, useXp: 0 });
     save.hero.equippedSkillIds = [...STARTER_SKILL_IDS];
     return save;
   }
@@ -119,9 +126,7 @@ export class SaveManagerCore {
 
   afterSummon(count: 1 | 10, rng: Rng): SummonResult[] {
     const results =
-      count === 1
-        ? [performSummon(this.save, rng)]
-        : performMultiSummon(this.save, rng, 10);
+      count === 1 ? [performSummon(this.save, rng)] : performMultiSummon(this.save, rng, 10);
     checkAndGrantAchievements(this.save);
     this.persist();
     return results;
@@ -190,7 +195,10 @@ export class SaveManagerCore {
 
   /** Grant a new owned jewel instance (used by loot). Persists. */
   grantJewel(defId: string): JewelInstanceSave {
-    const instance: JewelInstanceSave = { id: `jewel-${defId}-${++SaveManagerCore.jewelSeq}-${this.save.lastSavedAt}`, defId };
+    const instance: JewelInstanceSave = {
+      id: `jewel-${defId}-${++SaveManagerCore.jewelSeq}-${this.save.lastSavedAt}`,
+      defId,
+    };
     this.save.hero.jewels.push(instance);
     this.persist();
     return instance;
@@ -211,7 +219,8 @@ export class SaveManagerCore {
     const owned = hero.jewels.some((j) => j.id === jewelInstanceId);
     if (!owned) return false;
     if (Object.values(hero.socketedJewels).includes(jewelInstanceId)) return false; // in another socket
-    if (!JEWEL_CATALOG_MAP.has(hero.jewels.find((j) => j.id === jewelInstanceId)!.defId)) return false;
+    if (!JEWEL_CATALOG_MAP.has(hero.jewels.find((j) => j.id === jewelInstanceId)!.defId))
+      return false;
     hero.socketedJewels[nodeId] = jewelInstanceId;
     this.persist();
     return true;
@@ -368,7 +377,10 @@ export class SaveManagerCore {
    * Spend `count` Summoning Scrolls on a free multi-summon (default 10). Mirrors
    * the diamond 10× pull but pays in scrolls. Null if not enough scrolls held.
    */
-  useSummonScrollsMulti(count = 10, rng: Rng = new Rng((Math.random() * 1e9) | 0)): SummonResult[] | null {
+  useSummonScrollsMulti(
+    count = 10,
+    rng: Rng = new Rng((Math.random() * 1e9) | 0),
+  ): SummonResult[] | null {
     if ((this.save.materials[SUMMON_SCROLL] ?? 0) < count) return null;
     this.save.materials[SUMMON_SCROLL] -= count;
     // Pre-credit the multi cost so performMultiSummon's deduction nets to free.
@@ -394,7 +406,10 @@ export class SaveManagerCore {
    * successful claim, so at most one free summon is ever banked. Null if the
    * timer has not elapsed yet.
    */
-  claimFreeSummon(nowMs: number = Date.now(), rng: Rng = new Rng((Math.random() * 1e9) | 0)): SummonResult | null {
+  claimFreeSummon(
+    nowMs: number = Date.now(),
+    rng: Rng = new Rng((Math.random() * 1e9) | 0),
+  ): SummonResult | null {
     if (!this.freeSummonAvailable(nowMs)) return null;
     this.save.currency.diamonds += SINGLE_PULL_COST; // pre-credit so the pull nets free
     const result = performSummon(this.save, rng);

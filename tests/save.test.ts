@@ -9,8 +9,12 @@ import {
 const store: Record<string, string> = {};
 const mockStorage = {
   getItem: (k: string) => store[k] ?? null,
-  setItem: (k: string, v: string) => { store[k] = v; },
-  removeItem: (k: string) => { delete store[k]; },
+  setItem: (k: string, v: string) => {
+    store[k] = v;
+  },
+  removeItem: (k: string) => {
+    delete store[k];
+  },
 };
 
 describe("LocalSaveProvider", () => {

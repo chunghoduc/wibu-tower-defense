@@ -10,7 +10,7 @@ Every placed tower wears a small badge in its upper-right corner
 Graphics: a dark disc, a ring tinted by **kind** (melee/ranged), an inner fill
 tinted by **role**, and a tiny sword (melee) or arrow (ranged) glyph.
 
-The glyph communicates *melee vs ranged* clearly, but the tower's **role** —
+The glyph communicates _melee vs ranged_ clearly, but the tower's **role** —
 the thing that actually tells the player what the tower DOES (single-target DPS,
 splash, chain, damage-over-time, support aura, debuff, tank) — is conveyed only
 by a faint 50%-alpha color fill. At a glance you cannot tell a `splash` tower
@@ -30,15 +30,15 @@ information is lost.
 Each emblem is a bold, flat, high-contrast icon that reads at ~16 px, tinted to
 match its existing `ROLE_COLOR` for reinforcement:
 
-| role     | meaning                       | emblem concept                              | color (existing) |
-|----------|-------------------------------|---------------------------------------------|------------------|
-| damage   | single-target precision DPS   | target reticle pierced by an arrowhead      | `0x4fc3f7` sky   |
-| splash   | area-of-effect burst          | radiating starburst / explosion             | `0xff8a65` coral |
-| chain    | bouncing lightning            | forked lightning bolt                       | `0xba68c8` violet|
-| dot      | damage over time (poison/burn)| dripping venom droplet                      | `0x9ccc65` toxic |
-| support  | buff aura                     | upward chevrons inside a radiant halo       | `0xfff176` gold  |
-| debuff   | slow / weaken                 | downward arrow over a cracked hourglass     | `0x4db6ac` teal  |
-| tanker   | frontline HP wall             | heater shield                               | `0x90a4ae` steel*|
+| role    | meaning                        | emblem concept                          | color (existing)   |
+| ------- | ------------------------------ | --------------------------------------- | ------------------ |
+| damage  | single-target precision DPS    | target reticle pierced by an arrowhead  | `0x4fc3f7` sky     |
+| splash  | area-of-effect burst           | radiating starburst / explosion         | `0xff8a65` coral   |
+| chain   | bouncing lightning             | forked lightning bolt                   | `0xba68c8` violet  |
+| dot     | damage over time (poison/burn) | dripping venom droplet                  | `0x9ccc65` toxic   |
+| support | buff aura                      | upward chevrons inside a radiant halo   | `0xfff176` gold    |
+| debuff  | slow / weaken                  | downward arrow over a cracked hourglass | `0x4db6ac` teal    |
+| tanker  | frontline HP wall              | heater shield                           | `0x90a4ae` steel\* |
 
 \* `tanker` is currently **absent** from `ROLE_COLOR` (falls back to white) — this
 work adds a steel color for it. (`economy`, a dead key, is left untouched.)
@@ -56,9 +56,8 @@ Mirror the **castle sprite** precedent (a recent, working pattern):
    on a transparent background.
 
 2. **Asset keys.** `src/data/assetKeys.ts` gains
-   `export const roleTex = (role: string) => \`roleicon__${role}\`;`
-   (the sole place this key is built; the discipline test regex is extended to
-   cover `roleicon`).
+   `export const roleTex = (role: string) => \`roleicon\_\_${role}\`;`(the sole place this key is built; the discipline test regex is extended to
+cover`roleicon`).
 
 3. **Pure helper `src/scenes/roleBadge.ts`** (Phaser-free, unit-tested):
    - `roleBadgeTex(role: TowerRole): string` → the texture key via `roleTex`.
@@ -104,7 +103,7 @@ Mirror the **castle sprite** precedent (a recent, working pattern):
 
 ## Out of scope
 
-- Changing what a role *does* mechanically.
+- Changing what a role _does_ mechanically.
 - Re-theming the squad/collection role labels (`ROLE_LABEL`) — those are text
   and already clear.
 - Animating the badge.

@@ -13,6 +13,7 @@
 ## Background & Context
 
 The game already has:
+
 - `ItemDef.appearanceRef?: string` field in `schema.ts` — a Phase 4 hook, currently unpopulated.
 - `InventorySave.equipped: Partial<Record<ItemSlot, string>>` — maps slot → item instance ID.
 - 96×96 item icon PNGs at `public/assets/sprites/item/<id>.png` — loaded as `item__<id>` textures.
@@ -20,6 +21,7 @@ The game already has:
 - `hasSprite()` in PreloadScene already gracefully guards missing textures.
 
 Visual layers (back-to-front):
+
 ```
 [wings sprite]  ← item icon, positioned BEHIND hero, ~2.5× scaled
 [body sprite]   ← hero__hero spritesheet (existing, untouched)
@@ -33,19 +35,20 @@ Towers, enemies, and bosses are untouched — their rarity/role visuals are bake
 
 ## File Map
 
-| Action | File | Responsibility |
-|--------|------|----------------|
-| **Create** | `src/scenes/heroEquipVisuals.ts` | Pure mapping: `InventorySave` → `HeroLayerConfig` (no Phaser) |
-| **Create** | `src/scenes/HeroLayeredSprite.ts` | Phaser Container: 3 stacked sprites + pet management |
-| **Create** | `tests/heroEquipVisuals.test.ts` | Unit tests for pure mapping logic |
-| **Modify** | `src/data/items.ts` | Populate `appearanceRef` on Wing slot items |
-| **Modify** | `src/scenes/BattleScene.ts:162` | Change type + swap creation + wire equipment sync |
+| Action     | File                              | Responsibility                                                |
+| ---------- | --------------------------------- | ------------------------------------------------------------- |
+| **Create** | `src/scenes/heroEquipVisuals.ts`  | Pure mapping: `InventorySave` → `HeroLayerConfig` (no Phaser) |
+| **Create** | `src/scenes/HeroLayeredSprite.ts` | Phaser Container: 3 stacked sprites + pet management          |
+| **Create** | `tests/heroEquipVisuals.test.ts`  | Unit tests for pure mapping logic                             |
+| **Modify** | `src/data/items.ts`               | Populate `appearanceRef` on Wing slot items                   |
+| **Modify** | `src/scenes/BattleScene.ts:162`   | Change type + swap creation + wire equipment sync             |
 
 ---
 
 ## Task 1: Pure mapping module + tests
 
 **Files:**
+
 - Create: `src/scenes/heroEquipVisuals.ts`
 - Create: `tests/heroEquipVisuals.test.ts`
 
@@ -119,10 +122,12 @@ describe("resolveHeroLayers", () => {
 ```
 
 - [ ] **Run to verify it fails (module not found)**
+
 ```bash
 cd /path/to/wibu-tower-defense
 npm test -- tests/heroEquipVisuals.test.ts
 ```
+
 Expected: `Cannot find module '../src/scenes/heroEquipVisuals.ts'`
 
 ### Step 2: Implement the pure mapping module
@@ -153,8 +158,8 @@ export interface HeroLayerConfig {
 export function resolveHeroLayers(inventory: InventorySave): HeroLayerConfig {
   return {
     weaponKey: _resolveWeapon(inventory),
-    wingKey:   _resolveWing(inventory),
-    petKey:    _resolvePet(inventory),
+    wingKey: _resolveWing(inventory),
+    petKey: _resolvePet(inventory),
   };
 }
 
@@ -187,12 +192,15 @@ function _resolvePet(inventory: InventorySave): string | null {
 ```
 
 - [ ] **Run tests — expect 4/5 to pass (wing appearanceRef test is conditional)**
+
 ```bash
 npm test -- tests/heroEquipVisuals.test.ts
 ```
+
 Expected: 4 pass, 1 pass (the last test accepts both null and string)
 
 - [ ] **Commit**
+
 ```bash
 git add src/scenes/heroEquipVisuals.ts tests/heroEquipVisuals.test.ts
 git commit -m "feat: pure hero equipment → visual layer mapping with tests"
@@ -203,6 +211,7 @@ git commit -m "feat: pure hero equipment → visual layer mapping with tests"
 ## Task 2: Populate `appearanceRef` on Wing items in `items.ts`
 
 **Files:**
+
 - Modify: `src/data/items.ts` (two entries: fledgling-wings, tempest-wings)
 
 The `appearanceRef` field is already in `ItemDef` schema. Wing icons are already generated at `public/assets/sprites/item/fledgling-wings.png` and `tempest-wings.png`, so no new asset is needed — `appearanceRef` just points at the existing item icon key.
@@ -212,11 +221,14 @@ The `appearanceRef` field is already in `ItemDef` schema. Wing icons are already
 - [ ] **Add `appearanceRef` to fledgling-wings**
 
 Find:
+
 ```typescript
 i({ id: "fledgling-wings", name: "Fledgling Wings", slot: "Wing",
     rarity: "Common", requiredLevel: 1,
 ```
+
 Change to:
+
 ```typescript
 i({ id: "fledgling-wings", name: "Fledgling Wings", slot: "Wing",
     appearanceRef: "item__fledgling-wings",
@@ -226,11 +238,14 @@ i({ id: "fledgling-wings", name: "Fledgling Wings", slot: "Wing",
 - [ ] **Add `appearanceRef` to tempest-wings**
 
 Find:
+
 ```typescript
 i({ id: "tempest-wings", name: "Tempest Wings", slot: "Wing",
     rarity: "Legendary", requiredLevel: 50,
 ```
+
 Change to:
+
 ```typescript
 i({ id: "tempest-wings", name: "Tempest Wings", slot: "Wing",
     appearanceRef: "item__tempest-wings",
@@ -238,18 +253,23 @@ i({ id: "tempest-wings", name: "Tempest Wings", slot: "Wing",
 ```
 
 - [ ] **Run typecheck**
+
 ```bash
 npm run typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Run wing test from Task 1 — now both wing cases should pass**
+
 ```bash
 npm test -- tests/heroEquipVisuals.test.ts
 ```
+
 Expected: 5/5 pass
 
 - [ ] **Commit**
+
 ```bash
 git add src/data/items.ts
 git commit -m "feat: populate appearanceRef on wing items for visual layer system"
@@ -260,6 +280,7 @@ git commit -m "feat: populate appearanceRef on wing items for visual layer syste
 ## Task 3: `HeroLayeredSprite` container class
 
 **Files:**
+
 - Create: `src/scenes/HeroLayeredSprite.ts`
 
 This class is the Phaser side. It is NOT unit-tested with Vitest (requires a Phaser runtime). Test it manually by running the game.
@@ -315,7 +336,10 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     this.add([this.wingsSprite, this.bodySprite, this.weaponSprite]);
 
     // Pet is separate
-    this.petSprite = scene.add.sprite(x + 30, y + 8, "__missing").setVisible(false).setScale(0.18);
+    this.petSprite = scene.add
+      .sprite(x + 30, y + 8, "__missing")
+      .setVisible(false)
+      .setScale(0.18);
 
     scene.add.existing(this);
   }
@@ -416,12 +440,15 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
 ```
 
 - [ ] **Run typecheck**
+
 ```bash
 npm run typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Commit**
+
 ```bash
 git add src/scenes/HeroLayeredSprite.ts
 git commit -m "feat: HeroLayeredSprite container with weapon/wing/pet layer system"
@@ -432,6 +459,7 @@ git commit -m "feat: HeroLayeredSprite container with weapon/wing/pet layer syst
 ## Task 4: Replace hero sprite in `BattleScene.ts`
 
 **Files:**
+
 - Modify: `src/scenes/BattleScene.ts`
 
 There are four surgical changes: the property type, the import, the creation block, and the position-update line.
@@ -447,10 +475,13 @@ import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 ### Step 2: Change property type (line 162)
 
 Find:
+
 ```typescript
 private heroSprite: Phaser.GameObjects.Sprite | null = null;
 ```
+
 Replace with:
+
 ```typescript
 private heroSprite: HeroLayeredSprite | null = null;
 ```
@@ -458,6 +489,7 @@ private heroSprite: HeroLayeredSprite | null = null;
 ### Step 3: Replace sprite creation block (lines 775-781)
 
 Find:
+
 ```typescript
 if (h.alive && hasSprite(this, "hero__hero")) {
   if (!this.heroSprite) {
@@ -467,7 +499,9 @@ if (h.alive && hasSprite(this, "hero__hero")) {
     if (this.anims.exists("hero__hero_idle")) this.heroSprite.play("hero__hero_idle");
   }
 ```
+
 Replace with:
+
 ```typescript
 if (h.alive && hasSprite(this, "hero__hero")) {
   if (!this.heroSprite) {
@@ -485,10 +519,13 @@ if (h.alive && hasSprite(this, "hero__hero")) {
 ### Step 4: Update position line (line 782)
 
 Find:
+
 ```typescript
 this.heroSprite.setPosition(h.pos.x, h.pos.y).setVisible(true);
 ```
+
 Replace with:
+
 ```typescript
 this.heroSprite.setPosition(h.pos.x, h.pos.y);
 this.heroSprite.setVisible(true);
@@ -496,20 +533,25 @@ this.heroSprite.preUpdate(0, 0); // sync pet position
 ```
 
 - [ ] **Run typecheck**
+
 ```bash
 npm run typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Run all tests**
+
 ```bash
 npm test
 ```
+
 Expected: all pass (no behaviour change yet — hero appears the same as before)
 
 - [ ] **Manual smoke test:** `npm run dev` → start a battle → hero should appear and animate exactly as before
 
 - [ ] **Commit**
+
 ```bash
 git add src/scenes/BattleScene.ts
 git commit -m "feat: replace hero sprite with HeroLayeredSprite container in BattleScene"
@@ -520,6 +562,7 @@ git commit -m "feat: replace hero sprite with HeroLayeredSprite container in Bat
 ## Task 5: Wire equipment changes to visual updates
 
 **Files:**
+
 - Modify: `src/scenes/BattleScene.ts` (one new method call)
 - Modify: `src/scenes/HeroScene.ts` (emit event or call back to BattleScene on equip)
 
@@ -528,6 +571,7 @@ The goal: when the player changes equipment in `HeroScene`, the hero sprite in t
 ### Step 1: Find how BattleScene accesses save data
 
 Search `BattleScene.ts` for `saveData` or `saveManager`:
+
 ```bash
 grep -n "saveData\|saveManager\|save\." src/scenes/BattleScene.ts | head -20
 ```
@@ -556,12 +600,15 @@ Note: `syncEquipment` compares against `_lastConfig` and is a no-op when nothing
 - [ ] Equip `coin-sprite` pet → pet icon floats to the right of hero
 
 - [ ] **Run typecheck and full test suite**
+
 ```bash
 npm run typecheck && npm test
 ```
+
 Expected: 0 errors, all tests pass
 
 - [ ] **Commit**
+
 ```bash
 git add src/scenes/BattleScene.ts
 git commit -m "feat: live equipment visual sync in BattleScene update loop"
@@ -572,6 +619,7 @@ git commit -m "feat: live equipment visual sync in BattleScene update loop"
 ## Task 6: Attack animation — tween weapon on swing
 
 **Files:**
+
 - Modify: `src/scenes/HeroLayeredSprite.ts` (add `playAttackWithWeaponTween`)
 
 This gives the weapon a snappy swing arc during the hero's attack animation so it doesn't look static.
@@ -623,24 +671,29 @@ playAttack(): void {
 ### Step 2: Find where BattleScene calls the hero attack animation
 
 Search BattleScene.ts for the attack animation call:
+
 ```bash
 grep -n "attack\|heroSprite.play" src/scenes/BattleScene.ts | head -20
 ```
 
 Replace `this.heroSprite.play("hero__hero_attack")` (or equivalent) with:
+
 ```typescript
 this.heroSprite.playAttack();
 ```
 
 - [ ] **Run typecheck**
+
 ```bash
 npm run typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Manual test:** `npm run dev` → start battle with a weapon equipped → watch hero attack → weapon should swing in an arc
 
 - [ ] **Commit**
+
 ```bash
 git add src/scenes/HeroLayeredSprite.ts src/scenes/BattleScene.ts
 git commit -m "feat: weapon tween arc on hero attack animation"
@@ -665,6 +718,7 @@ These are good next iterations but out of scope here:
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ Hero weapon shows as visual overlay → Task 1 + 4 + 5
 - ✅ Wings show behind hero → Task 1 + 4 + 5
 - ✅ Pet shows floating near hero → Task 1 + 4 + 5
@@ -675,6 +729,7 @@ These are good next iterations but out of scope here:
 - ✅ Graceful fallback when texture missing (uses `hasSprite` pattern) → `syncEquipment` checks `this.scene.textures.exists`
 
 **Type consistency check:**
+
 - `resolveHeroLayers` takes `InventorySave` (from `src/core/save.ts`) ✅
 - `HeroLayeredSprite.syncEquipment` takes `InventorySave` ✅
 - `HeroLayerConfig` interface defined in `heroEquipVisuals.ts`, imported by `HeroLayeredSprite.ts` ✅

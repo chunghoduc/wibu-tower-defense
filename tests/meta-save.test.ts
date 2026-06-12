@@ -19,7 +19,10 @@ describe("meta save (v10)", () => {
   it("backfills a partial meta block without dropping existing data", () => {
     const save = createFreshSave();
     // Simulate a dev save that has only some meta fields.
-    (save as unknown as { meta: unknown }).meta = { streak: { count: 4, lastClaimDate: "2026-06-01" }, mastery: { yamo: { xp: 10, level: 1 } } };
+    (save as unknown as { meta: unknown }).meta = {
+      streak: { count: 4, lastClaimDate: "2026-06-01" },
+      mastery: { yamo: { xp: 10, level: 1 } },
+    };
     const fixed = loadAndMigrate(save);
     expect(fixed.meta.streak.count).toBe(4);
     expect(fixed.meta.streak.best).toBe(0); // defaulted

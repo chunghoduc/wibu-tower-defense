@@ -14,7 +14,9 @@ describe("F16 profile / power / titles", () => {
     s.collection["yamo"] = { stars: 3, copies: 0 };
     expect(powerRating(s)).toBeGreaterThan(afterLevel);
     s.meta.awakening["yamo"] = 2;
-    expect(powerRating(s)).toBeGreaterThan(powerRating({ ...s, meta: { ...s.meta, awakening: {} } } as typeof s));
+    expect(powerRating(s)).toBeGreaterThan(
+      powerRating({ ...s, meta: { ...s.meta, awakening: {} } } as typeof s),
+    );
   });
 
   it("collection pct is a 0..1 fraction", () => {

@@ -93,29 +93,39 @@ export function effectiveBehavior(def: CharacterDef, battleLevel: number): Tower
 
   switch (def.role) {
     case "splash":
-      if (b.splashRadius !== undefined) b.splashRadius = b.splashRadius * (1 + 0.10 * L);
+      if (b.splashRadius !== undefined) b.splashRadius = b.splashRadius * (1 + 0.1 * L);
       break;
     case "chain":
-      b.chainTargets = (b.chainTargets ?? 2) + Math.floor(L / 2);          // +1 at L2 & L4
+      b.chainTargets = (b.chainTargets ?? 2) + Math.floor(L / 2); // +1 at L2 & L4
       b.chainFalloff = clamp((b.chainFalloff ?? 0.6) + 0.04 * L, 0, 0.95); // retains more dmg
       break;
     case "dot":
       // dot power lives in the burn, not the on-hit — scale its dps ~+50%/star so
       // a dot tower's real damage rises in step with the +60% attack headline.
-      if (b.dot) b.dot = { ...b.dot, dps: b.dot.dps * (1 + 0.5 * L), duration: b.dot.duration + 0.15 * L };
+      if (b.dot)
+        b.dot = { ...b.dot, dps: b.dot.dps * (1 + 0.5 * L), duration: b.dot.duration + 0.15 * L };
       break;
     case "debuff":
-      if (b.slow) b.slow = { pct: clamp(b.slow.pct + 0.05 * L, 0, 0.85), duration: b.slow.duration + 0.1 * L };
-      if (b.stun) b.stun = { chance: clamp(b.stun.chance + 0.03 * L, 0, 0.9), duration: b.stun.duration + 0.05 * L };
+      if (b.slow)
+        b.slow = {
+          pct: clamp(b.slow.pct + 0.05 * L, 0, 0.85),
+          duration: b.slow.duration + 0.1 * L,
+        };
+      if (b.stun)
+        b.stun = {
+          chance: clamp(b.stun.chance + 0.03 * L, 0, 0.9),
+          duration: b.stun.duration + 0.05 * L,
+        };
       break;
     case "support":
       // support power is the aura it projects — scale its atk/atkspd buff hard so
       // each star meaningfully lifts the whole squad's damage, not just its own.
-      if (b.buffAura) b.buffAura = {
-        radius: b.buffAura.radius * (1 + 0.08 * L),
-        atkPct: (b.buffAura.atkPct ?? 0) + 0.06 * L,
-        attackSpeedPct: (b.buffAura.attackSpeedPct ?? 0) + 0.04 * L,
-      };
+      if (b.buffAura)
+        b.buffAura = {
+          radius: b.buffAura.radius * (1 + 0.08 * L),
+          atkPct: (b.buffAura.atkPct ?? 0) + 0.06 * L,
+          attackSpeedPct: (b.buffAura.attackSpeedPct ?? 0) + 0.04 * L,
+        };
       break;
     default:
       break; // damage: pure stat scaling, no behavior change
@@ -126,13 +136,21 @@ export function effectiveBehavior(def: CharacterDef, battleLevel: number): Tower
 /** Short player-facing summary of how a role upgrades (for the tooltip / panel). */
 export function upgradeSummary(role: TowerRole): string {
   switch (role) {
-    case "damage": return "Each star: ~+60% attack & more range.";
-    case "splash": return "Each star: ~+60% attack, more range & splash radius.";
-    case "chain": return "Each star: ~+60% attack & range; +1 bounce at ★2 and ★4.";
-    case "dot": return "Each star: ~+60% attack & far stronger/longer damage-over-time.";
-    case "debuff": return "Each star: ~+60% attack, much more range, and a stronger/longer slow (and stun).";
-    case "support": return "Each star: ~+60% attack, tougher, with a wider, far stronger buff aura.";
-    case "tanker": return "Each star: ~+60% attack, much tougher with more armor.";
-    default: return "Each star: ~+60% stronger.";
+    case "damage":
+      return "Each star: ~+60% attack & more range.";
+    case "splash":
+      return "Each star: ~+60% attack, more range & splash radius.";
+    case "chain":
+      return "Each star: ~+60% attack & range; +1 bounce at ★2 and ★4.";
+    case "dot":
+      return "Each star: ~+60% attack & far stronger/longer damage-over-time.";
+    case "debuff":
+      return "Each star: ~+60% attack, much more range, and a stronger/longer slow (and stun).";
+    case "support":
+      return "Each star: ~+60% attack, tougher, with a wider, far stronger buff aura.";
+    case "tanker":
+      return "Each star: ~+60% attack, much tougher with more armor.";
+    default:
+      return "Each star: ~+60% stronger.";
   }
 }

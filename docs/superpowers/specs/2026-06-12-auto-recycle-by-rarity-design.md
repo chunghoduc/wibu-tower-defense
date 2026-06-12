@@ -51,13 +51,19 @@ action, minting the summed Jewels of Chaos.
 /** Rarities the bulk/auto smelt is allowed to touch ("rare or lower"). */
 export const AUTO_SMELT_RARITIES: Rarity[] = ["Common", "Magic", "Rare"];
 
-export interface BulkSmeltPreview { count: number; chaos: number; }
+export interface BulkSmeltPreview {
+  count: number;
+  chaos: number;
+}
 
 /** Non-mutating: how many items + how much chaos a bulk smelt of `rarities`
  *  would yield, excluding equipped items and any rarity not in AUTO_SMELT_RARITIES. */
 export function bulkSmeltPreview(save: HeroSave, rarities: Rarity[]): BulkSmeltPreview;
 
-export interface BulkSmeltResult { count: number; chaos: number; }
+export interface BulkSmeltResult {
+  count: number;
+  chaos: number;
+}
 
 /** Smelt every non-equipped inventory item whose rarity is in `rarities`
  *  (intersected with AUTO_SMELT_RARITIES). Mutates `save`; mints chaos. */
@@ -71,7 +77,7 @@ export function bulkSmelt(save: HeroSave, rarities: Rarity[]): BulkSmeltResult;
   `save.materials[CHAOS_JEWEL]` — same mutation shape as `smeltItem`, just
   batched (single wallet write).
 - An item with an unknown/missing def is treated as Common (chaos 1), matching
-  `smeltItem`'s existing fallback, but only if its def *is* resolvable to an
+  `smeltItem`'s existing fallback, but only if its def _is_ resolvable to an
   allowed rarity; unresolvable defs are skipped (can't classify rarity safely).
 
 ### SaveManager — `src/core/saveManagerCore.ts` (extend)
@@ -94,14 +100,18 @@ A small presenter module (Phaser-aware but self-contained) exporting one
 function:
 
 ```ts
-export function openAutoRecycleDialog(scene, opts: {
-  preview(rarities: Rarity[]): BulkSmeltPreview;
-  confirm(rarities: Rarity[]): void;   // performs the smelt, then redraw/flash
-  onClose(): void;
-}): Phaser.GameObjects.Container;
+export function openAutoRecycleDialog(
+  scene,
+  opts: {
+    preview(rarities: Rarity[]): BulkSmeltPreview;
+    confirm(rarities: Rarity[]): void; // performs the smelt, then redraw/flash
+    onClose(): void;
+  },
+): Phaser.GameObjects.Container;
 ```
 
 Contents:
+
 - Dimmed backdrop + panel (same visual language as `openRecycle`).
 - Three rarity toggle chips (`Common`, `Magic`, `Rare`), colored by
   `RARITY_INT`, default Common+Magic selected. Tapping toggles and re-renders
@@ -148,6 +158,7 @@ cap; the dialog owns its toggle state internally.
 ## Testing (TDD)
 
 Extend `tests/smelt.test.ts`:
+
 1. `AUTO_SMELT_RARITIES` is exactly `[Common, Magic, Rare]`.
 2. `bulkSmeltPreview` counts only non-equipped items of the selected rarities and
    sums `smeltYield`; does **not** mutate the save.

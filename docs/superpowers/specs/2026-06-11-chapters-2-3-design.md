@@ -16,18 +16,20 @@ Each new chapter is a cohesive **single-biome 5-stage region** that maps onto an
 existing pre-authored `CHAPTER_THEME` and its generated backdrop:
 
 ### Chapter 2 — Sunscar Wastes (desert · stages 11–15)
+
 - Theme band: chapter index 2 → `CHAPTER_THEMES[2]` "Sunscar Wastes" (desert),
   backdrop `bg__chapter-desert` (already loaded).
 - Homage flavor (player-facing wording original; real sources in comments only):
-  a desert pilgrimage toward an immortal tyrant — *Stardust Crusaders × Dune*.
+  a desert pilgrimage toward an immortal tyrant — _Stardust Crusaders × Dune_.
 - Stages: Glassflats Crossing, The Bonewalk, Mirage Bazaar, Sunscar Trench,
   Gate of the Glass Throne.
 
 ### Chapter 3 — Emberfall (volcanic · stages 16–20)
+
 - Theme band: chapter index 3 → `CHAPTER_THEMES[3]` "Emberfall" (volcanic),
   backdrop `bg__chapter-volcanic`.
 - Homage flavor: descent into a demon-king's burning citadel —
-  *Infinity Castle × Dante's Inferno*.
+  _Infinity Castle × Dante's Inferno_.
 - Stages: Cinderfall Descent, Forge Roads, Ashen Colonnade, Magma Reliquary,
   Throne of Emberfall.
 
@@ -49,6 +51,7 @@ existing pre-authored `CHAPTER_THEME` and its generated backdrop:
 ## Difficulty ("much harder")
 
 Rely on the existing compounding curve, no opaque new multipliers:
+
 - `progressionScaling(stageN)` → ≈3.6× HP at s11, ≈9.5× HP at s20 vs s1, before
   the Normal/Hard/Nightmare tier multipliers (×1.55 / ×7.8 / ×14.8).
 - A fresh 5-stage band at s11 and s16 fires the +30% HP / +14% ATK chapter-wall
@@ -73,6 +76,7 @@ Rely on the existing compounding curve, no opaque new multipliers:
 
 `StageSelectScene` currently renders all of `STAGES` in one flat 5-col grid
 labeled `Stage {i+1}`; 20 stages overflow the 540px screen. Changes:
+
 - Chapter tabs (Ch.1 / Ch.2 / Ch.3) above the difficulty tabs; selecting a
   chapter filters the grid to that chapter's stages (each ≤10 → fits 2 rows).
 - Card label uses the true global stage number (`stageNumber(id)`), not array

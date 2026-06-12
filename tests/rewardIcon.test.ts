@@ -1,7 +1,16 @@
 import { describe, it, expect } from "vitest";
 import {
-  goldIcon, diamondIcon, xpIcon, itemIcon, jewelIcon, materialIcon, rewardPrimaryIcon,
-  RARITY_INT, GOLD_INT, DIAMOND_INT, MAT_INT,
+  goldIcon,
+  diamondIcon,
+  xpIcon,
+  itemIcon,
+  jewelIcon,
+  materialIcon,
+  rewardPrimaryIcon,
+  RARITY_INT,
+  GOLD_INT,
+  DIAMOND_INT,
+  MAT_INT,
 } from "../src/data/rewardIcon.ts";
 import { SPIN_WHEEL } from "../src/core/spin.ts";
 import { battleLootTiles } from "../src/data/rewardTiles.ts";
@@ -15,12 +24,24 @@ describe("per-kind icon resolvers", () => {
   });
 
   it("item/jewel keys follow the texture convention with rarity color", () => {
-    expect(itemIcon("Legendary", "dawnbreaker")).toEqual({ iconKey: "item__dawnbreaker", emoji: "📦", color: RARITY_INT.Legendary });
-    expect(jewelIcon("Rare", "ruby")).toEqual({ iconKey: "jewel__ruby", emoji: "💠", color: RARITY_INT.Rare });
+    expect(itemIcon("Legendary", "dawnbreaker")).toEqual({
+      iconKey: "item__dawnbreaker",
+      emoji: "📦",
+      color: RARITY_INT.Legendary,
+    });
+    expect(jewelIcon("Rare", "ruby")).toEqual({
+      iconKey: "jewel__ruby",
+      emoji: "💠",
+      color: RARITY_INT.Rare,
+    });
   });
 
   it("non-box material → material__<id> + MAT color", () => {
-    expect(materialIcon("bless-jewel")).toEqual({ iconKey: "material__bless-jewel", emoji: "💠", color: MAT_INT });
+    expect(materialIcon("bless-jewel")).toEqual({
+      iconKey: "material__bless-jewel",
+      emoji: "💠",
+      color: MAT_INT,
+    });
   });
 });
 
@@ -28,11 +49,15 @@ describe("rewardPrimaryIcon", () => {
   it("picks the single salient icon by kind", () => {
     expect(rewardPrimaryIcon({ gold: 200 }).iconKey).toBe("icon__gold");
     expect(rewardPrimaryIcon({ diamonds: 15 }).iconKey).toBe("icon__gem");
-    expect(rewardPrimaryIcon({ materials: { "soul-jewel": 1 } }).iconKey).toBe("material__soul-jewel");
+    expect(rewardPrimaryIcon({ materials: { "soul-jewel": 1 } }).iconKey).toBe(
+      "material__soul-jewel",
+    );
   });
 
   it("ranks a material/box bundle above bare currency and returns sparkle for empty", () => {
-    expect(rewardPrimaryIcon({ gold: 5, materials: { "soul-jewel": 1 } }).iconKey).toBe("material__soul-jewel");
+    expect(rewardPrimaryIcon({ gold: 5, materials: { "soul-jewel": 1 } }).iconKey).toBe(
+      "material__soul-jewel",
+    );
     expect(rewardPrimaryIcon({}).emoji).toBe("✨");
     expect(rewardPrimaryIcon({ materials: { "soul-jewel": 0 } }).iconKey).toBe(""); // zero-count ignored → empty bundle
   });
@@ -42,8 +67,15 @@ describe("rewardPrimaryIcon", () => {
     for (const prize of SPIN_WHEEL) {
       const reward: Reward = prize.reward;
       const summary = {
-        outcome: "won" as const, isFirstClear: false, xp: 0, gold: reward.gold ?? 0,
-        diamonds: reward.diamonds ?? 0, items: [], jewels: [], skills: [], characters: [],
+        outcome: "won" as const,
+        isFirstClear: false,
+        xp: 0,
+        gold: reward.gold ?? 0,
+        diamonds: reward.diamonds ?? 0,
+        items: [],
+        jewels: [],
+        skills: [],
+        characters: [],
         materials: reward.materials ?? {},
       };
       const panelKeys = battleLootTiles(summary).map((t) => t.iconKey);

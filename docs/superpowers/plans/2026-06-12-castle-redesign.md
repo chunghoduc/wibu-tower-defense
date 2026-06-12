@@ -13,6 +13,7 @@
 ### Task 1: Asset-key registry — `structureTex` + castle constants
 
 **Files:**
+
 - Modify: `src/data/assetKeys.ts`
 - Test: `tests/assetKeys.test.ts`
 
@@ -65,7 +66,7 @@ Expected: PASS.
 In `tests/assetKeyDiscipline.test.ts` find the regex listing the namespaces (currently `/(item|tower|jewel|material|box|skill|menu|fx)__\$\{/`) and add `structure`:
 
 ```ts
-/(item|tower|jewel|material|box|skill|menu|fx|structure)__\$\{/
+/(item|tower|jewel|material|box|skill|menu|fx|structure)__\$\{/;
 ```
 
 - [ ] **Step 6: Run the discipline test**
@@ -85,6 +86,7 @@ git commit -m "feat(assets): structureTex registry key + castle constants"
 ### Task 2: Pure HP→state module `castleArt.ts`
 
 **Files:**
+
 - Create: `src/scenes/castleArt.ts`
 - Test: `tests/castleArt.test.ts`
 
@@ -169,6 +171,7 @@ git commit -m "feat(castle): pure HP->art-state module (TDD)"
 ### Task 3: Battle state — `castleMax`
 
 **Files:**
+
 - Modify: `src/core/battle.ts:76-79` (field decl), `src/core/battle.ts:163-164` (init)
 - Test: `tests/castleMax.test.ts` (or fold into an existing battle test if one exists)
 
@@ -215,7 +218,7 @@ In `src/core/battle.ts`, beside `readonly castlePos: Vec2;` (line ~76) add:
 In the constructor, immediately after `this.castleHp = stage.castleHp;` (line ~164) add:
 
 ```ts
-    this.castleMax = stage.castleHp;
+this.castleMax = stage.castleHp;
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -235,6 +238,7 @@ git commit -m "feat(castle): track castleMax for HP-fraction art swap"
 ### Task 4: SDXL generation — `structure` kind
 
 **Files:**
+
 - Modify: `scripts/sdart/prompts.mjs`
 - Modify: `scripts/sdart/sdgen.mjs:6-10` (import), `scripts/sdart/sdgen.mjs:56-85` (buildJobs)
 
@@ -247,12 +251,15 @@ Append to `scripts/sdart/prompts.mjs` (after `BOSS_VISUAL`, before the ITEM sect
 ```js
 // ---- STRUCTURES (battle-world buildings: the player's castle) ----
 export const STRUCTURE_VISUAL = {
-  castle: "a heroic fantasy stronghold keep, a tall central tower flanked by two smaller turrets, crenellated stone battlements, a grand arched gate, blue conical rooftops, proud blue-and-gold banners, a glowing magical core orb above the gate, three-quarter front view, grounded at the base",
+  castle:
+    "a heroic fantasy stronghold keep, a tall central tower flanked by two smaller turrets, crenellated stone battlements, a grand arched gate, blue conical rooftops, proud blue-and-gold banners, a glowing magical core orb above the gate, three-quarter front view, grounded at the base",
 };
 // state suffix appended to the base look so both share silhouette/identity
 export const STRUCTURE_STATE = {
-  intact: "pristine and proud, banners flying high, warm glowing windows, the magical core shining bright",
-  damaged: "battle-damaged and besieged, cracked crumbling walls, fallen rubble, torn and burning banners, rising smoke and embers, the magical core dim and flickering",
+  intact:
+    "pristine and proud, banners flying high, warm glowing windows, the magical core shining bright",
+  damaged:
+    "battle-damaged and besieged, cracked crumbling walls, fallen rubble, torn and burning banners, rising smoke and embers, the magical core dim and flickering",
 };
 ```
 
@@ -262,10 +269,18 @@ Modify the import block (lines 6-10) to add the two new exports:
 
 ```js
 import {
-  style, itemStyleFor, skillStyleFor, NEGATIVE, POSE,
-  TOWER_VISUAL, ENEMY_VISUAL, BOSS_VISUAL,
-  HERO_BASE, HERO_WEAPON,
-  STRUCTURE_VISUAL, STRUCTURE_STATE,
+  style,
+  itemStyleFor,
+  skillStyleFor,
+  NEGATIVE,
+  POSE,
+  TOWER_VISUAL,
+  ENEMY_VISUAL,
+  BOSS_VISUAL,
+  HERO_BASE,
+  HERO_WEAPON,
+  STRUCTURE_VISUAL,
+  STRUCTURE_STATE,
 } from "./prompts.mjs";
 ```
 
@@ -274,11 +289,29 @@ import {
 In `scripts/sdart/sdgen.mjs`, immediately after the `BOSS_VISUAL` loop (line ~72) add:
 
 ```js
-  for (const [id, v] of Object.entries(STRUCTURE_VISUAL)) {
-    const sd = seedOf(id);
-    jobs.push({ kind: "structure", id, file: `${id}.png`, prompt: style(`${v}, ${STRUCTURE_STATE.intact}`), seed: sd, w: 768, h: 768, size: 256 });
-    jobs.push({ kind: "structure", id, file: `${id}__damaged.png`, prompt: style(`${v}, ${STRUCTURE_STATE.damaged}`), seed: sd, w: 768, h: 768, size: 256 });
-  }
+for (const [id, v] of Object.entries(STRUCTURE_VISUAL)) {
+  const sd = seedOf(id);
+  jobs.push({
+    kind: "structure",
+    id,
+    file: `${id}.png`,
+    prompt: style(`${v}, ${STRUCTURE_STATE.intact}`),
+    seed: sd,
+    w: 768,
+    h: 768,
+    size: 256,
+  });
+  jobs.push({
+    kind: "structure",
+    id,
+    file: `${id}__damaged.png`,
+    prompt: style(`${v}, ${STRUCTURE_STATE.damaged}`),
+    seed: sd,
+    w: 768,
+    h: 768,
+    size: 256,
+  });
+}
 ```
 
 - [ ] **Step 4: Verify the job list (no network)**
@@ -300,6 +333,7 @@ git commit -m "feat(art): SDXL structure kind — castle intact + damaged jobs"
 ### Task 5: Preload the castle images
 
 **Files:**
+
 - Modify: `src/scenes/PreloadScene.ts:19` (import), `src/scenes/PreloadScene.ts:60-63` (load)
 
 - [ ] **Step 1: Extend the assetKeys import**
@@ -311,9 +345,9 @@ On line 19, add `CASTLE_TEX, CASTLE_DAMAGED_TEX` to the existing import from `..
 After the hero-doll load (line ~61, `this.load.image(HERODOLL_BASE_TEX, ...)`) add:
 
 ```ts
-    // Battle-world castle sprite — intact + battle-damaged states (SDXL).
-    this.load.image(CASTLE_TEX, "assets/sprites/structure/castle.png");
-    this.load.image(CASTLE_DAMAGED_TEX, "assets/sprites/structure/castle__damaged.png");
+// Battle-world castle sprite — intact + battle-damaged states (SDXL).
+this.load.image(CASTLE_TEX, "assets/sprites/structure/castle.png");
+this.load.image(CASTLE_DAMAGED_TEX, "assets/sprites/structure/castle__damaged.png");
 ```
 
 - [ ] **Step 3: Typecheck**
@@ -333,6 +367,7 @@ git commit -m "feat(castle): preload structure castle images"
 ### Task 6: Render the castle sprite in `BattleScene`
 
 **Files:**
+
 - Modify: `src/scenes/BattleScene.ts` — import (top), terrain draw (lines 345-348), scene setup (where world objects are added), per-frame update (the render tick that already calls HUD/refresh).
 
 Read `BattleScene.ts` first to locate: (a) the method holding lines 345-348 (the static terrain/castle draw), (b) the `create()`/setup method where persistent game objects are added, and (c) the per-frame method (the one that sets HUD text in `battleSceneRender.ts` is `BattleScene`'s render path). Wire the three edits below into those exact sites.
@@ -358,13 +393,13 @@ Add a field on the class (near other GameObject fields):
 Replace the castle block at lines 345-348 with a guard so the rectangle draws ONLY when the SDXL texture is missing:
 
 ```ts
-    // castle — drawn as a sprite when art exists (see setupCastle); the legacy
-    // rectangle is the fallback for a missing texture (pre-art / GPU-less env).
-    const c = this.battle.castlePos;
-    if (!this.textures.exists(CASTLE_TEX)) {
-      g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 24, c.y - 24, 48, 48);
-      g.lineStyle(3, 0x9ab0e0, 1).strokeRect(c.x - 24, c.y - 24, 48, 48);
-    }
+// castle — drawn as a sprite when art exists (see setupCastle); the legacy
+// rectangle is the fallback for a missing texture (pre-art / GPU-less env).
+const c = this.battle.castlePos;
+if (!this.textures.exists(CASTLE_TEX)) {
+  g.fillStyle(0x6d8ad0, 1).fillRect(c.x - 24, c.y - 24, 48, 48);
+  g.lineStyle(3, 0x9ab0e0, 1).strokeRect(c.x - 24, c.y - 24, 48, 48);
+}
 ```
 
 - [ ] **Step 3: Add the castle sprite in setup**
@@ -393,15 +428,15 @@ Call `this.setupCastle();` from `create()` after the terrain is drawn. (Depth 4 
 In the per-frame render method (the same one that updates the HUD), add:
 
 ```ts
-    if (this.castleSprite) {
-      const state = castleArtState(this.battle.castleHp, this.battle.castleMax);
-      if (state !== this.castleState) {
-        this.castleState = state;
-        this.castleSprite.setTexture(castleTexForState(state));
-        const targetW = 110;
-        this.castleSprite.setScale(targetW / this.castleSprite.width);
-      }
-    }
+if (this.castleSprite) {
+  const state = castleArtState(this.battle.castleHp, this.battle.castleMax);
+  if (state !== this.castleState) {
+    this.castleState = state;
+    this.castleSprite.setTexture(castleTexForState(state));
+    const targetW = 110;
+    this.castleSprite.setScale(targetW / this.castleSprite.width);
+  }
+}
 ```
 
 - [ ] **Step 5: Typecheck + full test suite**
@@ -421,6 +456,7 @@ git commit -m "feat(castle): render SDXL castle sprite with damaged-state swap +
 ### Task 7: Generate the art (SDXL flow)
 
 **Files:**
+
 - Create (generated): `public/assets/sprites/structure/castle.png`, `…/castle__damaged.png`
 
 - [ ] **Step 1: Run the generator (structure only)**
@@ -429,7 +465,7 @@ Run: `npm run gen:sprites -- --only=structure`
 Expected: two lines `[1/2] structure/castle.png`, `[2/2] structure/castle__damaged.png`, then `done`.
 
 > If the SD server (`127.0.0.1:8765`) is unreachable, the script logs `gen attempt
-> failed` / `SKIP`. That is non-fatal: the wiring is complete and the game renders
+failed` / `SKIP`. That is non-fatal: the wiring is complete and the game renders
 > the rectangle fallback. Re-run this one command once the GPU server is up. Do NOT
 > hand-fake the PNGs.
 
@@ -457,10 +493,11 @@ Expected: clean typecheck, all tests green, successful build.
 - [ ] **Step 2: CDP self-playtest**
 
 Launch the dev server, drive into a Chapter 1 battle via `window.__game`, and confirm:
+
 - the castle renders as the fortress sprite (not a blue square) at the lane end;
 - after enough leaks drop `castleHp` to ≤50% of `castleMax`, the sprite swaps to the
   damaged art. (Force it if needed by setting `window.__game` battle `castleHp` low.)
-Capture a before/after screenshot for the chat.
+  Capture a before/after screenshot for the chat.
 
 - [ ] **Step 3: Final state**
 

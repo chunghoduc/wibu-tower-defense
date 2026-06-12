@@ -3,8 +3,16 @@ import { BOSS_BY_STAGE, midBossFor } from "../src/data/stage.ts";
 import { ENEMIES } from "../src/data/enemies.ts";
 
 const NEW = [
-  "gravemourn", "vindicator", "sundermark", "crownfall", "unkilling",
-  "mawborn", "devourer", "crimsonlord", "fallenward", "ashghost",
+  "gravemourn",
+  "vindicator",
+  "sundermark",
+  "crownfall",
+  "unkilling",
+  "mawborn",
+  "devourer",
+  "crimsonlord",
+  "fallenward",
+  "ashghost",
 ];
 const hp = (id: string) => ENEMIES.find((e) => e.id === id)!.baseStats.maxHp;
 
@@ -38,8 +46,10 @@ describe("Difficulty monotonic law", () => {
     for (let ch = 0; ch < 6; ch++) {
       const slice = BOSS_BY_STAGE.slice(ch * 5, ch * 5 + 5);
       for (let i = 1; i < slice.length; i++) {
-        expect(hp(slice[i]), `ch${ch + 1} stage ${i + 1}: ${slice[i]} (${hp(slice[i])}) < ${slice[i - 1]} (${hp(slice[i - 1])})`)
-          .toBeGreaterThanOrEqual(hp(slice[i - 1]));
+        expect(
+          hp(slice[i]),
+          `ch${ch + 1} stage ${i + 1}: ${slice[i]} (${hp(slice[i])}) < ${slice[i - 1]} (${hp(slice[i - 1])})`,
+        ).toBeGreaterThanOrEqual(hp(slice[i - 1]));
       }
     }
   });
@@ -47,8 +57,10 @@ describe("Difficulty monotonic law", () => {
     for (let n = 1; n <= 30; n++) {
       const final = BOSS_BY_STAGE[n - 1];
       const mid = midBossFor(n);
-      expect(hp(mid), `stage ${n}: mid ${mid} (${hp(mid)}) > final ${final} (${hp(final)})`)
-        .toBeLessThanOrEqual(hp(final));
+      expect(
+        hp(mid),
+        `stage ${n}: mid ${mid} (${hp(mid)}) > final ${final} (${hp(final)})`,
+      ).toBeLessThanOrEqual(hp(final));
     }
   });
 });

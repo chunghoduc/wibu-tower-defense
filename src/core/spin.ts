@@ -28,12 +28,35 @@ export const SPIN_PITY = 7;
 export const SPIN_WHEEL: SpinPrize[] = [
   { id: "gold-sm", label: "200 Gold", weight: 30, reward: { gold: 200 } },
   { id: "gold-lg", label: "600 Gold", weight: 20, reward: { gold: 600 } },
-  { id: "bless", label: "Jewel of Bless ×2", weight: 18, reward: { materials: { [BLESS_JEWEL]: 2 } } },
+  {
+    id: "bless",
+    label: "Jewel of Bless ×2",
+    weight: 18,
+    reward: { materials: { [BLESS_JEWEL]: 2 } },
+  },
   { id: "diamonds-sm", label: "15 Diamonds", weight: 14, reward: { diamonds: 15 } },
-  { id: "soul", label: "Jewel of Soul", weight: 8, reward: { materials: { [SOUL_JEWEL]: 1 } }, rare: true },
-  { id: "scroll", label: "Summon Scroll", weight: 6, reward: { materials: { [SUMMON_SCROLL]: 1 } }, rare: true },
+  {
+    id: "soul",
+    label: "Jewel of Soul",
+    weight: 8,
+    reward: { materials: { [SOUL_JEWEL]: 1 } },
+    rare: true,
+  },
+  {
+    id: "scroll",
+    label: "Summon Scroll",
+    weight: 6,
+    reward: { materials: { [SUMMON_SCROLL]: 1 } },
+    rare: true,
+  },
   { id: "diamonds-lg", label: "60 Diamonds", weight: 3, reward: { diamonds: 60 }, rare: true },
-  { id: "jackpot", label: "Awakening Crystal", weight: 1, reward: { materials: { [AWAKENING_CRYSTAL]: 1 } }, rare: true },
+  {
+    id: "jackpot",
+    label: "Awakening Crystal",
+    weight: 1,
+    reward: { materials: { [AWAKENING_CRYSTAL]: 1 } },
+    rare: true,
+  },
 ];
 
 const RARE_PRIZES = SPIN_WHEEL.filter((p) => p.rare);

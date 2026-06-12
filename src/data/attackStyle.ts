@@ -8,10 +8,21 @@
 import type { CharacterDef, WeaponType } from "./schema.ts";
 
 export type AttackStyle =
-  | "arrow" | "fireball" | "iceball" | "lightning" | "arcane"
-  | "cannon" | "poison" | "holy" | "slash" | "hex" | "punch" | "gunshot"
+  | "arrow"
+  | "fireball"
+  | "iceball"
+  | "lightning"
+  | "arcane"
+  | "cannon"
+  | "poison"
+  | "holy"
+  | "slash"
+  | "hex"
+  | "punch"
+  | "gunshot"
   // Melee swing archetypes — each reads as a distinct hand-to-hand strike.
-  | "flurry" | "smash";
+  | "flurry"
+  | "smash";
 
 const RANGED_MELEE = 120;
 const has = (s: string, ...keys: string[]) => keys.some((k) => s.includes(k));
@@ -35,7 +46,10 @@ export function attackStyleFor(def: CharacterDef): AttackStyle {
   if (!spec) return fallbackStyle(def); // defensive: towers always carry a spec
 
   const el = spec.element;
-  const fire = el === "fire", ice = el === "ice", elec = el === "lightning", poison = el === "poison";
+  const fire = el === "fire",
+    ice = el === "ice",
+    elec = el === "lightning",
+    poison = el === "poison";
 
   // Aura-based archetypes read by effect, not by a flying projectile.
   if (def.role === "support") return "holy";
@@ -95,16 +109,24 @@ function fallbackStyle(def: CharacterDef): AttackStyle {
  * unrecognised family) falls back to the old damage-type/range heuristic.
  */
 export function heroAttackStyle(
-  weaponType: WeaponType | null, damageType: string, range: number,
+  weaponType: WeaponType | null,
+  damageType: string,
+  range: number,
 ): AttackStyle {
   switch (weaponType) {
-    case "Fist": return "punch";
-    case "Sword": return "slash";
-    case "Bow": return "arrow";
-    case "Gun": return "gunshot";
+    case "Fist":
+      return "punch";
+    case "Sword":
+      return "slash";
+    case "Bow":
+      return "arrow";
+    case "Gun":
+      return "gunshot";
     case "Staff":
-    case "Tome": return "arcane";
-    case null: return "punch"; // unarmed — boxing
+    case "Tome":
+      return "arcane";
+    case null:
+      return "punch"; // unarmed — boxing
     default:
       if (damageType === "Magic") return "arcane";
       return range >= RANGED_MELEE ? "arrow" : "slash";
@@ -116,18 +138,57 @@ export type SkillStyle = "fire" | "ice" | "lightning" | "heal" | "slash" | "pois
 /** Visual style for an ACTIVE skill, derived from its id/name keywords (T7). */
 export function skillStyleFor(skillId: string | undefined): SkillStyle {
   const s = (skillId ?? "").toLowerCase();
-  if (has(s, "ember", "flame", "fire", "inferno", "eruption", "magma", "wild", "blaze", "ignit", "sun")) return "fire";
+  if (
+    has(
+      s,
+      "ember",
+      "flame",
+      "fire",
+      "inferno",
+      "eruption",
+      "magma",
+      "wild",
+      "blaze",
+      "ignit",
+      "sun",
+    )
+  )
+    return "fire";
   if (has(s, "ice", "glaci", "blizzard", "geyser", "frost", "chill", "snow", "freez")) return "ice";
-  if (has(s, "thunder", "lightning", "chain", "kirin", "bolt", "spark", "storm")) return "lightning";
-  if (has(s, "heal", "rebirth", "reject", "rally", "pep", "cheer", "crescendo", "wind", "creation", "blessing")) return "heal";
-  if (has(s, "slash", "cleave", "iaido", "punch", "fist", "strike", "draw", "war-cry")) return "slash";
-  if (has(s, "poison", "plague", "rot", "bramble", "toxin", "venom", "tar", "corros")) return "poison";
+  if (has(s, "thunder", "lightning", "chain", "kirin", "bolt", "spark", "storm"))
+    return "lightning";
+  if (
+    has(
+      s,
+      "heal",
+      "rebirth",
+      "reject",
+      "rally",
+      "pep",
+      "cheer",
+      "crescendo",
+      "wind",
+      "creation",
+      "blessing",
+    )
+  )
+    return "heal";
+  if (has(s, "slash", "cleave", "iaido", "punch", "fist", "strike", "draw", "war-cry"))
+    return "slash";
+  if (has(s, "poison", "plague", "rot", "bramble", "toxin", "venom", "tar", "corros"))
+    return "poison";
   return "arcane";
 }
 
 /** Primary color for a skill style. */
 export const SKILL_STYLE_COLOR: Record<SkillStyle, number> = {
-  fire: 0xff6a2a, ice: 0x6fc6ff, lightning: 0x9fe6ff, heal: 0x8be06a, slash: 0xffe07a, poison: 0x9ccc65, arcane: 0xc77dde,
+  fire: 0xff6a2a,
+  ice: 0x6fc6ff,
+  lightning: 0x9fe6ff,
+  heal: 0x8be06a,
+  slash: 0xffe07a,
+  poison: 0x9ccc65,
+  arcane: 0xc77dde,
 };
 
 /**
@@ -138,7 +199,16 @@ export const SKILL_STYLE_COLOR: Record<SkillStyle, number> = {
 export type SkillShape = "nova" | "chain" | "barrage" | "beam" | "cloud" | "slam" | "aura" | "bolt";
 
 /** Runtime list of every shape (keep in sync with `SkillShape`). */
-export const SKILL_SHAPES: readonly SkillShape[] = ["nova", "chain", "barrage", "beam", "cloud", "slam", "aura", "bolt"];
+export const SKILL_SHAPES: readonly SkillShape[] = [
+  "nova",
+  "chain",
+  "barrage",
+  "beam",
+  "cloud",
+  "slam",
+  "aura",
+  "bolt",
+];
 
 /**
  * Shape for a tower's active skill, derived from its ROLE (reliable structured
@@ -147,18 +217,59 @@ export const SKILL_SHAPES: readonly SkillShape[] = ["nova", "chain", "barrage", 
  */
 export function towerSkillShape(def: CharacterDef): SkillShape {
   switch (def.role) {
-    case "splash": return "nova";
-    case "chain": return "chain";
-    case "dot": return "cloud";
-    case "debuff": return "cloud";
-    case "support": return "aura";
-    case "tanker": return "slam";
+    case "splash":
+      return "nova";
+    case "chain":
+      return "chain";
+    case "dot":
+      return "cloud";
+    case "debuff":
+      return "cloud";
+    case "support":
+      return "aura";
+    case "tanker":
+      return "slam";
     case "damage": {
       const s = (def.active ?? "").toLowerCase();
-      if (has(s, "wave", "flash", "hollow", "purple", "palm", "kame", "serious", "punch", "fist", "ki", "ball", "spirit", "beam", "ray", "dimensional")) return "beam";
-      if (has(s, "volley", "salvo", "missile", "rapid", "spin", "siege", "shot", "barrage", "fusillade")) return "barrage";
+      if (
+        has(
+          s,
+          "wave",
+          "flash",
+          "hollow",
+          "purple",
+          "palm",
+          "kame",
+          "serious",
+          "punch",
+          "fist",
+          "ki",
+          "ball",
+          "spirit",
+          "beam",
+          "ray",
+          "dimensional",
+        )
+      )
+        return "beam";
+      if (
+        has(
+          s,
+          "volley",
+          "salvo",
+          "missile",
+          "rapid",
+          "spin",
+          "siege",
+          "shot",
+          "barrage",
+          "fusillade",
+        )
+      )
+        return "barrage";
       return "bolt";
     }
-    default: return "bolt";
+    default:
+      return "bolt";
   }
 }

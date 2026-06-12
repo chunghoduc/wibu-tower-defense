@@ -39,11 +39,7 @@ export interface WaveScale {
  * ramping a multi-thousand-HP boss by 2.6× makes a slog, not a climax. (Bosses
  * still scale across stages/chapters via {@link progressionScaling}.)
  */
-export function waveScaling(
-  waveIndex: number,
-  totalWaves: number,
-  isBoss = false,
-): WaveScale {
+export function waveScaling(waveIndex: number, totalWaves: number, isBoss = false): WaveScale {
   if (isBoss) return { hpMult: 1, atkMult: 1 };
   const frac = totalWaves > 1 ? clamp01(waveIndex / (totalWaves - 1)) : 0;
   return {

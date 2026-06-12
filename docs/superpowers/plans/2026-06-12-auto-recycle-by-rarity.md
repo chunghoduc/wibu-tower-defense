@@ -23,6 +23,7 @@
 ### Task 1: Pure bulk-smelt logic in `src/core/smelt.ts`
 
 **Files:**
+
 - Modify: `src/core/smelt.ts`
 - Test: `tests/smelt.test.ts`
 
@@ -32,8 +33,12 @@ Append to `tests/smelt.test.ts` (inside the file, after the existing `describe("
 
 ```ts
 import {
-  smeltItem, smeltYield, SMELT_YIELD,
-  bulkSmelt, bulkSmeltPreview, AUTO_SMELT_RARITIES,
+  smeltItem,
+  smeltYield,
+  SMELT_YIELD,
+  bulkSmelt,
+  bulkSmeltPreview,
+  AUTO_SMELT_RARITIES,
 } from "../src/core/smelt.ts";
 ```
 
@@ -211,6 +216,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: `SaveManager.bulkSmeltItems` wrapper
 
 **Files:**
+
 - Modify: `src/core/saveManagerCore.ts` (import near line 7; method near the existing `smeltItem` at ~line 335)
 
 - [ ] **Step 1: Read the existing `smeltItem` wrapper for the exact persistence/event pattern**
@@ -269,6 +275,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Auto-recycle dialog presenter
 
 **Files:**
+
 - Create: `src/scenes/autoRecycleDialog.ts`
 
 This module is Phaser-aware but self-contained: it owns the rarity-toggle state and renders the preview. No unit test (pure-Phaser UI); verified by tsc + playtest in Task 5.
@@ -288,7 +295,11 @@ import { AUTO_SMELT_RARITIES, type BulkSmeltPreview } from "../core/smelt.ts";
 import type { Rarity } from "../data/schema.ts";
 
 const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
+  Common: 0x9e9e9e,
+  Magic: 0x2196f3,
+  Rare: 0x9c27b0,
+  Legendary: 0xff9800,
+  Unique: 0xf44336,
 };
 const CHAOS_COL = 0xe0457a;
 
@@ -302,7 +313,8 @@ export function openAutoRecycleDialog(
   scene: Phaser.Scene,
   opts: AutoRecycleOpts,
 ): Phaser.GameObjects.Container {
-  const W = scene.scale.width, H = scene.scale.height;
+  const W = scene.scale.width,
+    H = scene.scale.height;
   // Default: Common + Magic on, Rare off (Rare is reforge fuel — opt-in only).
   const selected = new Set<Rarity>(["Common", "Magic"]);
 
@@ -310,25 +322,50 @@ export function openAutoRecycleDialog(
 
   const dim = scene.add.graphics();
   dim.fillStyle(0x000000, 0.55).fillRect(0, 0, W, H);
-  const dimZone = scene.add.zone(W / 2, H / 2, W, H).setInteractive().on("pointerup", () => opts.onClose());
+  const dimZone = scene.add
+    .zone(W / 2, H / 2, W, H)
+    .setInteractive()
+    .on("pointerup", () => opts.onClose());
   c.add([dim, dimZone]);
 
-  const bw = 360, bh = 230, bx = (W - bw) / 2, by = (H - bh) / 2;
+  const bw = 360,
+    bh = 230,
+    bx = (W - bw) / 2,
+    by = (H - bh) / 2;
   const panel = scene.add.graphics();
   panel.fillStyle(0x141c28, 0.99).fillRoundedRect(bx, by, bw, bh, 10);
   panel.lineStyle(2, CHAOS_COL, 1).strokeRoundedRect(bx, by, bw, bh, 10);
   const panelZone = scene.add.zone(bx + bw / 2, by + bh / 2, bw, bh).setInteractive(); // swallow clicks
   c.add([panel, panelZone]);
 
-  c.add(crispText(scene, W / 2, by + 14, "Auto Recycle", { fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0));
-  c.add(crispText(scene, W / 2, by + 38, "Smelt every spare item of the picked rarities", { fontSize: "11px", color: "#9fb0c4", align: "center" }).setOrigin(0.5, 0));
+  c.add(
+    crispText(scene, W / 2, by + 14, "Auto Recycle", {
+      fontSize: "16px",
+      color: "#ffffff",
+      fontStyle: "bold",
+    }).setOrigin(0.5, 0),
+  );
+  c.add(
+    crispText(scene, W / 2, by + 38, "Smelt every spare item of the picked rarities", {
+      fontSize: "11px",
+      color: "#9fb0c4",
+      align: "center",
+    }).setOrigin(0.5, 0),
+  );
 
   // Live preview line + the toggle chips re-render via render().
-  const previewText = crispText(scene, W / 2, by + 120, "", { fontSize: "13px", color: "#ffd6a0", align: "center" }).setOrigin(0.5, 0);
+  const previewText = crispText(scene, W / 2, by + 120, "", {
+    fontSize: "13px",
+    color: "#ffd6a0",
+    align: "center",
+  }).setOrigin(0.5, 0);
   c.add(previewText);
 
-  const chipObjs: { r: Rarity; bg: Phaser.GameObjects.Graphics; label: Phaser.GameObjects.Text }[] = [];
-  const chipW = 96, chipH = 34, gap = 12;
+  const chipObjs: { r: Rarity; bg: Phaser.GameObjects.Graphics; label: Phaser.GameObjects.Text }[] =
+    [];
+  const chipW = 96,
+    chipH = 34,
+    gap = 12;
   const totalW = AUTO_SMELT_RARITIES.length * chipW + (AUTO_SMELT_RARITIES.length - 1) * gap;
   let cx = (W - totalW) / 2;
   const chipY = by + 62;
@@ -346,16 +383,24 @@ export function openAutoRecycleDialog(
     const p = opts.preview([...selected]);
     previewText.setText(`Smelt ${p.count} item${p.count === 1 ? "" : "s"}  →  ❖ ${p.chaos} Chaos`);
     const enabled = p.count > 0;
-    smeltBtn.setColor(enabled ? "#fff" : "#7a8494").setBackgroundColor(enabled ? "#7a3a5a" : "#2a3142");
+    smeltBtn
+      .setColor(enabled ? "#fff" : "#7a8494")
+      .setBackgroundColor(enabled ? "#7a3a5a" : "#2a3142");
   }
 
   for (const r of AUTO_SMELT_RARITIES) {
     const bg = scene.add.graphics();
     bg.setPosition(cx, chipY);
-    const label = crispText(scene, cx + chipW / 2, chipY + chipH / 2, r, { fontSize: "12px" }).setOrigin(0.5);
-    const z = scene.add.zone(cx, chipY, chipW, chipH).setOrigin(0).setInteractive({ useHandCursor: true });
+    const label = crispText(scene, cx + chipW / 2, chipY + chipH / 2, r, {
+      fontSize: "12px",
+    }).setOrigin(0.5);
+    const z = scene.add
+      .zone(cx, chipY, chipW, chipH)
+      .setOrigin(0)
+      .setInteractive({ useHandCursor: true });
     z.on("pointerup", () => {
-      if (selected.has(r)) selected.delete(r); else selected.add(r);
+      if (selected.has(r)) selected.delete(r);
+      else selected.add(r);
       render();
     });
     c.add([bg, label, z]);
@@ -363,8 +408,16 @@ export function openAutoRecycleDialog(
     cx += chipW + gap;
   }
 
-  smeltBtn = crispText(scene, W / 2, by + 152, "🔨 Smelt All", { fontSize: "14px", color: "#fff", backgroundColor: "#7a3a5a", fixedWidth: bw - 60, align: "center" })
-    .setOrigin(0.5, 0).setPadding(0, 9, 0, 9).setInteractive({ useHandCursor: true });
+  smeltBtn = crispText(scene, W / 2, by + 152, "🔨 Smelt All", {
+    fontSize: "14px",
+    color: "#fff",
+    backgroundColor: "#7a3a5a",
+    fixedWidth: bw - 60,
+    align: "center",
+  })
+    .setOrigin(0.5, 0)
+    .setPadding(0, 9, 0, 9)
+    .setInteractive({ useHandCursor: true });
   smeltBtn.on("pointerup", () => {
     const sel = [...selected];
     const p = opts.preview(sel);
@@ -373,8 +426,13 @@ export function openAutoRecycleDialog(
   });
   c.add(smeltBtn);
 
-  const cancel = crispText(scene, W / 2, by + bh - 28, "Cancel", { fontSize: "13px", color: "#cdd6e4" })
-    .setOrigin(0.5, 0).setPadding(0, 4, 0, 4).setInteractive({ useHandCursor: true });
+  const cancel = crispText(scene, W / 2, by + bh - 28, "Cancel", {
+    fontSize: "13px",
+    color: "#cdd6e4",
+  })
+    .setOrigin(0.5, 0)
+    .setPadding(0, 4, 0, 4)
+    .setInteractive({ useHandCursor: true });
   cancel.on("pointerup", () => opts.onClose());
   c.add(cancel);
 
@@ -402,6 +460,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Wire the ♻ Auto button into ShopScene
 
 **Files:**
+
 - Modify: `src/scenes/ShopScene.ts`
 
 - [ ] **Step 1: Add imports**
@@ -426,9 +485,16 @@ Add to the class fields (near `refreshBtn` at line ~40):
 Immediately after the `refreshBtn` block (after line ~75), add:
 
 ```ts
-    this.autoBtn = crispText(this, W - 20, 46, "♻ Auto", { fontSize: "12px", color: "#fff", backgroundColor: "#5a2a4a" })
-      .setOrigin(1, 0).setPadding(8, 4, 8, 4).setInteractive({ useHandCursor: true }).setVisible(false);
-    this.autoBtn.on("pointerup", () => this.openAutoRecycle());
+this.autoBtn = crispText(this, W - 20, 46, "♻ Auto", {
+  fontSize: "12px",
+  color: "#fff",
+  backgroundColor: "#5a2a4a",
+})
+  .setOrigin(1, 0)
+  .setPadding(8, 4, 8, 4)
+  .setInteractive({ useHandCursor: true })
+  .setVisible(false);
+this.autoBtn.on("pointerup", () => this.openAutoRecycle());
 ```
 
 - [ ] **Step 4: Toggle button visibility by mode in `redraw()`**
@@ -436,7 +502,7 @@ Immediately after the `refreshBtn` block (after line ~75), add:
 In `redraw()`, the line `this.refreshBtn.setVisible(this.mode === "buy")...` (line ~132) — add right after it:
 
 ```ts
-    this.autoBtn.setVisible(this.mode === "recycle");
+this.autoBtn.setVisible(this.mode === "recycle");
 ```
 
 - [ ] **Step 5: Add the `openAutoRecycle` method**

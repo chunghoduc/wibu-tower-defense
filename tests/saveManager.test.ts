@@ -7,8 +7,12 @@ import { OBLIVION_ORB } from "../src/data/materials.ts";
 const store: Record<string, string> = {};
 const mockStorage = {
   getItem: (k: string) => store[k] ?? null,
-  setItem: (k: string, v: string) => { store[k] = v; },
-  removeItem: (k: string) => { delete store[k]; },
+  setItem: (k: string, v: string) => {
+    store[k] = v;
+  },
+  removeItem: (k: string) => {
+    delete store[k];
+  },
 };
 
 describe("SaveManager", () => {
@@ -193,7 +197,9 @@ describe("SaveManager", () => {
 
   describe("jewels", () => {
     // Pretend the socket is allocated (the unlock flow is covered elsewhere).
-    const allocateSocket = (m: SaveManager) => { m.getSave().hero.unlockedNodes = ["brawler-jewel-1"]; };
+    const allocateSocket = (m: SaveManager) => {
+      m.getSave().hero.unlockedNodes = ["brawler-jewel-1"];
+    };
 
     it("grantJewel adds an owned jewel instance", () => {
       const inst = manager.grantJewel("crimson-shard");

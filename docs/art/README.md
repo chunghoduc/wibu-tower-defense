@@ -33,13 +33,13 @@ src/scenes/PreloadScene  loads every sprite that exists; missing = silent fallba
 
 ## Conventions
 
-| Class | Dimensions | Path |
-|-------|-----------|------|
-| tower | 32×32 | `assets/sprites/tower/<id>.png` |
-| enemy | 24×24 | `assets/sprites/enemy/<id>.png` |
-| boss  | 48×48 | `assets/sprites/boss/<id>.png` |
-| hero  | 32×32 | `assets/sprites/hero/<id>.png` |
-| item  | 16×16 | `assets/sprites/item/<id>.png` |
+| Class | Dimensions | Path                            |
+| ----- | ---------- | ------------------------------- |
+| tower | 32×32      | `assets/sprites/tower/<id>.png` |
+| enemy | 24×24      | `assets/sprites/enemy/<id>.png` |
+| boss  | 48×48      | `assets/sprites/boss/<id>.png`  |
+| hero  | 32×32      | `assets/sprites/hero/<id>.png`  |
+| item  | 16×16      | `assets/sprites/item/<id>.png`  |
 
 - **Texture key:** `spriteKey(kind, id)` → `"<kind>__<id>"` (e.g. `tower__karu-sunfist`).
 - **Animation frames:** `idle, attack, hit, death` (single static frame accepted for v1).

@@ -49,7 +49,12 @@ export class MeleeFx {
     for (let i = 0; i < hits; i++) {
       const off = (i % 2 === 0 ? -1 : 1) * (0.35 + i * 0.05);
       this.scene.time.delayedCall(i * 65, () => {
-        this.crescent(to, ang + off, color, { radius: 12 + (i % 2) * 2, spanDeg: 95, width: 3.5, dur: 150 });
+        this.crescent(to, ang + off, color, {
+          radius: 12 + (i % 2) * 2,
+          spanDeg: 95,
+          width: 3.5,
+          dur: 150,
+        });
         this.spark(to, color, 3);
       });
     }
@@ -89,31 +94,53 @@ export class MeleeFx {
 
   /** A glowing crescent arc oriented to cup the target along `ang`. Additive. */
   private crescent(
-    at: Vec2, ang: number, color: number,
+    at: Vec2,
+    ang: number,
+    color: number,
     opts: { radius: number; spanDeg: number; width: number; dur: number; core?: number },
   ): void {
     const core = opts.core ?? 0xffffff;
     const g = this.fac.graphics({ x: at.x, y: at.y }).setDepth(this.depth + 1);
     g.setBlendMode(Phaser.BlendModes.ADD);
-    const a0 = -opts.spanDeg / 2 * DEG, a1 = opts.spanDeg / 2 * DEG;
+    const a0 = (-opts.spanDeg / 2) * DEG,
+      a1 = (opts.spanDeg / 2) * DEG;
     g.lineStyle(opts.width, color, 0.85);
-    g.beginPath(); g.arc(0, 0, opts.radius, a0, a1); g.strokePath();
+    g.beginPath();
+    g.arc(0, 0, opts.radius, a0, a1);
+    g.strokePath();
     g.lineStyle(opts.width * 0.45, core, 0.95);
-    g.beginPath(); g.arc(0, 0, opts.radius, a0, a1); g.strokePath();
+    g.beginPath();
+    g.arc(0, 0, opts.radius, a0, a1);
+    g.strokePath();
     g.setRotation(ang - 0.4).setScale(0.6);
     // Sweep through the arc (rotation) while scaling up and fading — the swing.
     this.scene.tweens.add({
-      targets: g, rotation: ang + 0.4, scaleX: 1.18, scaleY: 1.18, alpha: 0,
-      duration: opts.dur, ease: "Quad.easeOut", onComplete: () => g.destroy(),
+      targets: g,
+      rotation: ang + 0.4,
+      scaleX: 1.18,
+      scaleY: 1.18,
+      alpha: 0,
+      duration: opts.dur,
+      ease: "Quad.easeOut",
+      onComplete: () => g.destroy(),
     });
   }
 
   /** A single fist jab: a short knuckle streak that snaps into the target. */
   private jab(to: Vec2, ang: number, color: number, r: number): void {
-    const sx = to.x - Math.cos(ang) * 22, sy = to.y - Math.sin(ang) * 22;
-    const fist = this.fac.rectangle(sx, sy, 9, r, color).setRotation(ang).setOrigin(0, 0.5).setDepth(this.depth);
+    const sx = to.x - Math.cos(ang) * 22,
+      sy = to.y - Math.sin(ang) * 22;
+    const fist = this.fac
+      .rectangle(sx, sy, 9, r, color)
+      .setRotation(ang)
+      .setOrigin(0, 0.5)
+      .setDepth(this.depth);
     this.scene.tweens.add({
-      targets: fist, x: to.x, y: to.y, duration: 70, ease: "Quint.easeIn",
+      targets: fist,
+      x: to.x,
+      y: to.y,
+      duration: 70,
+      ease: "Quint.easeIn",
       onComplete: () => {
         fist.destroy();
         this.ring(to, 10, color, 200);
@@ -126,10 +153,19 @@ export class MeleeFx {
   private spark(at: Vec2, color: number, n = 5, reach = 14): void {
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n + Math.random() * 0.6;
-      const p = this.fac.circle(at.x, at.y, 2, color).setDepth(this.depth + 1).setBlendMode(Phaser.BlendModes.ADD);
+      const p = this.fac
+        .circle(at.x, at.y, 2, color)
+        .setDepth(this.depth + 1)
+        .setBlendMode(Phaser.BlendModes.ADD);
       this.scene.tweens.add({
-        targets: p, x: at.x + Math.cos(a) * reach, y: at.y + Math.sin(a) * reach, alpha: 0, scale: 0.3,
-        duration: 220, ease: "Quad.easeOut", onComplete: () => p.destroy(),
+        targets: p,
+        x: at.x + Math.cos(a) * reach,
+        y: at.y + Math.sin(a) * reach,
+        alpha: 0,
+        scale: 0.3,
+        duration: 220,
+        ease: "Quad.easeOut",
+        onComplete: () => p.destroy(),
       });
     }
   }
@@ -137,13 +173,31 @@ export class MeleeFx {
   /** An expanding impact ring (shockwave). */
   private ring(at: Vec2, radius: number, color: number, duration: number): void {
     const c = this.fac.circle(at.x, at.y, 5).setStrokeStyle(2.5, color, 0.9).setDepth(this.depth);
-    this.scene.tweens.add({ targets: c, scale: radius / 5, alpha: 0, duration, ease: "Cubic.easeOut", onComplete: () => c.destroy() });
+    this.scene.tweens.add({
+      targets: c,
+      scale: radius / 5,
+      alpha: 0,
+      duration,
+      ease: "Cubic.easeOut",
+      onComplete: () => c.destroy(),
+    });
   }
 
   /** A bright impact flash. `hold` ms keeps it at full before it fades (fake hit-stop). */
   private flash(at: Vec2, color: number, r: number, dur: number, hold = 0): void {
-    const f = this.fac.circle(at.x, at.y, r, color, 0.85).setDepth(this.depth + 2).setBlendMode(Phaser.BlendModes.ADD);
-    this.scene.tweens.add({ targets: f, scale: 1.7, alpha: 0, duration: dur, delay: hold, ease: "Quad.easeOut", onComplete: () => f.destroy() });
+    const f = this.fac
+      .circle(at.x, at.y, r, color, 0.85)
+      .setDepth(this.depth + 2)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.scene.tweens.add({
+      targets: f,
+      scale: 1.7,
+      alpha: 0,
+      duration: dur,
+      delay: hold,
+      ease: "Quad.easeOut",
+      onComplete: () => f.destroy(),
+    });
   }
 
   /** A tiny camera shake, throttled so simultaneous heavy hits don't stack. */

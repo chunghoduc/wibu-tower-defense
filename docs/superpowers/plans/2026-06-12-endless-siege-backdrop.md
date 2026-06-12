@@ -13,6 +13,7 @@
 ### Task 1: Pure siege-backdrop geometry module
 
 **Files:**
+
 - Create: `src/core/endlessBackdrop.ts`
 - Test: `tests/endlessBackdrop.test.ts`
 
@@ -30,9 +31,9 @@ const DIMS: Dims = { width: 1280, height: 720 };
 const ARENA: ArenaDef = {
   center: { x: 640, y: 360 },
   gates: [
-    { x: 640, y: -20 },           // top
-    { x: -20, y: 360 },           // left
-    { x: 1300, y: 360 },          // right
+    { x: 640, y: -20 }, // top
+    { x: -20, y: 360 }, // left
+    { x: 1300, y: 360 }, // right
   ],
   airSpawns: [],
   routes: [],
@@ -61,7 +62,8 @@ describe("buildEndlessBackdrop", () => {
       // starts at the castle
       expect(Math.hypot(first.x - 640, first.y - 360)).toBeLessThan(2);
       // far end is on the castle→gate side: dot(last-center, gate-center) > 0
-      const gx = ARENA.gates[i].x, gy = ARENA.gates[i].y;
+      const gx = ARENA.gates[i].x,
+        gy = ARENA.gates[i].y;
       const dot = (last.x - 640) * (gx - 640) + (last.y - 360) * (gy - 360);
       expect(dot).toBeGreaterThan(0);
       // far end stays on-screen (gates can sit off-map)
@@ -117,14 +119,40 @@ Expected: FAIL — `Cannot find module '../src/core/endlessBackdrop.ts'`.
 import type { ArenaDef, Vec2 } from "../data/schema.ts";
 import { Rng } from "./rng.ts";
 
-export interface Dims { width: number; height: number; }
+export interface Dims {
+  width: number;
+  height: number;
+}
 
 /** Radial focus pull: dark at the rim (edgeAlpha), clear toward the castle. */
-export interface Vignette { cx: number; cy: number; innerR: number; outerR: number; edgeAlpha: number; }
+export interface Vignette {
+  cx: number;
+  cy: number;
+  innerR: number;
+  outerR: number;
+  edgeAlpha: number;
+}
 /** A glowing ley-line battle-scar: jittered polyline castle→gate, color `glow`. */
-export interface Scar { points: Vec2[]; width: number; glow: number; }
-export interface CastleRing { cx: number; cy: number; baseR: number; color: number; }
-export interface Ember { x: number; y: number; r: number; speed: number; drift: number; alpha: number; phase: number; }
+export interface Scar {
+  points: Vec2[];
+  width: number;
+  glow: number;
+}
+export interface CastleRing {
+  cx: number;
+  cy: number;
+  baseR: number;
+  color: number;
+}
+export interface Ember {
+  x: number;
+  y: number;
+  r: number;
+  speed: number;
+  drift: number;
+  alpha: number;
+  phase: number;
+}
 
 export interface EndlessBackdropSpec {
   vignette: Vignette;
@@ -137,19 +165,31 @@ export interface EndlessBackdropSpec {
 const EMBER_COUNT = 60;
 const SCAR_SEGS = 5;
 
-export function buildEndlessBackdrop(arena: ArenaDef, dims: Dims, seed: number): EndlessBackdropSpec {
+export function buildEndlessBackdrop(
+  arena: ArenaDef,
+  dims: Dims,
+  seed: number,
+): EndlessBackdropSpec {
   const rng = new Rng(seed * 2246822519 + 7);
-  const cx = arena.center.x, cy = arena.center.y;
+  const cx = arena.center.x,
+    cy = arena.center.y;
   const outerR = Math.hypot(dims.width, dims.height) / 2;
 
-  const vignette: Vignette = { cx, cy, innerR: Math.round(outerR * 0.34), outerR: Math.round(outerR), edgeAlpha: 0.7 };
+  const vignette: Vignette = {
+    cx,
+    cy,
+    innerR: Math.round(outerR * 0.34),
+    outerR: Math.round(outerR),
+    edgeAlpha: 0.7,
+  };
 
   // One battle-scar per gate: a perpendicular-jittered polyline from the castle
   // out to the (on-screen-clamped) gate mouth, so the war-roads visibly converge.
   const scars: Scar[] = arena.gates.map((g) => {
     const gx = Math.max(8, Math.min(dims.width - 8, g.x));
     const gy = Math.max(8, Math.min(dims.height - 8, g.y));
-    const dx = gx - cx, dy = gy - cy;
+    const dx = gx - cx,
+      dy = gy - cy;
     const len = Math.hypot(dx, dy) || 1;
     const points: Vec2[] = [];
     for (let i = 0; i <= SCAR_SEGS; i++) {
@@ -209,6 +249,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 2: Phaser presenter — EndlessBackdropFx
 
 **Files:**
+
 - Create: `src/scenes/fx/EndlessBackdropFx.ts`
 
 No unit test: this is a thin Phaser-drawing presenter (no logic beyond delegating
@@ -234,7 +275,11 @@ export class EndlessBackdropFx {
   private base: Phaser.GameObjects.Graphics;
   private anim: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene, private spec: EndlessBackdropSpec, layer: Phaser.GameObjects.Layer) {
+  constructor(
+    scene: Phaser.Scene,
+    private spec: EndlessBackdropSpec,
+    layer: Phaser.GameObjects.Layer,
+  ) {
     this.base = scene.add.graphics().setDepth(-6);
     this.anim = scene.add.graphics().setDepth(-5);
     layer.add([this.base, this.anim]);
@@ -262,9 +307,9 @@ export class EndlessBackdropFx {
       g.strokeCircle(v.cx, v.cy, r);
     }
     for (const s of this.spec.scars) {
-      g.lineStyle(s.width * 2.4, s.glow, 0.10); // soft outer glow
+      g.lineStyle(s.width * 2.4, s.glow, 0.1); // soft outer glow
       EndlessBackdropFx.strokePoly(g, s.points);
-      g.lineStyle(s.width, s.glow, 0.22);       // bright core
+      g.lineStyle(s.width, s.glow, 0.22); // bright core
       EndlessBackdropFx.strokePoly(g, s.points);
     }
   }
@@ -322,15 +367,18 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 3: Generate the SDXL painted base + register the texture
 
 **Files:**
+
 - Create: `public/assets/bg/endless-siege.png` (generated)
 - Modify: `src/data/bgManifest.ts`
 
 - [ ] **Step 1: Confirm the SDXL service is ready**
 
 Run:
+
 ```bash
 curl -s -m 5 http://127.0.0.1:8765/health
 ```
+
 Expected: `{"status":"ok","model":"z-image-turbo","ready":true}`. If `ready:false`,
 wait and retry (do not tight-loop); if the service is down, skip generation — the
 procedural layer (Task 1/2) renders a complete siege scene over the flat ground on
@@ -341,6 +389,7 @@ so the texture loads once the art exists.
 
 Run (single line; 1152×640 is a clean 16:9 the loader stretches to 1280×720, then
 resized to the 960×540 sibling convention):
+
 ```bash
 curl -s -X POST http://127.0.0.1:8765/generate -H 'content-type: application/json' \
   -d '{"prompt":"epic dark fantasy battlefield seen from directly above, a scorched circular plain with a glowing molten arcane focal point at the very center, cracked blackened earth and ash, drifting embers and smoke, blood-red and ember-orange light radiating from the middle and fading to deep shadow at the edges, ominous siege atmosphere, ruined war camps and broken siege engines around the dark rim, cinematic top-down concept art, highly detailed, dramatic volumetric light, dark moody palette with a warm glowing core","steps":9,"width":1152,"height":640,"seed":74211}' \
@@ -348,6 +397,7 @@ curl -s -X POST http://127.0.0.1:8765/generate -H 'content-type: application/jso
 python3 -c "from PIL import Image; Image.open('/tmp/endless-siege-raw.png').convert('RGB').resize((960,540), Image.LANCZOS).save('public/assets/bg/endless-siege.png')"
 ls -l public/assets/bg/endless-siege.png
 ```
+
 Expected: a non-trivial PNG (tens–hundreds of KB) at 960×540.
 
 - [ ] **Step 3: Register the texture key**
@@ -383,11 +433,13 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 4: Wire the backdrop into BattleScene
 
 **Files:**
+
 - Modify: `src/scenes/BattleScene.ts` (import, field, reset, drawStatic, update)
 
 - [ ] **Step 1: Add the import**
 
 Near the other data imports (the `bgManifest` is not yet imported here), add:
+
 ```ts
 import { bgKey } from "../data/bgManifest.ts";
 import { buildEndlessBackdrop } from "../core/endlessBackdrop.ts";
@@ -397,6 +449,7 @@ import { EndlessBackdropFx } from "./fx/EndlessBackdropFx.ts";
 - [ ] **Step 2: Add the field**
 
 Next to `terrainSprites` (around line 71), add:
+
 ```ts
   endlessBackdropFx: EndlessBackdropFx | null = null;
 ```
@@ -405,64 +458,81 @@ Next to `terrainSprites` (around line 71), add:
 
 In `create()` where other per-battle fields are reset (around line 133, next to
 `this.terrainSprites = [];`), add:
+
 ```ts
-    this.endlessBackdropFx?.destroy();
-    this.endlessBackdropFx = null;
+this.endlessBackdropFx?.destroy();
+this.endlessBackdropFx = null;
 ```
 
 - [ ] **Step 4: Prefer the siege base texture + build the FX in `drawStatic`**
 
 In `drawStatic()`, replace the base-key selection + veil block. Find:
+
 ```ts
-    const stageBg = stageBgKey(this.stage.id);
-    const bgKeyToUse = this.textures.exists(stageBg) ? stageBg : (this.textures.exists(theme.bgKey) ? theme.bgKey : null);
-    if (bgKeyToUse) {
-      const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
-      bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
-      this.world.add(bg);
-      this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
-      // Lighter veil for the painted per-stage art (it's already balanced).
-      const veil = bgKeyToUse === stageBg ? 0.22 : 0.4;
-      g.fillStyle(theme.groundOverlay, veil).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    } else {
-      g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    }
+const stageBg = stageBgKey(this.stage.id);
+const bgKeyToUse = this.textures.exists(stageBg)
+  ? stageBg
+  : this.textures.exists(theme.bgKey)
+    ? theme.bgKey
+    : null;
+if (bgKeyToUse) {
+  const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
+  bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
+  this.world.add(bg);
+  this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
+  // Lighter veil for the painted per-stage art (it's already balanced).
+  const veil = bgKeyToUse === stageBg ? 0.22 : 0.4;
+  g.fillStyle(theme.groundOverlay, veil).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+} else {
+  g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+}
 ```
+
 Replace with (endless prefers the siege backdrop; lighter veil over it because the
 procedural vignette already darkens the rim):
+
 ```ts
-    const stageBg = stageBgKey(this.stage.id);
-    const endlessBg = bgKey("endless-siege");
-    const bgKeyToUse = this.stage.arena && this.textures.exists(endlessBg)
-      ? endlessBg
-      : this.textures.exists(stageBg) ? stageBg
-      : this.textures.exists(theme.bgKey) ? theme.bgKey : null;
-    if (bgKeyToUse) {
-      const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
-      bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
-      this.world.add(bg);
-      this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
-      // Lighter veil for painted art; lighter still for endless (vignette darkens it).
-      const veil = bgKeyToUse === endlessBg ? 0.12 : bgKeyToUse === stageBg ? 0.22 : 0.4;
-      g.fillStyle(theme.groundOverlay, veil).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    } else {
-      g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    }
-    // Endless: build the animated siege-atmosphere layer over the base, centered on
-    // the arena castle (same stage-number seed as the maze). Rebuilt each drawStatic.
-    this.endlessBackdropFx?.destroy();
-    this.endlessBackdropFx = null;
-    if (this.stage.arena) {
-      const seed = stageNumber(this.stage.id) || 1;
-      const spec = buildEndlessBackdrop(this.stage.arena, { width: WORLD_WIDTH, height: WORLD_HEIGHT }, seed);
-      this.endlessBackdropFx = new EndlessBackdropFx(this, spec, this.world);
-    }
+const stageBg = stageBgKey(this.stage.id);
+const endlessBg = bgKey("endless-siege");
+const bgKeyToUse =
+  this.stage.arena && this.textures.exists(endlessBg)
+    ? endlessBg
+    : this.textures.exists(stageBg)
+      ? stageBg
+      : this.textures.exists(theme.bgKey)
+        ? theme.bgKey
+        : null;
+if (bgKeyToUse) {
+  const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
+  bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
+  this.world.add(bg);
+  this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
+  // Lighter veil for painted art; lighter still for endless (vignette darkens it).
+  const veil = bgKeyToUse === endlessBg ? 0.12 : bgKeyToUse === stageBg ? 0.22 : 0.4;
+  g.fillStyle(theme.groundOverlay, veil).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+} else {
+  g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+}
+// Endless: build the animated siege-atmosphere layer over the base, centered on
+// the arena castle (same stage-number seed as the maze). Rebuilt each drawStatic.
+this.endlessBackdropFx?.destroy();
+this.endlessBackdropFx = null;
+if (this.stage.arena) {
+  const seed = stageNumber(this.stage.id) || 1;
+  const spec = buildEndlessBackdrop(
+    this.stage.arena,
+    { width: WORLD_WIDTH, height: WORLD_HEIGHT },
+    seed,
+  );
+  this.endlessBackdropFx = new EndlessBackdropFx(this, spec, this.world);
+}
 ```
 
 - [ ] **Step 5: Animate it in `update`**
 
 In `update(_time, deltaMs)` (around line 398), rename `_time` to `time` and call
 the FX after `this.draw()`:
+
 ```ts
   update(time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.05);
@@ -493,6 +563,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 5: Verify, playtest, document
 
 **Files:**
+
 - Modify: `memory/project_endless_maze_arena.md` (note the backdrop), `MEMORY.md` if needed
 
 - [ ] **Step 1: Build**
@@ -527,6 +598,7 @@ git commit -m "docs(memory): note endless siege backdrop layer
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ```
+
 Report completion with the screenshot.
 
 ---

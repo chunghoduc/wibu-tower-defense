@@ -20,7 +20,9 @@ describe("reforge cost & eligibility", () => {
     expect(canReforge("Rare")).toBe(true);
     expect(canReforge("Legendary")).toBe(true);
     expect(canReforge("Unique")).toBe(true);
-    const rare = reforgeCost("Rare")!, leg = reforgeCost("Legendary")!, uniq = reforgeCost("Unique")!;
+    const rare = reforgeCost("Rare")!,
+      leg = reforgeCost("Legendary")!,
+      uniq = reforgeCost("Unique")!;
     expect(leg.chaos).toBeGreaterThan(rare.chaos);
     expect(uniq.chaos).toBeGreaterThan(leg.chaos);
     expect(leg.gold).toBeGreaterThan(rare.gold);
@@ -41,7 +43,8 @@ describe("reforge", () => {
     save.materials[CHAOS_JEWEL] = cost.chaos + 1;
 
     const before = JSON.parse(JSON.stringify(inst.rolledAffixes));
-    const primaryBefore = inst.rolledPrimaryAffix, statsBefore = JSON.stringify(inst.rolledStats);
+    const primaryBefore = inst.rolledPrimaryAffix,
+      statsBefore = JSON.stringify(inst.rolledStats);
 
     const res = reforgeItem(save, inst.id, new Rng(99));
     expect(res.ok).toBe(true);
@@ -59,9 +62,12 @@ describe("reforge", () => {
 
   it("refuses Common/Magic items, and when gold or chaos is short", () => {
     const save = createFreshSave();
-    const common = toItemInstanceSave(rollItem(ITEM_CATALOG.find((x) => x.rarity === "Common")!, 5, 2));
+    const common = toItemInstanceSave(
+      rollItem(ITEM_CATALOG.find((x) => x.rarity === "Common")!, 5, 2),
+    );
     save.inventory.items.push(common);
-    save.currency.gold = 99999; save.materials[CHAOS_JEWEL] = 99;
+    save.currency.gold = 99999;
+    save.materials[CHAOS_JEWEL] = 99;
     expect(reforgeItem(save, common.id, new Rng(1)).reason).toBe("not-eligible");
 
     const def = defOf("Rare");
@@ -69,10 +75,12 @@ describe("reforge", () => {
     save.inventory.items.push(inst);
     const cost = reforgeCost(def.rarity)!;
     // no gold
-    save.currency.gold = cost.gold - 1; save.materials[CHAOS_JEWEL] = cost.chaos;
+    save.currency.gold = cost.gold - 1;
+    save.materials[CHAOS_JEWEL] = cost.chaos;
     expect(reforgeItem(save, inst.id, new Rng(2)).reason).toBe("no-gold");
     // no chaos
-    save.currency.gold = cost.gold; save.materials[CHAOS_JEWEL] = cost.chaos - 1;
+    save.currency.gold = cost.gold;
+    save.materials[CHAOS_JEWEL] = cost.chaos - 1;
     expect(reforgeItem(save, inst.id, new Rng(3)).reason).toBe("no-chaos");
     // missing item
     expect(reforgeItem(save, "nope", new Rng(4)).reason).toBe("no-item");
@@ -85,7 +93,8 @@ describe("reforge", () => {
     expect(apex.apex).toBe(true);
     save.inventory.items.push(apex);
     const cost = reforgeCost(def.rarity)!;
-    save.currency.gold = cost.gold; save.materials[CHAOS_JEWEL] = cost.chaos;
+    save.currency.gold = cost.gold;
+    save.materials[CHAOS_JEWEL] = cost.chaos;
     reforgeItem(save, apex.id, new Rng(5));
     expect(apex.apex).toBe(true); // still apex after reforge
   });

@@ -8,8 +8,8 @@ import Phaser from "phaser";
 import { ENEMIES } from "../data/enemies.ts";
 import { bandWarp } from "./enemyWalkWarp.ts";
 
-const FRAMES = 4;   // contact-L → passing → contact-R → passing
-const BANDS = 24;   // horizontal slices per frame
+const FRAMES = 4; // contact-L → passing → contact-R → passing
+const BANDS = 24; // horizontal slices per frame
 
 const BOSS_IDS = ENEMIES.filter((e) => e.archetype === "Boss").map((e) => e.id);
 
@@ -23,8 +23,10 @@ function bakeOne(scene: Phaser.Scene, id: string): void {
   // Bake from the FIRST frame only (the sheet may hold atk/skill frames too).
   const frame0 = scene.textures.getFrame(key, 0);
   if (!frame0) return;
-  const fw = frame0.cutWidth, fh = frame0.cutHeight;
-  const ox = frame0.cutX, oy = frame0.cutY;
+  const fw = frame0.cutWidth,
+    fh = frame0.cutHeight;
+  const ox = frame0.cutX,
+    oy = frame0.cutY;
   if (!fw || !fh) return;
 
   const src = scene.textures.get(key).getSourceImage() as CanvasImageSource;
@@ -41,7 +43,7 @@ function bakeOne(scene: Phaser.Scene, id: string): void {
     const baseX = f * fw;
     for (let b = 0; b < BANDS; b++) {
       const sy = Math.floor((b / BANDS) * fh);
-      const sh = Math.ceil(fh / BANDS) + 1;            // +1px overlap hides seams
+      const sh = Math.ceil(fh / BANDS) + 1; // +1px overlap hides seams
       const yNorm = (sy + sh / 2) / fh;
       for (const side of [-1, 1] as const) {
         const sx = side < 0 ? 0 : Math.floor(cx);
@@ -61,7 +63,7 @@ function bakeOne(scene: Phaser.Scene, id: string): void {
   scene.anims.create({
     key: `${key}_walk`,
     frames: Array.from({ length: FRAMES }, (_, f) => ({ key: walkKey, frame: `walk${f + 1}` })),
-    frameRate: 6,   // a touch slower than enemies (7) — bosses are heavy
+    frameRate: 6, // a touch slower than enemies (7) — bosses are heavy
     repeat: -1,
   });
 }

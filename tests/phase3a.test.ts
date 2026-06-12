@@ -7,7 +7,13 @@ import { mkEnemy, mkStage, mkTower, oneWave, runFor } from "./fixtures.ts";
 
 describe("BattleState with heroSave", () => {
   it("hero level 10 has higher atk than level 1", () => {
-    const baseStats = makeStats({ atk: 100, maxHp: 500, moveSpeed: 80, attackSpeed: 1, range: 200 });
+    const baseStats = makeStats({
+      atk: 100,
+      maxHp: 500,
+      moveSpeed: 80,
+      attackSpeed: 1,
+      range: 200,
+    });
     const lvl1Save = createFreshSave();
     const lvl10Save = createFreshSave();
     awardHeroXp(lvl10Save, 6500);
@@ -15,8 +21,14 @@ describe("BattleState with heroSave", () => {
     const stage = mkStage(oneWave("grunt", 1));
     const catalog = { enemies: new Map([["grunt", mkEnemy()]]), characters: new Map() };
 
-    const b1 = new BattleState(stage, catalog, { hero: { stats: baseStats, startPos: { x: -100, y: 0 } }, heroSave: lvl1Save });
-    const b10 = new BattleState(stage, catalog, { hero: { stats: baseStats, startPos: { x: -100, y: 0 } }, heroSave: lvl10Save });
+    const b1 = new BattleState(stage, catalog, {
+      hero: { stats: baseStats, startPos: { x: -100, y: 0 } },
+      heroSave: lvl1Save,
+    });
+    const b10 = new BattleState(stage, catalog, {
+      hero: { stats: baseStats, startPos: { x: -100, y: 0 } },
+      heroSave: lvl10Save,
+    });
 
     expect(b10.hero.stats.atk).toBeGreaterThan(b1.hero.stats.atk);
     expect(b10.hero.stats.maxHp).toBeGreaterThan(b1.hero.stats.maxHp);
@@ -30,7 +42,8 @@ describe("BattleState with heroSave", () => {
       acquiredLevel: 1,
       rolledStats: { goldFind: 0.05 },
       rolledPrimaryAffix: 0.05,
-      rolledAffixes: [], enhanceLevel: 0,
+      rolledAffixes: [],
+      enhanceLevel: 0,
     });
     save.inventory.equipped = { Pet: "test-pet-1" };
 
@@ -59,7 +72,10 @@ describe("BattleState with heroSave", () => {
     });
     b.placeTower("turret", 0);
     let ticks = 0;
-    while (b.outcome === "ongoing" && ticks < 2000) { b.tick(0.05); ticks++; }
+    while (b.outcome === "ongoing" && ticks < 2000) {
+      b.tick(0.05);
+      ticks++;
+    }
     expect(b.outcome).toBe("won");
   });
 });

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { equipSkill, equipItem, unequipSlot, skillWeaponMet, equippedWeaponType } from "../src/core/loadout.ts";
+import {
+  equipSkill,
+  equipItem,
+  unequipSlot,
+  skillWeaponMet,
+  equippedWeaponType,
+} from "../src/core/loadout.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { rollItem, ITEM_CATALOG } from "../src/data/items.ts";
 import { toItemInstanceSave } from "../src/core/itemDrop.ts";

@@ -14,7 +14,11 @@ describe("fitLabel", () => {
 
   it("wraps to two lines when a name is too wide for one", () => {
     // "Legendary Boss Chest" = 20 chars; at 10px*0.6=6 => 120px on one line > 78.
-    const p = fitLabel("Legendary Boss Chest", { maxWidth: 78, maxLines: 2, basePx: 10, minPx: 7 }, mono);
+    const p = fitLabel(
+      "Legendary Boss Chest",
+      { maxWidth: 78, maxLines: 2, basePx: 10, minPx: 7 },
+      mono,
+    );
     expect(p.lines.length).toBe(2);
     expect(p.truncated).toBe(false);
     for (const ln of p.lines) expect(mono(ln, p.fontPx)).toBeLessThanOrEqual(78);
@@ -31,7 +35,8 @@ describe("fitLabel", () => {
   it("ellipsis-truncates and never exceeds bounds when nothing fits", () => {
     const p = fitLabel(
       "Supercalifragilistic Doom Blade of Eternal Night",
-      { maxWidth: 50, maxLines: 2, basePx: 10, minPx: 7 }, mono,
+      { maxWidth: 50, maxLines: 2, basePx: 10, minPx: 7 },
+      mono,
     );
     expect(p.truncated).toBe(true);
     expect(p.lines.length).toBeLessThanOrEqual(2);
@@ -40,7 +45,11 @@ describe("fitLabel", () => {
   });
 
   it("hard-breaks a single word wider than maxWidth", () => {
-    const p = fitLabel("Aaaaaaaaaaaaaaaaaaaa", { maxWidth: 30, maxLines: 2, basePx: 8, minPx: 8 }, mono);
+    const p = fitLabel(
+      "Aaaaaaaaaaaaaaaaaaaa",
+      { maxWidth: 30, maxLines: 2, basePx: 8, minPx: 8 },
+      mono,
+    );
     for (const ln of p.lines) expect(mono(ln, p.fontPx)).toBeLessThanOrEqual(30);
   });
 

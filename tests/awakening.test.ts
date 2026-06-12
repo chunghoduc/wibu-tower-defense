@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
-import { canAwaken, awaken, getAwakening, awakeningStatMul, awakeningCost, MAX_AWAKENING, AWAKENING_CRYSTAL_COST } from "../src/core/awakening.ts";
+import {
+  canAwaken,
+  awaken,
+  getAwakening,
+  awakeningStatMul,
+  awakeningCost,
+  MAX_AWAKENING,
+  AWAKENING_CRYSTAL_COST,
+} from "../src/core/awakening.ts";
 import { AWAKENING_CRYSTAL } from "../src/data/materials.ts";
 
 const TID = "yamo";

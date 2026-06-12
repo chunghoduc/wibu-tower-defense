@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  equipItem,
-  unequipSlot,
-  equipSkill,
-  unequipSkill,
-} from "../src/core/loadout.ts";
+import { equipItem, unequipSlot, equipSkill, unequipSkill } from "../src/core/loadout.ts";
 import { createFreshSave, type ItemInstanceSave } from "../src/core/save.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 import { equipSlotsFor } from "../src/data/schema.ts";
@@ -17,7 +12,8 @@ function makeInstance(defId: string, acquiredLevel = 1): ItemInstanceSave {
     acquiredLevel,
     rolledStats: {},
     rolledPrimaryAffix: 0,
-    rolledAffixes: [], enhanceLevel: 0,
+    rolledAffixes: [],
+    enhanceLevel: 0,
   };
 }
 
@@ -61,10 +57,11 @@ describe("equipItem", () => {
     const save = createFreshSave();
     const ring = ITEM_CATALOG.find((d) => d.slot === "Ring")!;
     expect(equipSlotsFor(ring.slot)).toEqual(["Ring1", "Ring2"]);
-    const r1 = makeInstance(ring.id), r2 = makeInstance(ring.id);
+    const r1 = makeInstance(ring.id),
+      r2 = makeInstance(ring.id);
     save.inventory.items.push(r1, r2);
-    equipItem(save, r1.id);                       // first → Ring1
-    equipItem(save, r2.id);                       // second → Ring2 (Ring1 taken)
+    equipItem(save, r1.id); // first → Ring1
+    equipItem(save, r2.id); // second → Ring2 (Ring1 taken)
     expect(save.inventory.equipped.Ring1).toBe(r1.id);
     expect(save.inventory.equipped.Ring2).toBe(r2.id);
   });

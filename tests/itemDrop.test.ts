@@ -26,9 +26,9 @@ describe("item drop rarity gating (enemy vs boss)", () => {
       if (inst) counts[rarityOf(inst.defId)] = (counts[rarityOf(inst.defId)] ?? 0) + 1;
     }
     expect(counts.Common).toBeGreaterThan(counts.Rare ?? 0); // commons dominate
-    expect(counts.Legendary ?? 0).toBeGreaterThan(0);        // legendaries obtainable from bosses
-    expect(counts.Unique ?? 0).toBeGreaterThan(0);           // uniques obtainable…
-    expect(counts.Unique ?? 0).toBeLessThan(N * 0.03);       // …but super rare (<3%)
+    expect(counts.Legendary ?? 0).toBeGreaterThan(0); // legendaries obtainable from bosses
+    expect(counts.Unique ?? 0).toBeGreaterThan(0); // uniques obtainable…
+    expect(counts.Unique ?? 0).toBeLessThan(N * 0.03); // …but super rare (<3%)
   });
 
   it("a rarity below its required item level never drops (eligibility still applies)", () => {

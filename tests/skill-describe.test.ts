@@ -33,7 +33,10 @@ describe("skillDescribe", () => {
 
   it("burst scales with skill power (stat-modified)", () => {
     const t = byId("shion-venom-priestess");
-    const boosted = activeSkillDetail(t, { ...t.baseStats, skillPower: t.baseStats.skillPower * 2 });
+    const boosted = activeSkillDetail(t, {
+      ...t.baseStats,
+      skillPower: t.baseStats.skillPower * 2,
+    });
     const base = activeSkillDetail(t, t.baseStats);
     expect(base).not.toBe(boosted); // higher skill power → bigger burst number
   });

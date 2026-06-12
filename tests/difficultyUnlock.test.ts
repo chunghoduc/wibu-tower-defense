@@ -9,7 +9,9 @@ import type { Difficulty } from "../src/data/schema.ts";
 
 function clear(save: ReturnType<typeof createFreshSave>, id: string, diff: Difficulty): void {
   save.progress.stageClearMap[id] = save.progress.stageClearMap[id] ?? {
-    Normal: false, Hard: false, Nightmare: false,
+    Normal: false,
+    Hard: false,
+    Nightmare: false,
   };
   save.progress.stageClearMap[id][diff] = true;
 }
@@ -24,9 +26,7 @@ describe("difficulty tier gating", () => {
   it("chapter 1 groups the first five stages", () => {
     const ids = chapterStageIds("ch1-s1");
     expect(ids).toEqual(["ch1-s1", "ch1-s2", "ch1-s3", "ch1-s4", "ch1-s5"]);
-    expect(chapterStageIds("ch1-s6")).toEqual([
-      "ch1-s6", "ch1-s7", "ch1-s8", "ch1-s9", "ch1-s10",
-    ]);
+    expect(chapterStageIds("ch1-s6")).toEqual(["ch1-s6", "ch1-s7", "ch1-s8", "ch1-s9", "ch1-s10"]);
   });
 
   it("Normal is always playable, even on a fresh save", () => {

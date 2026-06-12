@@ -3,12 +3,17 @@ import { TOWERS } from "../src/data/towers.ts";
 import { activeSynergies, squadSynergyMul, SYNERGIES } from "../src/data/synergies.ts";
 import type { CharacterDef, TowerRole } from "../src/data/schema.ts";
 
-const byRole = (role: TowerRole, n: number): CharacterDef[] => TOWERS.filter((t) => t.role === role).slice(0, n);
+const byRole = (role: TowerRole, n: number): CharacterDef[] =>
+  TOWERS.filter((t) => t.role === role).slice(0, n);
 
 describe("F8 squad synergies", () => {
   it("no synergy for a single tower", () => {
     expect(activeSynergies(byRole("damage", 1))).toEqual([]);
-    expect(squadSynergyMul(byRole("damage", 1))).toEqual({ atkMul: 1, hpMul: 1, attackSpeedMul: 1 });
+    expect(squadSynergyMul(byRole("damage", 1))).toEqual({
+      atkMul: 1,
+      hpMul: 1,
+      attackSpeedMul: 1,
+    });
   });
 
   it("3 damage towers activate Vanguard (+12% atk)", () => {
@@ -32,7 +37,7 @@ describe("F8 squad synergies", () => {
     const squad = [...byRole("damage", 3), ...byRole("chain", 2)];
     const mul = squadSynergyMul(squad);
     expect(mul.atkMul).toBeGreaterThanOrEqual(1.12);
-    expect(mul.attackSpeedMul).toBeCloseTo(1.10, 5);
+    expect(mul.attackSpeedMul).toBeCloseTo(1.1, 5);
   });
 
   it("every synergy has a unique id and a non-empty effect", () => {

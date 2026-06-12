@@ -82,7 +82,10 @@ function diffReward(before: Reward, after: Reward): Reward {
   const gold = (after.gold ?? 0) - (before.gold ?? 0);
   if (gold > 0) out.gold = gold;
   const mats: Record<string, number> = {};
-  const ids = new Set([...Object.keys(before.materials ?? {}), ...Object.keys(after.materials ?? {})]);
+  const ids = new Set([
+    ...Object.keys(before.materials ?? {}),
+    ...Object.keys(after.materials ?? {}),
+  ]);
   for (const id of ids) {
     const d = (after.materials?.[id] ?? 0) - (before.materials?.[id] ?? 0);
     if (d > 0) mats[id] = d;

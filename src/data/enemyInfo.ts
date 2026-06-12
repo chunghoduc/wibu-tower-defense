@@ -19,11 +19,13 @@ export const ARCHETYPE_INFO: Record<EnemyArchetype, string> = {
   Summoner: "Endlessly spawns minions — prioritize the summoner.",
   Raider: "Berserker that smashes towers on its way in.",
   Courier: "Flees carrying gold — catch it quickly.",
-  Juggernaut: "Slow, halves all damage and is immune to one type — answer with the other type, True, or penetration.",
+  Juggernaut:
+    "Slow, halves all damage and is immune to one type — answer with the other type, True, or penetration.",
   Herald: "Rallies nearby allies (speed + toughness) — kill it first.",
   Hexer: "Heals and armors allies and slows your towers — a priority kill.",
   Berserker: "Frenzies when wounded — gets faster and deadlier; burst it down before it snaps.",
-  Adapter: "Alternates immunity between Physical and Magic — bring both types, True damage, or penetration.",
+  Adapter:
+    "Alternates immunity between Physical and Magic — bring both types, True damage, or penetration.",
   Burster: "Detonates on death, damaging nearby towers — kill it at range or spread your towers.",
   Dreadnought: "Armored flyer that bombards your towers — needs heavy, dedicated anti-air.",
   Disruptor: "Periodically silences nearby towers — kill it first or spread your defenses.",

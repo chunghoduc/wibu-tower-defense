@@ -6,14 +6,18 @@ describe("crit stats stay reasonable", () => {
   it("crit base stats do NOT balloon with item level (fractional, level-independent)", () => {
     const ring = ITEM_CATALOG.find((d) => d.id === "mythic-precision-ring")!;
     let max = 0;
-    for (let s = 1; s <= 200; s++) max = Math.max(max, rollItem(ring, 60, s).rolledStats.critRate ?? 0);
+    for (let s = 1; s <= 200; s++)
+      max = Math.max(max, rollItem(ring, 60, s).rolledStats.critRate ?? 0);
     expect(max).toBeLessThan(0.12); // base alone never near a level-scaled 0.5+
   });
 
   it("no single item rolls more than ~30% total crit chance", () => {
     let max = 0;
     for (const d of ITEM_CATALOG) {
-      const hasCrit = (d.baseStats.critRate ?? 0) > 0 || d.primaryAffix.type === "critRate" || d.affixPool.includes("critRate");
+      const hasCrit =
+        (d.baseStats.critRate ?? 0) > 0 ||
+        d.primaryAffix.type === "critRate" ||
+        d.affixPool.includes("critRate");
       if (!hasCrit) continue;
       for (let s = 1; s <= 120; s++) {
         const inst = rollItem(d, 60, s);
@@ -23,14 +27,17 @@ describe("crit stats stay reasonable", () => {
         max = Math.max(max, cr);
       }
     }
-    expect(max).toBeLessThan(0.30);
+    expect(max).toBeLessThan(0.3);
   });
 
   it("each critRate affix rolls within its capped range", () => {
     const ring = ITEM_CATALOG.find((d) => d.id === "mythic-precision-ring")!;
     for (let s = 1; s <= 200; s++) {
       for (const a of rollItem(ring, 60, s).rolledAffixes) {
-        if (a.type === "critRate") { expect(a.value).toBeGreaterThanOrEqual(0.02); expect(a.value).toBeLessThanOrEqual(0.05); }
+        if (a.type === "critRate") {
+          expect(a.value).toBeGreaterThanOrEqual(0.02);
+          expect(a.value).toBeLessThanOrEqual(0.05);
+        }
       }
     }
   });
@@ -71,10 +78,18 @@ describe("expanded item catalog (T10)", () => {
 describe("loot expansion batch", () => {
   // Hand-crafted signature pieces + one variant from each new generated line.
   const NEW_IDS = [
-    "dawnbreaker", "void-render", "aegis-of-dawn", "seers-eye", "midas-paw",
-    "worn-frost-glaive", "mythic-frost-glaive",
-    "worn-venom-fang", "mythic-bulwark-plate",
-    "worn-oracle-crown", "worn-shadowstep-treads", "worn-duelist-band",
+    "dawnbreaker",
+    "void-render",
+    "aegis-of-dawn",
+    "seers-eye",
+    "midas-paw",
+    "worn-frost-glaive",
+    "mythic-frost-glaive",
+    "worn-venom-fang",
+    "mythic-bulwark-plate",
+    "worn-oracle-crown",
+    "worn-shadowstep-treads",
+    "worn-duelist-band",
   ];
 
   it("adds the new signature and generated loot to the catalog", () => {
@@ -91,7 +106,14 @@ describe("loot expansion batch", () => {
   });
 
   it("every new generated line spans all 5 rarities", () => {
-    for (const line of ["frost-glaive", "venom-fang", "bulwark-plate", "oracle-crown", "shadowstep-treads", "duelist-band"]) {
+    for (const line of [
+      "frost-glaive",
+      "venom-fang",
+      "bulwark-plate",
+      "oracle-crown",
+      "shadowstep-treads",
+      "duelist-band",
+    ]) {
       for (const prefix of ["worn", "fine", "masterwork", "heroic", "mythic"]) {
         expect(ITEM_CATALOG_MAP.has(`${prefix}-${line}`), `${prefix}-${line}`).toBe(true);
       }
@@ -102,16 +124,46 @@ describe("loot expansion batch", () => {
 describe("200-item homage expansion", () => {
   // The 40 expansion line ids (itemsExpansion.ts) → 40 × 5 = 200 items.
   const EXPANSION_LINES = [
-    "kingsworn-brand", "moonlit-greatblade", "rimewill-runeblade", "busterfell-cleaver",
-    "emberlight-saber", "galewind-longbow", "dawnsong-bow", "peacekeeper-revolver",
-    "starhunter-cannon", "eldwood-wand", "dreadpage-codex", "titangrip-knuckles",
-    "mithrilweave-shirt", "beskar-plate", "havelthane-plate", "dragonscale-mail",
-    "sentinel-bulwark", "ribbon-circlet", "hadeshood-cowl", "valor-greathelm",
-    "seerlight-circlet", "titanhold-gauntlets", "trickster-grips", "mistwalk-treads",
-    "valkyrie-pinions", "phoenix-pinions", "juggernaut-signet", "archmage-loop",
-    "bulwark-band", "wayfarer-ring", "warpriest-talisman", "archon-amulet",
-    "wardstone-amulet", "midas-locket", "heartforge-pendant", "direwolf-cub",
-    "arcane-wisp", "iron-sentinel-chibi", "lucky-tanuki", "emberfox-kit",
+    "kingsworn-brand",
+    "moonlit-greatblade",
+    "rimewill-runeblade",
+    "busterfell-cleaver",
+    "emberlight-saber",
+    "galewind-longbow",
+    "dawnsong-bow",
+    "peacekeeper-revolver",
+    "starhunter-cannon",
+    "eldwood-wand",
+    "dreadpage-codex",
+    "titangrip-knuckles",
+    "mithrilweave-shirt",
+    "beskar-plate",
+    "havelthane-plate",
+    "dragonscale-mail",
+    "sentinel-bulwark",
+    "ribbon-circlet",
+    "hadeshood-cowl",
+    "valor-greathelm",
+    "seerlight-circlet",
+    "titanhold-gauntlets",
+    "trickster-grips",
+    "mistwalk-treads",
+    "valkyrie-pinions",
+    "phoenix-pinions",
+    "juggernaut-signet",
+    "archmage-loop",
+    "bulwark-band",
+    "wayfarer-ring",
+    "warpriest-talisman",
+    "archon-amulet",
+    "wardstone-amulet",
+    "midas-locket",
+    "heartforge-pendant",
+    "direwolf-cub",
+    "arcane-wisp",
+    "iron-sentinel-chibi",
+    "lucky-tanuki",
+    "emberfox-kit",
   ];
 
   it("adds exactly 40 lines = 200 items, each spanning all 5 rarities", () => {
@@ -137,8 +189,12 @@ describe("200-item homage expansion", () => {
 describe("lean item names (no rarity-prefix adjective)", () => {
   const RARITY_WORDS = ["Worn", "Fine", "Masterwork", "Heroic", "Mythic"];
   const LINE_IDS = [
-    "kingsworn-brand", "galewind-longbow", "mithrilweave-shirt",
-    "warblade", "longbow", "platemail",
+    "kingsworn-brand",
+    "galewind-longbow",
+    "mithrilweave-shirt",
+    "warblade",
+    "longbow",
+    "platemail",
   ];
 
   it("a generated line shows the same bare base name across all five tiers", () => {

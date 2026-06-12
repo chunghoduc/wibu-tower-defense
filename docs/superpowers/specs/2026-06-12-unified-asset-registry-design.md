@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-12
 **Status:** Approved (full-auto session)
-**Follows:** `2026-06-12-consistent-reward-icons-design.md` (which centralized the *reward-panel/spin* slice via `rewardIcon.ts`). This spec generalizes that pattern to **every entity class** so the same item/tower/material/currency renders identically on every screen.
+**Follows:** `2026-06-12-consistent-reward-icons-design.md` (which centralized the _reward-panel/spin_ slice via `rewardIcon.ts`). This spec generalizes that pattern to **every entity class** so the same item/tower/material/currency renders identically on every screen.
 
 ## Problem
 
@@ -16,10 +16,10 @@ Icons drift across screens because the data→texture mapping is **not** single-
 ## Research grounding (deep-research, verified claims)
 
 - **SSOT id-keyed registry** (3-0): master each entity→visual mapping in exactly one place; a missing entry should be a build/test failure, not silent per-screen drift.
-- **Flyweight def/instance split** (3-0): shared catalog definition (intrinsic: icon key, color, name) vs per-instance data (extrinsic: count, level). Already present here as `ItemDef` vs `ItemInstanceSave` — keep and formalize; the resolver consumes the *instance* and looks up the *def*.
-- **Centralized typed key derivation** (3-0): one derivation point instead of scattered concatenation. A lone runtime concat helper is *not sufficient on its own* (a refuted sibling claim) — **pair it with a contract test** that proves every derived key is real.
+- **Flyweight def/instance split** (3-0): shared catalog definition (intrinsic: icon key, color, name) vs per-instance data (extrinsic: count, level). Already present here as `ItemDef` vs `ItemInstanceSave` — keep and formalize; the resolver consumes the _instance_ and looks up the _def_.
+- **Centralized typed key derivation** (3-0): one derivation point instead of scattered concatenation. A lone runtime concat helper is _not sufficient on its own_ (a refuted sibling claim) — **pair it with a contract test** that proves every derived key is real.
 - **Resolver / view-model layer** (3-0): pure entity→`{iconKey, emoji, color, ...}` functions outside the scene layer, unit-testable and reused.
-- **Phaser Texture Manager is the engine-level key registry** (3-0): our domain registry resolves *into* texture keys; the engine fails visibly (`__MISSING`) on a bad key.
+- **Phaser Texture Manager is the engine-level key registry** (3-0): our domain registry resolves _into_ texture keys; the engine fails visibly (`__MISSING`) on a bad key.
 - **Refuted, and respected:** (a) do NOT rely on Phaser instance-sharing semantics for cross-screen consistency — rely on the **key**. (b) Prefer typed/contract-checked derivation over bare runtime concat.
 
 ## Goals
@@ -46,16 +46,18 @@ Pure, Phaser-free. The ONE place any `<namespace>__<id>` key is built.
 
 ```ts
 // Entity-keyed derivations
-export const itemTex     = (id: string) => `item__${id}`;
-export const towerTex    = (id: string) => `tower__${id}`;
-export const jewelTex    = (id: string) => `jewel__${id}`;
+export const itemTex = (id: string) => `item__${id}`;
+export const towerTex = (id: string) => `tower__${id}`;
+export const jewelTex = (id: string) => `jewel__${id}`;
 export const materialTex = (id: string) => `material__${id}`;
-export const boxTex      = (id: string) => `box__${id}`;
-export const skillTex    = (id: string) => `skill__${id}`;
-export const menuTex     = (id: string) => `menu__${id}`;
-export const fxTex        = (id: string) => `fx__${id}`;
+export const boxTex = (id: string) => `box__${id}`;
+export const skillTex = (id: string) => `skill__${id}`;
+export const menuTex = (id: string) => `menu__${id}`;
+export const fxTex = (id: string) => `fx__${id}`;
 // Fixed currency / singleton keys (named constants, not magic strings)
-export const GOLD_TEX = "icon__gold", GEM_TEX = "icon__gem", XP_TEX = "icon__xp";
+export const GOLD_TEX = "icon__gold",
+  GEM_TEX = "icon__gem",
+  XP_TEX = "icon__xp";
 export const HERODOLL_BASE_TEX = "herodoll__base";
 ```
 
@@ -64,6 +66,7 @@ The existing `materialIconKey`/`jewelIconKey`/`skillIconKey` in their manifest f
 ### Unit 2 — generalize the resolver (`rewardIcon.ts` + entity helpers)
 
 `rewardIcon.ts` already exports `IconView`/`RewardIconView` and per-kind helpers. It will:
+
 - Derive all keys via `assetKeys.ts` (no more inline templates in this file).
 - Gain entity-level resolvers that return `IconView`:
   - `itemInstanceIcon(inst: ItemInstanceSave): IconView` — looks up the def (flyweight) for rarity color, derives `itemTex(inst.defId)`.
@@ -82,7 +85,7 @@ If `rewardIcon.ts` approaches its size budget, the entity-level resolvers split 
 ### Unit 4 — contract / anti-drift tests
 
 1. **Catalog→key contract** (`tests/assetKeys.test.ts`): for every entity in each catalog (`ITEM_CATALOG`, `TOWERS`+B+C, `JEWEL_CATALOG`, `MATERIALS`, boxes, skill ids), assert the resolver/derivation produces a key matching the namespace convention, and that the corresponding `*_ICON_IDS`/`PreloadScene` load list would register it (no orphans — every derived key is loadable, every loaded key is derivable).
-2. **No-inline-keys guard** (`tests/assetKeyDiscipline.test.ts`): scan `src/scenes/` + `src/data/` source for backtick texture templates (`/`(item|tower|jewel|material|box|skill|menu|fx)__\$\{/`) and assert the only file allowed to contain them is `assetKeys.ts`. This is the regression fence that keeps the registry single.
+2. **No-inline-keys guard** (`tests/assetKeyDiscipline.test.ts`): scan `src/scenes/` + `src/data/` source for backtick texture templates (`/`(item|tower|jewel|material|box|skill|menu|fx)\_\_\$\{/`) and assert the only file allowed to contain them is `assetKeys.ts`. This is the regression fence that keeps the registry single.
 3. Existing `rewardPanel`/`rewardIcon`/`materialIcons`/`iconFit` tests stay green (output-unchanged proof).
 
 ## Data flow
@@ -111,6 +114,7 @@ instance save (extrinsic)┘            │ derives key via
 ## TDD strategy
 
 RED→GREEN per unit, commit per unit:
+
 1. Write `assetKeys.test.ts` (derivation shape) RED → create `assetKeys.ts` GREEN.
 2. Write entity-resolver tests RED → add `itemInstanceIcon`/`towerIcon`/`skillIcon` GREEN; refactor `rewardIcon.ts` to derive via `assetKeys` (existing tests stay green).
 3. Migrate call sites + dedupe; the no-inline-keys guard test goes RED first (proves it catches the current scatter), then GREEN as sites migrate.

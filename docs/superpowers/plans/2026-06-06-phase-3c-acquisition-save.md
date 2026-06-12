@@ -12,20 +12,20 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|--------|------|---------------|
-| Modify | `src/core/save.ts` | Add `CurrencySave`, `ProgressSave`, update `HeroSave` to v3, add v2→v3 migration |
-| Create | `src/core/gacha.ts` | Pull rates, soft/hard pity, `performSummon`, `performMultiSummon` |
-| Create | `src/core/drops.ts` | Stage-clear rewards: crystals, item/skill/character drops |
-| Create | `src/core/shop.ts` | Static shop catalog, `purchaseShopItem` |
-| Create | `src/core/achievements.ts` | Achievement definitions, `checkAndGrantAchievements` |
-| Create | `src/core/saveManager.ts` | `SaveManager` — wraps provider, high-level event hooks |
-| Create | `tests/save-v3.test.ts` | Save v3 migration tests |
-| Create | `tests/gacha.test.ts` | Pull rate, pity, multi-pull tests |
-| Create | `tests/drops.test.ts` | Stage clear drop tests |
-| Create | `tests/shop.test.ts` | Shop purchase tests |
-| Create | `tests/achievements.test.ts` | Achievement unlock tests |
-| Create | `tests/saveManager.test.ts` | Integration: full round-trip through SaveManager |
+| Action | Path                         | Responsibility                                                                   |
+| ------ | ---------------------------- | -------------------------------------------------------------------------------- |
+| Modify | `src/core/save.ts`           | Add `CurrencySave`, `ProgressSave`, update `HeroSave` to v3, add v2→v3 migration |
+| Create | `src/core/gacha.ts`          | Pull rates, soft/hard pity, `performSummon`, `performMultiSummon`                |
+| Create | `src/core/drops.ts`          | Stage-clear rewards: crystals, item/skill/character drops                        |
+| Create | `src/core/shop.ts`           | Static shop catalog, `purchaseShopItem`                                          |
+| Create | `src/core/achievements.ts`   | Achievement definitions, `checkAndGrantAchievements`                             |
+| Create | `src/core/saveManager.ts`    | `SaveManager` — wraps provider, high-level event hooks                           |
+| Create | `tests/save-v3.test.ts`      | Save v3 migration tests                                                          |
+| Create | `tests/gacha.test.ts`        | Pull rate, pity, multi-pull tests                                                |
+| Create | `tests/drops.test.ts`        | Stage clear drop tests                                                           |
+| Create | `tests/shop.test.ts`         | Shop purchase tests                                                              |
+| Create | `tests/achievements.test.ts` | Achievement unlock tests                                                         |
+| Create | `tests/saveManager.test.ts`  | Integration: full round-trip through SaveManager                                 |
 
 ---
 
@@ -62,7 +62,14 @@ describe("HeroSave v3", () => {
     const v1: any = {
       version: 1,
       heroId: "h1",
-      hero: { level: 1, totalXp: 0, skillPoints: 0, unlockedNodes: [], obtainedSkills: [], equippedSkillId: null },
+      hero: {
+        level: 1,
+        totalXp: 0,
+        skillPoints: 0,
+        unlockedNodes: [],
+        obtainedSkills: [],
+        equippedSkillId: null,
+      },
       inventory: { items: [], equipped: {} },
       lastSavedAt: 0,
     };
@@ -77,7 +84,14 @@ describe("HeroSave v3", () => {
     const v2: any = {
       version: 2,
       heroId: "h2",
-      hero: { level: 10, totalXp: 5000, skillPoints: 9, unlockedNodes: [], obtainedSkills: [], equippedSkillId: null },
+      hero: {
+        level: 10,
+        totalXp: 5000,
+        skillPoints: 9,
+        unlockedNodes: [],
+        obtainedSkills: [],
+        equippedSkillId: null,
+      },
       inventory: { items: [], equipped: {} },
       collection: { "zoran-thricedraw": { stars: 3 } },
       lastSavedAt: 0,
@@ -97,6 +111,7 @@ describe("HeroSave v3", () => {
 Change `CURRENT_SAVE_VERSION` from `2` to `3`.
 
 Add new types:
+
 ```ts
 export interface CurrencySave {
   crystals: number;
@@ -118,6 +133,7 @@ export interface ProgressSave {
 ```
 
 Update `HeroSave`:
+
 ```ts
 export interface HeroSave {
   version: number;
@@ -132,23 +148,26 @@ export interface HeroSave {
 ```
 
 Update `createFreshSave()` to include:
+
 ```ts
     currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "" },
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
 ```
 
 Update `loadAndMigrate`:
+
 ```ts
 export function loadAndMigrate(raw: unknown): HeroSave {
   if (!raw || typeof raw !== "object") return createFreshSave();
   let save = raw as HeroSave;
   if ((save.version ?? 0) < 2) save = { ...save, collection: {}, version: 2 };
-  if ((save.version ?? 0) < 3) save = {
-    ...save,
-    currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "" },
-    progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
-    version: 3,
-  };
+  if ((save.version ?? 0) < 3)
+    save = {
+      ...save,
+      currency: { crystals: 0, pityCount: 0, lastDailyLoginDate: "" },
+      progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
+      version: 3,
+    };
   save.version = CURRENT_SAVE_VERSION;
   return save;
 }
@@ -411,7 +430,7 @@ export function performMultiSummon(save: HeroSave, rng: Rng, count: number): Sum
 ```
 
 - [ ] **Run tests:** `npm run typecheck && npm test -- tests/gacha.test.ts 2>&1 | tail -15`
-  Expected: all 9 tests pass.
+      Expected: all 9 tests pass.
 
 - [ ] **Commit:** `git add src/core/gacha.ts tests/gacha.test.ts && git commit -m "feat(core): gacha system — soft/hard pity, pull rates, multi-pull"`
 
@@ -476,7 +495,10 @@ describe("processStageClear", () => {
     for (let seed = 0; seed < 100; seed++) {
       const save = createFreshSave();
       const result = processStageClear(save, "s", "Normal", new Rng(seed));
-      if (result.itemDropped) { dropped = true; break; }
+      if (result.itemDropped) {
+        dropped = true;
+        break;
+      }
     }
     expect(dropped).toBe(true);
   });
@@ -507,7 +529,7 @@ export const CRYSTAL_REWARD: Record<Difficulty, number> = {
 };
 const FIRST_CLEAR_BONUS = 50;
 
-const ITEM_DROP_CHANCE = 0.30;
+const ITEM_DROP_CHANCE = 0.3;
 const SKILL_DROP_CHANCE = 0.15;
 const CHARACTER_DROP_CHANCE = 0.05;
 
@@ -560,7 +582,7 @@ export function processStageClear(
         defId: inst.defId,
         acquiredLevel: inst.acquiredLevel,
         rolledStats: Object.fromEntries(
-          Object.entries(inst.rolledStats).map(([k, v]) => [k, v as number])
+          Object.entries(inst.rolledStats).map(([k, v]) => [k, v as number]),
         ),
         rolledPrimaryAffix: inst.rolledPrimaryAffix,
         rolledAffixes: inst.rolledAffixes,
@@ -586,7 +608,7 @@ export function processStageClear(
   let characterDropped: string | null = null;
   if (rng.next() < CHARACTER_DROP_CHANCE) {
     const dropPool = TOWERS.filter(
-      (t) => (t.rarity === "Common" || t.rarity === "Magic") && !(t.id in save.collection)
+      (t) => (t.rarity === "Common" || t.rarity === "Magic") && !(t.id in save.collection),
     );
     if (dropPool.length > 0) {
       const char = dropPool[Math.floor(rng.next() * dropPool.length)];
@@ -744,7 +766,8 @@ export const SHOP_CATALOG: ShopEntry[] = [
 export function purchaseShopItem(save: HeroSave, entryId: string): PurchaseResult {
   const entry = SHOP_CATALOG.find((e) => e.id === entryId);
   if (!entry) return { success: false, message: "Unknown shop item" };
-  if (save.currency.crystals < entry.cost) return { success: false, message: "Not enough crystals" };
+  if (save.currency.crystals < entry.cost)
+    return { success: false, message: "Not enough crystals" };
 
   save.currency.crystals -= entry.cost;
 
@@ -830,8 +853,12 @@ import { Rng } from "../src/core/rng.ts";
 const store: Record<string, string> = {};
 const mockStorage = {
   getItem: (k: string) => store[k] ?? null,
-  setItem: (k: string, v: string) => { store[k] = v; },
-  removeItem: (k: string) => { delete store[k]; },
+  setItem: (k: string, v: string) => {
+    store[k] = v;
+  },
+  removeItem: (k: string) => {
+    delete store[k];
+  },
 };
 
 describe("SaveManager", () => {
@@ -906,7 +933,12 @@ export class SaveManager {
   private save: HeroSave;
 
   constructor(private readonly provider: SaveProvider) {
-    this.save = provider.load() ?? (() => { const s = (this as any).freshSave(); return s; })();
+    this.save =
+      provider.load() ??
+      (() => {
+        const s = (this as any).freshSave();
+        return s;
+      })();
     // Ensure we have a valid save
     if (!this.save) {
       const { createFreshSave } = require("./save.ts");
@@ -936,9 +968,7 @@ export class SaveManager {
   /** Perform 1 or 10 summons. */
   afterSummon(count: 1 | 10, rng: Rng): SummonResult[] {
     const results =
-      count === 1
-        ? [performSummon(this.save, rng)]
-        : performMultiSummon(this.save, rng, 10);
+      count === 1 ? [performSummon(this.save, rng)] : performMultiSummon(this.save, rng, 10);
     checkAndGrantAchievements(this.save);
     this.persist();
     return results;
@@ -1010,9 +1040,7 @@ export class SaveManager {
 
   afterSummon(count: 1 | 10, rng: Rng): SummonResult[] {
     const results =
-      count === 1
-        ? [performSummon(this.save, rng)]
-        : performMultiSummon(this.save, rng, 10);
+      count === 1 ? [performSummon(this.save, rng)] : performMultiSummon(this.save, rng, 10);
     checkAndGrantAchievements(this.save);
     this.persist();
     return results;
@@ -1056,9 +1084,9 @@ The `place-50-towers` achievement needs `progress.totalTowersPlaced` to incremen
 - [ ] **Modify `src/core/battle.ts`** — in `placeTower`, after the `this.towers.push(...)` call, add:
 
 ```ts
-    if (this._heroSave) {
-      this._heroSave.progress.totalTowersPlaced += 1;
-    }
+if (this._heroSave) {
+  this._heroSave.progress.totalTowersPlaced += 1;
+}
 ```
 
 - [ ] **Run full suite:** `npm run typecheck && npm test 2>&1 | tail -10`
@@ -1070,14 +1098,17 @@ The `place-50-towers` achievement needs `progress.totalTowersPlaced` to incremen
 ## Task 7 — Final Verification
 
 - [ ] **Commit all spec/plan docs:**
+
 ```bash
 git add docs/ && git status | grep docs && git commit -m "docs: Phase 3b + 3c design specs and implementation plans"
 ```
 
 - [ ] **Full final check:**
+
 ```bash
 npm run typecheck && npm test && npm run build 2>&1 | tail -20
 ```
+
 Expected: all tests pass (140+ total), typecheck clean, build succeeds.
 
 - [ ] **Log final commit:** `git log --oneline -12`

@@ -1,13 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
 import {
-  endlessEnemyMul, endlessMilestoneReward, bestEndlessWave, recordEndlessWave, ENDLESS_MILESTONE_EVERY,
-  endlessWave, isEndlessBossWave, endlessBossId, endlessRunReward, claimEndlessRun, ENDLESS_BOSS_EVERY,
-  endlessEntryCost, payEndlessEntry, ENDLESS_ENTRY_CAP,
+  endlessEnemyMul,
+  endlessMilestoneReward,
+  bestEndlessWave,
+  recordEndlessWave,
+  ENDLESS_MILESTONE_EVERY,
+  endlessWave,
+  isEndlessBossWave,
+  endlessBossId,
+  endlessRunReward,
+  claimEndlessRun,
+  ENDLESS_BOSS_EVERY,
+  endlessEntryCost,
+  payEndlessEntry,
+  ENDLESS_ENTRY_CAP,
 } from "../src/core/endless.ts";
 import { BOSS_BY_STAGE } from "../src/data/stage.ts";
 import { isEmptyReward } from "../src/core/rewards.ts";
-import { recordBossRushTier, bestBossRushTier, rolloverBossRush, bossRushReward, bossRushWave, BOSS_RUSH_TIERS } from "../src/core/bossRush.ts";
+import {
+  recordBossRushTier,
+  bestBossRushTier,
+  rolloverBossRush,
+  bossRushReward,
+  bossRushWave,
+  BOSS_RUSH_TIERS,
+} from "../src/core/bossRush.ts";
 import { world, mkEnemy, mkStage, oneWave } from "./fixtures.ts";
 
 const waveCount = (w: { spawns: { count: number }[] }) => w.spawns.reduce((n, s) => n + s.count, 0);
@@ -66,13 +84,21 @@ describe("F11 endless survival", () => {
     const throughBoss = endlessRunReward(0, ENDLESS_BOSS_EVERY);
     expect(throughBoss.materials).toBeDefined(); // a boss chest dropped at the boss wave
     // Banding: a deeper run grants strictly more than a shallow one.
-    expect((endlessRunReward(0, 40).diamonds ?? 0)).toBeGreaterThan(endlessRunReward(0, 10).diamonds ?? 0);
+    expect(endlessRunReward(0, 40).diamonds ?? 0).toBeGreaterThan(
+      endlessRunReward(0, 10).diamonds ?? 0,
+    );
   });
 
   it("the sim keeps generating waves past the authored count and never declares victory", () => {
     // A 1-wave stage with an unbreakable castle: in endless mode the run must keep
     // spawning fresh procedural waves forever and never flip to "won".
-    const stage = mkStage(oneWave("grunt", 2), { castleHp: 1e9, path: [{ x: 0, y: 0 }, { x: 300, y: 0 }] });
+    const stage = mkStage(oneWave("grunt", 2), {
+      castleHp: 1e9,
+      path: [
+        { x: 0, y: 0 },
+        { x: 300, y: 0 },
+      ],
+    });
     const b = world([mkEnemy()], [], stage, { endless: true });
     for (let i = 0; i < 4000 && b.outcome === "ongoing"; i++) b.tick(0.05);
     expect(b.outcome).toBe("ongoing"); // castle stands → run never resolves on its own
@@ -80,13 +106,20 @@ describe("F11 endless survival", () => {
   });
 
   it("endless spawns compound in strength as the run deepens", () => {
-    const stage = mkStage(oneWave("grunt", 1), { castleHp: 1e9, path: [{ x: 0, y: 0 }, { x: 200, y: 0 }] });
+    const stage = mkStage(oneWave("grunt", 1), {
+      castleHp: 1e9,
+      path: [
+        { x: 0, y: 0 },
+        { x: 200, y: 0 },
+      ],
+    });
     const b = world([mkEnemy()], [], stage, { endless: true });
     // Record the toughest grunt HP seen at each waveIndex as the run progresses.
     const hpByWave = new Map<number, number>();
     for (let i = 0; i < 5000; i++) {
       b.tick(0.05);
-      for (const e of b.enemies) hpByWave.set(b.waveIndex, Math.max(hpByWave.get(b.waveIndex) ?? 0, e.stats.maxHp));
+      for (const e of b.enemies)
+        hpByWave.set(b.waveIndex, Math.max(hpByWave.get(b.waveIndex) ?? 0, e.stats.maxHp));
     }
     const early = hpByWave.get(0)!;
     const late = [...hpByWave.entries()].filter(([w]) => w >= 6).map(([, hp]) => hp)[0];
@@ -111,11 +144,11 @@ describe("F11 endless survival", () => {
   });
 
   it("entry cost rises with best wave, has a cheap floor and a hard cap", () => {
-    expect(endlessEntryCost(0)).toBe(150);                        // cheap first taste
+    expect(endlessEntryCost(0)).toBe(150); // cheap first taste
     expect(endlessEntryCost(20)).toBeGreaterThan(endlessEntryCost(10)); // scales with record
-    expect(endlessEntryCost(20)).toBe(850);                      // 150 + 35*20, round10
-    expect(endlessEntryCost(100000)).toBe(ENDLESS_ENTRY_CAP);    // never locks you out
-    expect(endlessEntryCost(50) % 10).toBe(0);                   // always a round number
+    expect(endlessEntryCost(20)).toBe(850); // 150 + 35*20, round10
+    expect(endlessEntryCost(100000)).toBe(ENDLESS_ENTRY_CAP); // never locks you out
+    expect(endlessEntryCost(50) % 10).toBe(0); // always a round number
   });
 
   it("paying entry deducts gold and is refused when too poor", () => {
@@ -174,10 +207,16 @@ describe("F12 boss rush (weekly)", () => {
     // Catalog has only "grunt"; the gauntlet's brute/boss spawns are unknown ids
     // and get skipped, so each wave clears empty — isolating the wave-COUNT logic.
     // tier must equal bosses-defeated (== cleared waves), never the wave index.
-    const stage = mkStage(oneWave("grunt", 1), { castleHp: 1e9, path: [{ x: 0, y: 0 }, { x: 300, y: 0 }] });
+    const stage = mkStage(oneWave("grunt", 1), {
+      castleHp: 1e9,
+      path: [
+        { x: 0, y: 0 },
+        { x: 300, y: 0 },
+      ],
+    });
     const b = world([mkEnemy()], [], stage, { bossRush: true });
     for (let i = 0; i < 4000 && b.outcome === "ongoing"; i++) b.tick(0.05);
-    expect(b.outcome).toBe("won");                 // the gauntlet resolves (unlike endless)
-    expect(b.wavesCleared).toBe(BOSS_RUSH_TIERS);  // tier maxes ONLY by clearing all tiers
+    expect(b.outcome).toBe("won"); // the gauntlet resolves (unlike endless)
+    expect(b.wavesCleared).toBe(BOSS_RUSH_TIERS); // tier maxes ONLY by clearing all tiers
   });
 });

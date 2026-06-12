@@ -26,7 +26,8 @@ export type Outcome = "ongoing" | "won" | "lost";
 
 /** Distance from point p to segment a-b (for lane-clearance checks). */
 export function segDist(p: Vec2, a: Vec2, b: Vec2): number {
-  const dx = b.x - a.x, dy = b.y - a.y;
+  const dx = b.x - a.x,
+    dy = b.y - a.y;
   const l2 = dx * dx + dy * dy || 1;
   let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
   t = Math.max(0, Math.min(1, t));
@@ -39,16 +40,52 @@ export function segDist(p: Vec2, a: Vec2, b: Vec2): number {
  * holds the current tick's events; it is cleared at the start of every tick.
  */
 export type FxEvent =
-  | { type: "attack"; uid: number; from: Vec2; to: Vec2; ranged: boolean; damageType: DamageType; crit: boolean; role: string; source: "tower" | "hero"; style: string }
+  | {
+      type: "attack";
+      uid: number;
+      from: Vec2;
+      to: Vec2;
+      ranged: boolean;
+      damageType: DamageType;
+      crit: boolean;
+      role: string;
+      source: "tower" | "hero";
+      style: string;
+    }
   | { type: "hit"; uid: number; at: Vec2; damageType: DamageType; amount: number; aoe: boolean }
   | { type: "death"; at: Vec2; boss: boolean; elite: boolean; bounty: number }
   | { type: "enemyAttack"; uid: number; at: Vec2; targetAt: Vec2; target: "hero" | "tower" }
-  | { type: "cast"; uid: number; from: Vec2; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
+  | {
+      type: "cast";
+      uid: number;
+      from: Vec2;
+      at: Vec2;
+      damageType: DamageType;
+      radius: number;
+      source: "tower" | "hero";
+      skillId?: string;
+    }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
-  | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string; element: DamageType }
+  | {
+      type: "bossCast";
+      uid: number;
+      at: Vec2;
+      skill: string;
+      radius: number;
+      name: string;
+      element: DamageType;
+    }
   | { type: "loot"; at: Vec2; to: Vec2; gold: number }
-  | { type: "killReward"; at: Vec2; to: Vec2; xp: number; item: boolean; itemDefId: string | null; box: string | null }
+  | {
+      type: "killReward";
+      at: Vec2;
+      to: Vec2;
+      xp: number;
+      item: boolean;
+      itemDefId: string | null;
+      box: string | null;
+    }
   // F13 combo: rapid-kill streak feedback. `mult` is the current gold multiplier.
   | { type: "combo"; at: Vec2; count: number; mult: number }
   // F14 perfect wave: a wave cleared with zero leaks. `bonus` is the bonus gold.

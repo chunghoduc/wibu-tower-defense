@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
-import { recordKill, bestiaryKills, bestiaryDamageMul, bestiaryTier, BESTIARY_TIERS } from "../src/core/bestiary.ts";
+import {
+  recordKill,
+  bestiaryKills,
+  bestiaryDamageMul,
+  bestiaryTier,
+  BESTIARY_TIERS,
+} from "../src/core/bestiary.ts";
 
 describe("F9 bestiary", () => {
   it("records kills per archetype and bumps lifetime kills", () => {

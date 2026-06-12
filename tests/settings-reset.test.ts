@@ -4,9 +4,15 @@ import { defaultSettings, type HeroSave, type SaveProvider } from "../src/core/s
 
 class MemProvider implements SaveProvider {
   data: HeroSave | null = null;
-  load() { return this.data; }
-  persist(d: HeroSave) { this.data = JSON.parse(JSON.stringify(d)); }
-  clear() { this.data = null; }
+  load() {
+    return this.data;
+  }
+  persist(d: HeroSave) {
+    this.data = JSON.parse(JSON.stringify(d));
+  }
+  clear() {
+    this.data = null;
+  }
 }
 
 describe("settings + reset", () => {
@@ -22,7 +28,7 @@ describe("settings + reset", () => {
     expect(mgr.getSettings().volume).toBe(0.3);
     expect(mgr.getSettings().musicEnabled).toBe(false);
     expect(mgr.getSettings().muted).toBe(false); // untouched
-    expect(p.data!.settings.volume).toBe(0.3);   // persisted
+    expect(p.data!.settings.volume).toBe(0.3); // persisted
   });
 
   it("resetProgress wipes progress but keeps audio settings", () => {
@@ -31,8 +37,8 @@ describe("settings + reset", () => {
     mgr.getSave().currency.gold = 99999;
     mgr.getSave().hero.level = 50;
     mgr.resetProgress();
-    expect(mgr.getSave().hero.level).toBe(1);            // fresh
+    expect(mgr.getSave().hero.level).toBe(1); // fresh
     expect(Object.keys(mgr.getSave().collection).length).toBeGreaterThan(0); // starter squad regranted
-    expect(mgr.getSettings().volume).toBe(0.2);          // settings kept
+    expect(mgr.getSettings().volume).toBe(0.2); // settings kept
   });
 });

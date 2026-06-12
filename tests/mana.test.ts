@@ -13,8 +13,14 @@ import {
 // isolating on-hit mana charging from the on-kill bonus.
 function tankEnemy(): EnemyDef {
   return {
-    id: "wall", name: "Wall", archetype: "Rusher", flying: false, immunity: null,
-    damageType: "Physical", bounty: 10, castleDamage: 1,
+    id: "wall",
+    name: "Wall",
+    archetype: "Rusher",
+    flying: false,
+    immunity: null,
+    damageType: "Physical",
+    bounty: 10,
+    castleDamage: 1,
     baseStats: makeStats({ maxHp: 1e9, moveSpeed: 1, atk: 0, attackSpeed: 0 }),
     artRef: "placeholder",
   };
@@ -22,8 +28,16 @@ function tankEnemy(): EnemyDef {
 
 function caster(role: TowerRole, active: string | null): CharacterDef {
   return {
-    id: "caster", name: "Caster", rarity: "Common", role, damageType: "Physical",
-    target: "Both", cost: 0, description: "test", passives: ["p"], active,
+    id: "caster",
+    name: "Caster",
+    rarity: "Common",
+    role,
+    damageType: "Physical",
+    target: "Both",
+    cost: 0,
+    description: "test",
+    passives: ["p"],
+    active,
     baseStats: makeStats({ atk: 1, attackSpeed: 10, range: 400, maxHp: 100 }),
     artRef: "placeholder",
   };
@@ -31,9 +45,15 @@ function caster(role: TowerRole, active: string | null): CharacterDef {
 
 function world(char: CharacterDef) {
   const stage: StageDef = {
-    id: "test", name: "Test",
-    path: [{ x: 0, y: 0 }, { x: 200, y: 0 }],
-    airSpawns: [], castleHp: 1e9, startingGold: 0,
+    id: "test",
+    name: "Test",
+    path: [
+      { x: 0, y: 0 },
+      { x: 200, y: 0 },
+    ],
+    airSpawns: [],
+    castleHp: 1e9,
+    startingGold: 0,
     towerSlots: [{ x: 100, y: -30 }],
     waves: [{ spawns: [{ enemyId: "wall", count: 1, interval: 1, delay: 0 }] }] as WaveDef[],
   };

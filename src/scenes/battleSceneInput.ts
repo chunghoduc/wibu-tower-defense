@@ -24,7 +24,11 @@ import { rewardLabel } from "../core/rewards.ts";
 import { isoWeekKey } from "../core/meta.ts";
 import { boxIdForTier } from "../data/materials.ts";
 import {
-  SLOT_RADIUS, RARITY_INT, statRows, HERO_STAT_KEYS, TOWER_STAT_KEYS,
+  SLOT_RADIUS,
+  RARITY_INT,
+  statRows,
+  HERO_STAT_KEYS,
+  TOWER_STAT_KEYS,
 } from "./battleSceneHelpers.ts";
 import type { BattleScene } from "./BattleScene.ts";
 import { towerTex, itemTex, skillTex } from "../data/assetKeys.ts";
@@ -44,8 +48,13 @@ export const inputMethods = {
     else this.autoSkipText.setVisible(false);
 
     const secs = this.battle.getNextWaveIn();
-    if (secs < 0) { this.callWaveBtn.setVisible(false); return; }
-    this.callWaveBtn.setVisible(true).setText(`⏩ Wave in ${Math.ceil(secs)}s  +${this.battle.skipReward()}g`);
+    if (secs < 0) {
+      this.callWaveBtn.setVisible(false);
+      return;
+    }
+    this.callWaveBtn
+      .setVisible(true)
+      .setText(`⏩ Wave in ${Math.ceil(secs)}s  +${this.battle.skipReward()}g`);
   },
 
   /** Player tapped "call wave": spawn the next wave now, float the bonus gold. */
@@ -53,10 +62,22 @@ export const inputMethods = {
     const bonus = this.battle.callNextWave();
     if (bonus <= 0) return;
     this.sfx.coin();
-    const pop = crispText(this, this.scale.width - 14, 56, `+${bonus}g`, { fontSize: "16px", color: "#ffe27a", fontStyle: "bold" })
-      .setOrigin(1, 0).setDepth(60);
+    const pop = crispText(this, this.scale.width - 14, 56, `+${bonus}g`, {
+      fontSize: "16px",
+      color: "#ffe27a",
+      fontStyle: "bold",
+    })
+      .setOrigin(1, 0)
+      .setDepth(60);
     this.ui.add(pop);
-    this.tweens.add({ targets: pop, y: 38, alpha: 0, duration: 800, ease: "Cubic.out", onComplete: () => pop.destroy() });
+    this.tweens.add({
+      targets: pop,
+      y: 38,
+      alpha: 0,
+      duration: 800,
+      ease: "Cubic.out",
+      onComplete: () => pop.destroy(),
+    });
     this.refreshCallWaveBtn();
   },
 
@@ -64,7 +85,8 @@ export const inputMethods = {
   handleKeyboardHero(this: BattleScene): void {
     const k = this.keys;
     if (!k || this.battle.outcome !== "ongoing" || !this.battle.hero.alive) return;
-    let dx = 0, dy = 0;
+    let dx = 0,
+      dy = 0;
     if (k.left.isDown || k.a.isDown) dx -= 1;
     if (k.right.isDown || k.d.isDown) dx += 1;
     if (k.up.isDown || k.w.isDown) dy -= 1;
@@ -84,11 +106,15 @@ export const inputMethods = {
       if (!obj.getData || !obj.getData("towerId")) return;
       this.makeGhost(obj.getData("towerId"));
     });
-    this.input.on("drag", (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => {
-      if (!obj.getData || !obj.getData("towerId")) return;
-      obj.x = x; obj.y = y;
-      this.updateGhost(obj.getData("towerId"), p);
-    });
+    this.input.on(
+      "drag",
+      (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => {
+        if (!obj.getData || !obj.getData("towerId")) return;
+        obj.x = x;
+        obj.y = y;
+        this.updateGhost(obj.getData("towerId"), p);
+      },
+    );
     this.input.on("dragend", (p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) => {
       const id = obj.getData && obj.getData("towerId");
       if (!id) return;
@@ -105,11 +131,13 @@ export const inputMethods = {
     this.clearGhost();
     const g = this.add.container(0, 0).setDepth(7).setAlpha(0.7);
     const ring = this.add.graphics();
-    g.add(ring); g.setData("ring", ring);
+    g.add(ring);
+    g.setData("ring", ring);
     const key = towerTex(towerId);
     if (this.textures.exists(key)) {
       const img = this.add.image(0, 0, key, 0).setOrigin(0.5, 0.78);
-      img.setScale(50 / img.height); g.add(img);
+      img.setScale(50 / img.height);
+      g.add(img);
     }
     this.world.add(g);
     this.placeGhost = g;
@@ -120,13 +148,17 @@ export const inputMethods = {
     const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
     this.placeGhost.setPosition(wp.x, wp.y);
     const def = this.buildOrder.find((d) => d.id === towerId);
-    const ok = pointer.y < 500 && this.battle.canPlaceAt({ x: wp.x, y: wp.y }) && !!def && this.battle.gold >= def.cost;
+    const ok =
+      pointer.y < 500 &&
+      this.battle.canPlaceAt({ x: wp.x, y: wp.y }) &&
+      !!def &&
+      this.battle.gold >= def.cost;
     const range = def ? this.battle.previewPlaceRange(def.id) : 130;
     const ring = this.placeGhost.getData("ring") as Phaser.GameObjects.Graphics;
     ring.clear();
-    ring.lineStyle(1.5, ok ? 0x66ff88 : 0xff5a5a, 0.4).strokeCircle(0, 0, range);   // coverage preview
+    ring.lineStyle(1.5, ok ? 0x66ff88 : 0xff5a5a, 0.4).strokeCircle(0, 0, range); // coverage preview
     ring.fillStyle(ok ? 0x66ff88 : 0xff5a5a, 0.06).fillCircle(0, 0, range);
-    ring.lineStyle(2, ok ? 0x66ff88 : 0xff5a5a, 0.95).strokeCircle(0, 0, 16);        // footprint
+    ring.lineStyle(2, ok ? 0x66ff88 : 0xff5a5a, 0.95).strokeCircle(0, 0, 16); // footprint
   },
 
   clearGhost(this: BattleScene): void {
@@ -135,37 +167,54 @@ export const inputMethods = {
   },
 
   bindInput(this: BattleScene): void {
-    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => { this.tapX = pointer.x; this.tapY = pointer.y; });
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+      this.tapX = pointer.x;
+      this.tapY = pointer.y;
+    });
     // Command on RELEASE, and only for a genuine tap — so a drag-to-pan, a pinch,
     // a wheel-zoom or a tower-placement drag never also walks the hero.
-    this.input.on("pointerup", (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
-      if (this.battle.outcome !== "ongoing") return;
-      if (this.camCtl?.consumedGesture) return;                                   // pan / pinch / zoom gesture
-      if (Math.hypot(pointer.x - this.tapX, pointer.y - this.tapY) > 8) return;    // a drag, not a tap
-      // A tap on any interactive HUD/UI widget (speed & mute buttons, zoom
-      // buttons, build-bar avatars, tower panel) must NOT command the hero.
-      // Towers aren't interactive objects (tapped via towerAt), so tapping a
-      // tower still falls through to the panel logic below.
-      if (currentlyOver && currentlyOver.length > 0) return;
-      if (this.panel.hitsPanel(pointer.x) || this.panel.hitsTab(pointer.x, pointer.y)) return; // over the panel / its tab
-      if (pointer.y >= 500) return;          // bottom build-bar strip
-      const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-      const world: Vec2 = { x: wp.x, y: wp.y };
+    this.input.on(
+      "pointerup",
+      (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
+        if (this.battle.outcome !== "ongoing") return;
+        if (this.camCtl?.consumedGesture) return; // pan / pinch / zoom gesture
+        if (Math.hypot(pointer.x - this.tapX, pointer.y - this.tapY) > 8) return; // a drag, not a tap
+        // A tap on any interactive HUD/UI widget (speed & mute buttons, zoom
+        // buttons, build-bar avatars, tower panel) must NOT command the hero.
+        // Towers aren't interactive objects (tapped via towerAt), so tapping a
+        // tower still falls through to the panel logic below.
+        if (currentlyOver && currentlyOver.length > 0) return;
+        if (this.panel.hitsPanel(pointer.x) || this.panel.hitsTab(pointer.x, pointer.y)) return; // over the panel / its tab
+        if (pointer.y >= 500) return; // bottom build-bar strip
+        const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+        const world: Vec2 = { x: wp.x, y: wp.y };
 
-      // Tap a tower → show it in the panel + on-map quick actions. Tap empty
-      // ground → revert the panel to the hero view and walk the hero there.
-      const tower = this.towerAt(world);
-      if (tower) { this.selectTower(tower.uid); return; }
-      this.deselectTower();
-      this.battle.commandHero(world);
-    });
+        // Tap a tower → show it in the panel + on-map quick actions. Tap empty
+        // ground → revert the panel to the hero view and walk the hero there.
+        const tower = this.towerAt(world);
+        if (tower) {
+          this.selectTower(tower.uid);
+          return;
+        }
+        this.deselectTower();
+        this.battle.commandHero(world);
+      },
+    );
   },
 
   /** ＋ / − zoom buttons on the left edge (HUD camera; fixed while the view pans). */
   addZoomButtons(this: BattleScene): void {
     const mk = (y: number, label: string, onTap: () => void) => {
-      const b = crispText(this, 14, y, label, { fontSize: "22px", color: "#fff", backgroundColor: "#243a5a", fontStyle: "bold" })
-        .setOrigin(0, 0.5).setPadding(9, 3, 9, 5).setDepth(50).setInteractive({ useHandCursor: true });
+      const b = crispText(this, 14, y, label, {
+        fontSize: "22px",
+        color: "#fff",
+        backgroundColor: "#243a5a",
+        fontStyle: "bold",
+      })
+        .setOrigin(0, 0.5)
+        .setPadding(9, 3, 9, 5)
+        .setDepth(50)
+        .setInteractive({ useHandCursor: true });
       b.on("pointerdown", onTap);
       this.ui.add(b);
     };
@@ -184,7 +233,10 @@ export const inputMethods = {
   /** Convert a world point to its on-screen pixel position under the battle camera. */
   worldToScreen(this: BattleScene, wx: number, wy: number): { x: number; y: number } {
     const cam = this.cameras.main;
-    return { x: (wx - cam.worldView.x) * cam.zoom + cam.x, y: (wy - cam.worldView.y) * cam.zoom + cam.y };
+    return {
+      x: (wx - cam.worldView.x) * cam.zoom + cam.x,
+      y: (wy - cam.worldView.y) * cam.zoom + cam.y,
+    };
   },
 
   /** Build the hero view model (the default panel content). */
@@ -197,33 +249,72 @@ export const inputMethods = {
       const inst = instId ? save.inventory.items.find((it) => it.id === instId) : undefined;
       const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
       if (!inst || !def) continue;
-      items[slot] = { iconKey: itemTex(inst.defId), name: def.name, plus: inst.enhanceLevel ?? 0, rarityColor: RARITY_INT[def.rarity as Rarity] };
+      items[slot] = {
+        iconKey: itemTex(inst.defId),
+        name: def.name,
+        plus: inst.enhanceLevel ?? 0,
+        rarityColor: RARITY_INT[def.rarity as Rarity],
+      };
     }
     const skills = save.hero.equippedSkillIds
       .map((id) => ({ id, def: ACTIVE_SKILLS_MAP.get(id) }))
       .filter((e) => e.def)
-      .map((e) => ({ label: `⚡ ${e.def!.name}`, desc: e.def!.description, color: "#a8d8ff", iconKey: skillTex(e.id) }));
+      .map((e) => ({
+        label: `⚡ ${e.def!.name}`,
+        desc: e.def!.description,
+        color: "#a8d8ff",
+        iconKey: skillTex(e.id),
+      }));
     return {
-      kind: "hero", name: "Hero", level: save.hero.level,
-      hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: MANA_MAX,
+      kind: "hero",
+      name: "Hero",
+      level: save.hero.level,
+      hp: h.hp,
+      maxHp: h.stats.maxHp,
+      mana: h.mana,
+      maxMana: MANA_MAX,
       stats: statRows(h.stats as unknown as Record<string, number>, HERO_STAT_KEYS),
-      items, skills,
+      items,
+      skills,
     };
   },
 
   /** Build a tower view model from its runtime. */
   towerVM(this: BattleScene, t: TowerRuntime): TowerPanelVM {
     const skills: { label: string; desc: string; color: string; iconKey?: string }[] = [];
-    if (t.def.active) { const a = towerActiveInfo(t.def.active); skills.push({ label: `⚡ ${a.name}`, desc: activeSkillDetail(t.def, t.stats), color: "#a8d8ff", iconKey: skillTex(t.def.active) }); }
-    for (const pid of t.def.passives) { const p = passiveInfo(pid); skills.push({ label: `• ${p.name}`, desc: p.description, color: "#cdd6e6", iconKey: skillTex(pid) }); }
+    if (t.def.active) {
+      const a = towerActiveInfo(t.def.active);
+      skills.push({
+        label: `⚡ ${a.name}`,
+        desc: activeSkillDetail(t.def, t.stats),
+        color: "#a8d8ff",
+        iconKey: skillTex(t.def.active),
+      });
+    }
+    for (const pid of t.def.passives) {
+      const p = passiveInfo(pid);
+      skills.push({
+        label: `• ${p.name}`,
+        desc: p.description,
+        color: "#cdd6e6",
+        iconKey: skillTex(pid),
+      });
+    }
     skills.push({ label: "▲ Upgrades", desc: upgradeSummary(t.def.role), color: "#ffd86a" });
     return {
-      kind: "tower", uid: t.uid, name: t.def.name, iconKey: towerTex(t.def.id),
+      kind: "tower",
+      uid: t.uid,
+      name: t.def.name,
+      iconKey: towerTex(t.def.id),
       stars: t.battleLevel + 1, // ★1 freshly placed → ★3 maxed
-      hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.def.role !== "support" ? MANA_MAX : 0,
+      hp: t.hp,
+      maxHp: t.stats.maxHp,
+      mana: t.mana,
+      maxMana: t.def.role !== "support" ? MANA_MAX : 0,
       stats: statRows(t.stats as unknown as Record<string, number>, TOWER_STAT_KEYS),
       skills,
-      upgradeCost: this.battle.upgradeCost(t.uid), sellValue: this.battle.sellValue(t.uid),
+      upgradeCost: this.battle.upgradeCost(t.uid),
+      sellValue: this.battle.sellValue(t.uid),
       maxed: this.battle.upgradeCost(t.uid) === 0,
     };
   },
@@ -233,14 +324,20 @@ export const inputMethods = {
     this.panel.showTower(this.towerVM(t), {
       onUpgrade: () => this.doUpgrade(uid),
       onSell: () => this.confirmSell(uid),
-      onUpgradeHover: (over) => { this.rangePreviewUid = over ? uid : -1; },
+      onUpgradeHover: (over) => {
+        this.rangePreviewUid = over ? uid : -1;
+      },
     });
   },
 
   /** Toggle button on the panel edge: collapse, or expand (showing the hero by default). */
   togglePanel(this: BattleScene): void {
-    if (this.panel.isOpen()) { this.panel.setOpen(false); }
-    else { if (this.selectedTowerUid < 0) this.panel.showHero(this.heroVM()); this.panel.setOpen(true); }
+    if (this.panel.isOpen()) {
+      this.panel.setOpen(false);
+    } else {
+      if (this.selectedTowerUid < 0) this.panel.showHero(this.heroVM());
+      this.panel.setOpen(true);
+    }
   },
 
   /** Select a tower: open the panel with its info + on-map quick-action icons. */
@@ -266,7 +363,12 @@ export const inputMethods = {
   doUpgrade(this: BattleScene, uid: number): void {
     if (this.battle.upgradeTower(uid)) {
       const t = this.battle.towers.find((x) => x.uid === uid);
-      if (t) { this.fx.starUp(t.pos, t.battleLevel); this.sfx.place(); this.showTowerPanel(t); this.buildQuickActions(t); }
+      if (t) {
+        this.fx.starUp(t.pos, t.battleLevel);
+        this.sfx.place();
+        this.showTowerPanel(t);
+        this.buildQuickActions(t);
+      }
     }
   },
 
@@ -275,30 +377,68 @@ export const inputMethods = {
     const t = this.battle.towers.find((x) => x.uid === uid && x.alive);
     if (!t) return;
     this.confirmDialog?.destroy(true);
-    const W = this.scale.width, H = this.scale.height;
+    const W = this.scale.width,
+      H = this.scale.height;
     const refund = this.battle.sellValue(uid);
     const c = this.add.container(0, 0).setDepth(70);
 
     const dim = this.add.graphics();
     dim.fillStyle(0x000000, 0.55).fillRect(0, 0, W, H);
-    const dimZone = this.add.zone(W / 2, H / 2, W, H).setInteractive().on("pointerup", () => this.closeConfirm());
+    const dimZone = this.add
+      .zone(W / 2, H / 2, W, H)
+      .setInteractive()
+      .on("pointerup", () => this.closeConfirm());
     c.add([dim, dimZone]);
 
-    const bw = 300, bh = 132, bx = (W - bw) / 2, by = (H - bh) / 2;
+    const bw = 300,
+      bh = 132,
+      bx = (W - bw) / 2,
+      by = (H - bh) / 2;
     const panel = this.add.graphics();
     panel.fillStyle(0x141c28, 0.99).fillRoundedRect(bx, by, bw, bh, 10);
     panel.lineStyle(2, 0x7a2e2e, 1).strokeRoundedRect(bx, by, bw, bh, 10);
     const panelZone = this.add.zone(bx + bw / 2, by + bh / 2, bw, bh).setInteractive(); // swallow clicks
     c.add([panel, panelZone]);
 
-    c.add(crispText(this, W / 2, by + 18, "Sell this tower?", { fontSize: "16px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5, 0));
-    c.add(crispText(this, W / 2, by + 44, `${t.def.name}\nRefund +${refund}g`, { fontSize: "12px", color: "#ffd6a0", align: "center" }).setOrigin(0.5, 0));
+    c.add(
+      crispText(this, W / 2, by + 18, "Sell this tower?", {
+        fontSize: "16px",
+        color: "#ffffff",
+        fontStyle: "bold",
+      }).setOrigin(0.5, 0),
+    );
+    c.add(
+      crispText(this, W / 2, by + 44, `${t.def.name}\nRefund +${refund}g`, {
+        fontSize: "12px",
+        color: "#ffd6a0",
+        align: "center",
+      }).setOrigin(0.5, 0),
+    );
 
-    const yes = crispText(this, bx + bw / 2 - 70, by + bh - 34, "Sell", { fontSize: "14px", color: "#fff", backgroundColor: "#7a2e2e", fixedWidth: 96, align: "center" })
-      .setOrigin(0.5, 0).setPadding(0, 8, 0, 8).setInteractive({ useHandCursor: true });
-    yes.on("pointerup", () => { this.closeConfirm(); this.doSell(uid); });
-    const no = crispText(this, bx + bw / 2 + 70, by + bh - 34, "Cancel", { fontSize: "14px", color: "#fff", backgroundColor: "#33415a", fixedWidth: 96, align: "center" })
-      .setOrigin(0.5, 0).setPadding(0, 8, 0, 8).setInteractive({ useHandCursor: true });
+    const yes = crispText(this, bx + bw / 2 - 70, by + bh - 34, "Sell", {
+      fontSize: "14px",
+      color: "#fff",
+      backgroundColor: "#7a2e2e",
+      fixedWidth: 96,
+      align: "center",
+    })
+      .setOrigin(0.5, 0)
+      .setPadding(0, 8, 0, 8)
+      .setInteractive({ useHandCursor: true });
+    yes.on("pointerup", () => {
+      this.closeConfirm();
+      this.doSell(uid);
+    });
+    const no = crispText(this, bx + bw / 2 + 70, by + bh - 34, "Cancel", {
+      fontSize: "14px",
+      color: "#fff",
+      backgroundColor: "#33415a",
+      fixedWidth: 96,
+      align: "center",
+    })
+      .setOrigin(0.5, 0)
+      .setPadding(0, 8, 0, 8)
+      .setInteractive({ useHandCursor: true });
     no.on("pointerup", () => this.closeConfirm());
     c.add([yes, no]);
 
@@ -321,24 +461,48 @@ export const inputMethods = {
     this.quickActions?.destroy(true);
     const s = this.worldToScreen(t.pos.x, t.pos.y - 22);
     const c = this.add.container(s.x, s.y).setDepth(48);
-    const mk = (dx: number, glyph: string, cost: string, bg: number, onClick: () => void, onHover?: (over: boolean) => void): void => {
+    const mk = (
+      dx: number,
+      glyph: string,
+      cost: string,
+      bg: number,
+      onClick: () => void,
+      onHover?: (over: boolean) => void,
+    ): void => {
       const g = this.add.graphics();
       g.fillStyle(bg, 0.96).fillRoundedRect(dx - 19, -13, 38, 26, 5);
       g.lineStyle(1.5, 0xffffff, 0.55).strokeRoundedRect(dx - 19, -13, 38, 26, 5);
       c.add(g);
-      c.add(crispText(this, dx, -11, glyph, { fontSize: "12px", color: "#fff", fontStyle: "bold" }).setOrigin(0.5, 0));
+      c.add(
+        crispText(this, dx, -11, glyph, {
+          fontSize: "12px",
+          color: "#fff",
+          fontStyle: "bold",
+        }).setOrigin(0.5, 0),
+      );
       c.add(crispText(this, dx, 2, cost, { fontSize: "8px", color: "#ffe7a0" }).setOrigin(0.5, 0));
       // Interactive zone uses CONTAINER-RELATIVE coords so the click lands on the
       // icon (and the scene's pointerdown bails on currentlyOver → hero won't move).
       const z = this.add.zone(dx, 0, 38, 26).setInteractive({ useHandCursor: true });
       z.on("pointerup", onClick);
-      if (onHover) { z.on("pointerover", () => onHover(true)); z.on("pointerout", () => onHover(false)); }
+      if (onHover) {
+        z.on("pointerover", () => onHover(true));
+        z.on("pointerout", () => onHover(false));
+      }
       c.add(z);
     };
     const cost = this.battle.upgradeCost(t.uid);
     // Hovering the upgrade icon reveals this tower's attack range ring.
-    mk(-21, "⬆", cost === 0 ? "MAX" : `${cost}g`, cost === 0 ? 0x555555 : 0x1565c0,
-      () => this.doUpgrade(t.uid), (over) => { this.rangePreviewUid = over ? t.uid : -1; });
+    mk(
+      -21,
+      "⬆",
+      cost === 0 ? "MAX" : `${cost}g`,
+      cost === 0 ? 0x555555 : 0x1565c0,
+      () => this.doUpgrade(t.uid),
+      (over) => {
+        this.rangePreviewUid = over ? t.uid : -1;
+      },
+    );
     mk(22, "✕", `+${this.battle.sellValue(t.uid)}g`, 0x7a2e2e, () => this.confirmSell(t.uid));
     this.ui.add(c);
     this.quickActions = c;
@@ -356,9 +520,15 @@ export const inputMethods = {
     this._victoryProcessed = true;
 
     // afterBattle persists the stage-clear rewards and returns them (won only).
-    const clear = outcome === "won"
-      ? this.saveManager.afterBattle(this.stage.id, "won", this.battle.difficulty, new Rng(Date.now()))
-      : null;
+    const clear =
+      outcome === "won"
+        ? this.saveManager.afterBattle(
+            this.stage.id,
+            "won",
+            this.battle.difficulty,
+            new Rng(Date.now()),
+          )
+        : null;
 
     // Special-mode payouts layered on top of the normal stage rewards.
     let modeNote = "";
@@ -385,7 +555,18 @@ export const inputMethods = {
 
     const summary = buildLootSummary(outcome, this.battle.battleLoot, clear);
     this.ui.add(showBattleLootPanel(this, summary, this.battleW / 2, 182));
-    if (modeNote) this.ui.add(crispText(this, this.battleW / 2, 150, modeNote, { fontSize: "14px", color: "#ffe07a", fontStyle: "bold", stroke: "#1a1206", strokeThickness: 4 }).setOrigin(0.5).setDepth(40));
+    if (modeNote)
+      this.ui.add(
+        crispText(this, this.battleW / 2, 150, modeNote, {
+          fontSize: "14px",
+          color: "#ffe07a",
+          fontStyle: "bold",
+          stroke: "#1a1206",
+          strokeThickness: 4,
+        })
+          .setOrigin(0.5)
+          .setDepth(40),
+      );
   },
 };
 

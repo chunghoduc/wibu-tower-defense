@@ -21,9 +21,18 @@ describe("tower sprite manifest contract", () => {
     it(`${e.id} has a full ${FRAMES}-frame sheet covering idle/atk/skill`, () => {
       expect(e.frames, `${e.id} frames`).toBe(FRAMES);
       expect(e.names.length, `${e.id} names length`).toBe(e.frames);
-      expect(e.names.some((n) => /idle/.test(n)), `${e.id} has an idle frame`).toBe(true);
-      expect(e.names.some((n) => /atk/.test(n)), `${e.id} has an attack frame`).toBe(true);
-      expect(e.names.some((n) => /skill/.test(n)), `${e.id} has a skill frame`).toBe(true);
+      expect(
+        e.names.some((n) => /idle/.test(n)),
+        `${e.id} has an idle frame`,
+      ).toBe(true);
+      expect(
+        e.names.some((n) => /atk/.test(n)),
+        `${e.id} has an attack frame`,
+      ).toBe(true);
+      expect(
+        e.names.some((n) => /skill/.test(n)),
+        `${e.id} has a skill frame`,
+      ).toBe(true);
     });
   }
 });

@@ -7,7 +7,13 @@ import { dist } from "./path.ts";
 import { selectTarget } from "./targeting.ts";
 import { attackStyleFor, isMeleeStyle } from "../data/attackStyle.ts";
 import type { BattleState } from "./battle.ts";
-import { type EnemyRuntime, type TowerRuntime, targetFilter, SPLASH_RADIUS, MANA_MAX } from "./battleTypes.ts";
+import {
+  type EnemyRuntime,
+  type TowerRuntime,
+  targetFilter,
+  SPLASH_RADIUS,
+  MANA_MAX,
+} from "./battleTypes.ts";
 
 export const towerMethods = {
   recomputeTowerBuffs(this: BattleState): void {
@@ -42,7 +48,10 @@ export const towerMethods = {
     const h = this.hero;
     const r2 = h.stats.range * h.stats.range;
     for (const e of this.enemies) {
-      if (!e.stealth) { e.revealed = true; continue; }
+      if (!e.stealth) {
+        e.revealed = true;
+        continue;
+      }
       e.revealed = h.alive && (e.pos.x - h.pos.x) ** 2 + (e.pos.y - h.pos.y) ** 2 <= r2;
     }
   },
@@ -64,7 +73,17 @@ export const towerMethods = {
 
       const effAtk = t.stats.atk * (1 + t.buffAtkPct);
       const style = attackStyleFor(t.def);
-      this.performAttack(t, t.pos, effAtk, t.def.damageType, target, "tower", t.def.role, t.uid, style);
+      this.performAttack(
+        t,
+        t.pos,
+        effAtk,
+        t.def.damageType,
+        target,
+        "tower",
+        t.def.role,
+        t.uid,
+        style,
+      );
       this.applyRoleEffect(t, effAtk, target);
       // Melee swings cleave: every strike also hits all other enemies within the
       // tower's (short) reach for the same damage — short range, wide arc.
@@ -74,7 +93,17 @@ export const towerMethods = {
       if (t.def.role !== "support" && t.mana >= MANA_MAX) {
         // Skills may deal True damage (the only path to True).
         const activeType = t.behavior?.activeType ?? t.def.damageType;
-        this.castActive(t.stats, effAtk, activeType, target.pos, t.pos, "tower", t.uid, t.def.active ?? undefined, t.behavior?.defenseScale);
+        this.castActive(
+          t.stats,
+          effAtk,
+          activeType,
+          target.pos,
+          t.pos,
+          "tower",
+          t.uid,
+          t.def.active ?? undefined,
+          t.behavior?.defenseScale,
+        );
         t.mana = 0;
       }
       t.attackCd = 1 / effAs;
@@ -86,14 +115,27 @@ export const towerMethods = {
     const bhv = t.behavior;
     switch (t.def.role) {
       case "splash":
-        this.applySplash(t.stats, t.def.damageType, effAtk, target.pos, target, bhv?.splashRadius ?? SPLASH_RADIUS);
+        this.applySplash(
+          t.stats,
+          t.def.damageType,
+          effAtk,
+          target.pos,
+          target,
+          bhv?.splashRadius ?? SPLASH_RADIUS,
+        );
         break;
       case "chain":
         this.applyChain(t, effAtk, target, bhv?.chainTargets ?? 2, bhv?.chainFalloff ?? 0.6);
         break;
       case "dot":
         if (bhv?.dot) {
-          this.addDot(target, bhv.dot.damageType ?? t.def.damageType, bhv.dot.dps, bhv.dot.duration, t.stats);
+          this.addDot(
+            target,
+            bhv.dot.damageType ?? t.def.damageType,
+            bhv.dot.dps,
+            bhv.dot.duration,
+            t.stats,
+          );
         }
         break;
       case "debuff":

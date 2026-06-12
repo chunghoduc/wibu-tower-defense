@@ -32,28 +32,50 @@ export interface MaterialDef {
 
 export const MATERIALS: MaterialDef[] = [
   {
-    id: BLESS_JEWEL, name: "Jewel of Bless", kind: "jewel", icon: "bless",
+    id: BLESS_JEWEL,
+    name: "Jewel of Bless",
+    kind: "jewel",
+    icon: "bless",
     description: "Enhances an item from +0 up to +6 — always succeeds.",
   },
   {
-    id: SOUL_JEWEL, name: "Jewel of Soul", kind: "jewel", icon: "soul",
-    description: "Enhances an item beyond +6. Success falls 10% per level; on failure the item loses 1–5 levels.",
+    id: SOUL_JEWEL,
+    name: "Jewel of Soul",
+    kind: "jewel",
+    icon: "soul",
+    description:
+      "Enhances an item beyond +6. Success falls 10% per level; on failure the item loses 1–5 levels.",
   },
   {
-    id: SUMMON_SCROLL, name: "Summoning Scroll", kind: "scroll", icon: "scroll",
+    id: SUMMON_SCROLL,
+    name: "Summoning Scroll",
+    kind: "scroll",
+    icon: "scroll",
     description: "A rare scroll dropped by bosses. Use it in the Summon Hall for one free summon.",
   },
   {
-    id: OBLIVION_ORB, name: "Oblivion Orb", kind: "consumable", icon: "oblivion",
-    description: "A rare orb that unwinds a single memory. Spend it in the Passive Tree to forget one allocated skill and refund its point.",
+    id: OBLIVION_ORB,
+    name: "Oblivion Orb",
+    kind: "consumable",
+    icon: "oblivion",
+    description:
+      "A rare orb that unwinds a single memory. Spend it in the Passive Tree to forget one allocated skill and refund its point.",
   },
   {
-    id: CHAOS_JEWEL, name: "Jewel of Chaos", kind: "jewel", icon: "chaos",
-    description: "Smelted from gear you no longer need. Spend it (with gold) to Reforge a Rare or better item — re-rolling all of its affixes at once.",
+    id: CHAOS_JEWEL,
+    name: "Jewel of Chaos",
+    kind: "jewel",
+    icon: "chaos",
+    description:
+      "Smelted from gear you no longer need. Spend it (with gold) to Reforge a Rare or better item — re-rolling all of its affixes at once.",
   },
   {
-    id: AWAKENING_CRYSTAL, name: "Awakening Crystal", kind: "consumable", icon: "awaken",
-    description: "A radiant crystal of pure potential. Spend it in the Collection to Awaken a 5★ tower beyond its limits.",
+    id: AWAKENING_CRYSTAL,
+    name: "Awakening Crystal",
+    kind: "consumable",
+    icon: "awaken",
+    description:
+      "A radiant crystal of pure potential. Spend it in the Collection to Awaken a 5★ tower beyond its limits.",
   },
 ];
 
@@ -71,7 +93,11 @@ export function boxIdForTier(tier: number): string {
 const BOX_RARITY_NAME = ["", "Common", "Magic", "Rare", "Legendary", "Unique"];
 /** Display colour for a box's rarity tier (matches the item rarity palette). */
 export const BOX_RARITY_COLOR: Record<number, number> = {
-  1: 0x9e9e9e, 2: 0x2196f3, 3: 0x9c27b0, 4: 0xff9800, 5: 0xf44336,
+  1: 0x9e9e9e,
+  2: 0x2196f3,
+  3: 0x9c27b0,
+  4: 0xff9800,
+  5: 0xf44336,
 };
 export function boxRarityName(tier: number): string {
   return BOX_RARITY_NAME[Math.max(1, Math.min(BOX_TIERS, tier))];
@@ -79,7 +105,11 @@ export function boxRarityName(tier: number): string {
 
 for (let t = 1; t <= BOX_TIERS; t++) {
   MATERIALS.push({
-    id: boxIdForTier(t), name: `${boxRarityName(t)} Boss Chest`, kind: "box", icon: "box", rarity: t,
+    id: boxIdForTier(t),
+    name: `${boxRarityName(t)} Boss Chest`,
+    kind: "box",
+    icon: "box",
+    rarity: t,
     description: `A ${boxRarityName(t).toLowerCase()} chest dropped by a stage boss — open for crystals, jewels and gear. Higher rarity = bigger reward.`,
     lootTable: `t${t}`,
   });
@@ -90,6 +120,9 @@ export const MATERIALS_MAP = new Map<string, MaterialDef>(MATERIALS.map((m) => [
 /** Register additional materials (e.g. boss boxes from another module). */
 export function registerMaterials(defs: MaterialDef[]): void {
   for (const d of defs) {
-    if (!MATERIALS_MAP.has(d.id)) { MATERIALS.push(d); MATERIALS_MAP.set(d.id, d); }
+    if (!MATERIALS_MAP.has(d.id)) {
+      MATERIALS.push(d);
+      MATERIALS_MAP.set(d.id, d);
+    }
   }
 }

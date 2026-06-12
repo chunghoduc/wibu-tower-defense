@@ -10,11 +10,16 @@ import type { HeroSave } from "./save.ts";
 /** Current value of a lifetime metric. */
 export function metricValue(save: HeroSave, metric: MilestoneMetric): number {
   switch (metric) {
-    case "kills": return save.meta.profile.lifetimeKills;
-    case "clears": return save.meta.profile.lifetimeClears;
-    case "collection": return Object.keys(save.collection).length;
-    case "endless": return Object.values(save.meta.endless.bestWave).reduce((m, w) => Math.max(m, w), 0);
-    case "awakened": return Object.values(save.meta.awakening).reduce((s, r) => s + r, 0);
+    case "kills":
+      return save.meta.profile.lifetimeKills;
+    case "clears":
+      return save.meta.profile.lifetimeClears;
+    case "collection":
+      return Object.keys(save.collection).length;
+    case "endless":
+      return Object.values(save.meta.endless.bestWave).reduce((m, w) => Math.max(m, w), 0);
+    case "awakened":
+      return Object.values(save.meta.awakening).reduce((s, r) => s + r, 0);
   }
 }
 

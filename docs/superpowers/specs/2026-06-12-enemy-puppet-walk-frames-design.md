@@ -28,7 +28,7 @@ Ground truth from the codebase + two prior reverted attempts:
    matter how much it bobs.
 
 **The real fix for floating is silhouette change** — feet/legs (or wings) that
-visibly move *relative to the body*. Phaser `Sprite` supports only
+visibly move _relative to the body_. Phaser `Sprite` supports only
 position/rotation/scale, so silhouette change requires either a mesh or **multiple
 texture frames**. The user explicitly wants frames.
 
@@ -36,7 +36,7 @@ texture frames**. The user explicitly wants frames.
 
 We already have one **clean, on-style** SDXL sprite per enemy. We can synthesize a
 short walk cycle from it by **warping** that sprite, instead of asking diffusion to
-paint new poses. This is deterministic, keeps the exact art style (it *is* the same
+paint new poses. This is deterministic, keeps the exact art style (it _is_ the same
 art), and produces genuine silhouette change.
 
 The trick that turns one static frame into a believable **alternating-leg** step:
@@ -74,8 +74,15 @@ phase," shared by the test and the baker.
 
 ```ts
 export type MotionProfile = "walk" | "flap";
-export interface BandWarp { dx: number; dy: number; }      // px offset for a band
-export interface WarpOpts { legSwing?: number; flap?: number; bob?: number; }
+export interface BandWarp {
+  dx: number;
+  dy: number;
+} // px offset for a band
+export interface WarpOpts {
+  legSwing?: number;
+  flap?: number;
+  bob?: number;
+}
 
 /**
  * Displacement for a horizontal band of the sprite.
@@ -84,7 +91,10 @@ export interface WarpOpts { legSwing?: number; flap?: number; bob?: number; }
  * @param phase  0..2π around the cycle
  */
 export function bandWarp(
-  profile: MotionProfile, yNorm: number, side: -1 | 1, phase: number,
+  profile: MotionProfile,
+  yNorm: number,
+  side: -1 | 1,
+  phase: number,
   opts?: WarpOpts,
 ): BandWarp;
 ```
@@ -94,9 +104,9 @@ export function bandWarp(
   feet swing oppositely (alternating step). A small **counter-sway** on the torso
   (`yNorm < 0.5`): `dx = -0.25 * legSwing * sin(phase)` (whole upper body, no side
   split) so the body leads the legs. A shared **contact bob** `dy = -bob *
-  |sin(phase)|` lifts the body between footfalls (peaks at passing poses).
+|sin(phase)|` lifts the body between footfalls (peaks at passing poses).
 - **flap:** wing weight ramps from the vertical mid-line outward/upward; `dy =
-  -flap * wingWeight * sin(phase)` (wings rise/fall on the beat), `dx = 0`. Used for
+-flap * wingWeight * sin(phase)` (wings rise/fall on the beat), `dx = 0`. Used for
   flyers (`gargoyle`, `stormflyer`).
 - All outputs finite for every input; `phase = 0` ⇒ zero `dx` (neutral contact).
 
@@ -105,6 +115,7 @@ export function bandWarp(
 At `PreloadScene.create()` (runs once, before MainMenu; textures already loaded):
 
 For each enemy id:
+
 1. Read the loaded single-frame texture `enemy__<id>` source image (300×300).
 2. Choose profile: `flap` for known flyers, else `walk`. (Flyer set derived from
    the `ENEMIES` catalog `flying` flag — no hard-coded list duplication.)
@@ -124,12 +135,11 @@ ms. Idempotent: skip if the `_walk` anim already exists (re-entry safe).
 
 ### C. Runtime — `animateEnemy` (battleSceneSprites.ts)
 
-- The existing `if (this.anims.exists(\`${key}_walk\`))` branch already plays the
-  walk loop and pauses it while frozen — **it just starts firing now** that the anim
-  exists. Couple playback rate to travel so a slowed enemy steps slower: set
-  `s.anims.timeScale` from recent `moved` (clamped), so "running" = faster cycle.
+- The existing `if (this.anims.exists(\`${key}\_walk\`))`branch already plays the
+walk loop and pauses it while frozen — **it just starts firing now** that the anim
+exists. Couple playback rate to travel so a slowed enemy steps slower: set`s.anims.timeScale`from recent`moved` (clamped), so "running" = faster cycle.
 - **Damp the procedural whole-body bob when authored walk frames exist** (the frames
-  now carry the step). Keep: ground-coupled gait *phase* (drives `timeScale` +
+  now carry the step). Keep: ground-coupled gait _phase_ (drives `timeScale` +
   shadow), the contact **shadow** lift, and a small lean. Reduce `BOB`/`ROCK`
   amplitude (or gate it) so we don't double up bob-on-bob. The shadow stays pinned
   to the ground and still shrinks/fades on lift — the weight anchor.

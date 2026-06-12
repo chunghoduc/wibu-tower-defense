@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { mitigatedDamage, mitigationBreakdown, rollAttackDamage, critMultiplier, MITIGATION_CONSTANT } from "../src/core/damage.ts";
+import {
+  mitigatedDamage,
+  mitigationBreakdown,
+  rollAttackDamage,
+  critMultiplier,
+  MITIGATION_CONSTANT,
+} from "../src/core/damage.ts";
 import { makeStats } from "../src/data/schema.ts";
 
 describe("mitigatedDamage", () => {
@@ -55,7 +61,10 @@ describe("mitigationBreakdown", () => {
   it("reports each term of the formula", () => {
     const def = makeStats({ armor: 100, damageReduction: 0.5 });
     // 100 armor, 50% pen → eff 50 → curve 50/150 = 33.3% mitigation → 66.67 → DR 50% → 33.33
-    const b = mitigationBreakdown({ amount: 100, type: "Physical", armorPen: 0.5, magicPen: 0 }, def);
+    const b = mitigationBreakdown(
+      { amount: 100, type: "Physical", armorPen: 0.5, magicPen: 0 },
+      def,
+    );
     expect(b.defRating).toBe(100);
     expect(b.effRating).toBeCloseTo(50, 5);
     expect(b.mitigationFrac).toBeCloseTo(50 / 150, 5);
@@ -65,7 +74,10 @@ describe("mitigationBreakdown", () => {
   });
 
   it("True damage shows no armor/resist mitigation", () => {
-    const b = mitigationBreakdown({ amount: 100, type: "True", armorPen: 0, magicPen: 0 }, makeStats({ armor: 999, magicResist: 999 }));
+    const b = mitigationBreakdown(
+      { amount: 100, type: "True", armorPen: 0, magicPen: 0 },
+      makeStats({ armor: 999, magicResist: 999 }),
+    );
     expect(b.mitigationFrac).toBe(0);
     expect(b.afterMitig).toBe(100);
     expect(b.final).toBe(100);
@@ -92,7 +104,7 @@ describe("critMultiplier (crit defense)", () => {
   });
   it("scales the bonus down by crit defense, never below the base hit", () => {
     expect(critMultiplier(2.0, 0.5)).toBeCloseTo(1.5, 5); // half the +100% bonus
-    expect(critMultiplier(2.0, 1)).toBeCloseTo(1.0, 5);   // full defense → no bonus
+    expect(critMultiplier(2.0, 1)).toBeCloseTo(1.0, 5); // full defense → no bonus
     expect(critMultiplier(1.5, 1)).toBeCloseTo(1.0, 5);
   });
   it("clamps crit defense to [0,1]", () => {

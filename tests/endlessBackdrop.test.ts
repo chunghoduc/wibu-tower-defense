@@ -8,9 +8,9 @@ const DIMS: Dims = { width: 1280, height: 720 };
 const ARENA: ArenaDef = {
   center: { x: 640, y: 360 },
   gates: [
-    { x: 640, y: -20 },           // top
-    { x: -20, y: 360 },           // left
-    { x: 1300, y: 360 },          // right
+    { x: 640, y: -20 }, // top
+    { x: -20, y: 360 }, // left
+    { x: 1300, y: 360 }, // right
   ],
   airSpawns: [],
   routes: [],
@@ -39,7 +39,8 @@ describe("buildEndlessBackdrop", () => {
       // starts at the castle
       expect(Math.hypot(first.x - 640, first.y - 360)).toBeLessThan(2);
       // far end is on the castle→gate side: dot(last-center, gate-center) > 0
-      const gx = ARENA.gates[i].x, gy = ARENA.gates[i].y;
+      const gx = ARENA.gates[i].x,
+        gy = ARENA.gates[i].y;
       const dot = (last.x - 640) * (gx - 640) + (last.y - 360) * (gy - 360);
       expect(dot).toBeGreaterThan(0);
       // far end stays on-screen (gates can sit off-map)

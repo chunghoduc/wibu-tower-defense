@@ -24,9 +24,10 @@ export function equipItem(save: HeroSave, instanceId: string, targetSlot?: ItemS
   // A ring fits either ring slot: honour an explicit target (drop onto Ring1/Ring2),
   // otherwise fill the first empty fitting slot (else replace the first).
   const candidates = equipSlotsFor(def.slot);
-  const slot = (targetSlot && candidates.includes(targetSlot))
-    ? targetSlot
-    : (candidates.find((s) => !save.inventory.equipped[s]) ?? candidates[0]);
+  const slot =
+    targetSlot && candidates.includes(targetSlot)
+      ? targetSlot
+      : (candidates.find((s) => !save.inventory.equipped[s]) ?? candidates[0]);
   save.inventory.equipped[slot] = instanceId;
   return true;
 }
@@ -47,7 +48,7 @@ export function equippedWeaponType(save: HeroSave): WeaponType | undefined {
 /** Whether the skill's weapon requirement is met by the currently-equipped weapon. */
 export function skillWeaponMet(save: HeroSave, skillId: string): boolean {
   const skill = ACTIVE_SKILLS_MAP.get(skillId);
-  if (!skill?.requiresWeapon) return true;           // no requirement → always ok
+  if (!skill?.requiresWeapon) return true; // no requirement → always ok
   return equippedWeaponType(save) === skill.requiresWeapon;
 }
 
@@ -59,16 +60,19 @@ export function skillWeaponMet(save: HeroSave, skillId: string): boolean {
 export function equipSkill(save: HeroSave, skillId: string): boolean {
   const owned = save.hero.obtainedSkills.some((s) => s.skillId === skillId);
   if (!owned) return false;
-  if (!skillWeaponMet(save, skillId)) return false;  // requires a matching weapon
+  if (!skillWeaponMet(save, skillId)) return false; // requires a matching weapon
   const eq = save.hero.equippedSkillIds;
-  if (eq.includes(skillId)) return true;             // already equipped
-  if (eq.length >= MAX_ACTIVE_SKILLS) eq.shift();    // drop the oldest slot
+  if (eq.includes(skillId)) return true; // already equipped
+  if (eq.length >= MAX_ACTIVE_SKILLS) eq.shift(); // drop the oldest slot
   eq.push(skillId);
   return true;
 }
 
 /** Unequip a specific active skill, or clear all slots when no id is given. */
 export function unequipSkill(save: HeroSave, skillId?: string): void {
-  if (skillId === undefined) { save.hero.equippedSkillIds = []; return; }
+  if (skillId === undefined) {
+    save.hero.equippedSkillIds = [];
+    return;
+  }
   save.hero.equippedSkillIds = save.hero.equippedSkillIds.filter((id) => id !== skillId);
 }

@@ -6,9 +6,13 @@ import { mkEnemy, mkStage, mkTower, world, runFor } from "./fixtures.ts";
 
 describe("elite damage reduction", () => {
   it("applyEliteBoost grants a flat 50% reduction, combined with any existing one", () => {
-    expect(applyEliteBoost({ ...defaultStats() }).damageReduction).toBeCloseTo(ELITE_DAMAGE_REDUCTION);
+    expect(applyEliteBoost({ ...defaultStats() }).damageReduction).toBeCloseTo(
+      ELITE_DAMAGE_REDUCTION,
+    );
     // 0.5 base combined with 0.5 elite → 1 - 0.5*0.5 = 0.75.
-    expect(applyEliteBoost({ ...defaultStats(), damageReduction: 0.5 }).damageReduction).toBeCloseTo(0.75);
+    expect(
+      applyEliteBoost({ ...defaultStats(), damageReduction: 0.5 }).damageReduction,
+    ).toBeCloseTo(0.75);
   });
 
   it("rollEliteImmunity yields both Physical and Magic over many rolls", () => {
@@ -22,7 +26,9 @@ describe("elite damage reduction", () => {
 
 describe("elite per-battle gating", () => {
   // A wave of plain grunts; a big castle so they linger long enough to count.
-  const grunt = mkEnemy({ baseStats: makeStats({ maxHp: 1e6, moveSpeed: 50, atk: 0, attackSpeed: 0 }) });
+  const grunt = mkEnemy({
+    baseStats: makeStats({ maxHp: 1e6, moveSpeed: 50, atk: 0, attackSpeed: 0 }),
+  });
   const sixGrunts = [{ spawns: [{ enemyId: "grunt", count: 6, interval: 0.4, delay: 0 }] }];
 
   it("spawns at most ONE elite when the battle is fated to have one", () => {
@@ -46,14 +52,23 @@ describe("elite per-battle gating", () => {
 describe("support enemy aura in battle", () => {
   it("a Hexer near a tower slows its attack speed (negative buff)", () => {
     const hexer = mkEnemy({
-      id: "hexer", archetype: "Hexer",
+      id: "hexer",
+      archetype: "Hexer",
       baseStats: makeStats({ maxHp: 1e6, moveSpeed: 0, atk: 0, attackSpeed: 0 }),
       special: { supportAura: { radius: 200, towerAttackSpeedMult: 0.75 } },
     });
     const stage = mkStage([{ spawns: [{ enemyId: "hexer", count: 1, interval: 1, delay: 0 }] }], {
-      castleHp: 1e9, path: [{ x: 0, y: 0 }, { x: 300, y: 0 }], slots: [{ x: 20, y: 0 }],
+      castleHp: 1e9,
+      path: [
+        { x: 0, y: 0 },
+        { x: 300, y: 0 },
+      ],
+      slots: [{ x: 20, y: 0 }],
     });
-    const tower = mkTower({ id: "turret", baseStats: makeStats({ atk: 0, attackSpeed: 1, range: 0, maxHp: 100 }) });
+    const tower = mkTower({
+      id: "turret",
+      baseStats: makeStats({ atk: 0, attackSpeed: 1, range: 0, maxHp: 100 }),
+    });
     const b = world([hexer], [tower], stage);
     b.placeTower("turret", 0);
     runFor(b, 3.5); // wave starts after the 3s inter-wave delay, then the hexer is in range

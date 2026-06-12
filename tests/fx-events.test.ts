@@ -23,7 +23,8 @@ describe("FX events", () => {
     const towerId = b["cat"] ? null : null; // placeholder; use catalog tower
     // Use a known catalog tower id
     b.placeTower("zoran-thricedraw", 0);
-    let sawAttack = false, sawHit = false;
+    let sawAttack = false,
+      sawHit = false;
     for (let i = 0; i < 600 && !(sawAttack && sawHit); i++) {
       b.tick(0.05);
       if (b.fx.some((e) => e.type === "attack")) sawAttack = true;
@@ -39,7 +40,10 @@ describe("FX events", () => {
     b.placeTower("zoran-thricedraw", 0);
     // advance a bunch; fx should never grow unbounded
     let maxLen = 0;
-    for (let i = 0; i < 300; i++) { b.tick(0.05); maxLen = Math.max(maxLen, b.fx.length); }
+    for (let i = 0; i < 300; i++) {
+      b.tick(0.05);
+      maxLen = Math.max(maxLen, b.fx.length);
+    }
     expect(maxLen).toBeLessThan(500);
   });
 
@@ -47,7 +51,8 @@ describe("FX events", () => {
     const b = freshBattle();
     b.placeTower("zoran-thricedraw", 0);
     b.placeTower("iron-bo-cannonarm", 1);
-    let sawDeath = false, sawLoot = false;
+    let sawDeath = false,
+      sawLoot = false;
     for (let i = 0; i < 1500 && !(sawDeath && sawLoot); i++) {
       b.tick(0.05);
       if (b.fx.some((e) => e.type === "death")) sawDeath = true;

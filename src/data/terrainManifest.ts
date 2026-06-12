@@ -11,22 +11,38 @@
  */
 import type { TerrainType } from "./schema.ts";
 
-export const TERRAIN_ART_TYPES: TerrainType[] = ["grass", "sand", "water", "stone", "jungle", "mountain", "lava", "ice", "snow", "crystal"];
+export const TERRAIN_ART_TYPES: TerrainType[] = [
+  "grass",
+  "sand",
+  "water",
+  "stone",
+  "jungle",
+  "mountain",
+  "lava",
+  "ice",
+  "snow",
+  "crystal",
+];
 export const TERRAIN_VARIANTS = 3;
 /** Pixel size the SVGs are rasterized to at load time (square). */
 export const TERRAIN_TEX_SIZE = 128;
 
 export interface TerrainAsset {
-  key: string;          // Phaser texture key, e.g. "terrain__water_2"
+  key: string; // Phaser texture key, e.g. "terrain__water_2"
   type: TerrainType;
-  variant: number;      // 1-based
-  path: string;         // relative to /public
+  variant: number; // 1-based
+  path: string; // relative to /public
 }
 
 export const TERRAIN_ASSETS: TerrainAsset[] = TERRAIN_ART_TYPES.flatMap((type) =>
   Array.from({ length: TERRAIN_VARIANTS }, (_, i) => {
     const variant = i + 1;
-    return { key: `terrain__${type}_${variant}`, type, variant, path: `assets/terrain/${type}-${variant}.svg` };
+    return {
+      key: `terrain__${type}_${variant}`,
+      type,
+      variant,
+      path: `assets/terrain/${type}-${variant}.svg`,
+    };
   }),
 );
 

@@ -21,7 +21,10 @@ const LEGENDARIES = TOWERS.filter((t) => t.rarity === "Legendary");
 /** Stable hash of the week key → deterministic featured picks. */
 function hashStr(s: string): number {
   let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
   return h >>> 0;
 }
 
@@ -86,7 +89,12 @@ export function claimSpark(save: HeroSave): string | null {
  * fresh (non-maxed) pool, return the featured character of that rarity to force
  * (with probability FEATURED_TILT), else null to fall through to the normal pick.
  */
-export function featuredDraw(save: HeroSave, rarity: string, roll: number, weekKey: string): string | null {
+export function featuredDraw(
+  save: HeroSave,
+  rarity: string,
+  roll: number,
+  weekKey: string,
+): string | null {
   if (roll >= FEATURED_TILT) return null;
   const ids = featuredIds(weekKey);
   for (const id of ids) {

@@ -30,6 +30,7 @@ Spec: `docs/superpowers/specs/2026-06-12-loot-name-plate-design.md`
 ## Task 1: Pure fit planner `labelFit.ts`
 
 **Files:**
+
 - Create: `src/scenes/labelFit.ts`
 - Test: `tests/labelFit.test.ts`
 
@@ -53,7 +54,11 @@ describe("fitLabel", () => {
 
   it("wraps to two lines when a name is too wide for one", () => {
     // "Legendary Boss Chest" = 20 chars; at 10px*0.6=6 => 120px on one line > 78.
-    const p = fitLabel("Legendary Boss Chest", { maxWidth: 78, maxLines: 2, basePx: 10, minPx: 7 }, mono);
+    const p = fitLabel(
+      "Legendary Boss Chest",
+      { maxWidth: 78, maxLines: 2, basePx: 10, minPx: 7 },
+      mono,
+    );
     expect(p.lines.length).toBe(2);
     expect(p.truncated).toBe(false);
     for (const ln of p.lines) expect(mono(ln, p.fontPx)).toBeLessThanOrEqual(78);
@@ -70,7 +75,8 @@ describe("fitLabel", () => {
   it("ellipsis-truncates and never exceeds bounds when nothing fits", () => {
     const p = fitLabel(
       "Supercalifragilistic Doom Blade of Eternal Night",
-      { maxWidth: 50, maxLines: 2, basePx: 10, minPx: 7 }, mono,
+      { maxWidth: 50, maxLines: 2, basePx: 10, minPx: 7 },
+      mono,
     );
     expect(p.truncated).toBe(true);
     expect(p.lines.length).toBeLessThanOrEqual(2);
@@ -79,7 +85,11 @@ describe("fitLabel", () => {
   });
 
   it("hard-breaks a single word wider than maxWidth", () => {
-    const p = fitLabel("Aaaaaaaaaaaaaaaaaaaa", { maxWidth: 30, maxLines: 2, basePx: 8, minPx: 8 }, mono);
+    const p = fitLabel(
+      "Aaaaaaaaaaaaaaaaaaaa",
+      { maxWidth: 30, maxLines: 2, basePx: 8, minPx: 8 },
+      mono,
+    );
     for (const ln of p.lines) expect(mono(ln, p.fontPx)).toBeLessThanOrEqual(30);
   });
 
@@ -131,18 +141,25 @@ function wrap(text: string, maxWidth: number, px: number, measure: Measure): str
   const pushWord = (w: string) => {
     // Hard-break a single oversized word.
     if (measure(w, px) > maxWidth) {
-      if (line) { lines.push(line); line = ""; }
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
       let chunk = "";
       for (const ch of w) {
-        if (chunk && measure(chunk + ch, px) > maxWidth) { lines.push(chunk); chunk = ch; }
-        else chunk += ch;
+        if (chunk && measure(chunk + ch, px) > maxWidth) {
+          lines.push(chunk);
+          chunk = ch;
+        } else chunk += ch;
       }
       line = chunk;
       return;
     }
     const next = line ? line + " " + w : w;
-    if (measure(next, px) > maxWidth) { if (line) lines.push(line); line = w; }
-    else line = next;
+    if (measure(next, px) > maxWidth) {
+      if (line) lines.push(line);
+      line = w;
+    } else line = next;
   };
   for (const w of words) pushWord(w);
   if (line) lines.push(line);
@@ -195,6 +212,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 2: Shared font-family constant in `ui.ts`
 
 **Files:**
+
 - Modify: `src/scenes/ui.ts:23-27`
 
 - [ ] **Step 1: Export the font family used by `crispText`**
@@ -233,6 +251,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 3: Presenter `namePlate.ts`
 
 **Files:**
+
 - Create: `src/scenes/namePlate.ts`
 - Test: `tests/namePlate.test.ts`
 
@@ -263,7 +282,10 @@ describe("plateLineLayout", () => {
   });
 
   it("keeps all baselines inside the band", () => {
-    const topY = 0, h = 26, n = 2, px = 11;
+    const topY = 0,
+      h = 26,
+      n = 2,
+      px = 11;
     const ys = plateLineLayout(topY, h, n, px);
     for (const y of ys) {
       expect(y - px / 2).toBeGreaterThanOrEqual(topY - 1);
@@ -294,16 +316,16 @@ import { crispText, UI_FONT_FAMILY } from "./ui.ts";
 import { fitLabel, type Measure } from "./labelFit.ts";
 
 export interface PlateOpts {
-  width: number;        // tile width
-  topY: number;         // y of the plate band's top edge (local to the tile container)
-  height: number;       // band height
-  radius: number;       // bottom-corner radius (matches the tile)
-  accent: number;       // rarity / reward color for the top divider
-  color: string;        // text color
+  width: number; // tile width
+  topY: number; // y of the plate band's top edge (local to the tile container)
+  height: number; // band height
+  radius: number; // bottom-corner radius (matches the tile)
+  accent: number; // rarity / reward color for the top divider
+  color: string; // text color
   basePx?: number;
   minPx?: number;
   maxLines?: number;
-  pad?: number;         // horizontal inset for text width
+  pad?: number; // horizontal inset for text width
 }
 
 /** Pure: y-baseline for each of `n` lines, vertically centered in the band. */
@@ -326,12 +348,16 @@ function canvasMeasure(): Measure {
 
 /** Draw the plate band + the fitted name into `container`. */
 export function addNamePlate(
-  scene: Phaser.Scene, container: Phaser.GameObjects.Container,
-  text: string, opts: PlateOpts,
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  text: string,
+  opts: PlateOpts,
 ): void {
   const { width, topY, height, radius, accent, color } = opts;
-  const basePx = opts.basePx ?? 10, minPx = opts.minPx ?? 7;
-  const maxLines = opts.maxLines ?? 2, pad = opts.pad ?? 6;
+  const basePx = opts.basePx ?? 10,
+    minPx = opts.minPx ?? 7;
+  const maxLines = opts.maxLines ?? 2,
+    pad = opts.pad ?? 6;
 
   // Band fill with only the bottom corners rounded, plus a thin accent divider.
   const g = scene.add.graphics();
@@ -343,12 +369,19 @@ export function addNamePlate(
   g.strokePath();
   container.add(g);
 
-  const plan = fitLabel(text, { maxWidth: width - pad * 2, maxLines, basePx, minPx }, canvasMeasure());
+  const plan = fitLabel(
+    text,
+    { maxWidth: width - pad * 2, maxLines, basePx, minPx },
+    canvasMeasure(),
+  );
   const ys = plateLineLayout(topY, height, plan.lines.length, plan.fontPx);
   plan.lines.forEach((line, i) => {
     container.add(
       crispText(scene, 0, ys[i], line, {
-        fontSize: `${plan.fontPx}px`, color, fontStyle: "bold", align: "center",
+        fontSize: `${plan.fontPx}px`,
+        color,
+        fontStyle: "bold",
+        align: "center",
       }).setOrigin(0.5),
     );
   });
@@ -374,6 +407,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 4: Wire `boxOpenOverlay.ts` (the worst offender)
 
 **Files:**
+
 - Modify: `src/scenes/boxOpenOverlay.ts:108-138`
 
 - [ ] **Step 1: Replace the tile body in `reveal`**
@@ -391,35 +425,60 @@ import { addNamePlate } from "./namePlate.ts";
 Replace the `reveal` tile metrics + per-entry body (lines ~112-133):
 
 ```ts
-    const entries = boxRewardEntries(reward);
-    const tw = 86, th = 84, plateH = 28, gap = 10;
-    const top = -th / 2;                 // tile spans top..top+th
-    const totalW = entries.length * tw + (entries.length - 1) * gap;
-    const startX = cx - totalW / 2 + tw / 2;
-    const ty = cy + 110;
+const entries = boxRewardEntries(reward);
+const tw = 86,
+  th = 84,
+  plateH = 28,
+  gap = 10;
+const top = -th / 2; // tile spans top..top+th
+const totalW = entries.length * tw + (entries.length - 1) * gap;
+const startX = cx - totalW / 2 + tw / 2;
+const ty = cy + 110;
 
-    entries.forEach((e, i) => {
-      const tile = s.add.container(startX + i * (tw + gap), ty).setAlpha(0).setScale(0.7);
-      const col = Phaser.Display.Color.HexStringToColor(e.color).color;
-      const g = s.add.graphics();
-      g.fillStyle(0x121a28, 1).fillRoundedRect(-tw / 2, top, tw, th, 8);
-      g.lineStyle(2, col, 1).strokeRoundedRect(-tw / 2, top, tw, th, 8);
-      tile.add(g);
+entries.forEach((e, i) => {
+  const tile = s.add
+    .container(startX + i * (tw + gap), ty)
+    .setAlpha(0)
+    .setScale(0.7);
+  const col = Phaser.Display.Color.HexStringToColor(e.color).color;
+  const g = s.add.graphics();
+  g.fillStyle(0x121a28, 1).fillRoundedRect(-tw / 2, top, tw, th, 8);
+  g.lineStyle(2, col, 1).strokeRoundedRect(-tw / 2, top, tw, th, 8);
+  tile.add(g);
 
-      // Icon sits in the region above the plate band.
-      const iconCY = top + (th - plateH) / 2;
-      const fallback = e.kind === "gold" ? "🪙" : e.kind === "item" ? "📦" : "💠";
-      tile.add(makeFitIcon(s, 0, iconCY, e.iconKey ?? "", 50, fallback));
+  // Icon sits in the region above the plate band.
+  const iconCY = top + (th - plateH) / 2;
+  const fallback = e.kind === "gold" ? "🪙" : e.kind === "item" ? "📦" : "💠";
+  tile.add(makeFitIcon(s, 0, iconCY, e.iconKey ?? "", 50, fallback));
 
-      const label = e.kind === "gold" || e.kind === "diamond" ? `+${e.count}` : e.count > 1 ? `${e.name} ×${e.count}` : e.name;
-      addNamePlate(s, tile, label, {
-        width: tw, topY: top + th - plateH, height: plateH, radius: 8,
-        accent: col, color: e.color, basePx: 10, minPx: 7, maxLines: 2,
-      });
+  const label =
+    e.kind === "gold" || e.kind === "diamond"
+      ? `+${e.count}`
+      : e.count > 1
+        ? `${e.name} ×${e.count}`
+        : e.name;
+  addNamePlate(s, tile, label, {
+    width: tw,
+    topY: top + th - plateH,
+    height: plateH,
+    radius: 8,
+    accent: col,
+    color: e.color,
+    basePx: 10,
+    minPx: 7,
+    maxLines: 2,
+  });
 
-      this.root!.add(tile);
-      s.tweens.add({ targets: tile, alpha: 1, scale: 1, duration: 280, delay: i * 110, ease: "Back.easeOut" });
-    });
+  this.root!.add(tile);
+  s.tweens.add({
+    targets: tile,
+    alpha: 1,
+    scale: 1,
+    duration: 280,
+    delay: i * 110,
+    ease: "Back.easeOut",
+  });
+});
 ```
 
 - [ ] **Step 2: Verify typecheck + tests**
@@ -441,6 +500,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 5: Wire `spinReel.ts`
 
 **Files:**
+
 - Modify: `src/scenes/spinReel.ts:28-49`
 
 - [ ] **Step 1: Replace the label in `buildCell`**
@@ -454,17 +514,24 @@ import { addNamePlate } from "./namePlate.ts";
 Replace the background + label tail of `buildCell` (the `crispText(... prize.label ...)` block) with a reserved plate. Cell stays `132×104`; plate is the bottom `30px`:
 
 ```ts
-  const g = scene.add.graphics();
-  g.fillStyle(0x10151f, 1).fillRoundedRect(-CELL_W / 2, -52, CELL_W, 104, 12);
-  g.lineStyle(2, accent, prize.rare ? 1 : 0.6).strokeRoundedRect(-CELL_W / 2, -52, CELL_W, 104, 12);
-  cell.add(g);
-  cell.add(makeFitIcon(scene, 0, -22, view.iconKey, 56, view.emoji));
-  addNamePlate(scene, cell, prize.label, {
-    width: CELL_W, topY: 52 - 30, height: 30, radius: 12,
-    accent, color: "#ffe9b0", basePx: 12, minPx: 8, maxLines: 2,
-  });
-  strip.add(cell);
-  return cell;
+const g = scene.add.graphics();
+g.fillStyle(0x10151f, 1).fillRoundedRect(-CELL_W / 2, -52, CELL_W, 104, 12);
+g.lineStyle(2, accent, prize.rare ? 1 : 0.6).strokeRoundedRect(-CELL_W / 2, -52, CELL_W, 104, 12);
+cell.add(g);
+cell.add(makeFitIcon(scene, 0, -22, view.iconKey, 56, view.emoji));
+addNamePlate(scene, cell, prize.label, {
+  width: CELL_W,
+  topY: 52 - 30,
+  height: 30,
+  radius: 12,
+  accent,
+  color: "#ffe9b0",
+  basePx: 12,
+  minPx: 8,
+  maxLines: 2,
+});
+strip.add(cell);
+return cell;
 ```
 
 (Note: icon nudged up `-14 → -22` so it stays centered in the region above the plate.)
@@ -488,6 +555,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 6: Wire `jewelOverlay.ts`
 
 **Files:**
+
 - Modify: `src/scenes/jewelOverlay.ts:115-141`
 
 - [ ] **Step 1: Replace the name `Text` in `jewelTile`**
@@ -503,18 +571,27 @@ The tile uses a `Rectangle` (not graphics) for its background + hover. Grow it t
 (`this.scene.add.text(0, 20, name, ...)`) and bump the rectangle/icon:
 
 ```ts
-    const cell = this.scene.add.rectangle(0, 0, 88, 84, 0x1d2330, 1).setStrokeStyle(2, tint, 0.9)
-      .setInteractive({ useHandCursor: true });
-    cell.on("pointerover", () => cell.setFillStyle(0x2a3346));
-    cell.on("pointerout", () => cell.setFillStyle(0x1d2330));
-    cell.on("pointerdown", onPick);
-    c.add(cell);
+const cell = this.scene.add
+  .rectangle(0, 0, 88, 84, 0x1d2330, 1)
+  .setStrokeStyle(2, tint, 0.9)
+  .setInteractive({ useHandCursor: true });
+cell.on("pointerover", () => cell.setFillStyle(0x2a3346));
+cell.on("pointerout", () => cell.setFillStyle(0x1d2330));
+cell.on("pointerdown", onPick);
+c.add(cell);
 
-    c.add(makeFitIcon(this.scene, 0, -18, jewelIconKey(defId), 46, "💠"));
-    addNamePlate(this.scene, c, name, {
-      width: 88, topY: 42 - 28, height: 28, radius: 3,
-      accent: tint, color: "#e6e9ef", basePx: 10, minPx: 7, maxLines: 2,
-    });
+c.add(makeFitIcon(this.scene, 0, -18, jewelIconKey(defId), 46, "💠"));
+addNamePlate(this.scene, c, name, {
+  width: 88,
+  topY: 42 - 28,
+  height: 28,
+  radius: 3,
+  accent: tint,
+  color: "#e6e9ef",
+  basePx: 10,
+  minPx: 7,
+  maxLines: 2,
+});
 ```
 
 Also move the `✕` affordance up to clear the larger tile: change `(36, -34)` to `(36, -38)`.
@@ -538,6 +615,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 7: Wire `ExpeditionScene.ts` and `summonResultOverlay.ts`
 
 **Files:**
+
 - Modify: `src/scenes/ExpeditionScene.ts:112-132`
 - Modify: `src/scenes/summonResultOverlay.ts` (character-name label)
 
@@ -552,10 +630,17 @@ Add `import { addNamePlate } from "./namePlate.ts";`. Replace the
 bottom plate band of height `24`:
 
 ```ts
-    addNamePlate(scene, c, t.name, {
-      width: w, topY: h / 2 - 24, height: 24, radius: 6,
-      accent: tint, color: hex(tint), basePx: 9, minPx: 7, maxLines: 2,
-    });
+addNamePlate(scene, c, t.name, {
+  width: w,
+  topY: h / 2 - 24,
+  height: 24,
+  radius: 6,
+  accent: tint,
+  color: hex(tint),
+  basePx: 9,
+  minPx: 7,
+  maxLines: 2,
+});
 ```
 
 Use the same `tint`/color expression the file already computes for the tile
@@ -586,6 +671,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 8: Align `rewardPanel.ts` styling
 
 **Files:**
+
 - Modify: `src/scenes/rewardPanel.ts:171-199`
 
 - [ ] **Step 1: Adopt plate styling for the rarity-word label**
@@ -593,16 +679,23 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 The post-battle loot panel intentionally shows the rarity word (not the full
 name; names live in hover). Keep that, but render it through the shared plate so
 it matches the rest. Tile is `56×56` inside `ROW_H=78` rows — draw the plate band
-*below* the tile box (in the existing label gap), not inside it.
+_below_ the tile box (in the existing label gap), not inside it.
 
 Add `import { addNamePlate } from "./namePlate.ts";`. Replace the
 `crispText(... spec.label ...)` line in `buildTile` with:
 
 ```ts
-  addNamePlate(scene, c, spec.label, {
-    width: TILE + 4, topY: TILE / 2 - 2, height: 18, radius: 4,
-    accent: spec.color, color: hex(spec.color), basePx: 10, minPx: 7, maxLines: 1,
-  });
+addNamePlate(scene, c, spec.label, {
+  width: TILE + 4,
+  topY: TILE / 2 - 2,
+  height: 18,
+  radius: 4,
+  accent: spec.color,
+  color: hex(spec.color),
+  basePx: 10,
+  minPx: 7,
+  maxLines: 1,
+});
 ```
 
 (Single line — rarity words are short; the plate just standardises the look and
@@ -650,4 +743,7 @@ spill off the tile.
 
 Run: `git status`
 Expected: clean (all changes committed across Tasks 1-8).
+
+```
+
 ```

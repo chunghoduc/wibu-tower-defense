@@ -3,16 +3,23 @@ import { computeAuraMods, type AuraEnemy } from "../src/core/enemyAuras.ts";
 import { mkEnemy } from "./fixtures.ts";
 
 const herald = mkEnemy({
-  id: "herald", archetype: "Herald",
+  id: "herald",
+  archetype: "Herald",
   special: { supportAura: { radius: 115, moveSpeedMult: 1.3, damageReductionAdd: 0.15 } },
 });
 const hexer = mkEnemy({
-  id: "hexer", archetype: "Hexer",
+  id: "hexer",
+  archetype: "Hexer",
   special: { supportAura: { radius: 125, healPerSec: 14, armorAdd: 25, magicResistAdd: 25 } },
 });
 const grunt = mkEnemy();
 
-const at = (uid: number, def = grunt, x = 0): AuraEnemy => ({ uid, alive: true, pos: { x, y: 0 }, def });
+const at = (uid: number, def = grunt, x = 0): AuraEnemy => ({
+  uid,
+  alive: true,
+  pos: { x, y: 0 },
+  def,
+});
 
 describe("computeAuraMods", () => {
   it("a Herald buffs a nearby ally's move speed and damage reduction, but not itself", () => {

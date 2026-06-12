@@ -38,8 +38,13 @@ const TOWERS_A: CharacterDef[] = [
     passives: ["wolf-fang"],
     active: "spirit-ball",
     baseStats: makeStats({
-      atk: 13, attackSpeed: 1.3, range: 90, critRate: 0.1, maxHp: 120,
-      manaOnHit: 8,     }),
+      atk: 13,
+      attackSpeed: 1.3,
+      range: 90,
+      critRate: 0.1,
+      maxHp: 120,
+      manaOnHit: 8,
+    }),
   }),
   t({
     id: "kazu-spirit-brawler",
@@ -52,14 +57,24 @@ const TOWERS_A: CharacterDef[] = [
       "A loud-mouthed street tough with a heart of gold and a blade of pure spirit energy. Loyal to a fault, tougher than he looks.",
     meta: {
       homage: "Kazuma Kuwabara (YuYu Hakusho)",
-      outfit: "A street tough's rolled-up school uniform with a towering pompadour, sleeves torn for brawling",
-      weapon: { family: "sword", enchanted: true, display: "A Spirit Sword conjured from raw energy" },
+      outfit:
+        "A street tough's rolled-up school uniform with a towering pompadour, sleeves torn for brawling",
+      weapon: {
+        family: "sword",
+        enchanted: true,
+        display: "A Spirit Sword conjured from raw energy",
+      },
     },
     passives: ["spirit-sword", "street-code"],
     active: "dimensional-slash",
     baseStats: makeStats({
-      atk: 22, attackSpeed: 1.1, range: 90, critRate: 0.15, maxHp: 170,
-      manaOnHit: 12,     }),
+      atk: 22,
+      attackSpeed: 1.1,
+      range: 90,
+      critRate: 0.15,
+      maxHp: 170,
+      manaOnHit: 12,
+    }),
   }),
   t({
     id: "zoran-thricedraw",
@@ -73,13 +88,25 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Roronoa Zoro (One Piece)",
       outfit: "A dark open coat over a green haramaki sash, three sheaths riding the left hip",
-      weapon: { family: "sword", multi: true, display: "Three katana — one in each hand and one clenched in his teeth" },
+      weapon: {
+        family: "sword",
+        multi: true,
+        display: "Three katana — one in each hand and one clenched in his teeth",
+      },
     },
     passives: ["three-sword-style", "first-strike"],
     active: "iaido-slash",
     baseStats: makeStats({
-      atk: 30, attackSpeed: 1.1, range: 85, critRate: 0.25, critDamage: 1.9,
-      armorPen: 0.4, omnivamp: 0.1, maxHp: 210, manaOnHit: 14,     }),
+      atk: 30,
+      attackSpeed: 1.1,
+      range: 85,
+      critRate: 0.25,
+      critDamage: 1.9,
+      armorPen: 0.4,
+      omnivamp: 0.1,
+      maxHp: 210,
+      manaOnHit: 14,
+    }),
   }),
   t({
     id: "prince-vael",
@@ -92,15 +119,27 @@ const TOWERS_A: CharacterDef[] = [
       "The exiled heir of a warrior race, too proud to lose and too stubborn to fall. His final flash answers to no armor.",
     meta: {
       homage: "Vegeta (Dragon Ball)",
-      outfit: "A royal warrior's blue bodysuit with a white armored chestplate and gloves, chin always raised",
-      weapon: { family: "fist", display: "Bare-handed ki combat capped by a piercing energy flash" },
+      outfit:
+        "A royal warrior's blue bodysuit with a white armored chestplate and gloves, chin always raised",
+      weapon: {
+        family: "fist",
+        display: "Bare-handed ki combat capped by a piercing energy flash",
+      },
     },
     passives: ["royal-pride", "galick-surge", "perfect-form"],
     active: "final-flash",
     behavior: { activeType: "True" }, // ultimate pierces all defense
     baseStats: makeStats({
-      atk: 44, attackSpeed: 1.4, range: 90, critRate: 0.35, critDamage: 2.0,
-      armorPen: 0.45, omnivamp: 0.12, maxHp: 260, manaOnHit: 13,     }),
+      atk: 44,
+      attackSpeed: 1.4,
+      range: 90,
+      critRate: 0.35,
+      critDamage: 2.0,
+      armorPen: 0.45,
+      omnivamp: 0.12,
+      maxHp: 260,
+      manaOnHit: 13,
+    }),
   }),
   t({
     id: "karu-sunfist",
@@ -114,14 +153,26 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Son Goku (Dragon Ball)",
       outfit: "An orange martial gi over a blue undershirt and belt, wild spiked hair",
-      weapon: { family: "fist", enchanted: true, display: "Fists and a charged, world-shaking ki wave" },
+      weapon: {
+        family: "fist",
+        enchanted: true,
+        display: "Fists and a charged, world-shaking ki wave",
+      },
     },
     passives: ["boundless-ki", "instinct", "second-wind"],
     active: "kamefist-wave",
     behavior: { activeType: "True" }, // signature beam ignores defense
     baseStats: makeStats({
-      atk: 56, attackSpeed: 1.4, range: 160, critRate: 0.3, critDamage: 2.0,
-      magicPen: 0.4, skillPower: 1.8, maxHp: 280, manaOnHit: 16,     }),
+      atk: 56,
+      attackSpeed: 1.4,
+      range: 160,
+      critRate: 0.3,
+      critDamage: 2.0,
+      magicPen: 0.4,
+      skillPower: 1.8,
+      maxHp: 280,
+      manaOnHit: 16,
+    }),
   }),
   t({
     id: "jugo-limitless",
@@ -141,8 +192,15 @@ const TOWERS_A: CharacterDef[] = [
     active: "hollow-purple",
     behavior: { activeType: "True" },
     baseStats: makeStats({
-      atk: 52, attackSpeed: 0.85, range: 165, critRate: 0.2, skillPower: 2.0,
-      magicPen: 0.5, maxHp: 220, manaOnHit: 18,     }),
+      atk: 52,
+      attackSpeed: 0.85,
+      range: 165,
+      critRate: 0.2,
+      skillPower: 2.0,
+      magicPen: 0.5,
+      maxHp: 220,
+      manaOnHit: 18,
+    }),
   }),
   t({
     id: "sota-caped-fist",
@@ -155,15 +213,26 @@ const TOWERS_A: CharacterDef[] = [
       "A bored hero in a plain cape who ends most fights in a single, world-bending punch. Mostly worried about supermarket sales.",
     meta: {
       homage: "Saitama (One Punch Man)",
-      outfit: "A plain yellow jumpsuit with a white cape and red gloves and boots, expression utterly bored",
-      weapon: { family: "fist", heavy: true, display: "A single bare-fisted punch that ends everything" },
+      outfit:
+        "A plain yellow jumpsuit with a white cape and red gloves and boots, expression utterly bored",
+      weapon: {
+        family: "fist",
+        heavy: true,
+        display: "A single bare-fisted punch that ends everything",
+      },
     },
     passives: ["no-limiter", "deadpan", "casual-stride"],
     active: "serious-punch",
     behavior: { activeType: "True" }, // one punch — nothing survives, nothing resists
     baseStats: makeStats({
-      atk: 70, attackSpeed: 0.7, range: 100, critRate: 0.2, critDamage: 2.2,
-      maxHp: 300, manaOnHit: 20,     }),
+      atk: 70,
+      attackSpeed: 0.7,
+      range: 100,
+      critRate: 0.2,
+      critDamage: 2.2,
+      maxHp: 300,
+      manaOnHit: 20,
+    }),
   }),
 
   // ============================ SPLASH ============================
@@ -178,14 +247,24 @@ const TOWERS_A: CharacterDef[] = [
       "An explosion-obsessed apprentice with more gunpowder than sense. Detonates one tiny boom, strikes a pose, and badly needs a nap.",
     meta: {
       homage: "Megumin as a junior dabbler (KonoSuba)",
-      outfit: "An oversized crimson mage robe and witch hat with a single eyepatch, all far too big for her",
-      weapon: { family: "gun", element: "fire", display: "Gunpowder, hand-lit bombs, and a stubby explosion wand" },
+      outfit:
+        "An oversized crimson mage robe and witch hat with a single eyepatch, all far too big for her",
+      weapon: {
+        family: "gun",
+        element: "fire",
+        display: "Gunpowder, hand-lit bombs, and a stubby explosion wand",
+      },
     },
     passives: ["loose-pin"],
     active: "frag-toss",
     behavior: { splashRadius: 55 },
     baseStats: makeStats({
-      atk: 16, attackSpeed: 0.7, range: 110, maxHp: 120, manaOnHit: 11,     }),
+      atk: 16,
+      attackSpeed: 0.7,
+      range: 110,
+      maxHp: 120,
+      manaOnHit: 11,
+    }),
   }),
   t({
     id: "iron-bo-cannonarm",
@@ -198,15 +277,21 @@ const TOWERS_A: CharacterDef[] = [
       "A cola-fueled cyborg shipwright who swapped both forearms for siege cannons. SUPER dependable, allegedly, as long as the soda holds.",
     meta: {
       homage: "Franky (One Piece)",
-      outfit: "A loud Hawaiian shirt over a massive cyborg torso, blue pompadour and a star tattoo, metal forearms",
+      outfit:
+        "A loud Hawaiian shirt over a massive cyborg torso, blue pompadour and a star tattoo, metal forearms",
       weapon: { family: "gun", display: "Twin siege cannons built into both forearms" },
     },
     passives: ["siege-payload", "cola-boost"],
     active: "coup-de-burst",
     behavior: { splashRadius: 72 },
     baseStats: makeStats({
-      atk: 24, attackSpeed: 0.6, range: 120, armorPen: 0.3, maxHp: 170,
-      manaOnHit: 12,     }),
+      atk: 24,
+      attackSpeed: 0.6,
+      range: 120,
+      armorPen: 0.3,
+      maxHp: 170,
+      manaOnHit: 12,
+    }),
   }),
   t({
     id: "kanae-petalfall",
@@ -220,14 +305,24 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "the Flower Hashira (Demon Slayer)",
       outfit: "A flowing pastel haori patterned with blossoms, hair pinned with a flower clasp",
-      weapon: { family: "sword", enchanted: true, display: "A slender nichirin katana whose cuts scatter razor petals" },
+      weapon: {
+        family: "sword",
+        enchanted: true,
+        display: "A slender nichirin katana whose cuts scatter razor petals",
+      },
     },
     passives: ["wide-bloom", "fuse-master"],
     active: "petal-storm",
     behavior: { splashRadius: 86 },
     baseStats: makeStats({
-      atk: 30, attackSpeed: 0.7, range: 150, magicPen: 0.25, skillPower: 1.3,
-      maxHp: 140, manaOnHit: 13,     }),
+      atk: 30,
+      attackSpeed: 0.7,
+      range: 150,
+      magicPen: 0.25,
+      skillPower: 1.3,
+      maxHp: 140,
+      manaOnHit: 13,
+    }),
   }),
   t({
     id: "akagan-ashen",
@@ -241,14 +336,25 @@ const TOWERS_A: CharacterDef[] = [
     meta: {
       homage: "Akainu / the magma-logia (One Piece)",
       outfit: "A warlord's double-breasted marine greatcoat and cap, grim and weathered",
-      weapon: { family: "fist", element: "fire", enchanted: true, display: "Fists of erupting molten magma" },
+      weapon: {
+        family: "fist",
+        element: "fire",
+        enchanted: true,
+        display: "Fists of erupting molten magma",
+      },
     },
     passives: ["eruption", "molten-core", "aftershock"],
     active: "great-eruption",
     behavior: { splashRadius: 96 },
     baseStats: makeStats({
-      atk: 42, attackSpeed: 0.65, range: 140, magicPen: 0.3, skillPower: 1.6,
-      maxHp: 220, manaOnHit: 14,     }),
+      atk: 42,
+      attackSpeed: 0.65,
+      range: 140,
+      magicPen: 0.3,
+      skillPower: 1.6,
+      maxHp: 220,
+      manaOnHit: 14,
+    }),
   }),
   t({
     id: "megu-explosion-sage",
@@ -261,15 +367,26 @@ const TOWERS_A: CharacterDef[] = [
       "A one-trick archmage who has poured her entire being into a single, apocalyptic Explosion. Casts once, collapses grinning, regrets nothing.",
     meta: {
       homage: "Megumin at full power (KonoSuba)",
-      outfit: "A crimson archmage robe and pointed witch hat with an eyepatch and fingerless gloves, mid dramatic pose",
-      weapon: { family: "staff", element: "fire", display: "A gnarled wizard's staff that channels a single apocalyptic Explosion" },
+      outfit:
+        "A crimson archmage robe and pointed witch hat with an eyepatch and fingerless gloves, mid dramatic pose",
+      weapon: {
+        family: "staff",
+        element: "fire",
+        display: "A gnarled wizard's staff that channels a single apocalyptic Explosion",
+      },
     },
     passives: ["explosion-only", "crimson-pride", "overflow"],
     active: "explosion",
     behavior: { splashRadius: 120, activeType: "True" }, // the Explosion brooks no resistance
     baseStats: makeStats({
-      atk: 38, attackSpeed: 0.5, range: 170, magicPen: 0.4, skillPower: 2.0,
-      maxHp: 150, manaOnHit: 18,     }),
+      atk: 38,
+      attackSpeed: 0.5,
+      range: 170,
+      magicPen: 0.4,
+      skillPower: 2.0,
+      maxHp: 150,
+      manaOnHit: 18,
+    }),
   }),
 
   // ============================ CHAIN ============================
@@ -284,14 +401,20 @@ const TOWERS_A: CharacterDef[] = [
       "A mischievous trainee who skips energy-charged stones across a crowd just to show off. Surprisingly, infuriatingly effective.",
     meta: {
       homage: "scrappy ninja trainees such as Konohamaru (Naruto)",
-      outfit: "A young ninja's blue trainee uniform with a long trailing scarf and goggles pushed up on the brow",
+      outfit:
+        "A young ninja's blue trainee uniform with a long trailing scarf and goggles pushed up on the brow",
       weapon: { family: "thrown", display: "Energy-charged stones skipped across the crowd" },
     },
     passives: ["bounce"],
     active: "double-skip",
     behavior: { chainTargets: 2, chainFalloff: 0.6 },
     baseStats: makeStats({
-      atk: 14, attackSpeed: 1.1, range: 125, maxHp: 100, manaOnHit: 10,     }),
+      atk: 14,
+      attackSpeed: 1.1,
+      range: 125,
+      maxHp: 100,
+      manaOnHit: 10,
+    }),
   }),
   t({
     id: "zeni-spark",
@@ -304,15 +427,27 @@ const TOWERS_A: CharacterDef[] = [
       "A trembling coward who unleashes his single thunderclap form only while fast asleep — at which point lightning leaps from foe to foe.",
     meta: {
       homage: "Zenitsu Agatsuma (Demon Slayer)",
-      outfit: "A bright yellow triangle-patterned haori over a black uniform, hair flopping over teary eyes",
-      weapon: { family: "sword", element: "lightning", enchanted: true, display: "A lightning-etched nichirin katana, unleashed only while asleep" },
+      outfit:
+        "A bright yellow triangle-patterned haori over a black uniform, hair flopping over teary eyes",
+      weapon: {
+        family: "sword",
+        element: "lightning",
+        enchanted: true,
+        display: "A lightning-etched nichirin katana, unleashed only while asleep",
+      },
     },
     passives: ["conduit", "thunderclap"],
     active: "chain-lightning",
     behavior: { chainTargets: 3, chainFalloff: 0.7 },
     baseStats: makeStats({
-      atk: 22, attackSpeed: 1.0, range: 140, magicPen: 0.25, skillPower: 1.3,
-      maxHp: 120, manaOnHit: 13,     }),
+      atk: 22,
+      attackSpeed: 1.0,
+      range: 140,
+      magicPen: 0.25,
+      skillPower: 1.3,
+      maxHp: 120,
+      manaOnHit: 13,
+    }),
   }),
   t({
     id: "hyo-frost-arc",
@@ -325,15 +460,26 @@ const TOWERS_A: CharacterDef[] = [
       "A child-prodigy captain wielding the strongest ice in the realm, whose frozen arcs ricochet through entire ranks. Cold of temper, colder of blade.",
     meta: {
       homage: "Toshiro Hitsugaya (Bleach)",
-      outfit: "A captain's black robe under a white haori, white hair and a turquoise ice-toned sash",
-      weapon: { family: "sword", element: "ice", enchanted: true, display: "An ice-releasing longsword that looses ricocheting frozen arcs" },
+      outfit:
+        "A captain's black robe under a white haori, white hair and a turquoise ice-toned sash",
+      weapon: {
+        family: "sword",
+        element: "ice",
+        enchanted: true,
+        display: "An ice-releasing longsword that looses ricocheting frozen arcs",
+      },
     },
     passives: ["cold-snap", "ricochet"],
     active: "glacial-chain",
     behavior: { chainTargets: 4, chainFalloff: 0.68 },
     baseStats: makeStats({
-      atk: 28, attackSpeed: 0.9, range: 150, skillPower: 1.4, maxHp: 130,
-      manaOnHit: 14,     }),
+      atk: 28,
+      attackSpeed: 0.9,
+      range: 150,
+      skillPower: 1.4,
+      maxHp: 130,
+      manaOnHit: 14,
+    }),
   }),
   t({
     id: "kilo-lightning-hand",
@@ -346,15 +492,28 @@ const TOWERS_A: CharacterDef[] = [
       "A former assassin prodigy who cloaks himself in lightning and moves faster than thought, striking a dozen foes in a heartbeat.",
     meta: {
       homage: "Killua Zoldyck (Hunter x Hunter)",
-      outfit: "A simple turtleneck and shorts, spiky silver-white hair, lightning crawling over bare skin",
-      weapon: { family: "fist", element: "lightning", enchanted: true, display: "Bare hands cloaked in crackling lightning" },
+      outfit:
+        "A simple turtleneck and shorts, spiky silver-white hair, lightning crawling over bare skin",
+      weapon: {
+        family: "fist",
+        element: "lightning",
+        enchanted: true,
+        display: "Bare hands cloaked in crackling lightning",
+      },
     },
     passives: ["godspeed", "whirlwind", "assassin-instinct"],
     active: "thunderbolt",
     behavior: { chainTargets: 5, chainFalloff: 0.74 },
     baseStats: makeStats({
-      atk: 38, attackSpeed: 1.3, range: 150, critRate: 0.25, magicPen: 0.35, skillPower: 1.5,
-      maxHp: 170, manaOnHit: 15,     }),
+      atk: 38,
+      attackSpeed: 1.3,
+      range: 150,
+      critRate: 0.25,
+      magicPen: 0.35,
+      skillPower: 1.5,
+      maxHp: 170,
+      manaOnHit: 15,
+    }),
   }),
   t({
     id: "sasu-stormblade",
@@ -367,15 +526,29 @@ const TOWERS_A: CharacterDef[] = [
       "A brooding clan-last prodigy who calls down a dragon of lightning to leap between every enemy on the field. Power chased at a terrible price.",
     meta: {
       homage: "Sasuke Uchiha (Naruto)",
-      outfit: "A dark high-collared cloak bearing a clan crest, black hair, one arm wrapped in storm-light",
-      weapon: { family: "sword", element: "lightning", enchanted: true, display: "A lightning-charged chokuto that calls down a dragon of thunder" },
+      outfit:
+        "A dark high-collared cloak bearing a clan crest, black hair, one arm wrapped in storm-light",
+      weapon: {
+        family: "sword",
+        element: "lightning",
+        enchanted: true,
+        display: "A lightning-charged chokuto that calls down a dragon of thunder",
+      },
     },
     passives: ["sharingan", "chidori-stream", "vengeance"],
     active: "kirin",
     behavior: { chainTargets: 6, chainFalloff: 0.8, activeType: "True" }, // the descending lightning spares nothing
     baseStats: makeStats({
-      atk: 46, attackSpeed: 1.2, range: 165, critRate: 0.3, critDamage: 1.9, magicPen: 0.4,
-      skillPower: 1.7, maxHp: 200, manaOnHit: 16,     }),
+      atk: 46,
+      attackSpeed: 1.2,
+      range: 165,
+      critRate: 0.3,
+      critDamage: 1.9,
+      magicPen: 0.4,
+      skillPower: 1.7,
+      maxHp: 200,
+      manaOnHit: 16,
+    }),
   }),
 ];
 

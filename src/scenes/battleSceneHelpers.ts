@@ -25,19 +25,33 @@ export const SQUAD_SIZE = 7;
 export const SLOT_RADIUS = 26;
 
 export const TERRAIN_COLOR: Record<string, number> = {
-  grass: 0x35562f, sand: 0xb8a05a, water: 0x2a5f93, stone: 0x6b6c74, jungle: 0x1f4a2a, mountain: 0x5a4d40,
-  lava: 0xc24a1e, ice: 0x7fb4dd, snow: 0xd8e4f0, crystal: 0x6a32b0,
+  grass: 0x35562f,
+  sand: 0xb8a05a,
+  water: 0x2a5f93,
+  stone: 0x6b6c74,
+  jungle: 0x1f4a2a,
+  mountain: 0x5a4d40,
+  lava: 0xc24a1e,
+  ice: 0x7fb4dd,
+  snow: 0xd8e4f0,
+  crystal: 0x6a32b0,
 };
 
-
 export const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
+  Common: 0x9e9e9e,
+  Magic: 0x2196f3,
+  Rare: 0x9c27b0,
+  Legendary: 0xff9800,
+  Unique: 0xf44336,
 };
 export const n0 = (v: number) => `${Math.round(v)}`;
 export const n1 = (v: number) => v.toFixed(1);
 export const pct = (v: number) => `${Math.round(v * 100)}%`;
 export const mult = (v: number) => `${v.toFixed(1)}\u00d7`;
-export function statRows(s: Record<string, number>, keys: [string, (v: number) => string][]): StatRow[] {
+export function statRows(
+  s: Record<string, number>,
+  keys: [string, (v: number) => string][],
+): StatRow[] {
   const out: StatRow[] = [];
   for (const [key, fmt] of keys) {
     const v = s[key];
@@ -47,15 +61,35 @@ export function statRows(s: Record<string, number>, keys: [string, (v: number) =
   return out;
 }
 export const HERO_STAT_KEYS: [string, (v: number) => string][] = [
-  ["atk", n0], ["range", n0], ["attackSpeed", n1], ["critRate", pct], ["critDamage", mult],
-  ["armor", n0], ["magicResist", n0], ["moveSpeed", n0], ["hpRegen", n0],
-  ["skillPower", mult], ["omnivamp", pct], ["goldFind", pct],
+  ["atk", n0],
+  ["range", n0],
+  ["attackSpeed", n1],
+  ["critRate", pct],
+  ["critDamage", mult],
+  ["armor", n0],
+  ["magicResist", n0],
+  ["moveSpeed", n0],
+  ["hpRegen", n0],
+  ["skillPower", mult],
+  ["omnivamp", pct],
+  ["goldFind", pct],
 ];
 export const TOWER_STAT_KEYS: [string, (v: number) => string][] = [
-  ["atk", n0], ["range", n0], ["attackSpeed", n1], ["critRate", pct], ["critDamage", mult],
-  ["armorPen", pct], ["magicPen", pct], ["skillPower", mult],
-  ["armor", n0], ["magicResist", n0], ["hpRegen", n0],
-  ["damageReduction", pct], ["critDefense", pct], ["tenacity", pct], ["omnivamp", pct],
+  ["atk", n0],
+  ["range", n0],
+  ["attackSpeed", n1],
+  ["critRate", pct],
+  ["critDamage", mult],
+  ["armorPen", pct],
+  ["magicPen", pct],
+  ["skillPower", mult],
+  ["armor", n0],
+  ["magicResist", n0],
+  ["hpRegen", n0],
+  ["damageReduction", pct],
+  ["critDefense", pct],
+  ["tenacity", pct],
+  ["omnivamp", pct],
 ];
 
 export const ROLE_COLOR: Record<string, number> = {
@@ -78,7 +112,7 @@ export const KIND_COLOR: Record<"melee" | "ranged", number> = { melee: 0xff7a33,
 
 /** Body tint for an enemy's dominant status: frozen > burning/poison (T8). */
 export function enemyStatusTint(e: EnemyRuntime): number | null {
-  if (e.slowPct >= 0.6) return 0x9fd8ff;            // frozen — icy blue
+  if (e.slowPct >= 0.6) return 0x9fd8ff; // frozen — icy blue
   if (e.dots.length > 0) {
     const t = e.dots[0].type;
     return t === "Magic" ? 0xb6e07a : t === "True" ? 0xfff0b0 : 0xffb38a; // poison / sear / burn
@@ -87,7 +121,12 @@ export function enemyStatusTint(e: EnemyRuntime): number | null {
 }
 
 /** Points of a 5-point star centered at (cx,cy). */
-export function starPoints(cx: number, cy: number, outer: number, inner: number): Phaser.Geom.Point[] {
+export function starPoints(
+  cx: number,
+  cy: number,
+  outer: number,
+  inner: number,
+): Phaser.Geom.Point[] {
   const pts: Phaser.Geom.Point[] = [];
   for (let i = 0; i < 10; i++) {
     const r = i % 2 === 0 ? outer : inner;
@@ -113,8 +152,7 @@ export function buildSquad(save: HeroSave, catalog: Catalog): CharacterDef[] {
     .filter((c): c is CharacterDef => Boolean(c));
   if (chosen.length > 0) return chosen.slice(0, SQUAD_SIZE);
 
-  const preferred = PREFERRED_SQUAD
-    .filter((id) => owned.has(id))
+  const preferred = PREFERRED_SQUAD.filter((id) => owned.has(id))
     .map((id) => catalog.characters.get(id))
     .filter((c): c is CharacterDef => Boolean(c));
 
@@ -130,9 +168,9 @@ export function buildSquad(save: HeroSave, catalog: Catalog): CharacterDef[] {
 
   // Empty collection → unrestricted fallback so new players can play immediately
   if (preferred.length === 0) {
-    return PREFERRED_SQUAD
-      .map((id) => catalog.characters.get(id))
-      .filter((c): c is CharacterDef => Boolean(c));
+    return PREFERRED_SQUAD.map((id) => catalog.characters.get(id)).filter((c): c is CharacterDef =>
+      Boolean(c),
+    );
   }
 
   return preferred;

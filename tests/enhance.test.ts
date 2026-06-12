@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
-  attemptEnhance, enhanceBonus, enhanceChance, jewelForLevel, scaleStatsByEnhance,
-  MAX_ENHANCE, BLESS_JEWEL, SOUL_JEWEL,
+  attemptEnhance,
+  enhanceBonus,
+  enhanceChance,
+  jewelForLevel,
+  scaleStatsByEnhance,
+  MAX_ENHANCE,
+  BLESS_JEWEL,
+  SOUL_JEWEL,
 } from "../src/core/enhance.ts";
 import { createFreshSave, type HeroSave } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
@@ -9,8 +15,13 @@ import { Rng } from "../src/core/rng.ts";
 function saveWithItem(level: number): HeroSave {
   const s = createFreshSave();
   s.inventory.items.push({
-    id: "it1", defId: "x", acquiredLevel: 1, rolledStats: { atk: 100 },
-    rolledPrimaryAffix: 10, rolledAffixes: [], enhanceLevel: level,
+    id: "it1",
+    defId: "x",
+    acquiredLevel: 1,
+    rolledStats: { atk: 100 },
+    rolledPrimaryAffix: 10,
+    rolledAffixes: [],
+    enhanceLevel: level,
   });
   return s;
 }

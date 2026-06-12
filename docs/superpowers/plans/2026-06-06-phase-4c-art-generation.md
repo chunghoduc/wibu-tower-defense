@@ -12,17 +12,17 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|--------|------|---------------|
-| Create | `src/art/pngEncoder.ts` | RGBA buffer → PNG bytes (zlib + CRC32, no deps) |
-| Create | `src/art/palette.ts` | Palette symbol → RGBA; `paletteFor(entry)` |
-| Create | `src/art/spriteGrid.ts` | parse / sanitize / mirror / validate model grid text |
-| Create | `src/art/ollamaClient.ts` | POST to Ollama `/api/generate` with timeout |
-| Create | `src/art/gridPrompt.ts` | Build the strict grid-output prompt per entity |
-| Create | `scripts/genSprites.ts` | Orchestrator: generate → sanitize → encode → save |
-| Create | `tests/pngEncoder.test.ts` | PNG signature, IHDR, IDAT round-trip |
-| Create | `tests/spriteGrid.test.ts` | Sanitize ragged input, validate, mirror |
-| Create | `tests/palette.test.ts` | `paletteFor` returns transparent+outline+accent |
+| Action | Path                       | Responsibility                                       |
+| ------ | -------------------------- | ---------------------------------------------------- |
+| Create | `src/art/pngEncoder.ts`    | RGBA buffer → PNG bytes (zlib + CRC32, no deps)      |
+| Create | `src/art/palette.ts`       | Palette symbol → RGBA; `paletteFor(entry)`           |
+| Create | `src/art/spriteGrid.ts`    | parse / sanitize / mirror / validate model grid text |
+| Create | `src/art/ollamaClient.ts`  | POST to Ollama `/api/generate` with timeout          |
+| Create | `src/art/gridPrompt.ts`    | Build the strict grid-output prompt per entity       |
+| Create | `scripts/genSprites.ts`    | Orchestrator: generate → sanitize → encode → save    |
+| Create | `tests/pngEncoder.test.ts` | PNG signature, IHDR, IDAT round-trip                 |
+| Create | `tests/spriteGrid.test.ts` | Sanitize ragged input, validate, mirror              |
+| Create | `tests/palette.test.ts`    | `paletteFor` returns transparent+outline+accent      |
 
 ---
 
@@ -160,9 +160,12 @@ export function encodePng(rgba: Uint8Array, width: number, height: number): Uint
   const total = SIGNATURE.length + ihdrChunk.length + idatChunk.length + iendChunk.length;
   const png = new Uint8Array(total);
   let o = 0;
-  png.set(SIGNATURE, o); o += SIGNATURE.length;
-  png.set(ihdrChunk, o); o += ihdrChunk.length;
-  png.set(idatChunk, o); o += idatChunk.length;
+  png.set(SIGNATURE, o);
+  o += SIGNATURE.length;
+  png.set(ihdrChunk, o);
+  o += ihdrChunk.length;
+  png.set(idatChunk, o);
+  o += idatChunk.length;
   png.set(iendChunk, o);
   return png;
 }
@@ -250,19 +253,19 @@ import type { ArtKind } from "../data/artSpec.ts";
 export type Rgba = [number, number, number, number];
 
 export const BASE_PALETTE: Record<string, Rgba> = {
-  ".": [0, 0, 0, 0],        // transparent
-  K: [22, 22, 30, 255],     // outline (near-black)
-  W: [240, 240, 245, 255],  // white / highlight
-  S: [232, 196, 160, 255],  // skin
-  D: [150, 110, 84, 255],   // dark skin / leather
-  M: [120, 128, 140, 255],  // metal mid
-  L: [180, 188, 200, 255],  // metal light
-  C: [70, 80, 110, 255],    // cloth base
-  G: [80, 160, 90, 255],    // nature/green
-  F: [240, 150, 50, 255],   // flame
-  B: [90, 170, 230, 255],   // frost/blue
-  P: [150, 90, 180, 255],   // arcane/purple
-  Y: [235, 205, 90, 255],   // gold
+  ".": [0, 0, 0, 0], // transparent
+  K: [22, 22, 30, 255], // outline (near-black)
+  W: [240, 240, 245, 255], // white / highlight
+  S: [232, 196, 160, 255], // skin
+  D: [150, 110, 84, 255], // dark skin / leather
+  M: [120, 128, 140, 255], // metal mid
+  L: [180, 188, 200, 255], // metal light
+  C: [70, 80, 110, 255], // cloth base
+  G: [80, 160, 90, 255], // nature/green
+  F: [240, 150, 50, 255], // flame
+  B: [90, 170, 230, 255], // frost/blue
+  P: [150, 90, 180, 255], // arcane/purple
+  Y: [235, 205, 90, 255], // gold
 };
 
 export const RARITY_ACCENT: Record<Rarity, Rgba> = {
@@ -315,7 +318,7 @@ git commit -m "feat(art): sprite palette + per-entity palette resolution"
 
 - [ ] **Step 1: Write the failing test** — create `tests/spriteGrid.test.ts`:
 
-```ts
+````ts
 import { describe, expect, it } from "vitest";
 import {
   parseGridLines,
@@ -371,7 +374,7 @@ describe("validateGrid", () => {
     expect(validateGrid(["KAW", ".K."]).ok).toBe(true);
   });
 });
-```
+````
 
 - [ ] **Step 2: Run to verify it fails**
 
@@ -380,7 +383,7 @@ Expected: FAIL — cannot find module `spriteGrid.ts`.
 
 - [ ] **Step 3: Implement** — create `src/art/spriteGrid.ts`:
 
-```ts
+````ts
 /**
  * Turn noisy LLM text into a clean W×H grid of allowed palette symbols.
  * The model drifts (ragged lines, invented symbols, prose) — every defect here
@@ -415,8 +418,14 @@ export function sanitizeGrid(
     let row = "";
     for (let x = 0; x < width; x++) {
       const ch = src[x];
-      if (ch === undefined) { row += "."; continue; }
-      if (allowed.has(ch)) { row += ch; continue; }
+      if (ch === undefined) {
+        row += ".";
+        continue;
+      }
+      if (allowed.has(ch)) {
+        row += ch;
+        continue;
+      }
       const up = allowedUpper.get(ch.toUpperCase());
       row += up ?? ".";
     }
@@ -450,7 +459,10 @@ export function validateGrid(grid: SpriteGrid): GridVerdict {
   for (const row of grid) {
     for (const ch of row) {
       total++;
-      if (ch === ".") { transparent++; continue; }
+      if (ch === ".") {
+        transparent++;
+        continue;
+      }
       counts.set(ch, (counts.get(ch) ?? 0) + 1);
     }
   }
@@ -462,7 +474,7 @@ export function validateGrid(grid: SpriteGrid): GridVerdict {
   const ok = transparentFrac <= 0.92 && blobFrac <= 0.85 && nonTransparent > 0;
   return { ok, transparentFrac, blobFrac };
 }
-```
+````
 
 - [ ] **Step 4: Run to verify it passes**
 
@@ -684,7 +696,11 @@ import { buildGridPrompt } from "../src/art/gridPrompt.ts";
 import { generate } from "../src/art/ollamaClient.ts";
 import { encodePng } from "../src/art/pngEncoder.ts";
 import {
-  parseGridLines, sanitizeGrid, mirrorHorizontal, validateGrid, type SpriteGrid,
+  parseGridLines,
+  sanitizeGrid,
+  mirrorHorizontal,
+  validateGrid,
+  type SpriteGrid,
 } from "../src/art/spriteGrid.ts";
 import type { Rarity } from "../src/data/schema.ts";
 
@@ -745,7 +761,10 @@ function gridToRgba(grid: SpriteGrid, w: number, h: number, pal: Record<string, 
       const sym = grid[y]?.[x] ?? ".";
       const [r, g, b, a] = pal[sym] ?? pal["."];
       const o = (y * w + x) * 4;
-      out[o] = r; out[o + 1] = g; out[o + 2] = b; out[o + 3] = a;
+      out[o] = r;
+      out[o + 1] = g;
+      out[o + 2] = b;
+      out[o + 3] = a;
     }
   }
   return out;
@@ -763,7 +782,12 @@ async function generateOne(job: Job, model: string, retries: number): Promise<vo
   const dims = GEN_DIMS[job.kind];
   const pal = paletteFor({ kind: job.kind, rarity: job.rarity });
   const allowed = new Set(Object.keys(pal));
-  const prompt = buildGridPrompt({ subject: job.subject, width: dims.w, height: dims.h, palette: pal });
+  const prompt = buildGridPrompt({
+    subject: job.subject,
+    width: dims.w,
+    height: dims.h,
+    palette: pal,
+  });
 
   let best: SpriteGrid | null = null;
   let bestScore = Infinity; // lower = better (blobFrac)
@@ -778,9 +802,17 @@ async function generateOne(job: Job, model: string, retries: number): Promise<vo
     let grid = sanitizeGrid(parseGridLines(raw), dims.w, dims.h, allowed);
     if (MIRROR_KINDS.has(job.kind)) grid = mirrorHorizontal(grid, dims.w);
     const verdict = validateGrid(grid);
-    if (verdict.ok) { best = grid; break; }
-    if (verdict.blobFrac < bestScore) { bestScore = verdict.blobFrac; best = grid; }
-    console.log(`    attempt ${attempt} rejected (transparent ${verdict.transparentFrac.toFixed(2)}, blob ${verdict.blobFrac.toFixed(2)})`);
+    if (verdict.ok) {
+      best = grid;
+      break;
+    }
+    if (verdict.blobFrac < bestScore) {
+      bestScore = verdict.blobFrac;
+      best = grid;
+    }
+    console.log(
+      `    attempt ${attempt} rejected (transparent ${verdict.transparentFrac.toFixed(2)}, blob ${verdict.blobFrac.toFixed(2)})`,
+    );
   }
   if (!best) best = sanitizeGrid([], dims.w, dims.h, allowed); // never throw
 
@@ -813,7 +845,10 @@ async function main(): Promise<void> {
   console.log("Done.");
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
 ```
 
 - [ ] **Step 2: Add the npm script** — in `package.json` `scripts`, after `gen:art-prompts`:

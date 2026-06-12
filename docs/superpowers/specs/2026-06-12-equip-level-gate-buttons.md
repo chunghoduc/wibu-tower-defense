@@ -6,10 +6,10 @@
 ## Problem
 
 The inventory's **Replace** button (side-by-side compare dialog) and **Equip**
-button (enhance dialog, when a slot is free) currently *always* look enabled.
+button (enhance dialog, when a slot is free) currently _always_ look enabled.
 When the hero's level is below the item's required level, clicking them silently
 fails and only fires a transient toast (`Requires level N`). The player gets no
-*advance* signal that the action is unavailable — they have to click and read a
+_advance_ signal that the action is unavailable — they have to click and read a
 toast that vanishes in 1.6s.
 
 ## Goal
@@ -21,7 +21,7 @@ A zero-gameplay-change UX fix:
 2. **Hover** the (disabled) button shows the requirement inline:
    `Requires level N · you are M`. The hint appears on `pointerover`, hides on
    `pointerout`.
-3. When the level *is* met, the buttons behave exactly as today (full colour,
+3. When the level _is_ met, the buttons behave exactly as today (full colour,
    clickable, replace/equip on tap).
 
 Out of scope: the **Enhance** button (gated on jewels, not level — unchanged),
@@ -36,10 +36,10 @@ A tiny Phaser-free helper so the decision is unit-testable:
 
 ```ts
 export interface EquipLevelGate {
-  met: boolean;       // heroLevel >= reqLevel
+  met: boolean; // heroLevel >= reqLevel
   reqLevel: number;
   heroLevel: number;
-  hint: string;       // "" when met, else "Requires level N · you are M"
+  hint: string; // "" when met, else "Requires level N · you are M"
 }
 export function equipLevelGate(heroLevel: number, reqLevel: number): EquipLevelGate;
 ```
@@ -54,13 +54,16 @@ small:
 
 ```ts
 export function addGatedButton(
-  scene, container,
+  scene,
+  container,
   opts: {
-    x: number; y: number; label: string;
-    bg: string;            // background when enabled
-    color?: string;        // text colour when enabled (default #fff)
+    x: number;
+    y: number;
+    label: string;
+    bg: string; // background when enabled
+    color?: string; // text colour when enabled (default #fff)
     gate: EquipLevelGate;
-    onClick: () => void;   // wired only when gate.met
+    onClick: () => void; // wired only when gate.met
   },
 ): void;
 ```

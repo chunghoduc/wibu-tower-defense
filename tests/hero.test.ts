@@ -28,13 +28,15 @@ describe("totalXpForLevel", () => {
     expect(totalXpForLevel(20)).toBeLessThan(21962);
   });
   it("rebalance: levels 21-39 cost the same per level as the base curve", () => {
-    const baseInc = (L: number) => Math.floor(100 * Math.pow(L, 1.8)) - Math.floor(100 * Math.pow(L - 1, 1.8));
+    const baseInc = (L: number) =>
+      Math.floor(100 * Math.pow(L, 1.8)) - Math.floor(100 * Math.pow(L - 1, 1.8));
     for (const L of [21, 30, 39]) {
       expect(totalXpForLevel(L) - totalXpForLevel(L - 1)).toBe(baseInc(L));
     }
   });
   it("rebalance: levels 40+ cost more per level than the base curve", () => {
-    const baseInc = (L: number) => Math.floor(100 * Math.pow(L, 1.8)) - Math.floor(100 * Math.pow(L - 1, 1.8));
+    const baseInc = (L: number) =>
+      Math.floor(100 * Math.pow(L, 1.8)) - Math.floor(100 * Math.pow(L - 1, 1.8));
     for (const L of [45, 60, 80]) {
       expect(totalXpForLevel(L) - totalXpForLevel(L - 1)).toBeGreaterThan(baseInc(L));
     }

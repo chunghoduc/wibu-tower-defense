@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
 import {
-  incrementBountyEvent, claimBounty, isBountyClaimable, rolloverBounties, claimableBountyCount,
+  incrementBountyEvent,
+  claimBounty,
+  isBountyClaimable,
+  rolloverBounties,
+  claimableBountyCount,
 } from "../src/core/bounties.ts";
 import { WEEKLY_BOUNTIES_MAP } from "../src/data/bounties.ts";
 

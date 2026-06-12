@@ -58,10 +58,26 @@ export const STRUCTURE_STATE = {
 ```js
 for (const [id, v] of Object.entries(STRUCTURE_VISUAL)) {
   const sd = seedOf(id);
-  jobs.push({ kind: "structure", id, file: `${id}.png`,
-    prompt: style(`${v}, ${STRUCTURE_STATE.intact}`), seed: sd, w: 768, h: 768, size: 256 });
-  jobs.push({ kind: "structure", id, file: `${id}__damaged.png`,
-    prompt: style(`${v}, ${STRUCTURE_STATE.damaged}`), seed: sd, w: 768, h: 768, size: 256 });
+  jobs.push({
+    kind: "structure",
+    id,
+    file: `${id}.png`,
+    prompt: style(`${v}, ${STRUCTURE_STATE.intact}`),
+    seed: sd,
+    w: 768,
+    h: 768,
+    size: 256,
+  });
+  jobs.push({
+    kind: "structure",
+    id,
+    file: `${id}__damaged.png`,
+    prompt: style(`${v}, ${STRUCTURE_STATE.damaged}`),
+    seed: sd,
+    w: 768,
+    h: 768,
+    size: 256,
+  });
 }
 ```
 
@@ -94,6 +110,7 @@ export function castleTexForState(state: CastleState): string; // → CASTLE_TEX
 ```
 
 Rules:
+
 - `maxHp <= 0` → treat as intact (degenerate guard, no divide-by-zero).
 - `hp / maxHp <= 0.5` → `"damaged"`, else `"intact"`.
 - `hp` clamped: negative HP still reports `"damaged"` (castle is rubble at 0).
@@ -143,15 +160,15 @@ pass via the rectangle fallback; the art is then a one-command regen.
 
 ## Files Touched
 
-| File | Change |
-|------|--------|
-| `scripts/sdart/prompts.mjs` | + `STRUCTURE_VISUAL`, `STRUCTURE_STATE` |
-| `scripts/sdart/sdgen.mjs` | import + `buildJobs()` structure jobs |
-| `src/data/assetKeys.ts` | + `structureTex`, `CASTLE_TEX`, `CASTLE_DAMAGED_TEX` |
-| `src/scenes/castleArt.ts` | **new** pure state module |
-| `src/core/battle.ts` | + `readonly castleMax` |
-| `src/scenes/BattleScene.ts` | rectangle → image + per-tick state swap + fallback |
-| `src/scenes/PreloadScene.ts` | load the two structure images |
-| `tests/castleArt.test.ts` | **new** |
-| `tests/assetKeys.test.ts`, `tests/assetKeyDiscipline.test.ts` | extend coverage |
-| `public/assets/sprites/structure/castle*.png` | **new** generated art |
+| File                                                          | Change                                               |
+| ------------------------------------------------------------- | ---------------------------------------------------- |
+| `scripts/sdart/prompts.mjs`                                   | + `STRUCTURE_VISUAL`, `STRUCTURE_STATE`              |
+| `scripts/sdart/sdgen.mjs`                                     | import + `buildJobs()` structure jobs                |
+| `src/data/assetKeys.ts`                                       | + `structureTex`, `CASTLE_TEX`, `CASTLE_DAMAGED_TEX` |
+| `src/scenes/castleArt.ts`                                     | **new** pure state module                            |
+| `src/core/battle.ts`                                          | + `readonly castleMax`                               |
+| `src/scenes/BattleScene.ts`                                   | rectangle → image + per-tick state swap + fallback   |
+| `src/scenes/PreloadScene.ts`                                  | load the two structure images                        |
+| `tests/castleArt.test.ts`                                     | **new**                                              |
+| `tests/assetKeys.test.ts`, `tests/assetKeyDiscipline.test.ts` | extend coverage                                      |
+| `public/assets/sprites/structure/castle*.png`                 | **new** generated art                                |

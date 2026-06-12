@@ -21,8 +21,12 @@ export interface UiAsset {
 
 /** SVG assets — loaded via load.svg with their intrinsic width/height. */
 export const UI_SVGS: UiAsset[] = [
-  ...manifest.icons, ...manifest.frames, ...manifest.buttons,
-  ...manifest.panels, ...manifest.passive, ...manifest.badges,
+  ...manifest.icons,
+  ...manifest.frames,
+  ...manifest.buttons,
+  ...manifest.panels,
+  ...manifest.passive,
+  ...manifest.badges,
 ];
 
 /** Raster assets (logo + backgrounds) — loaded via load.image. */

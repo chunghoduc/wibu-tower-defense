@@ -14,7 +14,11 @@ export class EndlessBackdropFx {
   private base: Phaser.GameObjects.Graphics;
   private anim: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene, private spec: EndlessBackdropSpec, layer: Phaser.GameObjects.Layer) {
+  constructor(
+    scene: Phaser.Scene,
+    private spec: EndlessBackdropSpec,
+    layer: Phaser.GameObjects.Layer,
+  ) {
     this.base = scene.add.graphics().setDepth(-6);
     this.anim = scene.add.graphics().setDepth(-5);
     layer.add([this.base, this.anim]);
@@ -42,9 +46,9 @@ export class EndlessBackdropFx {
       g.strokeCircle(v.cx, v.cy, r);
     }
     for (const s of this.spec.scars) {
-      g.lineStyle(s.width * 2.4, s.glow, 0.10); // soft outer glow
+      g.lineStyle(s.width * 2.4, s.glow, 0.1); // soft outer glow
       EndlessBackdropFx.strokePoly(g, s.points);
-      g.lineStyle(s.width, s.glow, 0.22);       // bright core
+      g.lineStyle(s.width, s.glow, 0.22); // bright core
       EndlessBackdropFx.strokePoly(g, s.points);
     }
   }

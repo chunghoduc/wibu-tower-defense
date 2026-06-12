@@ -9,7 +9,7 @@
 Pull anti-heroes from anime, movies, and stories and turn them into **10 new
 powerful bosses**, added to the game. Anti-heroes are the morally-grey, violent
 protagonists audiences love precisely because they're dangerous — a perfect
-fantasy for a *boss*: the foe you grudgingly respect.
+fantasy for a _boss_: the foe you grudgingly respect.
 
 ## 2. The Problem It Actually Solves (Relevance Filter)
 
@@ -40,7 +40,7 @@ existing boss/special kit; see §4).
 
 ## 3. MDA — Target Feeling First
 
-**Aesthetic goal:** *"I'm fighting a legend who'd be the hero of their own story."*
+**Aesthetic goal:** _"I'm fighting a legend who'd be the hero of their own story."_
 Each boss should be recognizable in a glance (silhouette + mechanic), feel
 **powerful** (a true spike), and be beatable with a **counter the player owns** —
 never lock-and-key.
@@ -52,7 +52,7 @@ damage; every boss carries `immunity: null` (bosses must always be answerable).
 ## 4. Fit — Reuse Before Add (NO New Engine Code)
 
 Every mechanic these bosses need **already exists** and is already tested. They are
-built by *composing* the kit, exactly like the existing homage bosses:
+built by _composing_ the kit, exactly like the existing homage bosses:
 
 - `boss.enrage { belowHpPct, atkMult, speedMult }` — wounded power spike (latched).
 - `boss.summon { enemyId, count, interval }` — periodic adds.
@@ -73,18 +73,18 @@ Per the project's homage rule, the real anti-hero lives only in a source comment
 the shipped `name` is original. Ascending base HP sets the difficulty rank (the
 progression curve scales each by stage depth at runtime).
 
-| id | Shipped name | Homage (comment only) | dmg | Base HP | Signature combo (feeling) |
-|----|--------------|----------------------|-----|---------|---------------------------|
-| `gravemourn` | Gravemourn the Black Reaver | Guts (Berserk) | Phys | 1150 | enrage **+** frenzy **+** attacksTowers — relentless wounded fury; bursts lethal under 50% |
-| `vindicator` | The Vindicator | The Punisher | Phys | 1350 | attacksTowers(range 170) + huge atk, no enrage — a cold gunman who deletes your line from range; race to kill |
-| `sundermark` | Sundermark the Vagrant | Scar (FMA) | Magic | 1500 | towerDisable + attacksTowers — walks down towers and unmakes them; the hero is the answer |
-| `crownfall` | Crownfall the Proud | Vegeta (DBZ) | Magic | 1650 | enrage(hard) + barrier(pride shield) + summon — a prideful rival who powers up when cornered |
-| `unkilling` | The Unkilling | Wolverine (X-Men) | Phys | 1950 | huge hpRegen + frenzy + high tenacity + rally(heal) — won't stay down; demands a sustained burst window |
-| `mawborn` | The Hungering Other | Venom (symbiote) | Phys | 2250 | splitInto(on death) + summon + enrage — smothers you in spawn |
-| `devourer` | The Devouring Heir | Eren / titans (AoT) | Phys | 2400 | summon(brutes) + enrage + summon-surge skill — a wall that breeds walls |
-| `crimsonlord` | The Crimson Sovereign | Alucard (Hellsing) | Magic | 2600 | hpRegen + summon(familiars) + rally(drain heal) + enrage — a vampire lord who heals off the fight |
-| `fallenward` | The Fallen Warden | Darth Vader (Star Wars) | Magic | 3100 | towerDisable(long, "force choke") + barrier + enrage — dread presence that chokes your towers silent |
-| `ashghost` | The Ashen Ghost | Kratos (God of War) | Phys | 4200 | enrage(massive) + summon + towerDisable + quake — apex rage incarnate; the new **final boss of the game** |
+| id            | Shipped name                | Homage (comment only)   | dmg   | Base HP | Signature combo (feeling)                                                                                     |
+| ------------- | --------------------------- | ----------------------- | ----- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `gravemourn`  | Gravemourn the Black Reaver | Guts (Berserk)          | Phys  | 1150    | enrage **+** frenzy **+** attacksTowers — relentless wounded fury; bursts lethal under 50%                    |
+| `vindicator`  | The Vindicator              | The Punisher            | Phys  | 1350    | attacksTowers(range 170) + huge atk, no enrage — a cold gunman who deletes your line from range; race to kill |
+| `sundermark`  | Sundermark the Vagrant      | Scar (FMA)              | Magic | 1500    | towerDisable + attacksTowers — walks down towers and unmakes them; the hero is the answer                     |
+| `crownfall`   | Crownfall the Proud         | Vegeta (DBZ)            | Magic | 1650    | enrage(hard) + barrier(pride shield) + summon — a prideful rival who powers up when cornered                  |
+| `unkilling`   | The Unkilling               | Wolverine (X-Men)       | Phys  | 1950    | huge hpRegen + frenzy + high tenacity + rally(heal) — won't stay down; demands a sustained burst window       |
+| `mawborn`     | The Hungering Other         | Venom (symbiote)        | Phys  | 2250    | splitInto(on death) + summon + enrage — smothers you in spawn                                                 |
+| `devourer`    | The Devouring Heir          | Eren / titans (AoT)     | Phys  | 2400    | summon(brutes) + enrage + summon-surge skill — a wall that breeds walls                                       |
+| `crimsonlord` | The Crimson Sovereign       | Alucard (Hellsing)      | Magic | 2600    | hpRegen + summon(familiars) + rally(drain heal) + enrage — a vampire lord who heals off the fight             |
+| `fallenward`  | The Fallen Warden           | Darth Vader (Star Wars) | Magic | 3100    | towerDisable(long, "force choke") + barrier + enrage — dread presence that chokes your towers silent          |
+| `ashghost`    | The Ashen Ghost             | Kratos (God of War)     | Phys  | 4200    | enrage(massive) + summon + towerDisable + quake — apex rage incarnate; the new **final boss of the game**     |
 
 **Mechanic spread** (no two feel alike): pure berserker melee (1), ranged
 tower-killer (2), anti-tower disabler (3), enrage-tank-summoner (4), regen-bruiser
@@ -112,12 +112,12 @@ chapter climaxes on its hardest boss. Cross-chapter escalation is carried by the
 existing per-stage/per-chapter progression curve. New `BOSS_EXPANSION` (stages
 11–30):
 
-| Ch | Stages | Boss per stage (ascending) |
-|----|--------|----------------------------|
-| 2 (Sunscar) | 11–15 | `gravemourn`(1150) · `vindicator`(1350) · `sundermark`(1500) · `crownfall`(1650) · `overlord`(2200) |
-| 3 (Emberfall) | 16–20 | `unkilling`(1950) · `mukade`(2200) · `mawborn`(2250) · `devourer`(2400) · `madarok`(2700) |
-| 4 (Mire) | 21–25 | `akai`(2000) · `crimsonlord`(2600) · `madarok`(2700) · `fallenward`(3100) · `meruon`(3800) |
-| 5 (Blight) | 26–30 | `crimsonlord`(2600) · `madarok`(2700) · `fallenward`(3100) · `meruon`(3800) · `ashghost`(4200) |
+| Ch            | Stages | Boss per stage (ascending)                                                                          |
+| ------------- | ------ | --------------------------------------------------------------------------------------------------- |
+| 2 (Sunscar)   | 11–15  | `gravemourn`(1150) · `vindicator`(1350) · `sundermark`(1500) · `crownfall`(1650) · `overlord`(2200) |
+| 3 (Emberfall) | 16–20  | `unkilling`(1950) · `mukade`(2200) · `mawborn`(2250) · `devourer`(2400) · `madarok`(2700)           |
+| 4 (Mire)      | 21–25  | `akai`(2000) · `crimsonlord`(2600) · `madarok`(2700) · `fallenward`(3100) · `meruon`(3800)          |
+| 5 (Blight)    | 26–30  | `crimsonlord`(2600) · `madarok`(2700) · `fallenward`(3100) · `meruon`(3800) · `ashghost`(4200)      |
 
 Every new boss appears at least once; all ten debut as a **stage finale**.
 Classic-boss reruns drop from 3–4× to 1–2×. `ashghost` is the stage-30 final boss.
@@ -177,15 +177,15 @@ before the defs/wiring exist, GREEN after):
 ## 9. Risks & Cheapest Falsification
 
 - **Risk: a boss combo is oppressive (un-fun lock-out).** The two tower-disablers
-  (`sundermark`, `fallenward`) could chain-silence a build. *Mitigation:* neither
+  (`sundermark`, `fallenward`) could chain-silence a build. _Mitigation:_ neither
   doubles disable+pulse; the hero (immune to disable) is always the answer.
-  *Falsify:* CDP self-playtest a ch4/ch5 stage and confirm towers recover between
+  _Falsify:_ CDP self-playtest a ch4/ch5 stage and confirm towers recover between
   disables and the fight is winnable with a normal roster.
-- **Risk: difficulty non-monotonic** (a heavier mid-boss than finale). *Falsify:*
+- **Risk: difficulty non-monotonic** (a heavier mid-boss than finale). _Falsify:_
   the §8 invariant test over all 30 stages — automated, runs every suite.
-- **Risk: art mismatch / invisible boss.** *Falsify:* assert every new boss has a
+- **Risk: art mismatch / invisible boss.** _Falsify:_ assert every new boss has a
   `boss__<id>` manifest key (test) + a CDP playtest screenshot showing it on-field.
-- **Risk: balance — `ashghost` too brutal at stage 30.** *Falsify:* CDP playtest
+- **Risk: balance — `ashghost` too brutal at stage 30.** _Falsify:_ CDP playtest
   stage 30; confirm a maxed intended roster can clear within the wave timer (TTK
   sanity: state assumed hero+squad DPS vs scaled EHP).
 

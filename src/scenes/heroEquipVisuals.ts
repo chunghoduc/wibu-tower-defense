@@ -21,8 +21,8 @@ export function resolveHeroLayers(inventory: InventorySave): HeroLayerConfig {
   return {
     weaponKey: weapon ? itemTex(weapon.id) : null,
     weaponType: weapon?.weaponType ?? null,
-    wingKey:   _resolveWing(inventory),
-    petKey:    _resolvePet(inventory),
+    wingKey: _resolveWing(inventory),
+    petKey: _resolvePet(inventory),
   };
 }
 

@@ -5,7 +5,15 @@ import { defaultStats } from "../src/data/schema.ts";
 
 describe("elite enemies", () => {
   it("applyEliteBoost multiplies survival/offense stats and is non-mutating", () => {
-    const base = { ...defaultStats(), maxHp: 100, atk: 10, armor: 5, magicResist: 4, moveSpeed: 30, attackSpeed: 1 };
+    const base = {
+      ...defaultStats(),
+      maxHp: 100,
+      atk: 10,
+      armor: 5,
+      magicResist: 4,
+      moveSpeed: 30,
+      attackSpeed: 1,
+    };
     const boosted = applyEliteBoost(base);
     expect(boosted.maxHp).toBe(100 * ELITE_MULT.maxHp);
     expect(boosted.atk).toBeCloseTo(10 * ELITE_MULT.atk);

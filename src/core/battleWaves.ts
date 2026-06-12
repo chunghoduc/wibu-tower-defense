@@ -12,8 +12,13 @@ import { endlessWave, endlessEnemyMul } from "./endless.ts";
 import { bossRushWave, BOSS_RUSH_TIERS } from "./bossRush.ts";
 import type { BattleState } from "./battle.ts";
 import {
-  type Catalogs, type ScheduledSpawn, type SpawnRequest,
-  INTER_WAVE_DELAY, WAVE_INTERVAL, SKIP_COIN_PER_SEC, PERFECT_WAVE_BONUS_FRAC,
+  type Catalogs,
+  type ScheduledSpawn,
+  type SpawnRequest,
+  INTER_WAVE_DELAY,
+  WAVE_INTERVAL,
+  SKIP_COIN_PER_SEC,
+  PERFECT_WAVE_BONUS_FRAC,
   AUTO_SKIP_COUNTDOWN,
 } from "./battleTypes.ts";
 
@@ -40,7 +45,10 @@ export const waveMethods = {
       if (this.waveIndex + 1 < this.totalWaves()) {
         // Only after a wave has actually launched — at battle start the schedule is
         // empty and the field is bare, which must run the opening timer, not auto-skip.
-        const fieldClear = this.waveIndex >= 0 && this.schedulePtr >= this.schedule.length && this.enemies.length === 0;
+        const fieldClear =
+          this.waveIndex >= 0 &&
+          this.schedulePtr >= this.schedule.length &&
+          this.enemies.length === 0;
         if (this.autoSkipTimer > 0) {
           // An early-clear countdown is running — tick it down to the auto-launch.
           this.autoSkipTimer -= dt;
@@ -250,7 +258,11 @@ export const waveMethods = {
     // pre-rolled eligible wave-spawn index. Summons/splits are never elite.
     let elite = false;
     if (req.fromWave && def.archetype !== "Boss") {
-      if (this.eliteThisBattle && !this.eliteSpawned && this.eligibleSpawnSeen === this.eliteTargetIndex) {
+      if (
+        this.eliteThisBattle &&
+        !this.eliteSpawned &&
+        this.eligibleSpawnSeen === this.eliteTargetIndex
+      ) {
         elite = true;
         this.eliteSpawned = true;
       }
@@ -268,7 +280,8 @@ export const waveMethods = {
     const arena = this.stage.arena;
     // Arena: ground enemies pick a random precomputed corridor; flyers beeline the
     // center from a random gate. Campaign: the single shared lane / round-robin air.
-    const route = req.route ??
+    const route =
+      req.route ??
       (arena ? arena.routes[Math.floor(this.rng.next() * arena.routes.length)] : this.stage.path);
     const airStart =
       req.airStart ??
@@ -280,7 +293,9 @@ export const waveMethods = {
     const routeLen = pathLength(route);
     const distanceAlong = req.distanceAlong ?? 0;
     const airProgress = req.airProgress ?? 0;
-    const pos = flying ? lerp(airStart, this.castlePos, airProgress) : pointAtDistance(route, distanceAlong);
+    const pos = flying
+      ? lerp(airStart, this.castlePos, airProgress)
+      : pointAtDistance(route, distanceAlong);
 
     this.enemies.push({
       uid: this.nextUid++,

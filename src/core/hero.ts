@@ -71,9 +71,11 @@ export const ACTIVE_POWER_ANCHOR = 50;
  * True/Magic burst from a physical-weapon hero). Falls back to the legacy ×2 and
  * the hero's weapon damage type when no skill is equipped or the id is unknown.
  */
-export function heroActiveBurst(
-  save: HeroSave,
-): { skillId?: string; mult: number; damageType?: DamageType } {
+export function heroActiveBurst(save: HeroSave): {
+  skillId?: string;
+  mult: number;
+  damageType?: DamageType;
+} {
   const skillId = save.hero.equippedSkillIds[0];
   const def = skillId ? ACTIVE_SKILLS_MAP.get(skillId) : undefined;
   if (!def) return { skillId, mult: 2 };

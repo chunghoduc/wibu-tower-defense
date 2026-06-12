@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  TERRAIN_ART_TYPES, TERRAIN_VARIANTS, TERRAIN_ASSETS, terrainKeyFor,
+  TERRAIN_ART_TYPES,
+  TERRAIN_VARIANTS,
+  TERRAIN_ASSETS,
+  terrainKeyFor,
 } from "../src/data/terrainManifest.ts";
 
 describe("terrain art manifest", () => {

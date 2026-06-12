@@ -6,14 +6,14 @@
 
 ## Problem
 
-Several towers buff *other* nearby towers through an "aura" (e.g. Mira's ATK aura,
+Several towers buff _other_ nearby towers through an "aura" (e.g. Mira's ATK aura,
 Lyra Tempo's attack-speed aura, Sakura's combined aura). The mechanic is real and
 impactful, but it is **completely invisible**: nothing on screen shows how far an
 aura reaches or which towers it covers. Players cannot position towers to benefit
 from a support aura because they cannot see it.
 
-The user request: *"add an aura indicator (glowing and indicate the true range of
-that aura) for all towers with aura passive or aura buff with other towers."*
+The user request: _"add an aura indicator (glowing and indicate the true range of
+that aura) for all towers with aura passive or aura buff with other towers."_
 
 ## Background — how auras actually work
 
@@ -31,7 +31,7 @@ that aura) for all towers with aura passive or aura buff with other towers."*
   the indicator must read this value, not the static catalog value, so it stays
   truthful as the tower is upgraded mid-battle.
 
-This means the *source of truth* for "is there an aura and how big is it" is exactly
+This means the _source of truth_ for "is there an aura and how big is it" is exactly
 the same gate the simulation uses. The indicator mirrors that gate so the ring can
 never lie about coverage.
 
@@ -87,9 +87,9 @@ export function auraPulse(timeMs: number, uid: number): number {
 ```
 
 Rationale for the gate living here: it mirrors `recomputeTowerBuffs` exactly, so the
-visual and the simulation can never disagree about *which* towers have an active
-aura. `alive` and `disabledTimer` are left to the render layer (they affect *how* the
-ring is drawn — skip / dim — not *whether the def has an aura*).
+visual and the simulation can never disagree about _which_ towers have an active
+aura. `alive` and `disabledTimer` are left to the render layer (they affect _how_ the
+ring is drawn — skip / dim — not _whether the def has an aura_).
 
 **2. Render method — `drawAuraRing(g, t)` in `src/scenes/battleSceneRender.ts`**
 
@@ -112,12 +112,12 @@ drawAuraRing(g: Phaser.GameObjects.Graphics, t: TowerRuntime): void {
 ### Draw order
 
 In `draw()` (`battleSceneRender.ts`), add a **pre-pass** that draws every tower's
-aura ring *before* the existing per-tower body loop, so rings sit under towers and
+aura ring _before_ the existing per-tower body loop, so rings sit under towers and
 enemies and never occlude them:
 
 ```ts
-for (const t of bs.towers) this.drawAuraRing(g, t);   // under everything
-for (const t of bs.towers) this.drawTower(g, t);      // existing
+for (const t of bs.towers) this.drawAuraRing(g, t); // under everything
+for (const t of bs.towers) this.drawTower(g, t); // existing
 ```
 
 (Using the same `dynGfx` graphics object already used by `drawTower`.)
@@ -157,7 +157,7 @@ Pure helper is fully unit-testable (no Phaser). `tests/auraIndicator.test.ts`:
 4. `auraPulse` stays within `[0, 1]` across a sweep of times, and two different uids
    yield different values at the same time (de-sync).
 5. Data-integrity guard: every `CharacterDef` in `TOWERS` that defines a `buffAura`
-   has `role === "support"` (otherwise its aura would silently never apply *and* never
+   has `role === "support"` (otherwise its aura would silently never apply _and_ never
    show a ring — this catches authoring mistakes).
 
 The render method is thin glue over the tested helper and Phaser draw calls; per

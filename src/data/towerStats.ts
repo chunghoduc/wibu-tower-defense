@@ -7,10 +7,22 @@ import type { DamageType, Rarity, Stats, TowerRole } from "./schema.ts";
  * fills in the DEFENSIVE + survival layer every tower otherwise left at zero,
  * scaled by rarity (stronger tiers) and role (front-line/control units tankier).
  */
-const RARITY_TIER: Record<Rarity, number> = { Common: 0, Magic: 1, Rare: 2, Legendary: 3, Unique: 4 };
+const RARITY_TIER: Record<Rarity, number> = {
+  Common: 0,
+  Magic: 1,
+  Rare: 2,
+  Legendary: 3,
+  Unique: 4,
+};
 
 const ROLE_TANK: Record<TowerRole, number> = {
-  damage: 1, splash: 1, chain: 0.85, dot: 0.85, debuff: 1.3, support: 1.2, tanker: 1.6,
+  damage: 1,
+  splash: 1,
+  chain: 0.85,
+  dot: 0.85,
+  debuff: 1.3,
+  support: 1.2,
+  tanker: 1.6,
 };
 
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
@@ -34,22 +46,30 @@ const RARITY_POWER = [1.0, 1.35, 1.8, 2.45, 3.3]; // by tier (Common…Unique)
 // NOTE: `range` is deliberately NOT budgeted here — it's an identity stat (a
 // melee brawler has short reach, an archer long), kept per-tower so the roster
 // still reads as melee vs ranged and the attack-style picker stays correct.
-interface RoleBase { atk: number; aspd: number; hp: number; cost: number }
+interface RoleBase {
+  atk: number;
+  aspd: number;
+  hp: number;
+  cost: number;
+}
 const ROLE_BASE: Record<TowerRole, RoleBase> = {
   // role      atk  aspd   hp   cost   (values at the Common tier)
-  damage:  { atk: 16, aspd: 1.20, hp: 130, cost: 45 },
-  splash:  { atk: 15, aspd: 0.90, hp: 145, cost: 55 },
-  chain:   { atk: 13, aspd: 1.05, hp: 115, cost: 55 },
-  dot:     { atk: 10, aspd: 1.00, hp: 125, cost: 50 },
-  debuff:  { atk:  9, aspd: 0.85, hp: 150, cost: 55 },
-  support: { atk:  6, aspd: 0.75, hp: 175, cost: 60 },
+  damage: { atk: 16, aspd: 1.2, hp: 130, cost: 45 },
+  splash: { atk: 15, aspd: 0.9, hp: 145, cost: 55 },
+  chain: { atk: 13, aspd: 1.05, hp: 115, cost: 55 },
+  dot: { atk: 10, aspd: 1.0, hp: 125, cost: 50 },
+  debuff: { atk: 9, aspd: 0.85, hp: 150, cost: 55 },
+  support: { atk: 6, aspd: 0.75, hp: 175, cost: 60 },
   // tanker: lowest atk + slowest cadence of any role, but the highest HP — its
   // payoff is the defense-scaled active, not the basic attack.
-  tanker:  { atk:  8, aspd: 0.70, hp: 230, cost: 60 },
+  tanker: { atk: 8, aspd: 0.7, hp: 230, cost: 60 },
 };
 
 /** The role × rarity core-stat budget + placement cost (before the damage-type archetype). */
-export function towerBaseline(role: TowerRole, rarity: Rarity): { core: Partial<Stats>; cost: number } {
+export function towerBaseline(
+  role: TowerRole,
+  rarity: Rarity,
+): { core: Partial<Stats>; cost: number } {
   const tier = RARITY_TIER[rarity];
   const p = RARITY_POWER[tier];
   const b = ROLE_BASE[role];
@@ -78,7 +98,8 @@ export function augmentTowerStats(role: TowerRole, rarity: Rarity, s: Stats): St
     damageReduction: s.damageReduction || r3(0.02 * tier),
     critDefense: s.critDefense || r3(0.03 * tier),
     tenacity: s.tenacity || r3(0.05 + 0.03 * tier),
-    manaOnKill: s.manaOnKill || (role !== "support" ? Math.max(2, Math.round(s.manaOnHit * 1.5)) : 0),
+    manaOnKill:
+      s.manaOnKill || (role !== "support" ? Math.max(2, Math.round(s.manaOnHit * 1.5)) : 0),
   };
 }
 
@@ -97,7 +118,12 @@ export function augmentTowerStats(role: TowerRole, rarity: Rarity, s: Stats): St
 export function applyDamageArchetype(damageType: DamageType, rarity: Rarity, s: Stats): Stats {
   const tier = RARITY_TIER[rarity];
   if (damageType === "Physical") {
-    return { ...s, atk: Math.round(s.atk * 1.15), attackSpeed: r3(s.attackSpeed * 1.15), skillPower: 1 };
+    return {
+      ...s,
+      atk: Math.round(s.atk * 1.15),
+      attackSpeed: r3(s.attackSpeed * 1.15),
+      skillPower: 1,
+    };
   }
   if (damageType === "Magic") {
     return {

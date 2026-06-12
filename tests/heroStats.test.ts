@@ -9,7 +9,14 @@ import { WEAPON_RANGE } from "../src/data/weaponRange.ts";
 const BASE = makeStats({ atk: 100, maxHp: 1000, critRate: 0 });
 
 function inst(over: Partial<ItemInstanceSave> & { defId: string; id: string }): ItemInstanceSave {
-  return { acquiredLevel: 1, enhanceLevel: 0, rolledStats: {}, rolledPrimaryAffix: 0, rolledAffixes: [], ...over };
+  return {
+    acquiredLevel: 1,
+    enhanceLevel: 0,
+    rolledStats: {},
+    rolledPrimaryAffix: 0,
+    rolledAffixes: [],
+    ...over,
+  };
 }
 
 /** Equip a single item instance into its slot on a fresh save. */
@@ -31,7 +38,7 @@ describe("resolveHeroBattleStats — items + passives + jewels add up to hero st
   });
 
   it("a physicalDamage primary affix applies as INCREASED% (atk 100 ×1.10 = 110)", () => {
-    const s = withItem("Weapon", inst({ id: "w", defId: "iron-sword", rolledPrimaryAffix: 0.10 }));
+    const s = withItem("Weapon", inst({ id: "w", defId: "iron-sword", rolledPrimaryAffix: 0.1 }));
     expect(resolveHeroBattleStats(s, BASE).stats.atk).toBeCloseTo(110, 5);
   });
 
@@ -43,7 +50,10 @@ describe("resolveHeroBattleStats — items + passives + jewels add up to hero st
 
   it("an enhanced item scales its base stat by the enhance bonus before adding", () => {
     // +5 enhance = ×(1 + 0.08*5) = ×1.40 → item atk 20 → 28; hero atk 100+28 = 128.
-    const s = withItem("Weapon", inst({ id: "w", defId: "iron-sword", rolledStats: { atk: 20 }, enhanceLevel: 5 }));
+    const s = withItem(
+      "Weapon",
+      inst({ id: "w", defId: "iron-sword", rolledStats: { atk: 20 }, enhanceLevel: 5 }),
+    );
     expect(resolveHeroBattleStats(s, BASE).stats.atk).toBeCloseTo(128, 5);
   });
 
@@ -92,21 +102,27 @@ describe("resolveHeroBattleStats — items + passives + jewels add up to hero st
     expect(bare.stats.range).toBeCloseTo(WEAPON_RANGE.Fist, 5);
 
     // Sword → short melee reach.
-    const sword = resolveHeroBattleStats(withItem("Weapon", inst({ id: "w", defId: "iron-sword" })), BASE);
+    const sword = resolveHeroBattleStats(
+      withItem("Weapon", inst({ id: "w", defId: "iron-sword" })),
+      BASE,
+    );
     expect(sword.weaponType).toBe("Sword");
     expect(sword.stats.range).toBeCloseTo(WEAPON_RANGE.Sword, 5);
 
     // Gun → long ranged reach.
-    const gun = resolveHeroBattleStats(withItem("Weapon", inst({ id: "w", defId: "thunder-cannon" })), BASE);
+    const gun = resolveHeroBattleStats(
+      withItem("Weapon", inst({ id: "w", defId: "thunder-cannon" })),
+      BASE,
+    );
     expect(gun.weaponType).toBe("Gun");
     expect(gun.stats.range).toBeCloseTo(WEAPON_RANGE.Gun, 5);
   });
 
   it("a `% range` affix scales on top of the weapon-family base reach", () => {
     // Elven Bow base reach 240, +20% range affix → 288.
-    const affixes: RolledAffix[] = [{ type: "range", value: 0.20 }];
+    const affixes: RolledAffix[] = [{ type: "range", value: 0.2 }];
     const s = withItem("Weapon", inst({ id: "w", defId: "elven-bow", rolledAffixes: affixes }));
-    expect(resolveHeroBattleStats(s, BASE).stats.range).toBeCloseTo(WEAPON_RANGE.Bow * 1.20, 4);
+    expect(resolveHeroBattleStats(s, BASE).stats.range).toBeCloseTo(WEAPON_RANGE.Bow * 1.2, 4);
   });
 });
 

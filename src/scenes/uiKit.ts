@@ -58,13 +58,26 @@ export function button(
     backgroundColor: opts.bg ?? "#223355",
     fixedWidth: opts.width ?? 260,
     align: "center",
-  }).setOrigin(0.5).setPadding(0, 11, 0, 11).setInteractive({ useHandCursor: true });
+  })
+    .setOrigin(0.5)
+    .setPadding(0, 11, 0, 11)
+    .setInteractive({ useHandCursor: true });
 
-  t.on("pointerover", () => scene.tweens.add({ targets: t, scale: 1.06, duration: DUR.btn, ease: "Back.easeOut" }));
-  t.on("pointerout", () => scene.tweens.add({ targets: t, scale: 1, duration: DUR.btn, ease: "Sine.easeOut" }));
-  t.on("pointerdown", () => scene.tweens.add({
-    targets: t, scale: 0.94, duration: 70, yoyo: true, onComplete: () => onClick(),
-  }));
+  t.on("pointerover", () =>
+    scene.tweens.add({ targets: t, scale: 1.06, duration: DUR.btn, ease: "Back.easeOut" }),
+  );
+  t.on("pointerout", () =>
+    scene.tweens.add({ targets: t, scale: 1, duration: DUR.btn, ease: "Sine.easeOut" }),
+  );
+  t.on("pointerdown", () =>
+    scene.tweens.add({
+      targets: t,
+      scale: 0.94,
+      duration: 70,
+      yoyo: true,
+      onComplete: () => onClick(),
+    }),
+  );
   return t;
 }
 
@@ -78,14 +91,20 @@ export function tweenCount(
 ): void {
   const ref = { v: from };
   scene.tweens.add({
-    targets: ref, v: to, duration: DUR.count, ease: "Cubic.easeOut",
+    targets: ref,
+    v: to,
+    duration: DUR.count,
+    ease: "Cubic.easeOut",
     onUpdate: () => text.setText(fmt(ref.v)),
     onComplete: () => text.setText(fmt(to)),
   });
 }
 
 /** Pop a container in with a scale+fade (use for modals/panels on open). */
-export function popIn(scene: Phaser.Scene, obj: Phaser.GameObjects.Container | Phaser.GameObjects.Image): void {
+export function popIn(
+  scene: Phaser.Scene,
+  obj: Phaser.GameObjects.Container | Phaser.GameObjects.Image,
+): void {
   obj.setScale(0.86).setAlpha(0);
   scene.tweens.add({ targets: obj, scale: 1, alpha: 1, duration: DUR.pop, ease: "Back.easeOut" });
 }

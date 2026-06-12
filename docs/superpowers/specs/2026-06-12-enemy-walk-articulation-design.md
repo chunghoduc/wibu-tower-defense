@@ -10,7 +10,7 @@ Enemies read as stiff bodies sliding down the lane. The root cause is in the art
 
 - `composeEnemy(spec)` in `scripts/pixelart/creatures.mjs` draws every body — legs included — into **one static canvas**.
 - `composeEnemyFrames(spec)` then fakes a walk cycle via `pose()`: a **whole-body translate + shear** (`walk1: dy:-1, lean:1` / `walk2: dy:1, lean:-1`). **No limb ever moves** — the legs are baked, so the two "walk" frames are the same silhouette nudged 1px.
-- The runtime driver `BattleScene.animateEnemy` therefore carries *all* the locomotion (a procedural waddle/bob/squash coupled to distance travelled). The body rocks, but the legs never stride — the giveaway that reads as "floating / sliding".
+- The runtime driver `BattleScene.animateEnemy` therefore carries _all_ the locomotion (a procedural waddle/bob/squash coupled to distance travelled). The body rocks, but the legs never stride — the giveaway that reads as "floating / sliding".
 
 By contrast, player towers and the hero use `scripts/svgart/pixrig.mjs`, which poses legs and arms **by joint angle per frame** (`poses.mjs` MELEE/CAST sets) — they look alive because their limbs actually move.
 
@@ -29,6 +29,7 @@ Non-goals: changing enemy stats/behaviour, replacing the creature art style with
 Parameterize limb drawing in `creatures.mjs` by a `gait` descriptor and build an expanded, per-body-type walk cycle of real poses.
 
 Rejected alternatives:
+
 - **Pure procedural** (push `animateEnemy` harder): cannot move legs that are baked into a single sprite — caps at body waddle. This is the current ceiling, and it is the problem.
 - **Adopt full pixrig for enemies**: highest fidelity but discards the bespoke creature silhouettes (slime/ghost/winged/ogre) that give enemies their identity. Too disruptive.
 
@@ -62,16 +63,16 @@ Body-type rendering consumes `gait`:
 
 Replace the 6-pose `ENEMY_POSES` with an 8-pose set:
 
-| name  | role           | gait sketch                                  |
-|-------|----------------|----------------------------------------------|
-| idle  | rest           | legs together, slight arm rest               |
-| walk1 | contact-left   | legSwing +1, armSwing -1, bob 0, squash 0.4  |
-| walk2 | passing        | legSwing 0, armSwing 0, bob -1 (lift)         |
-| walk3 | contact-right  | legSwing -1, armSwing +1, bob 0, squash 0.4  |
-| walk4 | passing        | legSwing 0, armSwing 0, bob -1 (lift)         |
-| atk1  | wind-up        | lean back, arm raised (reuse current)         |
-| atk2  | strike         | lunge forward (reuse current)                 |
-| hurt  | recoil         | lean back + red tint (reuse current)          |
+| name  | role          | gait sketch                                 |
+| ----- | ------------- | ------------------------------------------- |
+| idle  | rest          | legs together, slight arm rest              |
+| walk1 | contact-left  | legSwing +1, armSwing -1, bob 0, squash 0.4 |
+| walk2 | passing       | legSwing 0, armSwing 0, bob -1 (lift)       |
+| walk3 | contact-right | legSwing -1, armSwing +1, bob 0, squash 0.4 |
+| walk4 | passing       | legSwing 0, armSwing 0, bob -1 (lift)       |
+| atk1  | wind-up       | lean back, arm raised (reuse current)       |
+| atk2  | strike        | lunge forward (reuse current)               |
+| hurt  | recoil        | lean back + red tint (reuse current)        |
 
 `/walk/` (PreloadScene regex) now spans walk1–walk4; enemy walk anim plays them at 7fps, looping. No PreloadScene change required.
 

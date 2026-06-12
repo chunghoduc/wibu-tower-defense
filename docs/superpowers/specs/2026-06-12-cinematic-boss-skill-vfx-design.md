@@ -22,7 +22,7 @@ more dramatic per cast and visually distinct between bosses.
 
 ## Non-Goals (YAGNI)
 
-- **No new boss skill *types*.** The four shapes are enough; variety comes from
+- **No new boss skill _types_.** The four shapes are enough; variety comes from
   theming + staging, not more branches.
 - **No gameplay change.** Damage, tower-disable, heal, and summon logic in
   `castBossSkill` (`battleEnemies.ts`) are untouched. This is purely visual.
@@ -53,7 +53,7 @@ deliberate **telegraph → burst → aftermath** arc instead of one burst:
 New shared cinematic primitives added to the renderer:
 
 - `flare(at, r, color, dur)` — additive radial bloom (soft glow disc).
-- `chargeCore(at, r, color, dur)` — telegraph: a core that scales *in* (gather)
+- `chargeCore(at, r, color, dur)` — telegraph: a core that scales _in_ (gather)
   before the burst, the visual "wind-up".
 - `emberDrift(at, spread, color, n)` — aftermath: small additive motes that
   rise/drift outward and fade.
@@ -71,8 +71,8 @@ renderer composes) to honour the <500-line rule.
 
 ### Pillar 2 — Per-boss elemental accent (pure, tested)
 
-The signature *shape* still encodes the skill TYPE (quake = earthshatter), but
-the *palette* now encodes the boss's element, so two quake bosses of different
+The signature _shape_ still encodes the skill TYPE (quake = earthshatter), but
+the _palette_ now encodes the boss's element, so two quake bosses of different
 elements read differently.
 
 New pure resolver in `src/data/bossSkillVfx.ts`:
@@ -80,10 +80,10 @@ New pure resolver in `src/data/bossSkillVfx.ts`:
 ```ts
 export interface BossSkillTheme {
   signature: BossSignature; // which set-piece (unchanged)
-  primary: number;          // base signature colour (the anchor)
-  accent: number;           // element-derived secondary colour
-  label: string;            // flavour label (unchanged)
-  weight: number;           // 0..1 camera intensity for punch()
+  primary: number; // base signature colour (the anchor)
+  accent: number; // element-derived secondary colour
+  label: string; // flavour label (unchanged)
+  weight: number; // 0..1 camera intensity for punch()
 }
 export function bossSkillTheme(skillType: string, element: DamageType): BossSkillTheme;
 ```
@@ -117,13 +117,13 @@ Default: if an element is somehow absent, `ELEMENT_ACCENT` falls back to the
 
 ## Components & Boundaries
 
-| Unit | File | Responsibility | Tested |
-|------|------|----------------|--------|
-| `bossSkillTheme` | `src/data/bossSkillVfx.ts` | pure: (skillType, element) → palette + weight | unit |
-| `bossCast` event | `src/core/battleTypes.ts` | carries `element` | type |
-| emit | `src/core/battleEnemies.ts` | populates `element` from boss def | sim test |
-| `BossSkillFx` | `src/scenes/bossSkillSignatures.ts` | 3-beat themed set-pieces | n/a (Phaser) |
-| primitives | `src/scenes/bossSkillFxPrimitives.ts` *(if extracted)* | flare/charge/ember/punch | n/a (Phaser) |
+| Unit             | File                                                   | Responsibility                                | Tested       |
+| ---------------- | ------------------------------------------------------ | --------------------------------------------- | ------------ |
+| `bossSkillTheme` | `src/data/bossSkillVfx.ts`                             | pure: (skillType, element) → palette + weight | unit         |
+| `bossCast` event | `src/core/battleTypes.ts`                              | carries `element`                             | type         |
+| emit             | `src/core/battleEnemies.ts`                            | populates `element` from boss def             | sim test     |
+| `BossSkillFx`    | `src/scenes/bossSkillSignatures.ts`                    | 3-beat themed set-pieces                      | n/a (Phaser) |
+| primitives       | `src/scenes/bossSkillFxPrimitives.ts` _(if extracted)_ | flare/charge/ember/punch                      | n/a (Phaser) |
 
 The pure `bossSkillTheme` and the event field are the testable seams; the
 Phaser renderer is exercised by playtest (CDP `window.__game`), as the rest of

@@ -16,15 +16,34 @@ export type WeaponElement = (typeof WEAPON_ELEMENTS)[number];
 
 export const WEAPON_FAMILIES = [
   // physical melee
-  "fist", "sword", "spear", "blunt",
+  "fist",
+  "sword",
+  "spear",
+  "blunt",
   // physical ranged
-  "bow", "crossbow", "gun", "thrown",
+  "bow",
+  "crossbow",
+  "gun",
+  "thrown",
   // magic implements
-  "staff", "tome", "scepter", "wand", "rod", "orb",
+  "staff",
+  "tome",
+  "scepter",
+  "wand",
+  "rod",
+  "orb",
   // physical conduits / thematic
-  "thorn", "sand", "banner",
+  "thorn",
+  "sand",
+  "banner",
   // magic conduits / thematic
-  "curse", "nature", "shadow", "talisman", "instrument", "aura", "charm",
+  "curse",
+  "nature",
+  "shadow",
+  "talisman",
+  "instrument",
+  "aura",
+  "charm",
 ] as const;
 export type WeaponFamily = (typeof WEAPON_FAMILIES)[number];
 

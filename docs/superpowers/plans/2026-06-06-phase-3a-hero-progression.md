@@ -12,27 +12,28 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|--------|------|---------------|
-| Modify | `src/data/schema.ts` | Add WeaponType, PassiveNodeDef, ActiveSkillDef, new ItemDef shape, ItemInstance, RolledAffix, HeroSave family |
-| Create | `src/core/stats.ts` | StatAccumulator + 8-layer hero pipeline + 4-layer tower pipeline |
-| Create | `src/core/save.ts` | SaveProvider interface + LocalSaveProvider + loadAndMigrate |
-| Create | `src/core/hero.ts` | XP curve, levelFromXp, skillXpToLevel, resolveHeroStats, resolveHeroStatsForBattle |
-| Create | `src/data/passiveGrid.ts` | ~80 passive node definitions (representative; expandable to 350) |
-| Create | `src/data/skills.ts` | 12 initial ActiveSkillDef entries |
-| Create | `src/data/items.ts` | 20 initial ItemDef entries + rollItem() factory |
-| Modify | `src/core/battle.ts` | Accept optional HeroSave in BattleOptions; resolve final hero stats at init; apply pet goldPerSec each tick |
-| Modify | `src/scenes/BattleScene.ts` | HUD: level badge, XP bar, equipped skill icon, item slot indicators |
-| Create | `tests/stats.test.ts` | StatAccumulator unit tests |
-| Create | `tests/save.test.ts` | SaveProvider + migration tests |
-| Create | `tests/hero.test.ts` | XP curve, level derivation, skill leveling tests |
-| Create | `tests/phase3a.test.ts` | Integration: hero stats flow into battle, pet gold, item rolls |
+| Action | Path                        | Responsibility                                                                                                |
+| ------ | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Modify | `src/data/schema.ts`        | Add WeaponType, PassiveNodeDef, ActiveSkillDef, new ItemDef shape, ItemInstance, RolledAffix, HeroSave family |
+| Create | `src/core/stats.ts`         | StatAccumulator + 8-layer hero pipeline + 4-layer tower pipeline                                              |
+| Create | `src/core/save.ts`          | SaveProvider interface + LocalSaveProvider + loadAndMigrate                                                   |
+| Create | `src/core/hero.ts`          | XP curve, levelFromXp, skillXpToLevel, resolveHeroStats, resolveHeroStatsForBattle                            |
+| Create | `src/data/passiveGrid.ts`   | ~80 passive node definitions (representative; expandable to 350)                                              |
+| Create | `src/data/skills.ts`        | 12 initial ActiveSkillDef entries                                                                             |
+| Create | `src/data/items.ts`         | 20 initial ItemDef entries + rollItem() factory                                                               |
+| Modify | `src/core/battle.ts`        | Accept optional HeroSave in BattleOptions; resolve final hero stats at init; apply pet goldPerSec each tick   |
+| Modify | `src/scenes/BattleScene.ts` | HUD: level badge, XP bar, equipped skill icon, item slot indicators                                           |
+| Create | `tests/stats.test.ts`       | StatAccumulator unit tests                                                                                    |
+| Create | `tests/save.test.ts`        | SaveProvider + migration tests                                                                                |
+| Create | `tests/hero.test.ts`        | XP curve, level derivation, skill leveling tests                                                              |
+| Create | `tests/phase3a.test.ts`     | Integration: hero stats flow into battle, pet gold, item rolls                                                |
 
 ---
 
 ## Task 1 — Schema Extensions
 
 **Files:**
+
 - Modify: `src/data/schema.ts`
 - Create: `tests/schema-phase3a.test.ts`
 
@@ -84,13 +85,29 @@ describe("validateActiveSkill", () => {
 
   it("rejects missing id", () => {
     expect(() =>
-      validateActiveSkill({ id: "", name: "x", description: "x", rarity: "Common", damageType: "Physical", basePower: 10, artRef: "x" })
+      validateActiveSkill({
+        id: "",
+        name: "x",
+        description: "x",
+        rarity: "Common",
+        damageType: "Physical",
+        basePower: 10,
+        artRef: "x",
+      }),
     ).toThrow();
   });
 
   it("rejects basePower <= 0", () => {
     expect(() =>
-      validateActiveSkill({ id: "s", name: "x", description: "x", rarity: "Common", damageType: "Physical", basePower: 0, artRef: "x" })
+      validateActiveSkill({
+        id: "s",
+        name: "x",
+        description: "x",
+        rarity: "Common",
+        damageType: "Physical",
+        basePower: 0,
+        artRef: "x",
+      }),
     ).toThrow();
   });
 });
@@ -113,7 +130,16 @@ describe("validatePassiveNode", () => {
 
   it("rejects node with no neighbors", () => {
     expect(() =>
-      validatePassiveNode({ id: "x", type: "path", region: "brawler", name: "x", description: "x", gridX: 0, gridY: 0, neighbors: [] })
+      validatePassiveNode({
+        id: "x",
+        type: "path",
+        region: "brawler",
+        name: "x",
+        description: "x",
+        gridX: 0,
+        gridY: 0,
+        neighbors: [],
+      }),
     ).toThrow();
   });
 });
@@ -137,13 +163,33 @@ describe("validateItemDef", () => {
 
   it("rejects Weapon slot without weaponType", () => {
     expect(() =>
-      validateItemDef({ id: "x", name: "x", slot: "Weapon", rarity: "Common", requiredLevel: 1, baseStats: {}, primaryAffix: { type: "x", baseValue: 1 }, affixPool: [], artRef: "x" })
+      validateItemDef({
+        id: "x",
+        name: "x",
+        slot: "Weapon",
+        rarity: "Common",
+        requiredLevel: 1,
+        baseStats: {},
+        primaryAffix: { type: "x", baseValue: 1 },
+        affixPool: [],
+        artRef: "x",
+      }),
     ).toThrow(/weaponType/);
   });
 
   it("rejects requiredLevel < 1", () => {
     expect(() =>
-      validateItemDef({ id: "x", name: "x", slot: "Helmet", rarity: "Common", requiredLevel: 0, baseStats: {}, primaryAffix: { type: "x", baseValue: 1 }, affixPool: [], artRef: "x" })
+      validateItemDef({
+        id: "x",
+        name: "x",
+        slot: "Helmet",
+        rarity: "Common",
+        requiredLevel: 0,
+        baseStats: {},
+        primaryAffix: { type: "x", baseValue: 1 },
+        affixPool: [],
+        artRef: "x",
+      }),
     ).toThrow(/requiredLevel/);
   });
 });
@@ -154,6 +200,7 @@ describe("validateItemDef", () => {
 ```bash
 npm test -- tests/schema-phase3a.test.ts 2>&1 | tail -15
 ```
+
 Expected: multiple import errors / type errors.
 
 - [ ] **Step 1.3 — Add new types and validators to `src/data/schema.ts`**
@@ -164,12 +211,24 @@ Add after the `ITEM_SLOTS` block:
 export const WEAPON_TYPES = ["Sword", "Bow", "Staff", "Gun", "Tome", "Fist", "Any"] as const;
 export type WeaponType = (typeof WEAPON_TYPES)[number];
 
-export const PASSIVE_NODE_TYPES = ["path", "notable", "keystone", "mastery", "jewel-socket"] as const;
+export const PASSIVE_NODE_TYPES = [
+  "path",
+  "notable",
+  "keystone",
+  "mastery",
+  "jewel-socket",
+] as const;
 export type PassiveNodeType = (typeof PASSIVE_NODE_TYPES)[number];
 
 export const PASSIVE_REGIONS = [
-  "brawler", "arcane", "warden", "tactician",
-  "predator", "phantom", "conduit", "prestige",
+  "brawler",
+  "arcane",
+  "warden",
+  "tactician",
+  "predator",
+  "phantom",
+  "conduit",
+  "prestige",
 ] as const;
 export type PassiveRegion = (typeof PASSIVE_REGIONS)[number];
 ```
@@ -227,9 +286,9 @@ export interface RolledAffix {
  * The catalog entry (ItemDef) is immutable; ItemInstance holds the rolled values.
  */
 export interface ItemInstance {
-  id: string;               // uuid generated at drop
-  defId: string;            // points to ItemDef.id
-  acquiredLevel: number;    // requiredLevel at time of acquisition
+  id: string; // uuid generated at drop
+  defId: string; // points to ItemDef.id
+  acquiredLevel: number; // requiredLevel at time of acquisition
   rolledStats: Partial<Stats>;
   rolledPrimaryAffix: number;
   rolledAffixes: RolledAffix[];
@@ -272,18 +331,30 @@ export function validateActiveSkill(s: ActiveSkillDef): ActiveSkillDef {
   assert(s.name.trim().length > 0, `activeSkill ${s.id}: missing name`);
   assert(s.description.trim().length > 0, `activeSkill ${s.id}: missing description`);
   assert((RARITIES as readonly string[]).includes(s.rarity), `activeSkill ${s.id}: bad rarity`);
-  assert((DAMAGE_TYPES as readonly string[]).includes(s.damageType), `activeSkill ${s.id}: bad damageType`);
+  assert(
+    (DAMAGE_TYPES as readonly string[]).includes(s.damageType),
+    `activeSkill ${s.id}: bad damageType`,
+  );
   assert(s.basePower > 0, `activeSkill ${s.id}: basePower must be > 0`);
   if (s.requiresWeapon !== undefined) {
-    assert((WEAPON_TYPES as readonly string[]).includes(s.requiresWeapon), `activeSkill ${s.id}: bad requiresWeapon`);
+    assert(
+      (WEAPON_TYPES as readonly string[]).includes(s.requiresWeapon),
+      `activeSkill ${s.id}: bad requiresWeapon`,
+    );
   }
   return s;
 }
 
 export function validatePassiveNode(n: PassiveNodeDef): PassiveNodeDef {
   assert(n.id.trim().length > 0, "passiveNode: missing id");
-  assert((PASSIVE_NODE_TYPES as readonly string[]).includes(n.type), `passiveNode ${n.id}: bad type`);
-  assert((PASSIVE_REGIONS as readonly string[]).includes(n.region), `passiveNode ${n.id}: bad region`);
+  assert(
+    (PASSIVE_NODE_TYPES as readonly string[]).includes(n.type),
+    `passiveNode ${n.id}: bad type`,
+  );
+  assert(
+    (PASSIVE_REGIONS as readonly string[]).includes(n.region),
+    `passiveNode ${n.id}: bad region`,
+  );
   assert(n.neighbors.length >= 1, `passiveNode ${n.id}: must have at least 1 neighbor`);
   return n;
 }
@@ -306,6 +377,7 @@ export function validateItemDef(item: ItemDef): ItemDef {
 ```bash
 npm run typecheck && npm test -- tests/schema-phase3a.test.ts 2>&1 | tail -15
 ```
+
 Expected: all 6 new tests pass; existing 57 tests unaffected.
 
 - [ ] **Step 1.5 — Commit**
@@ -320,6 +392,7 @@ git commit -m "feat(schema): WeaponType, PassiveNodeDef, ActiveSkillDef, new Ite
 ## Task 2 — StatAccumulator Pipeline
 
 **Files:**
+
 - Create: `src/core/stats.ts`
 - Create: `tests/stats.test.ts`
 
@@ -366,9 +439,9 @@ describe("StatAccumulator — resolve", () => {
   it("flat + increased + more compose correctly", () => {
     const base = makeStats({ atk: 100 });
     let acc = makeAcc();
-    acc = addFlat(acc, { atk: 20 });       // base+flat = 120
+    acc = addFlat(acc, { atk: 20 }); // base+flat = 120
     acc = addIncreased(acc, { atk: 0.5 }); // × 1.5 = 180
-    acc = addMore(acc, { atk: 0.2 });      // × 1.2 = 216
+    acc = addMore(acc, { atk: 0.2 }); // × 1.2 = 216
     const result = resolveAcc(base, acc);
     expect(result.atk).toBeCloseTo(216, 5);
   });
@@ -435,6 +508,7 @@ describe("towerStatPipeline", () => {
 ```bash
 npm test -- tests/stats.test.ts 2>&1 | tail -10
 ```
+
 Expected: import errors (module not found).
 
 - [ ] **Step 2.3 — Create `src/core/stats.ts`**
@@ -547,7 +621,7 @@ export function heroStatPipeline(
 
   // Layers 2–3 — item base stats + affix stats (all flat/increased)
   for (const s of itemStats) acc = addFlat(acc, s);
-  for (const s of affixStats) acc = addFlat(acc, s);  // affixes as flat by default
+  for (const s of affixStats) acc = addFlat(acc, s); // affixes as flat by default
 
   // Layer 4 — passive grid nodes
   for (const node of passiveNodes) {
@@ -602,6 +676,7 @@ export function towerStatPipeline(base: Stats, towerLevel: number, stars: number
 ```bash
 npm run typecheck && npm test -- tests/stats.test.ts 2>&1 | tail -15
 ```
+
 Expected: all 9 tests pass.
 
 - [ ] **Step 2.5 — Commit**
@@ -616,6 +691,7 @@ git commit -m "feat(core): StatAccumulator pipeline with flat/increased/more% la
 ## Task 3 — SaveProvider & LocalSaveProvider
 
 **Files:**
+
 - Create: `src/core/save.ts`
 - Create: `tests/save.test.ts`
 
@@ -637,8 +713,12 @@ import {
 const store: Record<string, string> = {};
 const mockStorage = {
   getItem: (k: string) => store[k] ?? null,
-  setItem: (k: string, v: string) => { store[k] = v; },
-  removeItem: (k: string) => { delete store[k]; },
+  setItem: (k: string, v: string) => {
+    store[k] = v;
+  },
+  removeItem: (k: string) => {
+    delete store[k];
+  },
 };
 
 describe("LocalSaveProvider", () => {
@@ -714,6 +794,7 @@ describe("loadAndMigrate", () => {
 ```bash
 npm test -- tests/save.test.ts 2>&1 | tail -10
 ```
+
 Expected: import errors.
 
 - [ ] **Step 3.3 — Create `src/core/save.ts`**
@@ -855,6 +936,7 @@ export class LocalSaveProvider implements SaveProvider {
 ```bash
 npm run typecheck && npm test -- tests/save.test.ts 2>&1 | tail -15
 ```
+
 Expected: all 8 tests pass.
 
 - [ ] **Step 3.5 — Commit**
@@ -869,6 +951,7 @@ git commit -m "feat(core): SaveProvider interface + LocalSaveProvider with migra
 ## Task 4 — Hero XP Engine
 
 **Files:**
+
 - Create: `src/core/hero.ts`
 - Create: `tests/hero.test.ts`
 
@@ -1114,6 +1197,7 @@ export function awardSkillUseXp(save: HeroSave, skillId: string): void {
 ```bash
 npm run typecheck && npm test -- tests/hero.test.ts 2>&1 | tail -15
 ```
+
 Expected: all 14 tests pass.
 
 - [ ] **Step 4.5 — Commit**
@@ -1128,6 +1212,7 @@ git commit -m "feat(core): hero XP engine — prestige curve, skill use-XP, leve
 ## Task 5 — Passive Grid Catalog
 
 **Files:**
+
 - Create: `src/data/passiveGrid.ts`
 - Create: `tests/passiveGrid.test.ts`
 
@@ -1158,7 +1243,10 @@ describe("PASSIVE_NODES catalog", () => {
   it("all neighbor references point to existing nodes", () => {
     for (const node of PASSIVE_NODES) {
       for (const neighborId of node.neighbors) {
-        expect(PASSIVE_NODES_MAP.has(neighborId), `${node.id} references missing neighbor ${neighborId}`).toBe(true);
+        expect(
+          PASSIVE_NODES_MAP.has(neighborId),
+          `${node.id} references missing neighbor ${neighborId}`,
+        ).toBe(true);
       }
     }
   });
@@ -1167,7 +1255,9 @@ describe("PASSIVE_NODES catalog", () => {
     for (const node of PASSIVE_NODES) {
       for (const neighborId of node.neighbors) {
         const neighbor = PASSIVE_NODES_MAP.get(neighborId)!;
-        expect(neighbor.neighbors, `${neighborId} doesn't list ${node.id} as neighbor`).toContain(node.id);
+        expect(neighbor.neighbors, `${neighborId} doesn't list ${node.id} as neighbor`).toContain(
+          node.id,
+        );
       }
     }
   });
@@ -1201,9 +1291,7 @@ describe("getReachableNodes", () => {
 
   it("prestige nodes locked below required hero level", () => {
     const reachable = getReachableNodes([], 1);
-    const locked = reachable.filter(
-      (n) => n.region === "prestige" && (n.unlockAtLevel ?? 0) > 1
-    );
+    const locked = reachable.filter((n) => n.region === "prestige" && (n.unlockAtLevel ?? 0) > 1);
     expect(locked.length).toBe(0);
   });
 });
@@ -1237,253 +1325,662 @@ function n(def: PassiveNodeDef): PassiveNodeDef {
 
 export const PASSIVE_NODES: PassiveNodeDef[] = [
   // ── Starting node ──────────────────────────────────────────────────────
-  n({ id: "grid-start", type: "notable", region: "brawler", name: "Warrior's Origin",
-      description: "The beginning of all paths.", gridX: 12, gridY: 9,
-      neighbors: ["brawler-p1", "arcane-p1", "warden-p1", "predator-p1"],
-      flat: { atk: 5, maxHp: 30 } }),
+  n({
+    id: "grid-start",
+    type: "notable",
+    region: "brawler",
+    name: "Warrior's Origin",
+    description: "The beginning of all paths.",
+    gridX: 12,
+    gridY: 9,
+    neighbors: ["brawler-p1", "arcane-p1", "warden-p1", "predator-p1"],
+    flat: { atk: 5, maxHp: 30 },
+  }),
 
   // ── Brawler region ─────────────────────────────────────────────────────
-  n({ id: "brawler-p1", type: "path", region: "brawler", name: "+3% ATK",
-      description: "Strike harder.", gridX: 10, gridY: 8,
-      neighbors: ["grid-start", "brawler-p2"], increased: { atk: 0.03 } }),
-  n({ id: "brawler-p2", type: "path", region: "brawler", name: "+3% ATK",
-      description: "Strike harder.", gridX: 8, gridY: 7,
-      neighbors: ["brawler-p1", "brawler-notable-1"], increased: { atk: 0.03 } }),
-  n({ id: "brawler-notable-1", type: "notable", region: "brawler", name: "Brutality",
-      description: "+12% ATK, +8% crit rate.", gridX: 7, gridY: 6,
-      neighbors: ["brawler-p2", "brawler-p3", "brawler-mastery-1"],
-      increased: { atk: 0.12, critRate: 0.08 } }),
-  n({ id: "brawler-mastery-1", type: "mastery", region: "brawler", name: "Brawler Mastery",
-      description: "Choose: +20% crit dmg, or +15% armor pen, or +10% ATK.",
-      gridX: 6, gridY: 5,
-      neighbors: ["brawler-notable-1"],
-      effectId: "brawler-mastery", increased: { critDamage: 0.2 } }),
-  n({ id: "brawler-p3", type: "path", region: "brawler", name: "+5% crit dmg",
-      description: "Hit harder on crits.", gridX: 6, gridY: 7,
-      neighbors: ["brawler-notable-1", "brawler-notable-2"], increased: { critDamage: 0.05 } }),
-  n({ id: "brawler-notable-2", type: "notable", region: "brawler", name: "Predatory Strikes",
-      description: "+10% ATK, +10% crit rate, +15% crit dmg.", gridX: 5, gridY: 8,
-      neighbors: ["brawler-p3", "brawler-keystone-1"],
-      increased: { atk: 0.10, critRate: 0.10, critDamage: 0.15 } }),
-  n({ id: "brawler-keystone-1", type: "keystone", region: "brawler", name: "Executioner",
-      description: "Hits vs enemies below 25% HP deal ×1.5 damage.",
-      gridX: 4, gridY: 9,
-      neighbors: ["brawler-notable-2"],
-      effectId: "executioner", more: { atk: 0.5 } }),
-  n({ id: "brawler-p4", type: "path", region: "brawler", name: "+4% armorPen",
-      description: "Pierce defences.", gridX: 9, gridY: 6,
-      neighbors: ["brawler-notable-1", "brawler-p5"], increased: { armorPen: 0.04 } }),
-  n({ id: "brawler-p5", type: "path", region: "brawler", name: "+4% armorPen",
-      description: "Pierce defences.", gridX: 8, gridY: 5,
-      neighbors: ["brawler-p4"], increased: { armorPen: 0.04 } }),
-  n({ id: "brawler-jewel-1", type: "jewel-socket", region: "brawler", name: "Jewel Socket",
-      description: "Insert a Jewel to modify nearby nodes.", gridX: 7, gridY: 4,
-      neighbors: ["brawler-p5"] }),
+  n({
+    id: "brawler-p1",
+    type: "path",
+    region: "brawler",
+    name: "+3% ATK",
+    description: "Strike harder.",
+    gridX: 10,
+    gridY: 8,
+    neighbors: ["grid-start", "brawler-p2"],
+    increased: { atk: 0.03 },
+  }),
+  n({
+    id: "brawler-p2",
+    type: "path",
+    region: "brawler",
+    name: "+3% ATK",
+    description: "Strike harder.",
+    gridX: 8,
+    gridY: 7,
+    neighbors: ["brawler-p1", "brawler-notable-1"],
+    increased: { atk: 0.03 },
+  }),
+  n({
+    id: "brawler-notable-1",
+    type: "notable",
+    region: "brawler",
+    name: "Brutality",
+    description: "+12% ATK, +8% crit rate.",
+    gridX: 7,
+    gridY: 6,
+    neighbors: ["brawler-p2", "brawler-p3", "brawler-mastery-1"],
+    increased: { atk: 0.12, critRate: 0.08 },
+  }),
+  n({
+    id: "brawler-mastery-1",
+    type: "mastery",
+    region: "brawler",
+    name: "Brawler Mastery",
+    description: "Choose: +20% crit dmg, or +15% armor pen, or +10% ATK.",
+    gridX: 6,
+    gridY: 5,
+    neighbors: ["brawler-notable-1"],
+    effectId: "brawler-mastery",
+    increased: { critDamage: 0.2 },
+  }),
+  n({
+    id: "brawler-p3",
+    type: "path",
+    region: "brawler",
+    name: "+5% crit dmg",
+    description: "Hit harder on crits.",
+    gridX: 6,
+    gridY: 7,
+    neighbors: ["brawler-notable-1", "brawler-notable-2"],
+    increased: { critDamage: 0.05 },
+  }),
+  n({
+    id: "brawler-notable-2",
+    type: "notable",
+    region: "brawler",
+    name: "Predatory Strikes",
+    description: "+10% ATK, +10% crit rate, +15% crit dmg.",
+    gridX: 5,
+    gridY: 8,
+    neighbors: ["brawler-p3", "brawler-keystone-1"],
+    increased: { atk: 0.1, critRate: 0.1, critDamage: 0.15 },
+  }),
+  n({
+    id: "brawler-keystone-1",
+    type: "keystone",
+    region: "brawler",
+    name: "Executioner",
+    description: "Hits vs enemies below 25% HP deal ×1.5 damage.",
+    gridX: 4,
+    gridY: 9,
+    neighbors: ["brawler-notable-2"],
+    effectId: "executioner",
+    more: { atk: 0.5 },
+  }),
+  n({
+    id: "brawler-p4",
+    type: "path",
+    region: "brawler",
+    name: "+4% armorPen",
+    description: "Pierce defences.",
+    gridX: 9,
+    gridY: 6,
+    neighbors: ["brawler-notable-1", "brawler-p5"],
+    increased: { armorPen: 0.04 },
+  }),
+  n({
+    id: "brawler-p5",
+    type: "path",
+    region: "brawler",
+    name: "+4% armorPen",
+    description: "Pierce defences.",
+    gridX: 8,
+    gridY: 5,
+    neighbors: ["brawler-p4"],
+    increased: { armorPen: 0.04 },
+  }),
+  n({
+    id: "brawler-jewel-1",
+    type: "jewel-socket",
+    region: "brawler",
+    name: "Jewel Socket",
+    description: "Insert a Jewel to modify nearby nodes.",
+    gridX: 7,
+    gridY: 4,
+    neighbors: ["brawler-p5"],
+  }),
 
   // ── Arcane region ──────────────────────────────────────────────────────
-  n({ id: "arcane-p1", type: "path", region: "arcane", name: "+3% skillPower",
-      description: "Empower your spells.", gridX: 14, gridY: 8,
-      neighbors: ["grid-start", "arcane-p2"], increased: { skillPower: 0.03 } }),
-  n({ id: "arcane-p2", type: "path", region: "arcane", name: "+3% magicPen",
-      description: "Your magic pierces resistance.", gridX: 16, gridY: 7,
-      neighbors: ["arcane-p1", "arcane-notable-1"], increased: { magicPen: 0.03 } }),
-  n({ id: "arcane-notable-1", type: "notable", region: "arcane", name: "Arcane Surge",
-      description: "+15% skillPower, +10% magicPen.", gridX: 17, gridY: 6,
-      neighbors: ["arcane-p2", "arcane-p3", "arcane-mastery-1"],
-      increased: { skillPower: 0.15, magicPen: 0.10 } }),
-  n({ id: "arcane-mastery-1", type: "mastery", region: "arcane", name: "Arcane Mastery",
-      description: "Choose: +15% skillPower, or +20% mana, or +10 manaOnHit.",
-      gridX: 18, gridY: 5,
-      neighbors: ["arcane-notable-1"],
-      effectId: "arcane-mastery", increased: { skillPower: 0.15 } }),
-  n({ id: "arcane-p3", type: "path", region: "arcane", name: "+4% skillPower",
-      description: "Empower your spells.", gridX: 18, gridY: 7,
-      neighbors: ["arcane-notable-1", "arcane-notable-2"], increased: { skillPower: 0.04 } }),
-  n({ id: "arcane-notable-2", type: "notable", region: "arcane", name: "Font of Power",
-      description: "+20% maxMana, +5 manaRegen, +12% skillPower.", gridX: 19, gridY: 8,
-      neighbors: ["arcane-p3", "arcane-keystone-1"],
-      increased: { maxMana: 0.20, skillPower: 0.12 }, flat: { manaRegen: 5 } }),
-  n({ id: "arcane-keystone-1", type: "keystone", region: "arcane", name: "Spellweave",
-      description: "Every 3rd cast costs no mana and deals ×2 skill damage.",
-      gridX: 20, gridY: 9,
-      neighbors: ["arcane-notable-2"],
-      effectId: "spellweave", more: { skillPower: 1.0 } }),
+  n({
+    id: "arcane-p1",
+    type: "path",
+    region: "arcane",
+    name: "+3% skillPower",
+    description: "Empower your spells.",
+    gridX: 14,
+    gridY: 8,
+    neighbors: ["grid-start", "arcane-p2"],
+    increased: { skillPower: 0.03 },
+  }),
+  n({
+    id: "arcane-p2",
+    type: "path",
+    region: "arcane",
+    name: "+3% magicPen",
+    description: "Your magic pierces resistance.",
+    gridX: 16,
+    gridY: 7,
+    neighbors: ["arcane-p1", "arcane-notable-1"],
+    increased: { magicPen: 0.03 },
+  }),
+  n({
+    id: "arcane-notable-1",
+    type: "notable",
+    region: "arcane",
+    name: "Arcane Surge",
+    description: "+15% skillPower, +10% magicPen.",
+    gridX: 17,
+    gridY: 6,
+    neighbors: ["arcane-p2", "arcane-p3", "arcane-mastery-1"],
+    increased: { skillPower: 0.15, magicPen: 0.1 },
+  }),
+  n({
+    id: "arcane-mastery-1",
+    type: "mastery",
+    region: "arcane",
+    name: "Arcane Mastery",
+    description: "Choose: +15% skillPower, or +20% mana, or +10 manaOnHit.",
+    gridX: 18,
+    gridY: 5,
+    neighbors: ["arcane-notable-1"],
+    effectId: "arcane-mastery",
+    increased: { skillPower: 0.15 },
+  }),
+  n({
+    id: "arcane-p3",
+    type: "path",
+    region: "arcane",
+    name: "+4% skillPower",
+    description: "Empower your spells.",
+    gridX: 18,
+    gridY: 7,
+    neighbors: ["arcane-notable-1", "arcane-notable-2"],
+    increased: { skillPower: 0.04 },
+  }),
+  n({
+    id: "arcane-notable-2",
+    type: "notable",
+    region: "arcane",
+    name: "Font of Power",
+    description: "+20% maxMana, +5 manaRegen, +12% skillPower.",
+    gridX: 19,
+    gridY: 8,
+    neighbors: ["arcane-p3", "arcane-keystone-1"],
+    increased: { maxMana: 0.2, skillPower: 0.12 },
+    flat: { manaRegen: 5 },
+  }),
+  n({
+    id: "arcane-keystone-1",
+    type: "keystone",
+    region: "arcane",
+    name: "Spellweave",
+    description: "Every 3rd cast costs no mana and deals ×2 skill damage.",
+    gridX: 20,
+    gridY: 9,
+    neighbors: ["arcane-notable-2"],
+    effectId: "spellweave",
+    more: { skillPower: 1.0 },
+  }),
 
   // ── Warden region ──────────────────────────────────────────────────────
-  n({ id: "warden-p1", type: "path", region: "warden", name: "+30 maxHp",
-      description: "Bolster your vitality.", gridX: 10, gridY: 10,
-      neighbors: ["grid-start", "warden-p2"], flat: { maxHp: 30 } }),
-  n({ id: "warden-p2", type: "path", region: "warden", name: "+5 armor",
-      description: "Harden your defence.", gridX: 8, gridY: 11,
-      neighbors: ["warden-p1", "warden-notable-1"], flat: { armor: 5 } }),
-  n({ id: "warden-notable-1", type: "notable", region: "warden", name: "Iron Bastion",
-      description: "+80 maxHp, +10 armor, +5% hpRegen.", gridX: 7, gridY: 12,
-      neighbors: ["warden-p2", "warden-p3", "warden-mastery-1"],
-      flat: { maxHp: 80, armor: 10 }, increased: { hpRegen: 0.05 } }),
-  n({ id: "warden-mastery-1", type: "mastery", region: "warden", name: "Warden Mastery",
-      description: "Choose: +15% dmgReduction, or +20% magicResist, or +100 maxHp.",
-      gridX: 6, gridY: 13,
-      neighbors: ["warden-notable-1"],
-      effectId: "warden-mastery", increased: { damageReduction: 0.15 } }),
-  n({ id: "warden-p3", type: "path", region: "warden", name: "+5 magicResist",
-      description: "Resist hostile magic.", gridX: 8, gridY: 13,
-      neighbors: ["warden-notable-1", "warden-notable-2"], flat: { magicResist: 5 } }),
-  n({ id: "warden-notable-2", type: "notable", region: "warden", name: "Stone Wall",
-      description: "+120 maxHp, +8 armor, +8 magicResist.", gridX: 7, gridY: 14,
-      neighbors: ["warden-p3", "warden-keystone-1"],
-      flat: { maxHp: 120, armor: 8, magicResist: 8 } }),
-  n({ id: "warden-keystone-1", type: "keystone", region: "warden", name: "Fortress",
-      description: "Immune to stun; lose 15% move speed.",
-      gridX: 6, gridY: 15,
-      neighbors: ["warden-notable-2"],
-      effectId: "fortress", flat: { tenacity: 1 }, increased: { moveSpeed: -0.15 } }),
+  n({
+    id: "warden-p1",
+    type: "path",
+    region: "warden",
+    name: "+30 maxHp",
+    description: "Bolster your vitality.",
+    gridX: 10,
+    gridY: 10,
+    neighbors: ["grid-start", "warden-p2"],
+    flat: { maxHp: 30 },
+  }),
+  n({
+    id: "warden-p2",
+    type: "path",
+    region: "warden",
+    name: "+5 armor",
+    description: "Harden your defence.",
+    gridX: 8,
+    gridY: 11,
+    neighbors: ["warden-p1", "warden-notable-1"],
+    flat: { armor: 5 },
+  }),
+  n({
+    id: "warden-notable-1",
+    type: "notable",
+    region: "warden",
+    name: "Iron Bastion",
+    description: "+80 maxHp, +10 armor, +5% hpRegen.",
+    gridX: 7,
+    gridY: 12,
+    neighbors: ["warden-p2", "warden-p3", "warden-mastery-1"],
+    flat: { maxHp: 80, armor: 10 },
+    increased: { hpRegen: 0.05 },
+  }),
+  n({
+    id: "warden-mastery-1",
+    type: "mastery",
+    region: "warden",
+    name: "Warden Mastery",
+    description: "Choose: +15% dmgReduction, or +20% magicResist, or +100 maxHp.",
+    gridX: 6,
+    gridY: 13,
+    neighbors: ["warden-notable-1"],
+    effectId: "warden-mastery",
+    increased: { damageReduction: 0.15 },
+  }),
+  n({
+    id: "warden-p3",
+    type: "path",
+    region: "warden",
+    name: "+5 magicResist",
+    description: "Resist hostile magic.",
+    gridX: 8,
+    gridY: 13,
+    neighbors: ["warden-notable-1", "warden-notable-2"],
+    flat: { magicResist: 5 },
+  }),
+  n({
+    id: "warden-notable-2",
+    type: "notable",
+    region: "warden",
+    name: "Stone Wall",
+    description: "+120 maxHp, +8 armor, +8 magicResist.",
+    gridX: 7,
+    gridY: 14,
+    neighbors: ["warden-p3", "warden-keystone-1"],
+    flat: { maxHp: 120, armor: 8, magicResist: 8 },
+  }),
+  n({
+    id: "warden-keystone-1",
+    type: "keystone",
+    region: "warden",
+    name: "Fortress",
+    description: "Immune to stun; lose 15% move speed.",
+    gridX: 6,
+    gridY: 15,
+    neighbors: ["warden-notable-2"],
+    effectId: "fortress",
+    flat: { tenacity: 1 },
+    increased: { moveSpeed: -0.15 },
+  }),
 
   // ── Tactician region ───────────────────────────────────────────────────
-  n({ id: "tactician-p1", type: "path", region: "tactician", name: "+2% goldFind",
-      description: "Squeeze more from every kill.", gridX: 14, gridY: 10,
-      neighbors: ["grid-start", "tactician-p2"], increased: { goldFind: 0.02 } }),
-  n({ id: "tactician-p2", type: "path", region: "tactician", name: "+3% goldFind",
-      description: "Wealth follows the tactician.", gridX: 16, gridY: 11,
-      neighbors: ["tactician-p1", "tactician-notable-1"], increased: { goldFind: 0.03 } }),
-  n({ id: "tactician-notable-1", type: "notable", region: "tactician", name: "Quartermaster",
-      description: "+10% goldFind, +10 manaOnKill.", gridX: 17, gridY: 12,
-      neighbors: ["tactician-p2", "tactician-p3", "tactician-mastery-1"],
-      increased: { goldFind: 0.10 }, flat: { manaOnKill: 10 } }),
-  n({ id: "tactician-mastery-1", type: "mastery", region: "tactician", name: "Tactician Mastery",
-      description: "Choose: +20% goldFind, or towers gain +5% ATK in range, or -10% tower cost.",
-      gridX: 18, gridY: 13,
-      neighbors: ["tactician-notable-1"],
-      effectId: "tactician-mastery", increased: { goldFind: 0.20 } }),
-  n({ id: "tactician-p3", type: "path", region: "tactician", name: "+5 manaOnKill",
-      description: "Every kill powers your arsenal.", gridX: 17, gridY: 14,
-      neighbors: ["tactician-notable-1", "tactician-keystone-1"], flat: { manaOnKill: 5 } }),
-  n({ id: "tactician-keystone-1", type: "keystone", region: "tactician", name: "Warlord",
-      description: "Towers placed within 5s cost 20% less; each placement heals hero 5% max HP.",
-      gridX: 18, gridY: 15,
-      neighbors: ["tactician-p3"],
-      effectId: "warlord" }),
+  n({
+    id: "tactician-p1",
+    type: "path",
+    region: "tactician",
+    name: "+2% goldFind",
+    description: "Squeeze more from every kill.",
+    gridX: 14,
+    gridY: 10,
+    neighbors: ["grid-start", "tactician-p2"],
+    increased: { goldFind: 0.02 },
+  }),
+  n({
+    id: "tactician-p2",
+    type: "path",
+    region: "tactician",
+    name: "+3% goldFind",
+    description: "Wealth follows the tactician.",
+    gridX: 16,
+    gridY: 11,
+    neighbors: ["tactician-p1", "tactician-notable-1"],
+    increased: { goldFind: 0.03 },
+  }),
+  n({
+    id: "tactician-notable-1",
+    type: "notable",
+    region: "tactician",
+    name: "Quartermaster",
+    description: "+10% goldFind, +10 manaOnKill.",
+    gridX: 17,
+    gridY: 12,
+    neighbors: ["tactician-p2", "tactician-p3", "tactician-mastery-1"],
+    increased: { goldFind: 0.1 },
+    flat: { manaOnKill: 10 },
+  }),
+  n({
+    id: "tactician-mastery-1",
+    type: "mastery",
+    region: "tactician",
+    name: "Tactician Mastery",
+    description: "Choose: +20% goldFind, or towers gain +5% ATK in range, or -10% tower cost.",
+    gridX: 18,
+    gridY: 13,
+    neighbors: ["tactician-notable-1"],
+    effectId: "tactician-mastery",
+    increased: { goldFind: 0.2 },
+  }),
+  n({
+    id: "tactician-p3",
+    type: "path",
+    region: "tactician",
+    name: "+5 manaOnKill",
+    description: "Every kill powers your arsenal.",
+    gridX: 17,
+    gridY: 14,
+    neighbors: ["tactician-notable-1", "tactician-keystone-1"],
+    flat: { manaOnKill: 5 },
+  }),
+  n({
+    id: "tactician-keystone-1",
+    type: "keystone",
+    region: "tactician",
+    name: "Warlord",
+    description: "Towers placed within 5s cost 20% less; each placement heals hero 5% max HP.",
+    gridX: 18,
+    gridY: 15,
+    neighbors: ["tactician-p3"],
+    effectId: "warlord",
+  }),
 
   // ── Predator region ────────────────────────────────────────────────────
-  n({ id: "predator-p1", type: "path", region: "predator", name: "+2% omnivamp",
-      description: "Steal life from every blow.", gridX: 12, gridY: 11,
-      neighbors: ["grid-start", "predator-p2"], increased: { omnivamp: 0.02 } }),
-  n({ id: "predator-p2", type: "path", region: "predator", name: "+5 manaOnHit",
-      description: "Each blow fills your reserves.", gridX: 12, gridY: 13,
-      neighbors: ["predator-p1", "predator-notable-1"], flat: { manaOnHit: 5 } }),
-  n({ id: "predator-notable-1", type: "notable", region: "predator", name: "Bloodthirst",
-      description: "+5% omnivamp, +8 manaOnKill.", gridX: 11, gridY: 14,
-      neighbors: ["predator-p2", "predator-p3"],
-      increased: { omnivamp: 0.05 }, flat: { manaOnKill: 8 } }),
-  n({ id: "predator-p3", type: "path", region: "predator", name: "+3% omnivamp",
-      description: "Feed on your enemies.", gridX: 11, gridY: 15,
-      neighbors: ["predator-notable-1", "predator-keystone-1"], increased: { omnivamp: 0.03 } }),
-  n({ id: "predator-keystone-1", type: "keystone", region: "predator", name: "Momentum",
-      description: "On kill: +8% ATK stacking ×5; resets on taking damage.",
-      gridX: 10, gridY: 16,
-      neighbors: ["predator-p3"],
-      effectId: "momentum" }),
+  n({
+    id: "predator-p1",
+    type: "path",
+    region: "predator",
+    name: "+2% omnivamp",
+    description: "Steal life from every blow.",
+    gridX: 12,
+    gridY: 11,
+    neighbors: ["grid-start", "predator-p2"],
+    increased: { omnivamp: 0.02 },
+  }),
+  n({
+    id: "predator-p2",
+    type: "path",
+    region: "predator",
+    name: "+5 manaOnHit",
+    description: "Each blow fills your reserves.",
+    gridX: 12,
+    gridY: 13,
+    neighbors: ["predator-p1", "predator-notable-1"],
+    flat: { manaOnHit: 5 },
+  }),
+  n({
+    id: "predator-notable-1",
+    type: "notable",
+    region: "predator",
+    name: "Bloodthirst",
+    description: "+5% omnivamp, +8 manaOnKill.",
+    gridX: 11,
+    gridY: 14,
+    neighbors: ["predator-p2", "predator-p3"],
+    increased: { omnivamp: 0.05 },
+    flat: { manaOnKill: 8 },
+  }),
+  n({
+    id: "predator-p3",
+    type: "path",
+    region: "predator",
+    name: "+3% omnivamp",
+    description: "Feed on your enemies.",
+    gridX: 11,
+    gridY: 15,
+    neighbors: ["predator-notable-1", "predator-keystone-1"],
+    increased: { omnivamp: 0.03 },
+  }),
+  n({
+    id: "predator-keystone-1",
+    type: "keystone",
+    region: "predator",
+    name: "Momentum",
+    description: "On kill: +8% ATK stacking ×5; resets on taking damage.",
+    gridX: 10,
+    gridY: 16,
+    neighbors: ["predator-p3"],
+    effectId: "momentum",
+  }),
 
   // ── Phantom region ─────────────────────────────────────────────────────
-  n({ id: "phantom-p1", type: "path", region: "phantom", name: "+5% moveSpeed",
-      description: "Move like a ghost.", gridX: 12, gridY: 7,
-      neighbors: ["grid-start", "phantom-p2"], increased: { moveSpeed: 0.05 } }),
-  n({ id: "phantom-p2", type: "path", region: "phantom", name: "+5% moveSpeed",
-      description: "Flow through the battle.", gridX: 12, gridY: 5,
-      neighbors: ["phantom-p1", "phantom-notable-1"], increased: { moveSpeed: 0.05 } }),
-  n({ id: "phantom-notable-1", type: "notable", region: "phantom", name: "Fleet-Footed",
-      description: "+15% moveSpeed, +10% tenacity.", gridX: 11, gridY: 4,
-      neighbors: ["phantom-p2", "phantom-p3"],
-      increased: { moveSpeed: 0.15, tenacity: 0.10 } }),
-  n({ id: "phantom-p3", type: "path", region: "phantom", name: "+5% attackSpeed",
-      description: "Swift hands.", gridX: 10, gridY: 3,
-      neighbors: ["phantom-notable-1", "phantom-keystone-1"], increased: { attackSpeed: 0.05 } }),
-  n({ id: "phantom-keystone-1", type: "keystone", region: "phantom", name: "Ghost Step",
-      description: "Once per 8s the next incoming hit misses entirely.",
-      gridX: 9, gridY: 2,
-      neighbors: ["phantom-p3"],
-      effectId: "ghost-step" }),
+  n({
+    id: "phantom-p1",
+    type: "path",
+    region: "phantom",
+    name: "+5% moveSpeed",
+    description: "Move like a ghost.",
+    gridX: 12,
+    gridY: 7,
+    neighbors: ["grid-start", "phantom-p2"],
+    increased: { moveSpeed: 0.05 },
+  }),
+  n({
+    id: "phantom-p2",
+    type: "path",
+    region: "phantom",
+    name: "+5% moveSpeed",
+    description: "Flow through the battle.",
+    gridX: 12,
+    gridY: 5,
+    neighbors: ["phantom-p1", "phantom-notable-1"],
+    increased: { moveSpeed: 0.05 },
+  }),
+  n({
+    id: "phantom-notable-1",
+    type: "notable",
+    region: "phantom",
+    name: "Fleet-Footed",
+    description: "+15% moveSpeed, +10% tenacity.",
+    gridX: 11,
+    gridY: 4,
+    neighbors: ["phantom-p2", "phantom-p3"],
+    increased: { moveSpeed: 0.15, tenacity: 0.1 },
+  }),
+  n({
+    id: "phantom-p3",
+    type: "path",
+    region: "phantom",
+    name: "+5% attackSpeed",
+    description: "Swift hands.",
+    gridX: 10,
+    gridY: 3,
+    neighbors: ["phantom-notable-1", "phantom-keystone-1"],
+    increased: { attackSpeed: 0.05 },
+  }),
+  n({
+    id: "phantom-keystone-1",
+    type: "keystone",
+    region: "phantom",
+    name: "Ghost Step",
+    description: "Once per 8s the next incoming hit misses entirely.",
+    gridX: 9,
+    gridY: 2,
+    neighbors: ["phantom-p3"],
+    effectId: "ghost-step",
+  }),
 
   // ── Conduit region ─────────────────────────────────────────────────────
-  n({ id: "conduit-p1", type: "path", region: "conduit", name: "+3% critRate",
-      description: "Find gaps in every defence.", gridX: 14, gridY: 7,
-      neighbors: ["grid-start", "conduit-p2"], increased: { critRate: 0.03 } }),
-  n({ id: "conduit-p2", type: "path", region: "conduit", name: "+5% skillPower",
-      description: "Channel raw power.", gridX: 15, gridY: 5,
-      neighbors: ["conduit-p1", "conduit-notable-1"], increased: { skillPower: 0.05 } }),
-  n({ id: "conduit-notable-1", type: "notable", region: "conduit", name: "Power Nexus",
-      description: "+10% critRate, +8% skillPower, +5 manaOnHit.", gridX: 16, gridY: 4,
-      neighbors: ["conduit-p2", "conduit-p3"],
-      increased: { critRate: 0.10, skillPower: 0.08 }, flat: { manaOnHit: 5 } }),
-  n({ id: "conduit-p3", type: "path", region: "conduit", name: "+5% critDamage",
-      description: "Amplify each critical hit.", gridX: 17, gridY: 3,
-      neighbors: ["conduit-notable-1", "conduit-keystone-1"], increased: { critDamage: 0.05 } }),
-  n({ id: "conduit-keystone-1", type: "keystone", region: "conduit", name: "Arcane Conduit",
-      description: "On kill: restore 20 mana to nearest 2 towers.",
-      gridX: 18, gridY: 2,
-      neighbors: ["conduit-p3"],
-      effectId: "arcane-conduit" }),
-  n({ id: "conduit-jewel-2", type: "jewel-socket", region: "conduit", name: "Jewel Socket",
-      description: "Insert a Jewel to modify nearby nodes.", gridX: 16, gridY: 3,
-      neighbors: ["conduit-notable-1"] }),
+  n({
+    id: "conduit-p1",
+    type: "path",
+    region: "conduit",
+    name: "+3% critRate",
+    description: "Find gaps in every defence.",
+    gridX: 14,
+    gridY: 7,
+    neighbors: ["grid-start", "conduit-p2"],
+    increased: { critRate: 0.03 },
+  }),
+  n({
+    id: "conduit-p2",
+    type: "path",
+    region: "conduit",
+    name: "+5% skillPower",
+    description: "Channel raw power.",
+    gridX: 15,
+    gridY: 5,
+    neighbors: ["conduit-p1", "conduit-notable-1"],
+    increased: { skillPower: 0.05 },
+  }),
+  n({
+    id: "conduit-notable-1",
+    type: "notable",
+    region: "conduit",
+    name: "Power Nexus",
+    description: "+10% critRate, +8% skillPower, +5 manaOnHit.",
+    gridX: 16,
+    gridY: 4,
+    neighbors: ["conduit-p2", "conduit-p3"],
+    increased: { critRate: 0.1, skillPower: 0.08 },
+    flat: { manaOnHit: 5 },
+  }),
+  n({
+    id: "conduit-p3",
+    type: "path",
+    region: "conduit",
+    name: "+5% critDamage",
+    description: "Amplify each critical hit.",
+    gridX: 17,
+    gridY: 3,
+    neighbors: ["conduit-notable-1", "conduit-keystone-1"],
+    increased: { critDamage: 0.05 },
+  }),
+  n({
+    id: "conduit-keystone-1",
+    type: "keystone",
+    region: "conduit",
+    name: "Arcane Conduit",
+    description: "On kill: restore 20 mana to nearest 2 towers.",
+    gridX: 18,
+    gridY: 2,
+    neighbors: ["conduit-p3"],
+    effectId: "arcane-conduit",
+  }),
+  n({
+    id: "conduit-jewel-2",
+    type: "jewel-socket",
+    region: "conduit",
+    name: "Jewel Socket",
+    description: "Insert a Jewel to modify nearby nodes.",
+    gridX: 16,
+    gridY: 3,
+    neighbors: ["conduit-notable-1"],
+  }),
 
   // ── Prestige region ────────────────────────────────────────────────────
-  n({ id: "prestige-gate-25", type: "notable", region: "prestige",
-      name: "Veteran's Path",
-      description: "Unlocked at level 25. Gateway to the prestige tree.",
-      gridX: 12, gridY: 1,
-      neighbors: ["phantom-keystone-1", "conduit-keystone-1", "prestige-undying"],
-      unlockAtLevel: 25,
-      increased: { atk: 0.05, maxHp: 0.05 } }),
-  n({ id: "prestige-undying", type: "keystone", region: "prestige", name: "Undying",
-      description: "Once per battle survive a lethal hit at 1 HP.",
-      gridX: 10, gridY: 0,
-      neighbors: ["prestige-gate-25"],
-      effectId: "undying", unlockAtLevel: 25 }),
-  n({ id: "prestige-gate-50", type: "notable", region: "prestige",
-      name: "Champion's Gate",
-      description: "Unlocked at level 50.",
-      gridX: 14, gridY: 1,
-      neighbors: ["prestige-gate-25", "prestige-lifeline"],
-      unlockAtLevel: 50,
-      increased: { skillPower: 0.08 } }),
-  n({ id: "prestige-lifeline", type: "keystone", region: "prestige", name: "Lifeline",
-      description: "Omnivamp heals extend to nearby towers for 25% of the amount.",
-      gridX: 15, gridY: 0,
-      neighbors: ["prestige-gate-50"],
-      effectId: "lifeline", unlockAtLevel: 50 }),
-  n({ id: "prestige-gate-75", type: "notable", region: "prestige",
-      name: "Legend's Road",
-      description: "Unlocked at level 75.",
-      gridX: 12, gridY: 0,
-      neighbors: ["prestige-gate-50", "prestige-berserker"],
-      unlockAtLevel: 75,
-      increased: { atk: 0.10 } }),
-  n({ id: "prestige-berserker", type: "keystone", region: "prestige", name: "Berserker",
-      description: "Below 30% HP: +50% ATK, +30% attack speed, ignore armor pen cap.",
-      gridX: 11, gridY: -1,
-      neighbors: ["prestige-gate-75"],
-      effectId: "berserker", unlockAtLevel: 75 }),
-  n({ id: "prestige-gate-90", type: "notable", region: "prestige",
-      name: "Transcendent Gate",
-      description: "Unlocked at level 90. The pinnacle of the prestige tree.",
-      gridX: 13, gridY: 0,
-      neighbors: ["prestige-gate-75", "prestige-transcendence", "prestige-living-fortress"],
-      unlockAtLevel: 90,
-      more: { atk: 0.15 } }),
-  n({ id: "prestige-transcendence", type: "keystone", region: "prestige", name: "Transcendence",
-      description: "Active skills always deal True damage regardless of activeType.",
-      gridX: 14, gridY: -1,
-      neighbors: ["prestige-gate-90"],
-      effectId: "transcendence", unlockAtLevel: 90 }),
-  n({ id: "prestige-living-fortress", type: "keystone", region: "prestige", name: "Living Fortress",
-      description: "Hero blocks enemy pathing in a 1-tile radius.",
-      gridX: 12, gridY: -1,
-      neighbors: ["prestige-gate-90"],
-      effectId: "living-fortress", unlockAtLevel: 90 }),
+  n({
+    id: "prestige-gate-25",
+    type: "notable",
+    region: "prestige",
+    name: "Veteran's Path",
+    description: "Unlocked at level 25. Gateway to the prestige tree.",
+    gridX: 12,
+    gridY: 1,
+    neighbors: ["phantom-keystone-1", "conduit-keystone-1", "prestige-undying"],
+    unlockAtLevel: 25,
+    increased: { atk: 0.05, maxHp: 0.05 },
+  }),
+  n({
+    id: "prestige-undying",
+    type: "keystone",
+    region: "prestige",
+    name: "Undying",
+    description: "Once per battle survive a lethal hit at 1 HP.",
+    gridX: 10,
+    gridY: 0,
+    neighbors: ["prestige-gate-25"],
+    effectId: "undying",
+    unlockAtLevel: 25,
+  }),
+  n({
+    id: "prestige-gate-50",
+    type: "notable",
+    region: "prestige",
+    name: "Champion's Gate",
+    description: "Unlocked at level 50.",
+    gridX: 14,
+    gridY: 1,
+    neighbors: ["prestige-gate-25", "prestige-lifeline"],
+    unlockAtLevel: 50,
+    increased: { skillPower: 0.08 },
+  }),
+  n({
+    id: "prestige-lifeline",
+    type: "keystone",
+    region: "prestige",
+    name: "Lifeline",
+    description: "Omnivamp heals extend to nearby towers for 25% of the amount.",
+    gridX: 15,
+    gridY: 0,
+    neighbors: ["prestige-gate-50"],
+    effectId: "lifeline",
+    unlockAtLevel: 50,
+  }),
+  n({
+    id: "prestige-gate-75",
+    type: "notable",
+    region: "prestige",
+    name: "Legend's Road",
+    description: "Unlocked at level 75.",
+    gridX: 12,
+    gridY: 0,
+    neighbors: ["prestige-gate-50", "prestige-berserker"],
+    unlockAtLevel: 75,
+    increased: { atk: 0.1 },
+  }),
+  n({
+    id: "prestige-berserker",
+    type: "keystone",
+    region: "prestige",
+    name: "Berserker",
+    description: "Below 30% HP: +50% ATK, +30% attack speed, ignore armor pen cap.",
+    gridX: 11,
+    gridY: -1,
+    neighbors: ["prestige-gate-75"],
+    effectId: "berserker",
+    unlockAtLevel: 75,
+  }),
+  n({
+    id: "prestige-gate-90",
+    type: "notable",
+    region: "prestige",
+    name: "Transcendent Gate",
+    description: "Unlocked at level 90. The pinnacle of the prestige tree.",
+    gridX: 13,
+    gridY: 0,
+    neighbors: ["prestige-gate-75", "prestige-transcendence", "prestige-living-fortress"],
+    unlockAtLevel: 90,
+    more: { atk: 0.15 },
+  }),
+  n({
+    id: "prestige-transcendence",
+    type: "keystone",
+    region: "prestige",
+    name: "Transcendence",
+    description: "Active skills always deal True damage regardless of activeType.",
+    gridX: 14,
+    gridY: -1,
+    neighbors: ["prestige-gate-90"],
+    effectId: "transcendence",
+    unlockAtLevel: 90,
+  }),
+  n({
+    id: "prestige-living-fortress",
+    type: "keystone",
+    region: "prestige",
+    name: "Living Fortress",
+    description: "Hero blocks enemy pathing in a 1-tile radius.",
+    gridX: 12,
+    gridY: -1,
+    neighbors: ["prestige-gate-90"],
+    effectId: "living-fortress",
+    unlockAtLevel: 90,
+  }),
 ];
 
 export const PASSIVE_NODES_MAP = new Map<string, PassiveNodeDef>(
-  PASSIVE_NODES.map((n) => [n.id, n])
+  PASSIVE_NODES.map((n) => [n.id, n]),
 );
 
 /**
@@ -1493,10 +1990,7 @@ export const PASSIVE_NODES_MAP = new Map<string, PassiveNodeDef>(
  * and whose region's unlock level <= heroLevel.
  * If no nodes are unlocked, returns the starting node.
  */
-export function getReachableNodes(
-  unlockedIds: string[],
-  heroLevel: number,
-): PassiveNodeDef[] {
+export function getReachableNodes(unlockedIds: string[], heroLevel: number): PassiveNodeDef[] {
   const unlockedSet = new Set(unlockedIds);
   if (unlockedSet.size === 0) {
     const start = PASSIVE_NODES_MAP.get("grid-start");
@@ -1518,6 +2012,7 @@ export function getReachableNodes(
 ```bash
 npm run typecheck && npm test -- tests/passiveGrid.test.ts 2>&1 | tail -15
 ```
+
 Expected: all 7 tests pass.
 
 - [ ] **Step 5.5 — Commit**
@@ -1532,6 +2027,7 @@ git commit -m "feat(content): passive skill grid catalog — 70+ nodes, 8 region
 ## Task 6 — Active Skills & Items Catalogs
 
 **Files:**
+
 - Create: `src/data/skills.ts`
 - Create: `src/data/items.ts`
 - Create: `tests/catalogs.test.ts`
@@ -1652,46 +2148,129 @@ function s(def: ActiveSkillDef): ActiveSkillDef {
 }
 
 export const ACTIVE_SKILLS: ActiveSkillDef[] = [
-  s({ id: "iron-cleave", name: "Iron Cleave", rarity: "Common",
-      description: "A wide arc that cleaves all nearby enemies.",
-      requiresWeapon: "Sword", damageType: "Physical", basePower: 80, artRef: "placeholder" }),
-  s({ id: "stone-bash", name: "Stone Bash", rarity: "Magic",
-      description: "A stunning overhead blow that pulverises armour.",
-      requiresWeapon: "Fist", damageType: "Physical", basePower: 110, artRef: "placeholder" }),
-  s({ id: "execute-slash", name: "Execute", rarity: "Rare",
-      description: "A brutal finishing blow — deals bonus damage to weakened enemies.",
-      requiresWeapon: "Sword", damageType: "Physical", basePower: 160, artRef: "placeholder" }),
-  s({ id: "tri-shot", name: "Tri-Shot", rarity: "Common",
-      description: "Fire three bolts in a wide spread.",
-      requiresWeapon: "Bow", damageType: "Physical", basePower: 75, artRef: "placeholder" }),
-  s({ id: "piercing-arrow", name: "Piercing Arrow", rarity: "Rare",
-      description: "An arrow that passes through every enemy in a line.",
-      requiresWeapon: "Bow", damageType: "Physical", basePower: 145, artRef: "placeholder" }),
-  s({ id: "mana-burst", name: "Mana Burst", rarity: "Common",
-      description: "Release a burst of raw magical energy.",
-      requiresWeapon: "Staff", damageType: "Magic", basePower: 90, artRef: "placeholder" }),
-  s({ id: "arcane-nova", name: "Arcane Nova", rarity: "Legendary",
-      description: "An expanding ring of arcane force that damages everything it touches.",
-      requiresWeapon: "Staff", damageType: "Magic", basePower: 250, artRef: "placeholder" }),
-  s({ id: "rapid-fire", name: "Rapid Fire", rarity: "Magic",
-      description: "A burst of five rapid shots at the nearest enemy.",
-      requiresWeapon: "Gun", damageType: "Physical", basePower: 100, artRef: "placeholder" }),
-  s({ id: "concussion-round", name: "Concussion Round", rarity: "Rare",
-      description: "A heavy round that stuns the target on impact.",
-      requiresWeapon: "Gun", damageType: "Physical", basePower: 140, artRef: "placeholder" }),
-  s({ id: "shadow-curse", name: "Shadow Curse", rarity: "Magic",
-      description: "Apply a weakening curse that amplifies all damage taken.",
-      requiresWeapon: "Tome", damageType: "Magic", basePower: 95, artRef: "placeholder" }),
-  s({ id: "true-strike", name: "True Strike", rarity: "Legendary",
-      description: "A technique perfected beyond all defences — deals True damage.",
-      damageType: "True", basePower: 200, artRef: "placeholder" }),
-  s({ id: "void-palm", name: "Void Palm", rarity: "Unique",
-      description: "A palm strike that tears through reality itself.",
-      requiresWeapon: "Fist", damageType: "True", basePower: 320, artRef: "placeholder" }),
+  s({
+    id: "iron-cleave",
+    name: "Iron Cleave",
+    rarity: "Common",
+    description: "A wide arc that cleaves all nearby enemies.",
+    requiresWeapon: "Sword",
+    damageType: "Physical",
+    basePower: 80,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "stone-bash",
+    name: "Stone Bash",
+    rarity: "Magic",
+    description: "A stunning overhead blow that pulverises armour.",
+    requiresWeapon: "Fist",
+    damageType: "Physical",
+    basePower: 110,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "execute-slash",
+    name: "Execute",
+    rarity: "Rare",
+    description: "A brutal finishing blow — deals bonus damage to weakened enemies.",
+    requiresWeapon: "Sword",
+    damageType: "Physical",
+    basePower: 160,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "tri-shot",
+    name: "Tri-Shot",
+    rarity: "Common",
+    description: "Fire three bolts in a wide spread.",
+    requiresWeapon: "Bow",
+    damageType: "Physical",
+    basePower: 75,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "piercing-arrow",
+    name: "Piercing Arrow",
+    rarity: "Rare",
+    description: "An arrow that passes through every enemy in a line.",
+    requiresWeapon: "Bow",
+    damageType: "Physical",
+    basePower: 145,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "mana-burst",
+    name: "Mana Burst",
+    rarity: "Common",
+    description: "Release a burst of raw magical energy.",
+    requiresWeapon: "Staff",
+    damageType: "Magic",
+    basePower: 90,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "arcane-nova",
+    name: "Arcane Nova",
+    rarity: "Legendary",
+    description: "An expanding ring of arcane force that damages everything it touches.",
+    requiresWeapon: "Staff",
+    damageType: "Magic",
+    basePower: 250,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "rapid-fire",
+    name: "Rapid Fire",
+    rarity: "Magic",
+    description: "A burst of five rapid shots at the nearest enemy.",
+    requiresWeapon: "Gun",
+    damageType: "Physical",
+    basePower: 100,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "concussion-round",
+    name: "Concussion Round",
+    rarity: "Rare",
+    description: "A heavy round that stuns the target on impact.",
+    requiresWeapon: "Gun",
+    damageType: "Physical",
+    basePower: 140,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "shadow-curse",
+    name: "Shadow Curse",
+    rarity: "Magic",
+    description: "Apply a weakening curse that amplifies all damage taken.",
+    requiresWeapon: "Tome",
+    damageType: "Magic",
+    basePower: 95,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "true-strike",
+    name: "True Strike",
+    rarity: "Legendary",
+    description: "A technique perfected beyond all defences — deals True damage.",
+    damageType: "True",
+    basePower: 200,
+    artRef: "placeholder",
+  }),
+  s({
+    id: "void-palm",
+    name: "Void Palm",
+    rarity: "Unique",
+    description: "A palm strike that tears through reality itself.",
+    requiresWeapon: "Fist",
+    damageType: "True",
+    basePower: 320,
+    artRef: "placeholder",
+  }),
 ];
 
 export const ACTIVE_SKILLS_MAP = new Map<string, ActiveSkillDef>(
-  ACTIVE_SKILLS.map((s) => [s.id, s])
+  ACTIVE_SKILLS.map((s) => [s.id, s]),
 );
 ```
 
@@ -1719,149 +2298,250 @@ function i(def: ItemDef): ItemDef {
 
 /** How many random affixes roll per rarity tier. */
 const AFFIX_COUNT: Record<string, number> = {
-  Common: 0, Magic: 1, Rare: 2, Legendary: 3, Unique: 3,
+  Common: 0,
+  Magic: 1,
+  Rare: 2,
+  Legendary: 3,
+  Unique: 3,
 };
 
 export const ITEM_CATALOG: ItemDef[] = [
   // Weapons
-  i({ id: "iron-sword", name: "Iron Sword", slot: "Weapon", weaponType: "Sword",
-      rarity: "Common", requiredLevel: 1,
-      baseStats: { atk: 18 },
-      primaryAffix: { type: "physicalDamage", baseValue: 0.08 },
-      affixPool: ["critRate", "armorPen"],
-      artRef: "placeholder" }),
-  i({ id: "elven-bow", name: "Elven Bow", slot: "Weapon", weaponType: "Bow",
-      rarity: "Magic", requiredLevel: 10,
-      baseStats: { atk: 22, attackSpeed: 0.3 },
-      primaryAffix: { type: "attackSpeed", baseValue: 0.12 },
-      affixPool: ["critRate", "critDamage", "range"],
-      artRef: "placeholder" }),
-  i({ id: "arcane-staff", name: "Arcane Staff", slot: "Weapon", weaponType: "Staff",
-      rarity: "Rare", requiredLevel: 20,
-      baseStats: { atk: 14, skillPower: 0.25, maxMana: 20 },
-      primaryAffix: { type: "magicDamage", baseValue: 0.18 },
-      affixPool: ["skillPower", "magicPen", "manaRegen"],
-      artRef: "placeholder" }),
-  i({ id: "thunder-cannon", name: "Thunder Cannon", slot: "Weapon", weaponType: "Gun",
-      rarity: "Legendary", requiredLevel: 40,
-      baseStats: { atk: 38, armorPen: 0.2 },
-      primaryAffix: { type: "physicalDamage", baseValue: 0.25 },
-      affixPool: ["critRate", "critDamage", "armorPen", "attackSpeed"],
-      artRef: "placeholder" }),
+  i({
+    id: "iron-sword",
+    name: "Iron Sword",
+    slot: "Weapon",
+    weaponType: "Sword",
+    rarity: "Common",
+    requiredLevel: 1,
+    baseStats: { atk: 18 },
+    primaryAffix: { type: "physicalDamage", baseValue: 0.08 },
+    affixPool: ["critRate", "armorPen"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "elven-bow",
+    name: "Elven Bow",
+    slot: "Weapon",
+    weaponType: "Bow",
+    rarity: "Magic",
+    requiredLevel: 10,
+    baseStats: { atk: 22, attackSpeed: 0.3 },
+    primaryAffix: { type: "attackSpeed", baseValue: 0.12 },
+    affixPool: ["critRate", "critDamage", "range"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "arcane-staff",
+    name: "Arcane Staff",
+    slot: "Weapon",
+    weaponType: "Staff",
+    rarity: "Rare",
+    requiredLevel: 20,
+    baseStats: { atk: 14, skillPower: 0.25, maxMana: 20 },
+    primaryAffix: { type: "magicDamage", baseValue: 0.18 },
+    affixPool: ["skillPower", "magicPen", "manaRegen"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "thunder-cannon",
+    name: "Thunder Cannon",
+    slot: "Weapon",
+    weaponType: "Gun",
+    rarity: "Legendary",
+    requiredLevel: 40,
+    baseStats: { atk: 38, armorPen: 0.2 },
+    primaryAffix: { type: "physicalDamage", baseValue: 0.25 },
+    affixPool: ["critRate", "critDamage", "armorPen", "attackSpeed"],
+    artRef: "placeholder",
+  }),
 
   // Helmets
-  i({ id: "leather-cap", name: "Leather Cap", slot: "Helmet",
-      rarity: "Common", requiredLevel: 1,
-      baseStats: { maxHp: 60 },
-      primaryAffix: { type: "maxHp", baseValue: 0.06 },
-      affixPool: ["armor", "hpRegen"],
-      artRef: "placeholder" }),
-  i({ id: "iron-helm", name: "Iron Helm", slot: "Helmet",
-      rarity: "Rare", requiredLevel: 15,
-      baseStats: { maxHp: 120, armor: 8 },
-      primaryAffix: { type: "maxHp", baseValue: 0.12 },
-      affixPool: ["armor", "magicResist", "hpRegen", "tenacity"],
-      artRef: "placeholder" }),
+  i({
+    id: "leather-cap",
+    name: "Leather Cap",
+    slot: "Helmet",
+    rarity: "Common",
+    requiredLevel: 1,
+    baseStats: { maxHp: 60 },
+    primaryAffix: { type: "maxHp", baseValue: 0.06 },
+    affixPool: ["armor", "hpRegen"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "iron-helm",
+    name: "Iron Helm",
+    slot: "Helmet",
+    rarity: "Rare",
+    requiredLevel: 15,
+    baseStats: { maxHp: 120, armor: 8 },
+    primaryAffix: { type: "maxHp", baseValue: 0.12 },
+    affixPool: ["armor", "magicResist", "hpRegen", "tenacity"],
+    artRef: "placeholder",
+  }),
 
   // Body Armor
-  i({ id: "cloth-robe", name: "Cloth Robe", slot: "BodyArmor",
-      rarity: "Common", requiredLevel: 1,
-      baseStats: { maxHp: 80, magicResist: 5 },
-      primaryAffix: { type: "armor", baseValue: 0.06 },
-      affixPool: ["magicResist", "hpRegen"],
-      artRef: "placeholder" }),
-  i({ id: "scale-mail", name: "Scale Mail", slot: "BodyArmor",
-      rarity: "Rare", requiredLevel: 18,
-      baseStats: { maxHp: 150, armor: 12, magicResist: 8 },
-      primaryAffix: { type: "armor", baseValue: 0.15 },
-      affixPool: ["maxHp", "magicResist", "damageReduction"],
-      artRef: "placeholder" }),
+  i({
+    id: "cloth-robe",
+    name: "Cloth Robe",
+    slot: "BodyArmor",
+    rarity: "Common",
+    requiredLevel: 1,
+    baseStats: { maxHp: 80, magicResist: 5 },
+    primaryAffix: { type: "armor", baseValue: 0.06 },
+    affixPool: ["magicResist", "hpRegen"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "scale-mail",
+    name: "Scale Mail",
+    slot: "BodyArmor",
+    rarity: "Rare",
+    requiredLevel: 18,
+    baseStats: { maxHp: 150, armor: 12, magicResist: 8 },
+    primaryAffix: { type: "armor", baseValue: 0.15 },
+    affixPool: ["maxHp", "magicResist", "damageReduction"],
+    artRef: "placeholder",
+  }),
 
   // Gloves
-  i({ id: "worn-gloves", name: "Worn Gloves", slot: "Gloves",
-      rarity: "Common", requiredLevel: 1,
-      baseStats: { critRate: 0.03 },
-      primaryAffix: { type: "critRate", baseValue: 0.04 },
-      affixPool: ["critDamage", "atk"],
-      artRef: "placeholder" }),
-  i({ id: "assassin-gloves", name: "Assassin Gloves", slot: "Gloves",
-      rarity: "Legendary", requiredLevel: 35,
-      baseStats: { critRate: 0.12, critDamage: 0.3, atk: 10 },
-      primaryAffix: { type: "critDamage", baseValue: 0.30 },
-      affixPool: ["critRate", "atk", "armorPen", "attackSpeed"],
-      artRef: "placeholder" }),
+  i({
+    id: "worn-gloves",
+    name: "Worn Gloves",
+    slot: "Gloves",
+    rarity: "Common",
+    requiredLevel: 1,
+    baseStats: { critRate: 0.03 },
+    primaryAffix: { type: "critRate", baseValue: 0.04 },
+    affixPool: ["critDamage", "atk"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "assassin-gloves",
+    name: "Assassin Gloves",
+    slot: "Gloves",
+    rarity: "Legendary",
+    requiredLevel: 35,
+    baseStats: { critRate: 0.12, critDamage: 0.3, atk: 10 },
+    primaryAffix: { type: "critDamage", baseValue: 0.3 },
+    affixPool: ["critRate", "atk", "armorPen", "attackSpeed"],
+    artRef: "placeholder",
+  }),
 
   // Boots
-  i({ id: "worn-boots", name: "Worn Boots", slot: "Boots",
-      rarity: "Common", requiredLevel: 1,
-      baseStats: { moveSpeed: 15 },
-      primaryAffix: { type: "moveSpeed", baseValue: 0.08 },
-      affixPool: ["tenacity", "hpRegen"],
-      artRef: "placeholder" }),
-  i({ id: "swift-boots", name: "Swift Boots", slot: "Boots",
-      rarity: "Rare", requiredLevel: 12,
-      baseStats: { moveSpeed: 28, tenacity: 0.1 },
-      primaryAffix: { type: "moveSpeed", baseValue: 0.18 },
-      affixPool: ["tenacity", "maxHp", "armor"],
-      artRef: "placeholder" }),
+  i({
+    id: "worn-boots",
+    name: "Worn Boots",
+    slot: "Boots",
+    rarity: "Common",
+    requiredLevel: 1,
+    baseStats: { moveSpeed: 15 },
+    primaryAffix: { type: "moveSpeed", baseValue: 0.08 },
+    affixPool: ["tenacity", "hpRegen"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "swift-boots",
+    name: "Swift Boots",
+    slot: "Boots",
+    rarity: "Rare",
+    requiredLevel: 12,
+    baseStats: { moveSpeed: 28, tenacity: 0.1 },
+    primaryAffix: { type: "moveSpeed", baseValue: 0.18 },
+    affixPool: ["tenacity", "maxHp", "armor"],
+    artRef: "placeholder",
+  }),
 
   // Amulet
-  i({ id: "mana-pendant", name: "Mana Pendant", slot: "Amulet",
-      rarity: "Magic", requiredLevel: 8,
-      baseStats: { maxMana: 25, skillPower: 0.08 },
-      primaryAffix: { type: "skillPower", baseValue: 0.10 },
-      affixPool: ["manaRegen", "magicPen", "maxMana"],
-      artRef: "placeholder" }),
+  i({
+    id: "mana-pendant",
+    name: "Mana Pendant",
+    slot: "Amulet",
+    rarity: "Magic",
+    requiredLevel: 8,
+    baseStats: { maxMana: 25, skillPower: 0.08 },
+    primaryAffix: { type: "skillPower", baseValue: 0.1 },
+    affixPool: ["manaRegen", "magicPen", "maxMana"],
+    artRef: "placeholder",
+  }),
 
   // Rings
-  i({ id: "copper-ring", name: "Copper Ring", slot: "Ring1",
-      rarity: "Common", requiredLevel: 1,
-      baseStats: { maxMana: 15, manaRegen: 1 },
-      primaryAffix: { type: "manaRegen", baseValue: 0.08 },
-      affixPool: ["manaOnHit", "maxMana"],
-      artRef: "placeholder" }),
-  i({ id: "resonance-ring", name: "Resonance Ring", slot: "Ring2",
-      rarity: "Rare", requiredLevel: 22,
-      baseStats: { maxMana: 35, manaRegen: 3, manaOnHit: 5 },
-      primaryAffix: { type: "manaOnHit", baseValue: 6 },
-      affixPool: ["manaRegen", "maxMana", "skillPower"],
-      artRef: "placeholder" }),
+  i({
+    id: "copper-ring",
+    name: "Copper Ring",
+    slot: "Ring1",
+    rarity: "Common",
+    requiredLevel: 1,
+    baseStats: { maxMana: 15, manaRegen: 1 },
+    primaryAffix: { type: "manaRegen", baseValue: 0.08 },
+    affixPool: ["manaOnHit", "maxMana"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "resonance-ring",
+    name: "Resonance Ring",
+    slot: "Ring2",
+    rarity: "Rare",
+    requiredLevel: 22,
+    baseStats: { maxMana: 35, manaRegen: 3, manaOnHit: 5 },
+    primaryAffix: { type: "manaOnHit", baseValue: 6 },
+    affixPool: ["manaRegen", "maxMana", "skillPower"],
+    artRef: "placeholder",
+  }),
 
   // Pet
-  i({ id: "coin-sprite", name: "Coin Sprite", slot: "Pet",
-      rarity: "Common", requiredLevel: 1,
-      baseStats: { goldFind: 0.05 },
-      primaryAffix: { type: "goldFind", baseValue: 0.05 },
-      affixPool: ["goldFind"],
-      petUtility: { goldPerSec: 2, goldFind: 0.05 },
-      artRef: "placeholder" }),
-  i({ id: "fortune-fox", name: "Fortune Fox", slot: "Pet",
-      rarity: "Legendary", requiredLevel: 30,
-      baseStats: { goldFind: 0.20 },
-      primaryAffix: { type: "goldFind", baseValue: 0.20 },
-      affixPool: ["goldFind", "maxHp"],
-      petUtility: { goldPerSec: 8, goldFind: 0.20 },
-      artRef: "placeholder" }),
+  i({
+    id: "coin-sprite",
+    name: "Coin Sprite",
+    slot: "Pet",
+    rarity: "Common",
+    requiredLevel: 1,
+    baseStats: { goldFind: 0.05 },
+    primaryAffix: { type: "goldFind", baseValue: 0.05 },
+    affixPool: ["goldFind"],
+    petUtility: { goldPerSec: 2, goldFind: 0.05 },
+    artRef: "placeholder",
+  }),
+  i({
+    id: "fortune-fox",
+    name: "Fortune Fox",
+    slot: "Pet",
+    rarity: "Legendary",
+    requiredLevel: 30,
+    baseStats: { goldFind: 0.2 },
+    primaryAffix: { type: "goldFind", baseValue: 0.2 },
+    affixPool: ["goldFind", "maxHp"],
+    petUtility: { goldPerSec: 8, goldFind: 0.2 },
+    artRef: "placeholder",
+  }),
 
   // Wing
-  i({ id: "fledgling-wings", name: "Fledgling Wings", slot: "Wing",
-      rarity: "Common", requiredLevel: 5,
-      baseStats: { moveSpeed: 20 },
-      primaryAffix: { type: "moveSpeed", baseValue: 0.15 },
-      affixPool: ["moveSpeed", "tenacity"],
-      artRef: "placeholder" }),
-  i({ id: "tempest-wings", name: "Tempest Wings", slot: "Wing",
-      rarity: "Legendary", requiredLevel: 50,
-      baseStats: { moveSpeed: 50, tenacity: 0.15 },
-      primaryAffix: { type: "moveSpeed", baseValue: 0.35 },
-      affixPool: ["moveSpeed", "tenacity", "attackSpeed"],
-      wingPassive: "tempest-gale",
-      artRef: "placeholder" }),
+  i({
+    id: "fledgling-wings",
+    name: "Fledgling Wings",
+    slot: "Wing",
+    rarity: "Common",
+    requiredLevel: 5,
+    baseStats: { moveSpeed: 20 },
+    primaryAffix: { type: "moveSpeed", baseValue: 0.15 },
+    affixPool: ["moveSpeed", "tenacity"],
+    artRef: "placeholder",
+  }),
+  i({
+    id: "tempest-wings",
+    name: "Tempest Wings",
+    slot: "Wing",
+    rarity: "Legendary",
+    requiredLevel: 50,
+    baseStats: { moveSpeed: 50, tenacity: 0.15 },
+    primaryAffix: { type: "moveSpeed", baseValue: 0.35 },
+    affixPool: ["moveSpeed", "tenacity", "attackSpeed"],
+    wingPassive: "tempest-gale",
+    artRef: "placeholder",
+  }),
 ];
 
-export const ITEM_CATALOG_MAP = new Map<string, ItemDef>(
-  ITEM_CATALOG.map((i) => [i.id, i])
-);
+export const ITEM_CATALOG_MAP = new Map<string, ItemDef>(ITEM_CATALOG.map((i) => [i.id, i]));
 
 // ---------------------------------------------------------------------------
 // Item rolling
@@ -1906,6 +2586,7 @@ export function rollItem(def: ItemDef, heroLevel: number, seed: number): ItemIns
 ```bash
 npm run typecheck && npm test -- tests/catalogs.test.ts 2>&1 | tail -20
 ```
+
 Expected: all 11 tests pass.
 
 - [ ] **Step 6.6 — Commit**
@@ -1920,6 +2601,7 @@ git commit -m "feat(content): active skills catalog (12 skills) + items catalog 
 ## Task 7 — Wire BattleState + Pet Gold
 
 **Files:**
+
 - Modify: `src/core/battle.ts`
 - Create: `tests/phase3a.test.ts`
 
@@ -1942,7 +2624,13 @@ function heroSave(overrides: Partial<HeroSave> = {}): HeroSave {
 
 describe("BattleState with heroSave", () => {
   it("hero level 10 has higher stats than level 1", () => {
-    const baseStats = makeStats({ atk: 100, maxHp: 500, moveSpeed: 80, attackSpeed: 1, range: 200 });
+    const baseStats = makeStats({
+      atk: 100,
+      maxHp: 500,
+      moveSpeed: 80,
+      attackSpeed: 1,
+      range: 200,
+    });
 
     const lvl1Save = createFreshSave();
     const lvl10Save = createFreshSave();
@@ -1954,8 +2642,14 @@ describe("BattleState with heroSave", () => {
       characters: new Map(),
     };
 
-    const b1 = new BattleState(stage, catalog, { hero: { stats: baseStats, startPos: { x: -100, y: 0 } }, heroSave: lvl1Save });
-    const b10 = new BattleState(stage, catalog, { hero: { stats: baseStats, startPos: { x: -100, y: 0 } }, heroSave: lvl10Save });
+    const b1 = new BattleState(stage, catalog, {
+      hero: { stats: baseStats, startPos: { x: -100, y: 0 } },
+      heroSave: lvl1Save,
+    });
+    const b10 = new BattleState(stage, catalog, {
+      hero: { stats: baseStats, startPos: { x: -100, y: 0 } },
+      heroSave: lvl10Save,
+    });
 
     expect(b10.hero.stats.atk).toBeGreaterThan(b1.hero.stats.atk);
     expect(b10.hero.stats.maxHp).toBeGreaterThan(b1.hero.stats.maxHp);
@@ -2002,7 +2696,10 @@ describe("BattleState with heroSave", () => {
     });
     b.placeTower("turret", 0);
     let ticks = 0;
-    while (b.outcome === "ongoing" && ticks < 2000) { b.tick(0.05); ticks++; }
+    while (b.outcome === "ongoing" && ticks < 2000) {
+      b.tick(0.05);
+      ticks++;
+    }
     expect(b.outcome).toBe("won");
   });
 });
@@ -2013,6 +2710,7 @@ describe("BattleState with heroSave", () => {
 ```bash
 npm test -- tests/phase3a.test.ts 2>&1 | tail -10
 ```
+
 Expected: type errors on `heroSave` (field doesn't exist yet).
 
 - [ ] **Step 7.3 — Modify `src/core/battle.ts`**
@@ -2048,77 +2746,77 @@ private petGoldCarry = 0;
 In the `constructor`, after `this.hero = { ... }`, add the stat pipeline resolution and pet setup:
 
 ```ts
-    if (opts.heroSave) {
-      const save = opts.heroSave;
+if (opts.heroSave) {
+  const save = opts.heroSave;
 
-      // Resolve passive nodes
-      const unlockedNodes = save.hero.unlockedNodes
-        .map((id) => PASSIVE_NODES_MAP.get(id))
-        .filter(Boolean) as import("../data/schema.ts").PassiveNodeDef[];
+  // Resolve passive nodes
+  const unlockedNodes = save.hero.unlockedNodes
+    .map((id) => PASSIVE_NODES_MAP.get(id))
+    .filter(Boolean) as import("../data/schema.ts").PassiveNodeDef[];
 
-      // Resolve item stats and affixes from equipped items
-      const itemStats: Partial<Stats>[] = [];
-      const affixStats: Partial<Stats>[] = [];
-      const keystoneMore: Partial<Stats>[] = [];
+  // Resolve item stats and affixes from equipped items
+  const itemStats: Partial<Stats>[] = [];
+  const affixStats: Partial<Stats>[] = [];
+  const keystoneMore: Partial<Stats>[] = [];
 
-      for (const [slot, instanceId] of Object.entries(save.inventory.equipped)) {
-        if (!instanceId) continue;
-        const instance = save.inventory.items.find((i) => i.id === instanceId);
-        if (!instance) continue;
-        const def = ITEM_CATALOG_MAP.get(instance.defId);
-        if (!def) continue;
+  for (const [slot, instanceId] of Object.entries(save.inventory.equipped)) {
+    if (!instanceId) continue;
+    const instance = save.inventory.items.find((i) => i.id === instanceId);
+    if (!instance) continue;
+    const def = ITEM_CATALOG_MAP.get(instance.defId);
+    if (!def) continue;
 
-        // Base stats from instance
-        itemStats.push(instance.rolledStats as Partial<Stats>);
+    // Base stats from instance
+    itemStats.push(instance.rolledStats as Partial<Stats>);
 
-        // Pet utility
-        if (slot === "Pet" && def.petUtility) {
-          const gps = def.petUtility.goldPerSec ?? 0;
-          if (gps > 0) this.petGoldPerSec = gps;
-        }
-      }
-
-      // Resolve keystone more% from unlocked keystone nodes
-      for (const node of unlockedNodes) {
-        if (node.type === "keystone" && node.more) {
-          keystoneMore.push(node.more);
-        }
-      }
-
-      // Apply pipeline
-      const resolvedStats = heroStatPipeline(
-        opts.hero.stats,
-        save.hero.level,
-        unlockedNodes,
-        itemStats,
-        affixStats,
-        keystoneMore,
-      );
-
-      this.hero = {
-        stats: resolvedStats,
-        damageType: opts.hero.damageType ?? "Physical",
-        pos: { ...opts.hero.startPos },
-        moveTarget: { ...opts.hero.startPos },
-        hp: resolvedStats.maxHp,
-        mana: 0,
-        attackCd: 0,
-        alive: true,
-      };
+    // Pet utility
+    if (slot === "Pet" && def.petUtility) {
+      const gps = def.petUtility.goldPerSec ?? 0;
+      if (gps > 0) this.petGoldPerSec = gps;
     }
+  }
+
+  // Resolve keystone more% from unlocked keystone nodes
+  for (const node of unlockedNodes) {
+    if (node.type === "keystone" && node.more) {
+      keystoneMore.push(node.more);
+    }
+  }
+
+  // Apply pipeline
+  const resolvedStats = heroStatPipeline(
+    opts.hero.stats,
+    save.hero.level,
+    unlockedNodes,
+    itemStats,
+    affixStats,
+    keystoneMore,
+  );
+
+  this.hero = {
+    stats: resolvedStats,
+    damageType: opts.hero.damageType ?? "Physical",
+    pos: { ...opts.hero.startPos },
+    moveTarget: { ...opts.hero.startPos },
+    hp: resolvedStats.maxHp,
+    mana: 0,
+    attackCd: 0,
+    alive: true,
+  };
+}
 ```
 
 In `updateHero()`, before the existing mana regen line, add pet gold ticking:
 
 ```ts
-    // Pet gold generation
-    if (this.petGoldPerSec > 0) {
-      this.petGoldCarry += this.petGoldPerSec * dt * (1 + this.hero.stats.goldFind);
-      while (this.petGoldCarry >= 1) {
-        this.gold += 1;
-        this.petGoldCarry -= 1;
-      }
-    }
+// Pet gold generation
+if (this.petGoldPerSec > 0) {
+  this.petGoldCarry += this.petGoldPerSec * dt * (1 + this.hero.stats.goldFind);
+  while (this.petGoldCarry >= 1) {
+    this.gold += 1;
+    this.petGoldCarry -= 1;
+  }
+}
 ```
 
 - [ ] **Step 7.4 — Run full test suite**
@@ -2126,6 +2824,7 @@ In `updateHero()`, before the existing mana regen line, add pet gold ticking:
 ```bash
 npm run typecheck && npm test 2>&1 | tail -20
 ```
+
 Expected: all prior 57 tests + 3 new phase3a tests = 60 passing.
 
 - [ ] **Step 7.5 — Commit**
@@ -2140,6 +2839,7 @@ git commit -m "feat(core): wire heroSave into BattleState — stat pipeline + pe
 ## Task 8 — BattleScene HUD
 
 **Files:**
+
 - Modify: `src/scenes/BattleScene.ts`
 
 - [ ] **Step 8.1 — Update BattleScene to show hero progression in HUD**
@@ -2171,49 +2871,66 @@ Add a `setHeroSave` method:
 In `drawHUD()`, after the existing HP/mana bars, append hero progression display:
 
 ```ts
-    if (this.heroSave) {
-      const save = this.heroSave;
-      const lvl = save.hero.level;
-      const xpNeeded = lvl < 100 ? xpToNextLevel(lvl, save.hero.totalXp) : 0;
-      const xpGained = lvl < 100
-        ? save.hero.totalXp - totalXpForLevel(lvl)
-        : 1;
-      const xpTotal = lvl < 100
-        ? totalXpForLevel(lvl + 1) - totalXpForLevel(lvl)
-        : 1;
-      const xpPct = lvl < 100 ? Math.min(1, xpGained / xpTotal) : 1;
+if (this.heroSave) {
+  const save = this.heroSave;
+  const lvl = save.hero.level;
+  const xpNeeded = lvl < 100 ? xpToNextLevel(lvl, save.hero.totalXp) : 0;
+  const xpGained = lvl < 100 ? save.hero.totalXp - totalXpForLevel(lvl) : 1;
+  const xpTotal = lvl < 100 ? totalXpForLevel(lvl + 1) - totalXpForLevel(lvl) : 1;
+  const xpPct = lvl < 100 ? Math.min(1, xpGained / xpTotal) : 1;
 
-      // Level badge
-      g.fillStyle(0x2244aa, 1);
-      g.fillRect(8, 88, 56, 18);
-      this.add.text(36, 97, `Lv ${lvl}`, {
-        fontSize: "11px", color: "#ffffff", align: "center",
-      }).setOrigin(0.5, 0.5).setDepth(20);
+  // Level badge
+  g.fillStyle(0x2244aa, 1);
+  g.fillRect(8, 88, 56, 18);
+  this.add
+    .text(36, 97, `Lv ${lvl}`, {
+      fontSize: "11px",
+      color: "#ffffff",
+      align: "center",
+    })
+    .setOrigin(0.5, 0.5)
+    .setDepth(20);
 
-      // XP bar
-      g.fillStyle(0x111133, 1);
-      g.fillRect(68, 88, 140, 8);
-      g.fillStyle(0x44aaff, 1);
-      g.fillRect(68, 88, Math.floor(140 * xpPct), 8);
+  // XP bar
+  g.fillStyle(0x111133, 1);
+  g.fillRect(68, 88, 140, 8);
+  g.fillStyle(0x44aaff, 1);
+  g.fillRect(68, 88, Math.floor(140 * xpPct), 8);
 
-      // Equipped skill badge
-      if (save.hero.equippedSkillId) {
-        g.fillStyle(0x442266, 1);
-        g.fillRect(8, 110, 80, 14);
-        this.add.text(48, 117, `⚡ ${save.hero.equippedSkillId}`, {
-          fontSize: "9px", color: "#ddaaff", align: "center",
-        }).setOrigin(0.5, 0.5).setDepth(20);
-      }
+  // Equipped skill badge
+  if (save.hero.equippedSkillId) {
+    g.fillStyle(0x442266, 1);
+    g.fillRect(8, 110, 80, 14);
+    this.add
+      .text(48, 117, `⚡ ${save.hero.equippedSkillId}`, {
+        fontSize: "9px",
+        color: "#ddaaff",
+        align: "center",
+      })
+      .setOrigin(0.5, 0.5)
+      .setDepth(20);
+  }
 
-      // Item slot indicators (dots: filled = equipped, hollow = empty)
-      const SLOTS = ["Weapon","Helmet","BodyArmor","Gloves","Boots","Amulet","Ring1","Ring2","Pet","Wing"] as const;
-      SLOTS.forEach((slot, idx) => {
-        const x = 8 + idx * 14;
-        const equipped = save.inventory.equipped[slot as import("../data/schema.ts").ItemSlot];
-        g.fillStyle(equipped ? 0xffcc44 : 0x444444, 1);
-        g.fillCircle(x + 5, 130, 4);
-      });
-    }
+  // Item slot indicators (dots: filled = equipped, hollow = empty)
+  const SLOTS = [
+    "Weapon",
+    "Helmet",
+    "BodyArmor",
+    "Gloves",
+    "Boots",
+    "Amulet",
+    "Ring1",
+    "Ring2",
+    "Pet",
+    "Wing",
+  ] as const;
+  SLOTS.forEach((slot, idx) => {
+    const x = 8 + idx * 14;
+    const equipped = save.inventory.equipped[slot as import("../data/schema.ts").ItemSlot];
+    g.fillStyle(equipped ? 0xffcc44 : 0x444444, 1);
+    g.fillCircle(x + 5, 130, 4);
+  });
+}
 ```
 
 Also add the missing import for `totalXpForLevel`:
@@ -2227,6 +2944,7 @@ import { xpToNextLevel, totalXpForLevel } from "../core/hero.ts";
 ```bash
 npm run typecheck && npm run build 2>&1 | tail -8
 ```
+
 Expected: clean typecheck, build succeeds.
 
 - [ ] **Step 8.3 — Commit**
@@ -2245,6 +2963,7 @@ git commit -m "feat(ui): HUD shows hero level badge, XP bar, equipped skill, ite
 ```bash
 npm run typecheck && npm test && npm run build 2>&1 | tail -25
 ```
+
 Expected: typecheck clean, all 60+ tests passing, build succeeds.
 
 - [ ] **Step 9.2 — Commit summary**
@@ -2252,7 +2971,9 @@ Expected: typecheck clean, all 60+ tests passing, build succeeds.
 ```bash
 git log --oneline -8
 ```
+
 Expected output (8 commits from this plan):
+
 ```
 feat(ui): HUD shows hero level badge, XP bar, equipped skill, item slot indicators
 feat(core): wire heroSave into BattleState — stat pipeline + pet gold generation
@@ -2269,6 +2990,7 @@ feat(schema): WeaponType, PassiveNodeDef, ActiveSkillDef, new ItemDef + validato
 ## Self-Review Notes
 
 **Spec coverage check:**
+
 - ✅ Hero leveling (XP sources, polynomial + prestige curve) → Task 4
 - ✅ Passive skill grid (PoE-scale, 8 regions, keystones, masteries, jewels) → Task 5
 - ✅ Active skill slot (unique collectibles, use-XP, weapon req, level = hero level) → Task 6

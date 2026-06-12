@@ -5,7 +5,12 @@
  * prototype in `battle.ts`.
  */
 import { DIFFICULTY_SCALING, type DamageType, type Stats, type Vec2 } from "../data/schema.ts";
-import { mitigatedDamage, mitigationBreakdown, critMultiplier, type DamagePacket } from "./damage.ts";
+import {
+  mitigatedDamage,
+  mitigationBreakdown,
+  critMultiplier,
+  type DamagePacket,
+} from "./damage.ts";
 import { combatLogOn, emitDamageLog } from "./combatLog.ts";
 import { absorbWithShield, ccDuration } from "./effects.ts";
 import { dist } from "./path.ts";
@@ -20,8 +25,14 @@ import { addMasteryXp, MASTERY_XP_PER_KILL } from "./mastery.ts";
 import { adaptiveImmuneType } from "./enemyAdaptive.ts";
 import type { BattleState } from "./battle.ts";
 import {
-  type DmgCtx, type EnemyRuntime, type FxEvent, type TowerRuntime,
-  COMBO_DECAY, SPLASH_RADIUS, MANA_MAX, manaGainOnHit,
+  type DmgCtx,
+  type EnemyRuntime,
+  type FxEvent,
+  type TowerRuntime,
+  COMBO_DECAY,
+  SPLASH_RADIUS,
+  MANA_MAX,
+  manaGainOnHit,
 } from "./battleTypes.ts";
 
 export const damageMethods = {
@@ -59,9 +70,24 @@ export const damageMethods = {
       source,
       style,
     });
-    const ctx = this.dmgCtx(`${source}:${srcUid}`, "basic", `atk ${rawAtk.toFixed(1)}`,
-      combatLogOn() ? { rate: unit.stats.critRate, roll: critRoll, hit: didCrit, mult: critMult } : undefined);
-    const dealt = this.applyDamage(target, damageType, raw, unit.stats.armorPen, unit.stats.magicPen, false, true, ctx);
+    const ctx = this.dmgCtx(
+      `${source}:${srcUid}`,
+      "basic",
+      `atk ${rawAtk.toFixed(1)}`,
+      combatLogOn()
+        ? { rate: unit.stats.critRate, roll: critRoll, hit: didCrit, mult: critMult }
+        : undefined,
+    );
+    const dealt = this.applyDamage(
+      target,
+      damageType,
+      raw,
+      unit.stats.armorPen,
+      unit.stats.magicPen,
+      false,
+      true,
+      ctx,
+    );
 
     // Mana charges on every hit (support towers are aura-only and never cast).
     if (role !== "support") {
@@ -101,7 +127,14 @@ export const damageMethods = {
     if (incoming <= 0) return 0;
 
     if (emitHit) {
-      this.emit({ type: "hit", uid: target.uid, at: { x: target.pos.x, y: target.pos.y }, damageType, amount: incoming, aoe: isAoE });
+      this.emit({
+        type: "hit",
+        uid: target.uid,
+        at: { x: target.pos.x, y: target.pos.y },
+        damageType,
+        amount: incoming,
+        aoe: isAoE,
+      });
     }
     const { shield, overflow } = absorbWithShield(target.shield, incoming);
     target.shield = shield;
@@ -110,13 +143,24 @@ export const damageMethods = {
     if (dbg && combatLogOn()) {
       const b = mitigationBreakdown(packet, defStats);
       emitDamageLog({
-        src: dbg.src, target: `${target.def.id}#${target.uid}`, kind: dbg.kind, type: damageType,
-        raw: Math.max(0, rawAmount), rawFormula: dbg.rawFormula, crit: dbg.crit,
-        defRating: b.defRating, pen: damageType === "Physical" ? armorPen : damageType === "Magic" ? magicPen : 0,
-        effRating: b.effRating, mitigationFrac: b.mitigationFrac, afterMitig: b.afterMitig,
-        damageReduction: b.damageReduction, afterDR: b.final,
-        shieldAbsorbed: incoming - overflow, hpDamage: overflow,
-        targetHpAfter: Math.max(0, target.hp), targetHpMax: target.stats.maxHp,
+        src: dbg.src,
+        target: `${target.def.id}#${target.uid}`,
+        kind: dbg.kind,
+        type: damageType,
+        raw: Math.max(0, rawAmount),
+        rawFormula: dbg.rawFormula,
+        crit: dbg.crit,
+        defRating: b.defRating,
+        pen: damageType === "Physical" ? armorPen : damageType === "Magic" ? magicPen : 0,
+        effRating: b.effRating,
+        mitigationFrac: b.mitigationFrac,
+        afterMitig: b.afterMitig,
+        damageReduction: b.damageReduction,
+        afterDR: b.final,
+        shieldAbsorbed: incoming - overflow,
+        hpDamage: overflow,
+        targetHpAfter: Math.max(0, target.hp),
+        targetHpMax: target.stats.maxHp,
       });
     }
     if (target.hp <= 0) this.killEnemy(target);
@@ -124,11 +168,22 @@ export const damageMethods = {
   },
 
   /** Build a damage-log context only when logging is on (cheap no-op otherwise). */
-  dmgCtx(this: BattleState, src: string, kind: string, rawFormula: string, crit?: DmgCtx["crit"]): DmgCtx | undefined {
+  dmgCtx(
+    this: BattleState,
+    src: string,
+    kind: string,
+    rawFormula: string,
+    crit?: DmgCtx["crit"],
+  ): DmgCtx | undefined {
     return combatLogOn() ? { src, kind, rawFormula, crit } : undefined;
   },
 
-  isImmune(this: BattleState, target: EnemyRuntime, damageType: DamageType, isAoE: boolean): boolean {
+  isImmune(
+    this: BattleState,
+    target: EnemyRuntime,
+    damageType: DamageType,
+    isAoE: boolean,
+  ): boolean {
     const imm = target.def.immunity;
     if (imm !== null) {
       if (isAoE && imm === "AoE") return true;
@@ -165,7 +220,16 @@ export const damageMethods = {
     for (const e of this.enemies) {
       if (!e.alive || e === primary) continue;
       if (dist(e.pos, center) <= radius) {
-        this.applyDamage(e, damageType, effAtk, attacker.armorPen, attacker.magicPen, true, true, ctx);
+        this.applyDamage(
+          e,
+          damageType,
+          effAtk,
+          attacker.armorPen,
+          attacker.magicPen,
+          true,
+          true,
+          ctx,
+        );
       }
     }
   },
@@ -184,7 +248,16 @@ export const damageMethods = {
     for (const e of this.enemies) {
       if (!e.alive || e === primary) continue;
       if (dist(e.pos, center) <= radius) {
-        this.applyDamage(e, damageType, effAtk, attacker.armorPen, attacker.magicPen, true, true, ctx);
+        this.applyDamage(
+          e,
+          damageType,
+          effAtk,
+          attacker.armorPen,
+          attacker.magicPen,
+          true,
+          true,
+          ctx,
+        );
       }
     }
   },
@@ -209,9 +282,26 @@ export const damageMethods = {
         }
       }
       if (!next) break;
-      this.emit({ type: "chain", from: { x: from.pos.x, y: from.pos.y }, to: { x: next.pos.x, y: next.pos.y } });
-      const ctx = this.dmgCtx(`tower:${t.uid}`, "chain", `chain bounce ${i + 1} dmg ${dmg.toFixed(1)} (×falloff ${falloff})`);
-      this.applyDamage(next, t.def.damageType, dmg, t.stats.armorPen, t.stats.magicPen, false, true, ctx);
+      this.emit({
+        type: "chain",
+        from: { x: from.pos.x, y: from.pos.y },
+        to: { x: next.pos.x, y: next.pos.y },
+      });
+      const ctx = this.dmgCtx(
+        `tower:${t.uid}`,
+        "chain",
+        `chain bounce ${i + 1} dmg ${dmg.toFixed(1)} (×falloff ${falloff})`,
+      );
+      this.applyDamage(
+        next,
+        t.def.damageType,
+        dmg,
+        t.stats.armorPen,
+        t.stats.magicPen,
+        false,
+        true,
+        ctx,
+      );
       hit.add(next.uid);
       from = next;
       dmg *= falloff;
@@ -260,15 +350,25 @@ export const damageMethods = {
     defenseScale?: { armor?: number; magicResist?: number; maxHp?: number },
     powerMult = 2,
   ): void {
-    this.emit({ type: "cast", uid, from: { x: from.x, y: from.y }, at: { x: center.x, y: center.y }, damageType, radius: SPLASH_RADIUS, source, skillId });
+    this.emit({
+      type: "cast",
+      uid,
+      from: { x: from.x, y: from.y },
+      at: { x: center.x, y: center.y },
+      damageType,
+      radius: SPLASH_RADIUS,
+      source,
+      skillId,
+    });
     const sp = Math.max(1, attacker.skillPower);
     let burst = effAtk * powerMult * sp;
     let detail = `atk ${effAtk.toFixed(1)} ×${powerMult.toFixed(2)} ×skillPower ${sp.toFixed(2)}`;
     if (defenseScale) {
       // tanker payoff: fold the caster's own defenses into the burst.
-      const defBonus = attacker.armor * (defenseScale.armor ?? 0)
-        + attacker.magicResist * (defenseScale.magicResist ?? 0)
-        + attacker.maxHp * (defenseScale.maxHp ?? 0);
+      const defBonus =
+        attacker.armor * (defenseScale.armor ?? 0) +
+        attacker.magicResist * (defenseScale.magicResist ?? 0) +
+        attacker.maxHp * (defenseScale.maxHp ?? 0);
       burst += defBonus;
       detail += ` + defense ${defBonus.toFixed(1)}`;
     }
@@ -276,7 +376,16 @@ export const damageMethods = {
     for (const e of this.enemies) {
       if (!e.alive) continue;
       if (dist(e.pos, center) <= SPLASH_RADIUS) {
-        this.applyDamage(e, damageType, burst, attacker.armorPen, attacker.magicPen, true, true, ctx);
+        this.applyDamage(
+          e,
+          damageType,
+          burst,
+          attacker.armorPen,
+          attacker.magicPen,
+          true,
+          true,
+          ctx,
+        );
       }
     }
   },
@@ -286,7 +395,8 @@ export const damageMethods = {
     e.alive = false;
     const scale = DIFFICULTY_SCALING[this.difficulty];
     const eliteBonus = e.elite ? ELITE_BOUNTY_MULT : 1;
-    const baseReward = e.def.bounty * scale.bountyMult * eliteBonus * (1 + this.hero.stats.goldFind);
+    const baseReward =
+      e.def.bounty * scale.bountyMult * eliteBonus * (1 + this.hero.stats.goldFind);
     // F13 combo: a rapid kill-streak multiplies gold (×1 → ×3) and resets its decay.
     this.combo += 1;
     this.comboTimer = COMBO_DECAY;
@@ -294,17 +404,51 @@ export const damageMethods = {
     this.gold += reward;
     this.waveGold += reward;
     const boss = e.def.archetype === "Boss";
-    this.emit({ type: "death", at: { x: e.pos.x, y: e.pos.y }, boss, elite: e.elite, bounty: e.def.bounty });
-    this.emit({ type: "loot", at: { x: e.pos.x, y: e.pos.y }, to: { x: this.hero.pos.x, y: this.hero.pos.y }, gold: reward });
-    if (this.combo >= 3) this.emit({ type: "combo", at: { x: e.pos.x, y: e.pos.y - 22 }, count: this.combo, mult: this.comboMult() });
+    this.emit({
+      type: "death",
+      at: { x: e.pos.x, y: e.pos.y },
+      boss,
+      elite: e.elite,
+      bounty: e.def.bounty,
+    });
+    this.emit({
+      type: "loot",
+      at: { x: e.pos.x, y: e.pos.y },
+      to: { x: this.hero.pos.x, y: this.hero.pos.y },
+      gold: reward,
+    });
+    if (this.combo >= 3)
+      this.emit({
+        type: "combo",
+        at: { x: e.pos.x, y: e.pos.y - 22 },
+        count: this.combo,
+        mult: this.comboMult(),
+      });
     // Per-kill XP + loot persist immediately (kept even if the stage is abandoned).
     if (this._heroSave) {
-      const kr = processEnemyKill(this._heroSave, e.def, this.difficulty, itemLevelForStage(this.stage.id), this.rng, e.elite, chapterLevelRange(this.stage.id));
+      const kr = processEnemyKill(
+        this._heroSave,
+        e.def,
+        this.difficulty,
+        itemLevelForStage(this.stage.id),
+        this.rng,
+        e.elite,
+        chapterLevelRange(this.stage.id),
+      );
       // Tally it so the post-battle screen can show everything looted this run.
       this.battleLoot.xp += kr.xp;
       if (kr.itemDropped) this.battleLoot.items.push(kr.itemDropped);
-      if (kr.boxDropped) this.battleLoot.boxes[kr.boxDropped] = (this.battleLoot.boxes[kr.boxDropped] ?? 0) + 1;
-      this.emit({ type: "killReward", at: { x: e.pos.x, y: e.pos.y - 14 }, to: { x: this.hero.pos.x, y: this.hero.pos.y }, xp: kr.xp, item: kr.itemDropped !== null, itemDefId: kr.itemDropped?.defId ?? null, box: kr.boxDropped });
+      if (kr.boxDropped)
+        this.battleLoot.boxes[kr.boxDropped] = (this.battleLoot.boxes[kr.boxDropped] ?? 0) + 1;
+      this.emit({
+        type: "killReward",
+        at: { x: e.pos.x, y: e.pos.y - 14 },
+        to: { x: this.hero.pos.x, y: this.hero.pos.y },
+        xp: kr.xp,
+        item: kr.itemDropped !== null,
+        itemDefId: kr.itemDropped?.defId ?? null,
+        box: kr.boxDropped,
+      });
       const today = new Date().toISOString().slice(0, 10);
       incrementQuestKey(this._heroSave, boss ? "kill_bosses" : "kill_enemies", 1, today);
       incrementBountyEvent(this._heroSave, "kill", 1, isoWeekKey(new Date()));
@@ -324,8 +468,18 @@ export const damageMethods = {
     }
     const nova = e.def.special?.deathNova;
     if (nova) {
-      this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: nova.radius, damageType: nova.type });
-      const packet: DamagePacket = { amount: nova.damage, type: nova.type, armorPen: 0, magicPen: 0 };
+      this.emit({
+        type: "splash",
+        at: { x: e.pos.x, y: e.pos.y },
+        radius: nova.radius,
+        damageType: nova.type,
+      });
+      const packet: DamagePacket = {
+        amount: nova.damage,
+        type: nova.type,
+        armorPen: 0,
+        magicPen: 0,
+      };
       for (const t of this.towers) {
         if (t.alive && dist(e.pos, t.pos) <= nova.radius) {
           t.hp -= mitigatedDamage(packet, t.stats);

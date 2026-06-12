@@ -15,11 +15,13 @@
 ## File Structure
 
 **Create:**
+
 - `src/data/assetKeys.ts` — the single key-derivation point (pure, ~40 lines).
 - `tests/assetKeys.test.ts` — derivation-shape + catalog→key contract test.
 - `tests/assetKeyDiscipline.test.ts` — no-inline-keys source guard.
 
 **Modify (key derivation → delegate/route through `assetKeys`):**
+
 - `src/data/rewardIcon.ts` — derive via assetKeys; add `itemInstanceIcon`/`towerIcon`/`skillIcon`.
 - `src/data/materialIconManifest.ts`, `jewelIconManifest.ts`, `skillIconManifest.ts` — `*IconKey` delegates to assetKeys.
 - `src/data/boxRewardView.ts`, `src/data/rewardTiles.ts` — keys via assetKeys.
@@ -33,6 +35,7 @@
 ## Task 1: `assetKeys.ts` — the single key-derivation module
 
 **Files:**
+
 - Create: `src/data/assetKeys.ts`
 - Test: `tests/assetKeys.test.ts`
 
@@ -42,8 +45,18 @@
 // tests/assetKeys.test.ts
 import { describe, it, expect } from "vitest";
 import {
-  itemTex, towerTex, jewelTex, materialTex, boxTex, skillTex, menuTex, fxTex,
-  GOLD_TEX, GEM_TEX, XP_TEX, HERODOLL_BASE_TEX,
+  itemTex,
+  towerTex,
+  jewelTex,
+  materialTex,
+  boxTex,
+  skillTex,
+  menuTex,
+  fxTex,
+  GOLD_TEX,
+  GEM_TEX,
+  XP_TEX,
+  HERODOLL_BASE_TEX,
 } from "../src/data/assetKeys.ts";
 
 describe("assetKeys derivation", () => {
@@ -128,6 +141,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 2: Manifest key helpers delegate to `assetKeys`
 
 **Files:**
+
 - Modify: `src/data/materialIconManifest.ts`, `src/data/jewelIconManifest.ts`, `src/data/skillIconManifest.ts`
 
 Each currently builds its own template; route through `assetKeys` so the convention lives in one place (the `*_ICON_IDS` lists are unchanged).
@@ -140,7 +154,9 @@ Replace the body of `materialIconKey`:
 import { MATERIALS } from "./materials.ts";
 import { materialTex } from "./assetKeys.ts";
 
-export const MATERIAL_ICON_IDS: string[] = MATERIALS.filter((m) => m.kind !== "box").map((m) => m.id);
+export const MATERIAL_ICON_IDS: string[] = MATERIALS.filter((m) => m.kind !== "box").map(
+  (m) => m.id,
+);
 
 /** Texture key for a material's painted icon. */
 export function materialIconKey(id: string): string {
@@ -195,6 +211,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 3: `rewardIcon.ts` derives keys via `assetKeys` (no output change)
 
 **Files:**
+
 - Modify: `src/data/rewardIcon.ts`
 - Test: `tests/rewardIcon.test.ts` (existing — must stay green)
 
@@ -209,9 +226,15 @@ import { itemTex, jewelTex, materialTex, boxTex, GOLD_TEX, GEM_TEX, XP_TEX } fro
 - [ ] **Step 2: Replace the inline key strings**
 
 ```ts
-export function goldIcon(): RewardIconView { return { iconKey: GOLD_TEX, emoji: "🪙", color: GOLD_INT }; }
-export function diamondIcon(): RewardIconView { return { iconKey: GEM_TEX, emoji: "💎", color: DIAMOND_INT }; }
-export function xpIcon(): RewardIconView { return { iconKey: XP_TEX, emoji: "⭐", color: XP_INT }; }
+export function goldIcon(): RewardIconView {
+  return { iconKey: GOLD_TEX, emoji: "🪙", color: GOLD_INT };
+}
+export function diamondIcon(): RewardIconView {
+  return { iconKey: GEM_TEX, emoji: "💎", color: DIAMOND_INT };
+}
+export function xpIcon(): RewardIconView {
+  return { iconKey: XP_TEX, emoji: "⭐", color: XP_INT };
+}
 
 export function itemIcon(rarity: Rarity, defId: string): RewardIconView {
   return { iconKey: itemTex(defId), emoji: "📦", color: RARITY_INT[rarity] };
@@ -224,11 +247,11 @@ export function jewelIcon(rarity: Rarity, defId: string): RewardIconView {
 And inside `materialIcon`, replace the two template literals:
 
 ```ts
-  if (def?.kind === "box") {
-    const rarity = RARITY_ORDER[(def.rarity ?? 1) - 1] ?? "Common";
-    return { iconKey: boxTex(id), emoji: "🎁", color: RARITY_INT[rarity] };
-  }
-  return { iconKey: materialTex(id), emoji: "💠", color: MAT_INT };
+if (def?.kind === "box") {
+  const rarity = RARITY_ORDER[(def.rarity ?? 1) - 1] ?? "Common";
+  return { iconKey: boxTex(id), emoji: "🎁", color: RARITY_INT[rarity] };
+}
+return { iconKey: materialTex(id), emoji: "💠", color: MAT_INT };
 ```
 
 - [ ] **Step 3: Run the existing resolver + panel tests**
@@ -250,6 +273,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 4: Entity-level resolvers (`itemInstanceIcon` / `towerIcon` / `skillIcon`)
 
 **Files:**
+
 - Modify: `src/data/rewardIcon.ts` (or create `src/data/entityIcon.ts` if size > 480 — see note)
 - Test: `tests/entityIcon.test.ts`
 
@@ -269,8 +293,13 @@ describe("entity icon resolvers", () => {
   it("resolves an owned item instance to item__<defId> + rarity color", () => {
     const def = ITEM_CATALOG[0];
     const inst = {
-      id: "inst-1", defId: def.id, acquiredLevel: 1, rolledStats: {},
-      rolledPrimaryAffix: 0, rolledAffixes: [], enhanceLevel: 0,
+      id: "inst-1",
+      defId: def.id,
+      acquiredLevel: 1,
+      rolledStats: {},
+      rolledPrimaryAffix: 0,
+      rolledAffixes: [],
+      enhanceLevel: 0,
     };
     const v = itemInstanceIcon(inst);
     expect(v.iconKey).toBe(`item__${def.id}`);
@@ -354,6 +383,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 5: Route call sites through `assetKeys` + kill the duplicated branches
 
 **Files:**
+
 - Modify: `src/scenes/PreloadScene.ts`, `src/data/boxRewardView.ts`, `src/data/rewardTiles.ts`,
   `src/scenes/HeroScene.ts`, and the scene call sites below.
 
@@ -368,25 +398,27 @@ import { skillTex, jewelTex, materialTex, itemTex, menuTex, fxTex } from "../dat
 ```
 
 Replace the inline keys in `preload()`:
-- line ~37 `const key = `skill__${id}`;` → `const key = skillTex(id);`
-- line ~43 `const key = `jewel__${id}`;` → `const key = jewelTex(id);`
-- line ~57 `this.load.image(`menu__${id}`, …)` → `this.load.image(menuTex(id), …)`
-- line ~62 `this.load.image(`fx__${id}`, …)` → `this.load.image(fxTex(id), …)`
-- line ~64 `this.load.image(`material__${id}`, …)` → `this.load.image(materialTex(id), …)`
-- line ~69 `const key = `item__${it.id}`;` → `const key = itemTex(it.id);`
+
+- line ~37 `const key = `skill\_\_${id}`;` → `const key = skillTex(id);`
+- line ~43 `const key = `jewel\_\_${id}`;` → `const key = jewelTex(id);`
+- line ~57 `this.load.image(`menu\_\_${id}`, …)` → `this.load.image(menuTex(id), …)`
+- line ~62 `this.load.image(`fx\_\_${id}`, …)` → `this.load.image(fxTex(id), …)`
+- line ~64 `this.load.image(`material\_\_${id}`, …)` → `this.load.image(materialTex(id), …)`
+- line ~69 `const key = `item\_\_${it.id}`;` → `const key = itemTex(it.id);`
 
 - [ ] **Step 2: `boxRewardView.ts` — keys via assetKeys**
 
 Add `import { itemTex, materialTex, GOLD_TEX, GEM_TEX } from "./assetKeys.ts";` and replace the four literals:
+
 - `iconKey: "icon__gold"` → `iconKey: GOLD_TEX`
 - `iconKey: "icon__gem"` → `iconKey: GEM_TEX`
-- `iconKey: `material__${mid}`` → `iconKey: materialTex(mid)`
-- `iconKey: `item__${item.defId}`` → `iconKey: itemTex(item.defId)`
+- `iconKey: `material\_\_${mid}``→`iconKey: materialTex(mid)`
+- `iconKey: `item\_\_${item.defId}``→`iconKey: itemTex(item.defId)`
 
 - [ ] **Step 3: `rewardTiles.ts` — tower key via assetKeys**
 
 Add `import { towerTex } from "./assetKeys.ts";` and in `characterTile` replace
-`iconKey: `tower__${id}`` → `iconKey: towerTex(id)`.
+`iconKey: `tower\_\_${id}``→`iconKey: towerTex(id)`.
 
 - [ ] **Step 4: `HeroScene.ts` — kill the duplicated material/box branch**
 
@@ -396,41 +428,44 @@ In `makeMaterialTile` (line ~354) replace:
 ```ts
 const spriteKey = this.textures.exists(`material__${id}`) ? `material__${id}` : `box__${id}`;
 ```
+
 with:
+
 ```ts
 const spriteKey = this.textures.exists(materialTex(id)) ? materialTex(id) : boxTex(id);
 ```
+
 Also swap the equipped-item icon (line ~308) `` `item__${inst.defId}` `` → `itemTex(inst.defId)`.
 
 - [ ] **Step 5: Swap the remaining scene call sites**
 
 For each file, add the needed import from `../data/assetKeys.ts` and replace the inline template with the function call (same id argument). Sites (from the audit):
 
-| File | Replace | With |
-|------|---------|------|
-| `battleSceneInput.ts` | `` `tower__${towerId}` `` | `towerTex(towerId)` |
-| `battleSceneInput.ts` | `` `item__${inst.defId}` `` | `itemTex(inst.defId)` |
-| `battleSceneInput.ts` (×4) | `` `skill__${id}` `` | `skillTex(id)` |
-| `battleSceneSprites.ts` | `` `tower__${t.def.id}` `` | `towerTex(t.def.id)` |
-| `BattleScene.ts` | `` `tower__${def.id}` `` | `towerTex(def.id)` |
-| `boxOpenOverlay.ts` | `` `box__${boxId}` `` | `boxTex(boxId)` |
-| `CollectionScene.ts` (×2) | `` `tower__${tower.id}` `` | `towerTex(tower.id)` |
-| `CollectionScene.ts` (×2) | `` `skill__${id}` `` | `skillTex(id)` |
-| `dressHero.ts` | `` `item__${def.id}` `` | `itemTex(def.id)` |
-| `ExpeditionScene.ts` | `` `tower__${t.id}` `` | `towerTex(t.id)` |
-| `fx.ts` | `` `item__${e.itemDefId}` `` | `itemTex(e.itemDefId)` |
-| `fx.ts` | `` `box__${e.box}` `` | `boxTex(e.box)` |
-| `heroEquipVisuals.ts` (×3) | `` `item__${…id}` `` | `itemTex(…id)` |
-| `homeRoom.ts` | `` `item__${def.id}` `` | `itemTex(def.id)` |
-| `itemCompareDialog.ts` | `` `item__${ref.def.id}` `` | `itemTex(ref.def.id)` |
-| `MainMenuScene.ts` | `` `tower__${id}` `` | `towerTex(id)` |
-| `MainMenuScene.ts` | `` `item__${def.id}` `` | `itemTex(def.id)` |
-| `ShopScene.ts` (×4) | `` `item__${…defId}` `` | `itemTex(…defId)` |
-| `SkillsScene.ts` | `` `skill__${def.id}` `` | `skillTex(def.id)` |
-| `squadInfoPanel.ts` | `` `tower__${def.id}` `` | `towerTex(def.id)` |
-| `SquadScene.ts` (×2) | `` `tower__${…id}` `` | `towerTex(…id)` |
-| `summonResultOverlay.ts` | `` `tower__${r.characterId}` `` | `towerTex(r.characterId)` |
-| `HeroScene.ts` | `` `material__${id}` `` (line ~354 handled in Step 4) | — |
+| File                       | Replace                                               | With                      |
+| -------------------------- | ----------------------------------------------------- | ------------------------- |
+| `battleSceneInput.ts`      | `` `tower__${towerId}` ``                             | `towerTex(towerId)`       |
+| `battleSceneInput.ts`      | `` `item__${inst.defId}` ``                           | `itemTex(inst.defId)`     |
+| `battleSceneInput.ts` (×4) | `` `skill__${id}` ``                                  | `skillTex(id)`            |
+| `battleSceneSprites.ts`    | `` `tower__${t.def.id}` ``                            | `towerTex(t.def.id)`      |
+| `BattleScene.ts`           | `` `tower__${def.id}` ``                              | `towerTex(def.id)`        |
+| `boxOpenOverlay.ts`        | `` `box__${boxId}` ``                                 | `boxTex(boxId)`           |
+| `CollectionScene.ts` (×2)  | `` `tower__${tower.id}` ``                            | `towerTex(tower.id)`      |
+| `CollectionScene.ts` (×2)  | `` `skill__${id}` ``                                  | `skillTex(id)`            |
+| `dressHero.ts`             | `` `item__${def.id}` ``                               | `itemTex(def.id)`         |
+| `ExpeditionScene.ts`       | `` `tower__${t.id}` ``                                | `towerTex(t.id)`          |
+| `fx.ts`                    | `` `item__${e.itemDefId}` ``                          | `itemTex(e.itemDefId)`    |
+| `fx.ts`                    | `` `box__${e.box}` ``                                 | `boxTex(e.box)`           |
+| `heroEquipVisuals.ts` (×3) | `` `item__${…id}` ``                                  | `itemTex(…id)`            |
+| `homeRoom.ts`              | `` `item__${def.id}` ``                               | `itemTex(def.id)`         |
+| `itemCompareDialog.ts`     | `` `item__${ref.def.id}` ``                           | `itemTex(ref.def.id)`     |
+| `MainMenuScene.ts`         | `` `tower__${id}` ``                                  | `towerTex(id)`            |
+| `MainMenuScene.ts`         | `` `item__${def.id}` ``                               | `itemTex(def.id)`         |
+| `ShopScene.ts` (×4)        | `` `item__${…defId}` ``                               | `itemTex(…defId)`         |
+| `SkillsScene.ts`           | `` `skill__${def.id}` ``                              | `skillTex(def.id)`        |
+| `squadInfoPanel.ts`        | `` `tower__${def.id}` ``                              | `towerTex(def.id)`        |
+| `SquadScene.ts` (×2)       | `` `tower__${…id}` ``                                 | `towerTex(…id)`           |
+| `summonResultOverlay.ts`   | `` `tower__${r.characterId}` ``                       | `towerTex(r.characterId)` |
+| `HeroScene.ts`             | `` `material__${id}` `` (line ~354 handled in Step 4) | —                         |
 
 > `skillVfx.ts` builds `` `vfx__${skillId}` `` (its own VFX namespace, kept) **and** a `` `skill__${skillId}` `` fallback — replace only the `skill__` one with `skillTex(skillId)`; leave `vfx__` as-is (it is not in the registry's namespace set and Task 6's guard excludes it).
 
@@ -459,6 +494,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 6: Anti-drift contract tests
 
 **Files:**
+
 - Create: `tests/assetKeyDiscipline.test.ts`
 - Extend: `tests/assetKeys.test.ts` (catalog→key loadability contract)
 
@@ -525,7 +561,9 @@ describe("catalog → key contract", () => {
     for (const t of TOWERS) expect(towerTex(t.id)).toMatch(/^tower__/);
   });
   it("non-box materials are the exact set loaded as material__ icons", () => {
-    const nonBox = MATERIALS.filter((m) => m.kind !== "box").map((m) => m.id).sort();
+    const nonBox = MATERIALS.filter((m) => m.kind !== "box")
+      .map((m) => m.id)
+      .sort();
     expect([...MATERIAL_ICON_IDS].sort()).toEqual(nonBox);
   });
   it("every jewel id is in the loaded jewel icon set", () => {
@@ -589,6 +627,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Self-Review
 
 **Spec coverage:**
+
 - Unit 1 (assetKeys) → Task 1 + Task 2 (delegation). ✓
 - Unit 2 (generalized resolver) → Task 3 (rewardIcon derives via assetKeys) + Task 4 (entity resolvers). ✓
 - Unit 3 (migrate + dedupe) → Task 5 (call sites + 3 dup branches collapsed). ✓

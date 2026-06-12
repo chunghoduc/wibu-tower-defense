@@ -26,7 +26,11 @@ export class GachaScene extends Phaser.Scene {
 
     // Design-team summon backdrop (magical portal), dimmed for legibility.
     if (this.textures.exists("bg__gacha")) {
-      this.add.image(W / 2, this.scale.height / 2, "bg__gacha").setDisplaySize(W, this.scale.height).setDepth(-10).setAlpha(0.5);
+      this.add
+        .image(W / 2, this.scale.height / 2, "bg__gacha")
+        .setDisplaySize(W, this.scale.height)
+        .setDepth(-10)
+        .setAlpha(0.5);
     }
 
     this.add
@@ -53,7 +57,9 @@ export class GachaScene extends Phaser.Scene {
     // Free summon recharges every 8 hours; shows a live countdown when on cooldown.
     this.freeBtn = this.add
       .text(W / 2, 128, "", { fontSize: "15px", color: "#fff", backgroundColor: "#2e7d32" })
-      .setOrigin(0.5).setPadding(14, 7, 14, 7).setInteractive({ useHandCursor: true });
+      .setOrigin(0.5)
+      .setPadding(14, 7, 14, 7)
+      .setInteractive({ useHandCursor: true });
     this.freeBtn.on("pointerdown", () => this.claimFree());
 
     this.pull1Btn = this.add
@@ -101,13 +107,17 @@ export class GachaScene extends Phaser.Scene {
     if (scrolls >= 1) {
       this.pull1Btn.setText("1× Pull  (📜 Scroll)").setBackgroundColor("#5a3a1a").setAlpha(1);
     } else {
-      this.pull1Btn.setText(`1× Pull  (${SINGLE_PULL_COST} 💎)`).setBackgroundColor("#1a4a7a")
+      this.pull1Btn
+        .setText(`1× Pull  (${SINGLE_PULL_COST} 💎)`)
+        .setBackgroundColor("#1a4a7a")
         .setAlpha(s.currency.diamonds >= SINGLE_PULL_COST ? 1 : 0.4);
     }
     if (scrolls >= 10) {
       this.pull10Btn.setText("10× Pull  (📜 ×10)").setBackgroundColor("#5a3a1a").setAlpha(1);
     } else {
-      this.pull10Btn.setText(`10× Pull  (${MULTI_PULL_COST} 💎)`).setBackgroundColor("#1a4a7a")
+      this.pull10Btn
+        .setText(`10× Pull  (${MULTI_PULL_COST} 💎)`)
+        .setBackgroundColor("#1a4a7a")
         .setAlpha(s.currency.diamonds >= MULTI_PULL_COST ? 1 : 0.4);
     }
 
@@ -121,7 +131,10 @@ export class GachaScene extends Phaser.Scene {
     if (remaining <= 0) {
       this.freeBtn.setText("🎁 Free Summon!").setBackgroundColor("#2e7d32").setAlpha(1);
     } else {
-      this.freeBtn.setText(`🎁 Free in ${this.formatCountdown(remaining)}`).setBackgroundColor("#37474f").setAlpha(0.55);
+      this.freeBtn
+        .setText(`🎁 Free in ${this.formatCountdown(remaining)}`)
+        .setBackgroundColor("#37474f")
+        .setAlpha(0.55);
     }
   }
 

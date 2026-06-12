@@ -13,8 +13,8 @@ import { itemTex } from "../data/assetKeys.ts";
 
 interface OutfitAnchor {
   slot: ItemSlot;
-  nx: number;   // horizontal, 0.5 = centre (offset scales with the hero's half-width)
-  ny: number;   // vertical, 0 = top of the hero box, 1 = bottom
+  nx: number; // horizontal, 0.5 = centre (offset scales with the hero's half-width)
+  ny: number; // vertical, 0 = top of the hero box, 1 = bottom
   scale: number; // icon height as a fraction of the hero height
   depth: number; // relative to the hero sprite's depth
 }
@@ -25,9 +25,9 @@ interface OutfitAnchor {
 // inventory icons on top reads as stickers (helmet over the face, boots on the
 // thigh). Rings + Amulet are likewise excluded — they don't read at a glance.
 const OUTFIT: OutfitAnchor[] = [
-  { slot: "Wing",      nx: 0.50, ny: 0.30, scale: 0.85, depth: -1 },
-  { slot: "Weapon",    nx: 0.14, ny: 0.52, scale: 0.52, depth: 3 },
-  { slot: "Pet",       nx: 0.92, ny: 0.84, scale: 0.42, depth: 4 },
+  { slot: "Wing", nx: 0.5, ny: 0.3, scale: 0.85, depth: -1 },
+  { slot: "Weapon", nx: 0.14, ny: 0.52, scale: 0.52, depth: 3 },
+  { slot: "Pet", nx: 0.92, ny: 0.84, scale: 0.42, depth: 4 },
 ];
 
 /**
@@ -36,8 +36,12 @@ const OUTFIT: OutfitAnchor[] = [
  * Returns the created images (so the caller can clear them on refresh).
  */
 export function dressHero(
-  scene: Phaser.Scene, inventory: InventorySave,
-  cx: number, topY: number, heroH: number, baseDepth: number,
+  scene: Phaser.Scene,
+  inventory: InventorySave,
+  cx: number,
+  topY: number,
+  heroH: number,
+  baseDepth: number,
 ): Phaser.GameObjects.Image[] {
   const halfW = heroH * 0.42; // the character is narrower than the (square) frame
   const out: Phaser.GameObjects.Image[] = [];
@@ -47,9 +51,10 @@ export function dressHero(
     const inst = inventory.items.find((it) => it.id === instId);
     const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
     if (!def) continue;
-    const key = (a.slot === "Wing" && def.appearanceRef) ? def.appearanceRef : itemTex(def.id);
+    const key = a.slot === "Wing" && def.appearanceRef ? def.appearanceRef : itemTex(def.id);
     if (!scene.textures.exists(key)) continue;
-    const img = scene.add.image(cx + (a.nx - 0.5) * 2 * halfW, topY + a.ny * heroH, key)
+    const img = scene.add
+      .image(cx + (a.nx - 0.5) * 2 * halfW, topY + a.ny * heroH, key)
       .setOrigin(0.5)
       .setDepth(baseDepth + a.depth);
     img.setScale((a.scale * heroH) / img.height);

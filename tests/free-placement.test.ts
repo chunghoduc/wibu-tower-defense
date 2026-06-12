@@ -6,7 +6,11 @@ import { STAGE_1, defaultHeroStats, WORLD_WIDTH, WORLD_HEIGHT } from "../src/dat
 function battle() {
   return new BattleState(STAGE_1, loadCatalog(), {
     seed: 1,
-    hero: { stats: defaultHeroStats(), startPos: { x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2 }, damageType: "Physical" },
+    hero: {
+      stats: defaultHeroStats(),
+      startPos: { x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2 },
+      damageType: "Physical",
+    },
   });
 }
 
@@ -31,7 +35,10 @@ describe("free tower placement", () => {
 
   it("rejects placement on the lane corridor", () => {
     const b = battle();
-    const mid = { x: (STAGE_1.path[0].x + STAGE_1.path[1].x) / 2, y: (STAGE_1.path[0].y + STAGE_1.path[1].y) / 2 };
+    const mid = {
+      x: (STAGE_1.path[0].x + STAGE_1.path[1].x) / 2,
+      y: (STAGE_1.path[0].y + STAGE_1.path[1].y) / 2,
+    };
     expect(b.canPlaceAt(mid)).toBe(false);
     expect(b.placeTowerAt("zoran-thricedraw", mid)).toBe(false);
   });

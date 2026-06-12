@@ -24,8 +24,10 @@ export function craftAlchemy(save: HeroSave, recipeId: string, times = 1): numbe
   if (!r || times <= 0) return 0;
   const n = Math.min(times, maxCrafts(save, recipeId));
   if (n <= 0) return 0;
-  for (const [id, c] of Object.entries(r.inputs)) save.materials[id] = (save.materials[id] ?? 0) - c * n;
-  for (const [id, c] of Object.entries(r.outputs)) save.materials[id] = (save.materials[id] ?? 0) + c * n;
+  for (const [id, c] of Object.entries(r.inputs))
+    save.materials[id] = (save.materials[id] ?? 0) - c * n;
+  for (const [id, c] of Object.entries(r.outputs))
+    save.materials[id] = (save.materials[id] ?? 0) + c * n;
   return n;
 }
 

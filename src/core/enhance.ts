@@ -22,7 +22,7 @@ import { BLESS_JEWEL, SOUL_JEWEL } from "../data/materials.ts";
 export { BLESS_JEWEL, SOUL_JEWEL };
 
 export const MAX_ENHANCE = 15;
-export const SOUL_THRESHOLD = 6;       // levels at/after this need a Soul jewel
+export const SOUL_THRESHOLD = 6; // levels at/after this need a Soul jewel
 const BONUS_PER_LEVEL = 0.08;
 const FAIL_DROP_MAX = 5;
 
@@ -52,9 +52,9 @@ export function scaleStatsByEnhance(stats: Partial<Stats>, level: number): Parti
 }
 
 export interface EnhanceResult {
-  ok: boolean;            // whether the attempt was performed (had item + jewel)
+  ok: boolean; // whether the attempt was performed (had item + jewel)
   reason?: "no-item" | "maxed" | "no-jewel";
-  success?: boolean;      // whether it advanced
+  success?: boolean; // whether it advanced
   jewel?: string;
   from?: number;
   to?: number;

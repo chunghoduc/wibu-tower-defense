@@ -47,7 +47,24 @@ const game = new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [PreloadScene, MainMenuScene, StageSelectScene, BattleScene, GachaScene, CollectionScene, ShopScene, PassiveGridScene, HeroScene, SquadScene, SettingsScene, SkillsScene, QuestScene, ActivitiesScene, ExpeditionScene, ForgeScene],
+  scene: [
+    PreloadScene,
+    MainMenuScene,
+    StageSelectScene,
+    BattleScene,
+    GachaScene,
+    CollectionScene,
+    ShopScene,
+    PassiveGridScene,
+    HeroScene,
+    SquadScene,
+    SettingsScene,
+    SkillsScene,
+    QuestScene,
+    ActivitiesScene,
+    ExpeditionScene,
+    ForgeScene,
+  ],
 });
 
 game.registry.set("saveManager", saveManager);
@@ -79,8 +96,17 @@ if (import.meta.env.DEV || new URLSearchParams(location.search).has("debug")) {
   };
   // Damage-calculation debugging: call __damageLog() in the console to stream the
   // full per-hit formula to the console + runtime log, __damageLog(false) to stop.
-  (globalThis as unknown as { __damageLog: (on?: boolean) => string }).__damageLog = (on = true) => {
-    setCombatLogSink(on ? (line) => { console.log(line); log.info("dmg", line); } : null);
+  (globalThis as unknown as { __damageLog: (on?: boolean) => string }).__damageLog = (
+    on = true,
+  ) => {
+    setCombatLogSink(
+      on
+        ? (line) => {
+            console.log(line);
+            log.info("dmg", line);
+          }
+        : null,
+    );
     return on ? "damage logging ON" : "damage logging OFF";
   };
 }

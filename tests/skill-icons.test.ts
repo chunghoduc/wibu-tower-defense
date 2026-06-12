@@ -17,6 +17,9 @@ describe("skill icon coverage", () => {
 
   it("every declared skill icon has a generated PNG on disk", () => {
     const missing = ids.filter((id) => !existsSync(`public/assets/sprites/skill/${id}.png`));
-    expect(missing, `missing skill icons (run npm run gen:skill-visual && npx vite-node scripts/sdart/sdgen.mjs --only=skill):\n${missing.join("\n")}`).toEqual([]);
+    expect(
+      missing,
+      `missing skill icons (run npm run gen:skill-visual && npx vite-node scripts/sdart/sdgen.mjs --only=skill):\n${missing.join("\n")}`,
+    ).toEqual([]);
   });
 });

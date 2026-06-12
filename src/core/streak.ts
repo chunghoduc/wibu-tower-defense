@@ -26,7 +26,10 @@ export const STREAK_CYCLE: Reward[] = [
 
 /** Every STREAK_MILESTONE_DAYS of streak grants this on top of the cycle reward. */
 export const STREAK_MILESTONE_DAYS = 30;
-export const STREAK_MILESTONE_REWARD: Reward = { materials: { [AWAKENING_CRYSTAL]: 1 }, diamonds: 100 };
+export const STREAK_MILESTONE_REWARD: Reward = {
+  materials: { [AWAKENING_CRYSTAL]: 1 },
+  diamonds: 100,
+};
 
 export interface StreakClaim {
   /** New streak count after this claim. */

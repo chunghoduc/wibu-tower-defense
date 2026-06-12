@@ -4,11 +4,22 @@ import { ITEM_CATALOG } from "../src/data/items.ts";
 
 const def = ITEM_CATALOG.find((d) => d.id === "masterwork-precision-ring")!;
 
-function inst(over: Partial<{ rolledStats: Record<string, number>; rolledPrimaryAffix: number; rolledAffixes: { type: string; value: number }[] }> = {}) {
+function inst(
+  over: Partial<{
+    rolledStats: Record<string, number>;
+    rolledPrimaryAffix: number;
+    rolledAffixes: { type: string; value: number }[];
+  }> = {},
+) {
   return {
-    id: "x", defId: def.id, acquiredLevel: 20,
-    rolledStats: { critRate: 0.1 }, rolledPrimaryAffix: 0.05, rolledAffixes: [{ type: "critDamage", value: 0.15 }],
-    enhanceLevel: 0, ...over,
+    id: "x",
+    defId: def.id,
+    acquiredLevel: 20,
+    rolledStats: { critRate: 0.1 },
+    rolledPrimaryAffix: 0.05,
+    rolledAffixes: [{ type: "critDamage", value: 0.15 }],
+    enhanceLevel: 0,
+    ...over,
   } as any;
 }
 
@@ -21,42 +32,56 @@ describe("itemStatRows colouring", () => {
   });
 
   it("colour maps follow the requested scheme", () => {
-    expect(SOURCE_COLOR.base).toBe("#ffffff");      // primary/base stat = white
-    expect(SOURCE_COLOR.primary).toBe("#5fa8ff");   // primary affix = blue
-    expect(SOURCE_COLOR.affix).toBe("#c98bff");     // additional affix = purple
-    expect(QUALITY_COLOR.better).toBe("#6ee06e");   // better than base = green
-    expect(QUALITY_COLOR.worse).toBe("#ff7a7a");    // worse than base = red
-    expect(QUALITY_COLOR.base).toBe("#ffffff");     // on par = white
+    expect(SOURCE_COLOR.base).toBe("#ffffff"); // primary/base stat = white
+    expect(SOURCE_COLOR.primary).toBe("#5fa8ff"); // primary affix = blue
+    expect(SOURCE_COLOR.affix).toBe("#c98bff"); // additional affix = purple
+    expect(QUALITY_COLOR.better).toBe("#6ee06e"); // better than base = green
+    expect(QUALITY_COLOR.worse).toBe("#ff7a7a"); // worse than base = red
+    expect(QUALITY_COLOR.base).toBe("#ffffff"); // on par = white
   });
 
   it("marks an above-base roll better (green) and below-base worse (red)", () => {
     // primary base value for this def:
     const basePrimary = def.primaryAffix.baseValue;
-    const high = itemStatRows(inst({ rolledPrimaryAffix: basePrimary * 1.1 }), def).find((r) => r.source === "primary")!;
-    const low = itemStatRows(inst({ rolledPrimaryAffix: basePrimary * 0.9 }), def).find((r) => r.source === "primary")!;
+    const high = itemStatRows(inst({ rolledPrimaryAffix: basePrimary * 1.1 }), def).find(
+      (r) => r.source === "primary",
+    )!;
+    const low = itemStatRows(inst({ rolledPrimaryAffix: basePrimary * 0.9 }), def).find(
+      (r) => r.source === "primary",
+    )!;
     expect(high.quality).toBe("better");
     expect(low.quality).toBe("worse");
   });
 
   it("shows enhance-scaled total + bonus on base stats (e.g. Armor 24 (+4))", () => {
-    const plus0 = itemStatRows(inst({ rolledStats: { armor: 20 } }), def).find((r) => r.source === "base")!;
+    const plus0 = itemStatRows(inst({ rolledStats: { armor: 20 } }), def).find(
+      (r) => r.source === "base",
+    )!;
     expect(plus0.value).toBe("20");
     expect(plus0.bonus).toBeUndefined();
 
-    const enh = itemStatRows({ ...inst({ rolledStats: { armor: 20 } }), enhanceLevel: 5 } as any, def).find((r) => r.source === "base")!;
+    const enh = itemStatRows(
+      { ...inst({ rolledStats: { armor: 20 } }), enhanceLevel: 5 } as any,
+      def,
+    ).find((r) => r.source === "base")!;
     // enhanceBonus(5) = 1.4 → total 28, bonus +8
     expect(enh.value).toBe("28");
     expect(enh.bonus).toBe("(+8)");
   });
 
   it("affixes are not enhance-scaled (matches battle)", () => {
-    const enh = itemStatRows({ ...inst({ rolledAffixes: [{ type: "critRate", value: 0.1 }] }), enhanceLevel: 5 } as any, def).find((r) => r.source === "affix")!;
+    const enh = itemStatRows(
+      { ...inst({ rolledAffixes: [{ type: "critRate", value: 0.1 }] }), enhanceLevel: 5 } as any,
+      def,
+    ).find((r) => r.source === "affix")!;
     expect(enh.value).toBe("10%");
     expect(enh.bonus).toBeUndefined();
   });
 
   it("formats fractional stats as percentages", () => {
-    const row = itemStatRows(inst({ rolledStats: { critRate: 0.22 } }), def).find((r) => r.source === "base" && r.before === "Crit")!;
+    const row = itemStatRows(inst({ rolledStats: { critRate: 0.22 } }), def).find(
+      (r) => r.source === "base" && r.before === "Crit",
+    )!;
     expect(row.value).toBe("22%");
   });
 

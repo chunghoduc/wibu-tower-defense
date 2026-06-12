@@ -12,12 +12,12 @@ pressure. The root cause is **structural, not a tuning slip**:
    `baseStats × difficulty.hpMult × challengeMul × endlessMul`
    (`battleWaves.ts:89-96`). **Nothing in that formula depends on the wave
    index.** A `grunt` in wave 1 is identical to a `grunt` in the final pressure
-   wave. The only things that grow across a stage are enemy *count* and
-   *archetype variety* — never per-enemy toughness. So a tower that trivializes
+   wave. The only things that grow across a stage are enemy _count_ and
+   _archetype variety_ — never per-enemy toughness. So a tower that trivializes
    wave 1 trivializes wave 6.
 2. **The boss is the lone HP spike**, and a geared tower out-DPSes even that.
 3. **Normal `hpMult` is only 1.3** (+30% HP) while tower power scales
-   *quadratically* — gear buffs both `atk` and `attackSpeed`, which multiply
+   _quadratically_ — gear buffs both `atk` and `attackSpeed`, which multiply
    into DPS — so the gap between "intended roster" and "content" widens every
    level.
 
@@ -27,7 +27,7 @@ True bypasses armor/resist, DR applied last. Verified by reading + tests.
 
 ## Design — make waves harder and harder in the same stage
 
-**Core loop touched:** the *Run* loop (a battle). Target aesthetic (MDA): rising
+**Core loop touched:** the _Run_ loop (a battle). Target aesthetic (MDA): rising
 tension across a stage — the opening rush is a warm-up, each wave demands more
 throughput, and by the final pressure wave + boss a single tower physically
 cannot keep up, forcing the player to commit more towers / better positioning
@@ -47,12 +47,12 @@ atkMult   = (1 + WAVE_ATK_RAMP * frac) * (1 + STAGE_ATK_RAMP * (stageN - 1))
 
 Constants (anchored, documented next to the code):
 
-| Const | Value | Effect |
-| --- | --- | --- |
-| `WAVE_HP_RAMP`  | `1.6` | last wave's trash ≈ **2.6×** the first wave's HP |
-| `WAVE_ATK_RAMP` | `0.7` | last wave's trash ≈ **1.7×** the first wave's damage |
-| `STAGE_HP_RAMP` | `0.08`| stage 10 trash ≈ **1.7×** stage 1 (on top of count growth) |
-| `STAGE_ATK_RAMP`| `0.05`| stage 10 trash ≈ **1.45×** stage 1 damage |
+| Const            | Value  | Effect                                                     |
+| ---------------- | ------ | ---------------------------------------------------------- |
+| `WAVE_HP_RAMP`   | `1.6`  | last wave's trash ≈ **2.6×** the first wave's HP           |
+| `WAVE_ATK_RAMP`  | `0.7`  | last wave's trash ≈ **1.7×** the first wave's damage       |
+| `STAGE_HP_RAMP`  | `0.08` | stage 10 trash ≈ **1.7×** stage 1 (on top of count growth) |
+| `STAGE_ATK_RAMP` | `0.05` | stage 10 trash ≈ **1.45×** stage 1 damage                  |
 
 **Bosses are exempt from the wave ramp** (`archetype === "Boss"`): they already
 carry the stage's difficulty spike via `BOSS_BY_STAGE` escalation (warden 1700 →
@@ -77,7 +77,7 @@ throughput test that one tower's single-target DPS cannot satisfy.
 
 `Normal.hpMult 1.3 → 1.55`, `atkMult 1.15 → 1.25`. Keeps Hard/Nightmare as the
 documented ~5× / ~20× power ratios (their multipliers rise proportionally is
-*not* required — they already dwarf Normal; we only lift the floor). Small, so
+_not_ required — they already dwarf Normal; we only lift the floor). Small, so
 early-stage competence stays intact (front-load easy, ramp later — §7 flow).
 
 ## Components / files
@@ -85,7 +85,7 @@ early-stage competence stays intact (front-load easy, ramp later — §7 flow).
 - **`src/core/waveScaling.ts`** (new, ~40 lines) — pure `waveScaling()` +
   exported constants. Independently unit-testable; no Phaser/battle deps.
 - **`src/core/battleWaves.ts`** — `spawnEnemy` calls `waveScaling(this.waveIndex,
-  this.stage.waves.length, stageNumber(this.stage.id))`, multiplies `maxHp`,
+this.stage.waves.length, stageNumber(this.stage.id))`, multiplies `maxHp`,
   `shield`, `atk` (skip the HP/atk ramp for `def.archetype === "Boss"`, apply
   stageRamp only).
 - **`src/data/stage.ts`** — `buildWaves` cadence/extra-pressure-wave tweaks.
@@ -104,7 +104,7 @@ lane. That is the dynamic we want; the boss then finishes as a clean spike.
 ## Risk & verification
 
 - **Risk:** over-tuning → early stages feel unfair. Mitigation: intra-stage ramp
-  is *relative* (stage 1 wave 1 unchanged at ×1.0 frac), stage ramp gentle.
+  is _relative_ (stage 1 wave 1 unchanged at ×1.0 frac), stage ramp gentle.
 - **Verify:** `tsc` + full `vitest` (incl. new curve tests) + `npm run build`,
   then a CDP self-playtest (`window.__game`) on stage 1 and a later stage with a
   **single** tower to confirm later waves now leak / require more towers, where

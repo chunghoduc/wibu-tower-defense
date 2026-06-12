@@ -3,7 +3,11 @@
  * the date string (so every player on a given day faces the same challenge), and
  * pays a once-per-day clear bonus. The battle sim reads the modifier's effects.
  */
-import { CHALLENGE_MODIFIERS, CHALLENGE_MODIFIERS_MAP, type ChallengeModifierDef } from "../data/challengeModifiers.ts";
+import {
+  CHALLENGE_MODIFIERS,
+  CHALLENGE_MODIFIERS_MAP,
+  type ChallengeModifierDef,
+} from "../data/challengeModifiers.ts";
 import { grantReward, type Reward } from "./rewards.ts";
 import type { HeroSave } from "./save.ts";
 

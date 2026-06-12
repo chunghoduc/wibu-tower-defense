@@ -55,7 +55,12 @@ export function endlessBoxTier(wave: number): number {
   return Math.max(1, Math.min(5, Math.ceil(wave / 20)));
 }
 
-const sp = (enemyId: string, count: number, interval: number, delay: number): SpawnEntry => ({ enemyId, count, interval, delay });
+const sp = (enemyId: string, count: number, interval: number, delay: number): SpawnEntry => ({
+  enemyId,
+  count,
+  interval,
+  delay,
+});
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.floor(v)));
 
 /**
@@ -82,10 +87,14 @@ export function endlessWave(wave: number): WaveDef {
   const spawns: SpawnEntry[] = [];
   // Fodder spine — alternates grunt/runner, tightens cadence past wave 10.
   spawns.push(sp(wave % 2 ? "grunt" : "runner", clamp(6 + wave, 6, 40), wave >= 10 ? 0.4 : 0.6, 0));
-  if (wave >= 2) spawns.push(sp("gargoyle", clamp(1 + wave / 4, 1, 10), 1.0, 2));            // flyers
-  if (wave >= 3) spawns.push(sp(["brute", "bulwark", "slime", "raider"][wave % 4], clamp(2 + wave / 3, 2, 14), 0.9, 1));
-  if (wave >= 5) spawns.push(sp("phantom", clamp(wave / 4, 1, 8), 1.1, 3));                  // stealth
-  if (wave >= 6) spawns.push(sp(wave % 2 ? "golem" : "monolith", clamp(1 + wave / 8, 1, 5), 2.0, 4)); // immune walls
+  if (wave >= 2) spawns.push(sp("gargoyle", clamp(1 + wave / 4, 1, 10), 1.0, 2)); // flyers
+  if (wave >= 3)
+    spawns.push(
+      sp(["brute", "bulwark", "slime", "raider"][wave % 4], clamp(2 + wave / 3, 2, 14), 0.9, 1),
+    );
+  if (wave >= 5) spawns.push(sp("phantom", clamp(wave / 4, 1, 8), 1.1, 3)); // stealth
+  if (wave >= 6)
+    spawns.push(sp(wave % 2 ? "golem" : "monolith", clamp(1 + wave / 8, 1, 5), 2.0, 4)); // immune walls
   if (wave >= 7) spawns.push(sp(["herald", "mender", "summoner", "hexer"][wave % 4], 1, 1, 5)); // priority-kill support
   if (wave >= 8) spawns.push(sp("regenerator", clamp(wave / 6, 1, 6), 1.5, 3));
   return { spawns };
@@ -98,8 +107,12 @@ export function endlessWave(wave: number): WaveDef {
  */
 export function endlessRunReward(fromExclusive: number, toInclusive: number): Reward {
   const reward: Reward = {};
-  const addGems = (n: number) => { reward.diamonds = (reward.diamonds ?? 0) + n; };
-  const addMat = (id: string, n: number) => { (reward.materials ??= {})[id] = (reward.materials[id] ?? 0) + n; };
+  const addGems = (n: number) => {
+    reward.diamonds = (reward.diamonds ?? 0) + n;
+  };
+  const addMat = (id: string, n: number) => {
+    (reward.materials ??= {})[id] = (reward.materials[id] ?? 0) + n;
+  };
   for (let w = Math.max(1, Math.floor(fromExclusive) + 1); w <= toInclusive; w++) {
     const m = endlessMilestoneReward(w);
     if (m) {
@@ -121,9 +134,9 @@ export function bestEndlessWave(save: HeroSave, stageId: string): number {
 // stays *felt* at every tier (a flat fee is pocket change to a deep, gold-rich
 // player and the sink dies). Linear — not exponential — because the reward is
 // already farm-resistant; exploding the cost too would double-punish the grind.
-export const ENDLESS_ENTRY_BASE = 150;     // cheap first taste (best 0)
-export const ENDLESS_ENTRY_PER_WAVE = 35;  // ≈ one Nightmare clear (1000g) at best 20
-export const ENDLESS_ENTRY_CAP = 4000;     // anti-lockout: never wall a player out of unlocked content
+export const ENDLESS_ENTRY_BASE = 150; // cheap first taste (best 0)
+export const ENDLESS_ENTRY_PER_WAVE = 35; // ≈ one Nightmare clear (1000g) at best 20
+export const ENDLESS_ENTRY_CAP = 4000; // anti-lockout: never wall a player out of unlocked content
 
 /** Gold to start an endless run, scaled to the player's best wave (round-10, capped). */
 export function endlessEntryCost(bestWave: number): number {
@@ -152,7 +165,11 @@ export function recordEndlessWave(save: HeroSave, stageId: string, wave: number)
  * Settle an endless run: grant rewards for any depth newly reached beyond the
  * player's prior best on this stage, record the new best, and return what was paid.
  */
-export function claimEndlessRun(save: HeroSave, stageId: string, wavesReached: number): { reward: Reward; isBest: boolean } {
+export function claimEndlessRun(
+  save: HeroSave,
+  stageId: string,
+  wavesReached: number,
+): { reward: Reward; isBest: boolean } {
   const prev = bestEndlessWave(save, stageId);
   if (wavesReached <= prev) return { reward: {}, isBest: false };
   const reward = endlessRunReward(prev, wavesReached);

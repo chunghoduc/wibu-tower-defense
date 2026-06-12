@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { MATERIAL_ICON_IDS, materialIconKey } from "../src/data/materialIconManifest.ts";
-import { BLESS_JEWEL, SOUL_JEWEL, SUMMON_SCROLL, CHAOS_JEWEL, boxIdForTier } from "../src/data/materials.ts";
+import {
+  BLESS_JEWEL,
+  SOUL_JEWEL,
+  SUMMON_SCROLL,
+  CHAOS_JEWEL,
+  boxIdForTier,
+} from "../src/data/materials.ts";
 
 describe("material icon manifest", () => {
   it("covers the enhance jewels + summon scroll + chaos jewel", () => {

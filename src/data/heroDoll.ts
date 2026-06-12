@@ -9,24 +9,24 @@ import { HERODOLL_BASE_TEX } from "./assetKeys.ts";
 
 export interface DollSlotDef {
   slot: ItemSlot;
-  nx: number;        // normalized x within the panel (0..1)
-  ny: number;        // normalized y within the panel (0..1)
+  nx: number; // normalized x within the panel (0..1)
+  ny: number; // normalized y within the panel (0..1)
   label: string;
-  behind?: boolean;  // drawn behind the mannequin (wings)
+  behind?: boolean; // drawn behind the mannequin (wings)
 }
 
 export const DOLL_SLOTS: DollSlotDef[] = [
   // Top row: Pet (upper left) · Head (centre) · Wing (upper right).
-  { slot: "Pet",       nx: 0.15, ny: 0.11, label: "Pet" },
-  { slot: "Helmet",    nx: 0.50, ny: 0.11, label: "Head" },
-  { slot: "Wing",      nx: 0.85, ny: 0.11, label: "Wings" },
-  { slot: "Amulet",    nx: 0.50, ny: 0.27, label: "Neck" },
-  { slot: "BodyArmor", nx: 0.50, ny: 0.45, label: "Body" },
-  { slot: "Weapon",    nx: 0.15, ny: 0.47, label: "Weapon" },
-  { slot: "Gloves",    nx: 0.85, ny: 0.51, label: "Hands" },
-  { slot: "Ring1",     nx: 0.15, ny: 0.69, label: "Ring" },
-  { slot: "Ring2",     nx: 0.85, ny: 0.69, label: "Ring" },
-  { slot: "Boots",     nx: 0.50, ny: 0.85, label: "Feet" },
+  { slot: "Pet", nx: 0.15, ny: 0.11, label: "Pet" },
+  { slot: "Helmet", nx: 0.5, ny: 0.11, label: "Head" },
+  { slot: "Wing", nx: 0.85, ny: 0.11, label: "Wings" },
+  { slot: "Amulet", nx: 0.5, ny: 0.27, label: "Neck" },
+  { slot: "BodyArmor", nx: 0.5, ny: 0.45, label: "Body" },
+  { slot: "Weapon", nx: 0.15, ny: 0.47, label: "Weapon" },
+  { slot: "Gloves", nx: 0.85, ny: 0.51, label: "Hands" },
+  { slot: "Ring1", nx: 0.15, ny: 0.69, label: "Ring" },
+  { slot: "Ring2", nx: 0.85, ny: 0.69, label: "Ring" },
+  { slot: "Boots", nx: 0.5, ny: 0.85, label: "Feet" },
 ];
 
 /** Panel box (scene coordinates) the doll fills — left side of the loadout screen. */

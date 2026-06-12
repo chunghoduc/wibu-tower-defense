@@ -13,7 +13,7 @@ import type { HeroSave } from "./save.ts";
 export const BESTIARY_TIERS: { kills: number; bonus: number }[] = [
   { kills: 50, bonus: 0.03 },
   { kills: 250, bonus: 0.06 }, // cumulative +6%
-  { kills: 1000, bonus: 0.10 }, // cumulative +10%
+  { kills: 1000, bonus: 0.1 }, // cumulative +10%
 ];
 
 /** Record one kill of `archetype` and bump the profile lifetime-kill tally. */

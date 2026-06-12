@@ -27,9 +27,9 @@ export interface ReforgeCost {
 
 /** Reforge cost by rarity. Common/Magic are absent — they aren't reforge-able. */
 const REFORGE_COST: Partial<Record<Rarity, ReforgeCost>> = {
-  Rare: { gold: 400, chaos: 3 },        // ≈ smelting one Rare (4 chaos)
-  Legendary: { gold: 900, chaos: 6 },   // ≈ smelting one Legendary partway
-  Unique: { gold: 2000, chaos: 10 },    // a Unique smelts to 16 → ~1.6 reforges
+  Rare: { gold: 400, chaos: 3 }, // ≈ smelting one Rare (4 chaos)
+  Legendary: { gold: 900, chaos: 6 }, // ≈ smelting one Legendary partway
+  Unique: { gold: 2000, chaos: 10 }, // a Unique smelts to 16 → ~1.6 reforges
 };
 
 export function reforgeCost(rarity: Rarity): ReforgeCost | null {

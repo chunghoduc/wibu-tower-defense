@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
 import {
-  startExpedition, collectExpedition, expeditionPendingGold, expeditionActive,
-  expeditionGoldPerHour, expeditionGoldPerHourFor, expeditionCanCollect,
-  expeditionEligibleTowerIds, EXPEDITION_CAP_MS, MAX_EXPEDITION_TOWERS, MIN_COLLECT_MS,
+  startExpedition,
+  collectExpedition,
+  expeditionPendingGold,
+  expeditionActive,
+  expeditionGoldPerHour,
+  expeditionGoldPerHourFor,
+  expeditionCanCollect,
+  expeditionEligibleTowerIds,
+  EXPEDITION_CAP_MS,
+  MAX_EXPEDITION_TOWERS,
+  MIN_COLLECT_MS,
 } from "../src/core/expedition.ts";
 import { Rng } from "../src/core/rng.ts";
 
@@ -90,7 +98,7 @@ describe("F2 idle expedition", () => {
   it("gold rate scales with rarity and stars", () => {
     const s = createFreshSave();
     s.collection["yamo-desert-bandit"] = { stars: 1, copies: 0 }; // Common
-    s.collection["karu-sunfist"] = { stars: 1, copies: 0 };       // Unique
+    s.collection["karu-sunfist"] = { stars: 1, copies: 0 }; // Unique
     const common = expeditionGoldPerHourFor(s, ["yamo-desert-bandit"]);
     const unique = expeditionGoldPerHourFor(s, ["karu-sunfist"]);
     expect(unique).toBeGreaterThan(common); // higher rarity → more gold

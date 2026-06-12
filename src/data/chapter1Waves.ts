@@ -79,45 +79,46 @@ export function buildChapter1Waves(n: number, finalBoss: string, midBoss: string
   w.push({ spawns: [spawn("grunt", 4 + Math.floor(d / 2), 1.0)] });
 
   // W2 — introduce the stage's featured archetype, still light.
-  w.push({ spawns: [
-    spawn("grunt", 4 + Math.floor(d / 2), 0.9),
-    spawn(f, 2 + Math.floor(d / 2), 1.2, 3),
-  ] });
+  w.push({
+    spawns: [spawn("grunt", 4 + Math.floor(d / 2), 0.9), spawn(f, 2 + Math.floor(d / 2), 1.2, 3)],
+  });
 
   // W3 — first armor: demands a little single-target / penetration.
-  w.push({ spawns: [
-    spawn("brute", 1 + Math.floor(d / 3), 1.4),
-    spawn("bulwark", 1 + Math.floor(d / 4), 1.4, 2),
-    spawn(f, 2 + Math.floor(d / 2), 1.0, 1),
-  ] });
+  w.push({
+    spawns: [
+      spawn("brute", 1 + Math.floor(d / 3), 1.4),
+      spawn("bulwark", 1 + Math.floor(d / 4), 1.4, 2),
+      spawn(f, 2 + Math.floor(d / 2), 1.0, 1),
+    ],
+  });
 
   // W4 — swarm bump: density climbs.
-  w.push({ spawns: [
-    spawn("runner", 6 + d, 0.5),
-    spawn("gargoyle", 2 + Math.floor(d / 3), 0.9, 2),
-  ] });
+  w.push({
+    spawns: [spawn("runner", 6 + d, 0.5), spawn("gargoyle", 2 + Math.floor(d / 3), 0.9, 2)],
+  });
 
   // W5 — MID-BOSS. A leak here costs 10 of your 15 castle HP.
-  w.push({ spawns: [
-    spawn("grunt", 5, 0.5),
-    spawn("brute", 1 + Math.floor(d / 4), 1.5, 2),
-    spawn(midBoss, 1, 1, 6),
-  ] });
+  w.push({
+    spawns: [
+      spawn("grunt", 5, 0.5),
+      spawn("brute", 1 + Math.floor(d / 4), 1.5, 2),
+      spawn(midBoss, 1, 1, 6),
+    ],
+  });
 
   // W6 — first juggernaut wall: forces a second damage type onto the board.
-  const w6: SpawnEntry[] = [
-    spawn("grunt", 6 + d, 0.5),
-    spawn(f, 2 + Math.floor(d / 2), 0.9, 2),
-  ];
+  const w6: SpawnEntry[] = [spawn("grunt", 6 + d, 0.5), spawn(f, 2 + Math.floor(d / 2), 0.9, 2)];
   if (p.wall) w6.push(spawn(p.wall, 1, 2.5, 4));
   w.push({ spawns: w6 });
 
   // W7 — tower-threat / speed pressure: protect the back line.
-  w.push({ spawns: [
-    spawn("runner", 8 + d, 0.4),
-    spawn("raider", 1 + Math.floor(d / 3), 1.8, 2),
-    spawn(f, 2 + Math.floor(d / 2), 1.0, 3),
-  ] });
+  w.push({
+    spawns: [
+      spawn("runner", 8 + d, 0.4),
+      spawn("raider", 1 + Math.floor(d / 3), 1.8, 2),
+      spawn(f, 2 + Math.floor(d / 2), 1.0, 3),
+    ],
+  });
 
   // W8 — sky + a priority-kill support. Getting hard.
   const w8: SpawnEntry[] = [

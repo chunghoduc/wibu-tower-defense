@@ -16,20 +16,26 @@ import { crispText } from "./ui.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
 import { renderInfoTooltip } from "./infoTooltip.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
-import { battleLootTiles, type BattleLootSummary, type RewardTileSpec } from "../data/rewardTiles.ts";
+import {
+  battleLootTiles,
+  type BattleLootSummary,
+  type RewardTileSpec,
+} from "../data/rewardTiles.ts";
 import { makeFitIcon } from "./itemIcon.ts";
 import { addNamePlate } from "./namePlate.ts";
 
-const TILE = 56, GAP = 8, PER_ROW = 8;
-const ROW_H = TILE + 22;     // tile + room for the count/rarity label
-const MAX_VISIBLE_ROWS = 3;  // rows shown before the grid starts scrolling
+const TILE = 56,
+  GAP = 8,
+  PER_ROW = 8;
+const ROW_H = TILE + 22; // tile + room for the count/rarity label
+const MAX_VISIBLE_ROWS = 3; // rows shown before the grid starts scrolling
 
 function hex(int: number): string {
   return "#" + int.toString(16).padStart(6, "0");
 }
 
-const TITLE_H = 40;       // headroom reserved above the grid for the result title
-const PANEL_PAD = 18;     // inset between the backing panel edge and its contents
+const TITLE_H = 40; // headroom reserved above the grid for the result title
+const PANEL_PAD = 18; // inset between the backing panel edge and its contents
 
 /**
  * Build the post-battle loot panel at (centerX, topY): a result title
@@ -40,7 +46,10 @@ const PANEL_PAD = 18;     // inset between the backing panel edge and its conten
  * the scene at depth 25). The caller owns its lifetime.
  */
 export function showBattleLootPanel(
-  scene: Phaser.Scene, summary: BattleLootSummary, centerX: number, topY: number,
+  scene: Phaser.Scene,
+  summary: BattleLootSummary,
+  centerX: number,
+  topY: number,
 ): Phaser.GameObjects.Container {
   const specs = battleLootTiles(summary);
   const root = scene.add.container(0, 0).setDepth(25);
@@ -74,18 +83,36 @@ export function showBattleLootPanel(
   const panelLeft = Math.round(centerX - panelW / 2);
   const bg = scene.add.graphics();
   bg.fillStyle(0x0a1018, 0.88).fillRoundedRect(panelLeft, panelTop, panelW, panelH, 14);
-  bg.lineStyle(2, won ? 0x6fbf73 : 0xc16b6b, 0.9).strokeRoundedRect(panelLeft, panelTop, panelW, panelH, 14);
+  bg.lineStyle(2, won ? 0x6fbf73 : 0xc16b6b, 0.9).strokeRoundedRect(
+    panelLeft,
+    panelTop,
+    panelW,
+    panelH,
+    14,
+  );
   root.add(bg);
 
   // Result title — the clear WIN/DEFEAT verdict, above the looted items.
-  root.add(crispText(scene, centerX, titleY, won ? "VICTORY" : "DEFEATED", {
-    fontSize: "30px", color: won ? "#a5d6a7" : "#ef9a9a", fontStyle: "bold", stroke: "#0a1420", strokeThickness: 6,
-  }).setOrigin(0.5, 0));
+  root.add(
+    crispText(scene, centerX, titleY, won ? "VICTORY" : "DEFEATED", {
+      fontSize: "30px",
+      color: won ? "#a5d6a7" : "#ef9a9a",
+      fontStyle: "bold",
+      stroke: "#0a1420",
+      strokeThickness: 6,
+    }).setOrigin(0.5, 0),
+  );
 
   if (caption) {
-    root.add(crispText(scene, centerX, gridTop, caption, {
-      fontSize: "13px", color: summary.isFirstClear ? "#ffe07a" : "#9fb0c0", fontStyle: "bold", stroke: "#0a1420", strokeThickness: 4,
-    }).setOrigin(0.5, 0));
+    root.add(
+      crispText(scene, centerX, gridTop, caption, {
+        fontSize: "13px",
+        color: summary.isFirstClear ? "#ffe07a" : "#9fb0c0",
+        fontStyle: "bold",
+        stroke: "#0a1420",
+        strokeThickness: 4,
+      }).setOrigin(0.5, 0),
+    );
     gridTop += captionH;
   }
 
@@ -136,11 +163,17 @@ function buildScrollableGrid(
   // Scroll affordance + wheel/drag handlers, clamped to the content range.
   const minY = vpTop - (contentH - vpH);
   const hint = crispText(scene, centerX, vpTop + vpH + 2, "⇕ scroll for more", {
-    fontSize: "10px", color: "#7f93a8", fontStyle: "bold", stroke: "#0a1420", strokeThickness: 3,
+    fontSize: "10px",
+    color: "#7f93a8",
+    fontStyle: "bold",
+    stroke: "#0a1420",
+    strokeThickness: 3,
   }).setOrigin(0.5, 0);
   root.add(hint);
 
-  let dragging = false, dragStartY = 0, listStartY = 0;
+  let dragging = false,
+    dragStartY = 0,
+    listStartY = 0;
   const clamp = (v: number) => Phaser.Math.Clamp(v, minY, vpTop);
   const inViewport = (p: Phaser.Input.Pointer) =>
     p.x >= vpLeft && p.x <= vpLeft + vpW && p.y >= vpTop && p.y <= vpTop + vpH;
@@ -150,12 +183,21 @@ function buildScrollableGrid(
     tooltip.setVisible(false);
   };
   const down = (p: Phaser.Input.Pointer) => {
-    if (list.active && inViewport(p)) { dragging = true; dragStartY = p.y; listStartY = list.y; }
+    if (list.active && inViewport(p)) {
+      dragging = true;
+      dragStartY = p.y;
+      listStartY = list.y;
+    }
   };
   const move = (p: Phaser.Input.Pointer) => {
-    if (dragging && list.active) { list.y = clamp(listStartY + (p.y - dragStartY)); tooltip.setVisible(false); }
+    if (dragging && list.active) {
+      list.y = clamp(listStartY + (p.y - dragStartY));
+      tooltip.setVisible(false);
+    }
   };
-  const up = () => { dragging = false; };
+  const up = () => {
+    dragging = false;
+  };
   scene.input.on("wheel", wheel);
   scene.input.on("pointerdown", down);
   scene.input.on("pointermove", move);
@@ -170,8 +212,12 @@ function buildScrollableGrid(
 }
 
 function buildTile(
-  scene: Phaser.Scene, spec: RewardTileSpec, localX: number, localY: number,
-  list: Phaser.GameObjects.Container, tooltip: Phaser.GameObjects.Container,
+  scene: Phaser.Scene,
+  spec: RewardTileSpec,
+  localX: number,
+  localY: number,
+  list: Phaser.GameObjects.Container,
+  tooltip: Phaser.GameObjects.Container,
 ): Phaser.GameObjects.Container {
   const c = scene.add.container(localX, localY);
 
@@ -187,8 +233,15 @@ function buildTile(
   // the hover; this is the short rarity/count word, standardised to match every
   // other loot tile and guaranteed to never spill).
   addNamePlate(scene, c, spec.label, {
-    width: TILE + 4, topY: TILE / 2 - 2, height: 18, radius: 4,
-    accent: spec.color, color: hex(spec.color), basePx: 10, minPx: 7, maxLines: 1,
+    width: TILE + 4,
+    topY: TILE / 2 - 2,
+    height: 18,
+    radius: 4,
+    accent: spec.color,
+    color: hex(spec.color),
+    basePx: 10,
+    minPx: 7,
+    maxLines: 1,
   });
 
   c.setSize(TILE, TILE).setInteractive({ useHandCursor: true });
@@ -206,8 +259,11 @@ function buildTile(
 }
 
 function showTileTooltip(
-  scene: Phaser.Scene, tooltip: Phaser.GameObjects.Container,
-  spec: RewardTileSpec, x: number, y: number,
+  scene: Phaser.Scene,
+  tooltip: Phaser.GameObjects.Container,
+  spec: RewardTileSpec,
+  x: number,
+  y: number,
 ): void {
   if (spec.tooltip.kind === "item") {
     const def = ITEM_CATALOG_MAP.get(spec.tooltip.inst.defId);

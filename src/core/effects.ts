@@ -24,7 +24,10 @@ export function ccDuration(base: number, tenacity: number): number {
  * Absorb incoming damage with a shield first. Returns the shield that remains
  * and the overflow that should hit HP.
  */
-export function absorbWithShield(shield: number, incoming: number): {
+export function absorbWithShield(
+  shield: number,
+  incoming: number,
+): {
   shield: number;
   overflow: number;
 } {

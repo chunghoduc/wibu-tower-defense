@@ -15,8 +15,11 @@ import { advanceAdaptivePhase, adaptiveImmuneType } from "./enemyAdaptive.ts";
 import { castleLeakDamage } from "../data/enemies.ts";
 import type { BattleState } from "./battle.ts";
 import {
-  type EnemyRuntime, type TowerRuntime,
-  BOSS_MANA_REGEN, HERO_BLOCK_RANGE, BOSS_TOWER_DAMAGE_MULT,
+  type EnemyRuntime,
+  type TowerRuntime,
+  BOSS_MANA_REGEN,
+  HERO_BLOCK_RANGE,
+  BOSS_TOWER_DAMAGE_MULT,
 } from "./battleTypes.ts";
 
 export const enemyMethods = {
@@ -49,7 +52,13 @@ export const enemyMethods = {
               hit = true;
             }
           }
-          if (hit) this.emit({ type: "splash", at: { x: e.pos.x, y: e.pos.y }, radius: p.radius, damageType: "Magic" });
+          if (hit)
+            this.emit({
+              type: "splash",
+              at: { x: e.pos.x, y: e.pos.y },
+              radius: p.radius,
+              damageType: "Magic",
+            });
           e.disablePulseTimer = p.interval;
         }
       }
@@ -110,7 +119,10 @@ export const enemyMethods = {
   chooseEnemyAction(
     this: BattleState,
     e: EnemyRuntime,
-  ): { kind: "hero" } | { kind: "tower"; tower: TowerRuntime; blocking: boolean } | { kind: "move" } {
+  ):
+    | { kind: "hero" }
+    | { kind: "tower"; tower: TowerRuntime; blocking: boolean }
+    | { kind: "move" } {
     if (this.hero.alive && !e.flying && dist(e.pos, this.hero.pos) <= HERO_BLOCK_RANGE) {
       return { kind: "hero" };
     }
@@ -166,7 +178,8 @@ export const enemyMethods = {
     const aura = healer.def.special!.healAura!;
     for (const o of this.enemies) {
       if (!o.alive || o === healer) continue;
-      if (dist(healer.pos, o.pos) <= aura.radius) o.hp = Math.min(o.stats.maxHp, o.hp + aura.hps * dt);
+      if (dist(healer.pos, o.pos) <= aura.radius)
+        o.hp = Math.min(o.stats.maxHp, o.hp + aura.hps * dt);
     }
   },
 
@@ -194,14 +207,25 @@ export const enemyMethods = {
     // Boss active skill — mana fills over time, cast when full (T16).
     if (b.skill) {
       e.mana += BOSS_MANA_REGEN * dt;
-      if (e.mana >= b.skill.manaCost) { this.castBossSkill(e, b.skill); e.mana = 0; }
+      if (e.mana >= b.skill.manaCost) {
+        this.castBossSkill(e, b.skill);
+        e.mana = 0;
+      }
     }
   },
 
   /** Apply a boss's active skill and emit its cast FX. */
   castBossSkill(this: BattleState, e: EnemyRuntime, skill: BossSkill): void {
     const R = skill.radius ?? 150;
-    this.emit({ type: "bossCast", uid: e.uid, at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name, element: e.def.damageType });
+    this.emit({
+      type: "bossCast",
+      uid: e.uid,
+      at: { x: e.pos.x, y: e.pos.y },
+      skill: skill.type,
+      radius: R,
+      name: skill.name,
+      element: e.def.damageType,
+    });
     switch (skill.type) {
       case "quake": {
         // Disable towers in radius and hammer the hero if caught inside.
@@ -217,7 +241,8 @@ export const enemyMethods = {
       case "rally": {
         const heal = skill.power ?? 0.15;
         for (const o of this.enemies) {
-          if (o.alive && dist(e.pos, o.pos) <= R) o.hp = Math.min(o.stats.maxHp, o.hp + heal * o.stats.maxHp);
+          if (o.alive && dist(e.pos, o.pos) <= R)
+            o.hp = Math.min(o.stats.maxHp, o.hp + heal * o.stats.maxHp);
         }
         break;
       }
@@ -283,23 +308,52 @@ export const enemyMethods = {
       armorPen: attacker.stats.armorPen,
       magicPen: attacker.stats.magicPen,
     };
-    this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: this.hero.pos.x, y: this.hero.pos.y }, target: "hero" });
+    this.emit({
+      type: "enemyAttack",
+      uid: attacker.uid,
+      at: { x: attacker.pos.x, y: attacker.pos.y },
+      targetAt: { x: this.hero.pos.x, y: this.hero.pos.y },
+      target: "hero",
+    });
     this.hero.hp -= mitigatedDamage(packet, this.hero.stats);
     this.logEnemyHit(attacker, "hero", packet, this.hero.stats, this.hero.hp);
     if (this.hero.hp <= 0) this.hero.alive = false;
   },
 
   /** Log an enemy's hit on the hero/a tower (these don't run through applyDamage). */
-  logEnemyHit(this: BattleState, attacker: EnemyRuntime, targetLabel: string, packet: DamagePacket, defender: Stats, hpAfter: number): void {
+  logEnemyHit(
+    this: BattleState,
+    attacker: EnemyRuntime,
+    targetLabel: string,
+    packet: DamagePacket,
+    defender: Stats,
+    hpAfter: number,
+  ): void {
     if (!combatLogOn()) return;
     const b = mitigationBreakdown(packet, defender);
     emitDamageLog({
-      src: `enemy:${attacker.uid}`, target: targetLabel, kind: "enemy-atk", type: packet.type,
-      raw: Math.max(0, packet.amount), rawFormula: `atk ${packet.amount.toFixed(1)}`,
-      defRating: b.defRating, pen: packet.type === "Physical" ? packet.armorPen : packet.type === "Magic" ? packet.magicPen : 0,
-      effRating: b.effRating, mitigationFrac: b.mitigationFrac, afterMitig: b.afterMitig,
-      damageReduction: b.damageReduction, afterDR: b.final, shieldAbsorbed: 0, hpDamage: b.final,
-      targetHpAfter: Math.max(0, hpAfter), targetHpMax: defender.maxHp,
+      src: `enemy:${attacker.uid}`,
+      target: targetLabel,
+      kind: "enemy-atk",
+      type: packet.type,
+      raw: Math.max(0, packet.amount),
+      rawFormula: `atk ${packet.amount.toFixed(1)}`,
+      defRating: b.defRating,
+      pen:
+        packet.type === "Physical"
+          ? packet.armorPen
+          : packet.type === "Magic"
+            ? packet.magicPen
+            : 0,
+      effRating: b.effRating,
+      mitigationFrac: b.mitigationFrac,
+      afterMitig: b.afterMitig,
+      damageReduction: b.damageReduction,
+      afterDR: b.final,
+      shieldAbsorbed: 0,
+      hpDamage: b.final,
+      targetHpAfter: Math.max(0, hpAfter),
+      targetHpMax: defender.maxHp,
     });
   },
 
@@ -310,7 +364,13 @@ export const enemyMethods = {
       armorPen: attacker.stats.armorPen,
       magicPen: attacker.stats.magicPen,
     };
-    this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: tower.pos.x, y: tower.pos.y }, target: "tower" });
+    this.emit({
+      type: "enemyAttack",
+      uid: attacker.uid,
+      at: { x: attacker.pos.x, y: attacker.pos.y },
+      targetAt: { x: tower.pos.x, y: tower.pos.y },
+      target: "tower",
+    });
     const bossMul = attacker.def.boss ? BOSS_TOWER_DAMAGE_MULT : 1;
     tower.hp -= mitigatedDamage(packet, tower.stats) * bossMul;
     this.logEnemyHit(attacker, `tower:${tower.uid}`, packet, tower.stats, tower.hp);

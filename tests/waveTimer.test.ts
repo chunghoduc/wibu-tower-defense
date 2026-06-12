@@ -13,10 +13,21 @@ import { world, mkEnemy, mkStage } from "./fixtures.ts";
 // An inert enemy: never moves, never attacks, never dies (the test hero doesn't
 // fire). This lets a wave stay un-cleared indefinitely so we can prove the next
 // wave still launches on the timer — overlap — without the castle ever falling.
-const inert = mkEnemy({ baseStats: makeStats({ maxHp: 100, moveSpeed: 0, atk: 0, attackSpeed: 0 }) });
-const wave = (count: number) => ({ spawns: [{ enemyId: "grunt", count, interval: 0.5, delay: 0 }] });
+const inert = mkEnemy({
+  baseStats: makeStats({ maxHp: 100, moveSpeed: 0, atk: 0, attackSpeed: 0 }),
+});
+const wave = (count: number) => ({
+  spawns: [{ enemyId: "grunt", count, interval: 0.5, delay: 0 }],
+});
 const threeWaveStage = () =>
-  mkStage([wave(3), wave(3), wave(3)], { castleHp: 15, startingGold: 100, path: [{ x: 0, y: 0 }, { x: 1e6, y: 0 }] });
+  mkStage([wave(3), wave(3), wave(3)], {
+    castleHp: 15,
+    startingGold: 100,
+    path: [
+      { x: 0, y: 0 },
+      { x: 1e6, y: 0 },
+    ],
+  });
 
 describe("wave-timer constants", () => {
   it("waves are paced 30s apart and a full skip pays per remaining second", () => {

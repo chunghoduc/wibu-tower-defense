@@ -28,7 +28,9 @@ export function toItemInstanceSave(inst: ReturnType<typeof rollItem>): ItemInsta
     ...(inst.requiredLevel !== undefined ? { requiredLevel: inst.requiredLevel } : {}),
     ...(inst.apex ? { apex: true } : {}),
     rolledStats: Object.fromEntries(
-      Object.entries(inst.rolledStats).filter(([, v]) => v !== undefined).map(([k, v]) => [k, v as number]),
+      Object.entries(inst.rolledStats)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, v as number]),
     ),
     rolledPrimaryAffix: inst.rolledPrimaryAffix,
     rolledAffixes: inst.rolledAffixes,
@@ -95,12 +97,13 @@ export function rollItemDrop(
   let def = eligible[eligible.length - 1];
   for (const d of eligible) {
     roll -= RARITY_DROP_WEIGHT[d.rarity];
-    if (roll < 0) { def = d; break; }
+    if (roll < 0) {
+      def = d;
+      break;
+    }
   }
 
-  const reqLevel = band
-    ? rollReqInBand(rng, def.requiredLevel, band[0], band[1])
-    : itemLevel;
+  const reqLevel = band ? rollReqInBand(rng, def.requiredLevel, band[0], band[1]) : itemLevel;
   const inst = rollItem(def, itemLevel, Math.floor(rng.next() * 999983), reqLevel);
   const instSave = toItemInstanceSave(inst);
   save.inventory.items.push(instSave);

@@ -12,13 +12,13 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|--------|------|---------------|
-| Modify | `src/main.ts` | SaveManager singleton; register all 4 scenes; first scene = MainMenuScene |
-| Create | `src/scenes/MainMenuScene.ts` | Title, crystal balance, nav buttons, daily login |
-| Create | `src/scenes/GachaScene.ts` | Crystal balance, pity bar, pull buttons, result cards |
-| Create | `src/scenes/CollectionScene.ts` | Full tower roster grid — owned highlighted, unowned grayed |
-| Modify | `src/scenes/BattleScene.ts` | Read SaveManager from registry; squad from owned collection; `afterBattle()` on win; "← Menu" button on outcome |
+| Action | Path                            | Responsibility                                                                                                  |
+| ------ | ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Modify | `src/main.ts`                   | SaveManager singleton; register all 4 scenes; first scene = MainMenuScene                                       |
+| Create | `src/scenes/MainMenuScene.ts`   | Title, crystal balance, nav buttons, daily login                                                                |
+| Create | `src/scenes/GachaScene.ts`      | Crystal balance, pity bar, pull buttons, result cards                                                           |
+| Create | `src/scenes/CollectionScene.ts` | Full tower roster grid — owned highlighted, unowned grayed                                                      |
+| Modify | `src/scenes/BattleScene.ts`     | Read SaveManager from registry; squad from owned collection; `afterBattle()` on win; "← Menu" button on outcome |
 
 ---
 
@@ -454,6 +454,7 @@ export class CollectionScene extends Phaser.Scene {
 **Files:** `src/scenes/BattleScene.ts`
 
 This task wires `SaveManager` into the existing `BattleScene`. Changes:
+
 1. Read `SaveManager` from registry in `create()`.
 2. Build the 7-slot squad from the player's owned collection; fall back to `SQUAD_IDS` if the collection is empty (allows first-time players to jump straight in).
 3. Pass `heroSave` to `BattleState` so hero stats include passive nodes + items.
@@ -521,8 +522,7 @@ function buildSquad(save: HeroSave, catalog: Catalog): CharacterDef[] {
   const owned = new Set(Object.keys(save.collection));
 
   // Prefer squad members the player owns
-  const preferred = PREFERRED_SQUAD
-    .filter((id) => owned.has(id))
+  const preferred = PREFERRED_SQUAD.filter((id) => owned.has(id))
     .map((id) => catalog.characters.get(id))
     .filter((c): c is CharacterDef => Boolean(c));
 
@@ -539,9 +539,9 @@ function buildSquad(save: HeroSave, catalog: Catalog): CharacterDef[] {
 
   // Fallback: empty collection → use full PREFERRED_SQUAD (unrestricted demo mode)
   if (preferred.length === 0) {
-    return PREFERRED_SQUAD
-      .map((id) => catalog.characters.get(id))
-      .filter((c): c is CharacterDef => Boolean(c));
+    return PREFERRED_SQUAD.map((id) => catalog.characters.get(id)).filter((c): c is CharacterDef =>
+      Boolean(c),
+    );
   }
 
   return preferred;
@@ -881,8 +881,16 @@ export class BattleScene extends Phaser.Scene {
     }
 
     const SLOTS: ItemSlot[] = [
-      "Weapon", "Helmet", "BodyArmor", "Gloves", "Boots",
-      "Amulet", "Ring1", "Ring2", "Pet", "Wing",
+      "Weapon",
+      "Helmet",
+      "BodyArmor",
+      "Gloves",
+      "Boots",
+      "Amulet",
+      "Ring1",
+      "Ring2",
+      "Pet",
+      "Wing",
     ];
     SLOTS.forEach((slot, idx) => {
       const equipped = save.inventory.equipped[slot];

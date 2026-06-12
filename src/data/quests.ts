@@ -18,9 +18,9 @@ export interface QuestReward {
 
 export interface QuestDef {
   id: string;
-  label: string;         // player-facing short name
-  description: string;   // what to do
-  target: number;        // amount needed to complete
+  label: string; // player-facing short name
+  description: string; // what to do
+  target: number; // amount needed to complete
   reward: QuestReward;
 }
 
@@ -37,7 +37,7 @@ export const DAILY_QUESTS: QuestDef[] = [
     label: "Boss Slayer",
     description: "Kill 5 bosses.",
     target: 5,
-    reward: { scroll: 1 },  // the single Summon Scroll quest
+    reward: { scroll: 1 }, // the single Summon Scroll quest
   },
   {
     id: "clear_stages",
@@ -81,8 +81,8 @@ export const DAILY_QUESTS_MAP = new Map<string, QuestDef>(DAILY_QUESTS.map((q) =
 /** Short human-readable reward summary for tooltip / results display. */
 export function questRewardLabel(reward: QuestReward): string {
   const parts: string[] = [];
-  if (reward.gold)    parts.push(`+${reward.gold} 🪙`);
+  if (reward.gold) parts.push(`+${reward.gold} 🪙`);
   if (reward.diamonds) parts.push(`+${reward.diamonds} 💎`);
-  if (reward.scroll)  parts.push(`+${reward.scroll} Summon Scroll`);
+  if (reward.scroll) parts.push(`+${reward.scroll} Summon Scroll`);
   return parts.join("  ·  ");
 }

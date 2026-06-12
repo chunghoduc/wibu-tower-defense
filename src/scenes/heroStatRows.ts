@@ -12,10 +12,18 @@ const mult = (v: number) => `${v.toFixed(1)}×`;
 
 // The hero stats worth surfacing, in display order, with a formatter.
 const HERO_STAT_ROWS: [keyof Stats, string, (v: number) => string][] = [
-  ["atk", "ATK", n0], ["attackSpeed", "Atk Spd", n1], ["range", "Range", n0],
-  ["critRate", "Crit", pct], ["critDamage", "Crit Dmg", mult], ["maxHp", "HP", n0],
-  ["hpRegen", "HP Regen", n1], ["armor", "Armor", n0], ["magicResist", "M.Resist", n0],
-  ["skillPower", "Skill Pwr", mult], ["omnivamp", "Omnivamp", pct], ["moveSpeed", "Move Spd", n0],
+  ["atk", "ATK", n0],
+  ["attackSpeed", "Atk Spd", n1],
+  ["range", "Range", n0],
+  ["critRate", "Crit", pct],
+  ["critDamage", "Crit Dmg", mult],
+  ["maxHp", "HP", n0],
+  ["hpRegen", "HP Regen", n1],
+  ["armor", "Armor", n0],
+  ["magicResist", "M.Resist", n0],
+  ["skillPower", "Skill Pwr", mult],
+  ["omnivamp", "Omnivamp", pct],
+  ["moveSpeed", "Move Spd", n0],
 ];
 
 /** Selected hero stats as display-ready { label, value } rows. Pure. */

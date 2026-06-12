@@ -11,7 +11,17 @@ import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS_MAP } from "./materials.ts";
 import { ITEM_CATALOG_MAP } from "./items.ts";
 import { TOWERS } from "./towers.ts";
-import { itemTex, jewelTex, materialTex, boxTex, skillTex, towerTex, GOLD_TEX, GEM_TEX, XP_TEX } from "./assetKeys.ts";
+import {
+  itemTex,
+  jewelTex,
+  materialTex,
+  boxTex,
+  skillTex,
+  towerTex,
+  GOLD_TEX,
+  GEM_TEX,
+  XP_TEX,
+} from "./assetKeys.ts";
 
 export interface RewardIconView {
   /** Texture key to draw when loaded (e.g. "material__soul-jewel"). "" = no texture. */
@@ -24,13 +34,26 @@ export interface RewardIconView {
 
 export const RARITY_ORDER: Rarity[] = ["Common", "Magic", "Rare", "Legendary", "Unique"];
 export const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
+  Common: 0x9e9e9e,
+  Magic: 0x2196f3,
+  Rare: 0x9c27b0,
+  Legendary: 0xff9800,
+  Unique: 0xf44336,
 };
-export const GOLD_INT = 0xffcf4d, DIAMOND_INT = 0x7ec8ff, MAT_INT = 0xa5d6a7, XP_INT = 0x9cc6ff;
+export const GOLD_INT = 0xffcf4d,
+  DIAMOND_INT = 0x7ec8ff,
+  MAT_INT = 0xa5d6a7,
+  XP_INT = 0x9cc6ff;
 
-export function goldIcon(): RewardIconView { return { iconKey: GOLD_TEX, emoji: "🪙", color: GOLD_INT }; }
-export function diamondIcon(): RewardIconView { return { iconKey: GEM_TEX, emoji: "💎", color: DIAMOND_INT }; }
-export function xpIcon(): RewardIconView { return { iconKey: XP_TEX, emoji: "⭐", color: XP_INT }; }
+export function goldIcon(): RewardIconView {
+  return { iconKey: GOLD_TEX, emoji: "🪙", color: GOLD_INT };
+}
+export function diamondIcon(): RewardIconView {
+  return { iconKey: GEM_TEX, emoji: "💎", color: DIAMOND_INT };
+}
+export function xpIcon(): RewardIconView {
+  return { iconKey: XP_TEX, emoji: "⭐", color: XP_INT };
+}
 
 export function itemIcon(rarity: Rarity, defId: string): RewardIconView {
   return { iconKey: itemTex(defId), emoji: "📦", color: RARITY_INT[rarity] };

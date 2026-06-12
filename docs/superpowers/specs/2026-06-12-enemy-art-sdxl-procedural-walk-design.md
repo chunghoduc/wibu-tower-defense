@@ -22,7 +22,7 @@ The game has **three** art-generation pipelines, only one of which we actually w
 
 The result is a visible **style clash**: towers/hero/bosses are polished z-image
 anime, while enemies are flat pixel art from a different pipeline. The owner's
-instruction: *stop using SVG genart, remove it, and use the SDXL flow for all art* —
+instruction: _stop using SVG genart, remove it, and use the SDXL flow for all art_ —
 starting by redoing the enemy walk with SDXL.
 
 ### Evidence (probe generations, this session)

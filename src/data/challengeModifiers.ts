@@ -27,30 +27,42 @@ export interface ChallengeModifierDef {
 
 export const CHALLENGE_MODIFIERS: ChallengeModifierDef[] = [
   {
-    id: "blitz", name: "Blitz", description: "Enemies move 50% faster, but loot is doubled.",
+    id: "blitz",
+    name: "Blitz",
+    description: "Enemies move 50% faster, but loot is doubled.",
     effects: { enemySpeedMul: 1.5, lootMul: 2 },
     reward: { diamonds: 25 },
   },
   {
-    id: "glass", name: "Glass Cannons", description: "Enemies have +60% HP but no armor — and drop +50% loot.",
+    id: "glass",
+    name: "Glass Cannons",
+    description: "Enemies have +60% HP but no armor — and drop +50% loot.",
     effects: { enemyHpMul: 1.6, enemyArmorMul: 0, lootMul: 1.5 },
     reward: { diamonds: 25 },
   },
   {
-    id: "fortified", name: "Fortified Foe", description: "Enemies gain +80% armor. Tower costs are halved.",
+    id: "fortified",
+    name: "Fortified Foe",
+    description: "Enemies gain +80% armor. Tower costs are halved.",
     effects: { enemyArmorMul: 1.8, towerCostMul: 0.5, lootMul: 1.5 },
     reward: { diamonds: 25 },
   },
   {
-    id: "onslaught", name: "Onslaught", description: "Enemies are tougher and faster — triple loot for the bold.",
+    id: "onslaught",
+    name: "Onslaught",
+    description: "Enemies are tougher and faster — triple loot for the bold.",
     effects: { enemyHpMul: 1.4, enemySpeedMul: 1.25, lootMul: 3 },
     reward: { diamonds: 35, materials: { [AWAKENING_CRYSTAL]: 1 } },
   },
   {
-    id: "bargain", name: "War Economy", description: "Tower costs cut by 60%, but enemies have +40% HP.",
+    id: "bargain",
+    name: "War Economy",
+    description: "Tower costs cut by 60%, but enemies have +40% HP.",
     effects: { towerCostMul: 0.4, enemyHpMul: 1.4, lootMul: 1.5 },
     reward: { diamonds: 25 },
   },
 ];
 
-export const CHALLENGE_MODIFIERS_MAP = new Map<string, ChallengeModifierDef>(CHALLENGE_MODIFIERS.map((m) => [m.id, m]));
+export const CHALLENGE_MODIFIERS_MAP = new Map<string, ChallengeModifierDef>(
+  CHALLENGE_MODIFIERS.map((m) => [m.id, m]),
+);

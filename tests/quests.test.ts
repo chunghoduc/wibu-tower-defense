@@ -61,7 +61,10 @@ describe("quest claim flow", () => {
     expect(claimableQuestCount(save)).toBe(2);
 
     // Complete + claim every quest → only the all-complete bonus remains claimable.
-    for (const q of DAILY_QUESTS) { complete(save, q.id); claimQuestReward(save, q.id); }
+    for (const q of DAILY_QUESTS) {
+      complete(save, q.id);
+      claimQuestReward(save, q.id);
+    }
     expect(claimableQuestCount(save)).toBe(1);
 
     const beforeDia = save.currency.diamonds;

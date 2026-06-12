@@ -15,23 +15,51 @@ const GAME = "public/assets/sprites/tower";
 const SEEDFILE = "scripts/sdart/regen_seeds.json";
 mkdirSync(RAW, { recursive: true });
 
-const arg = (n) => { const h = process.argv.find((a) => a.startsWith(`--${n}=`)); return h ? h.split("=").slice(1).join("=") : undefined; };
-const ids = (arg("ids") || "").split(",").map((s) => s.trim()).filter(Boolean);
+const arg = (n) => {
+  const h = process.argv.find((a) => a.startsWith(`--${n}=`));
+  return h ? h.split("=").slice(1).join("=") : undefined;
+};
+const ids = (arg("ids") || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 const tries = parseInt(arg("tries") || "12", 10);
-if (!ids.length) { console.error("need --ids=a,b,c"); process.exit(1); }
+if (!ids.length) {
+  console.error("need --ids=a,b,c");
+  process.exit(1);
+}
 
-function seedOf(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 1000000; }
+function seedOf(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) % 1000000;
+}
 
 async function sd(prompt, neg, seed, w, h) {
   for (let a = 1; a <= 2; a++) {
     try {
-      const r = await fetch(SD, { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, negative_prompt: neg, steps: 34, width: w, height: h, seed }) });
+      const r = await fetch(SD, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          negative_prompt: neg,
+          steps: 34,
+          width: w,
+          height: h,
+          seed,
+        }),
+      });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const b = Buffer.from(await r.arrayBuffer());
       if (b[0] !== 0x89) throw new Error("not PNG");
       return b;
-    } catch (e) { console.log("   gen fail " + a + ": " + e.message); }
+    } catch (e) {
+      console.log("   gen fail " + a + ": " + e.message);
+    }
   }
   return null;
 }
@@ -40,17 +68,26 @@ function sliceFrames(raw, out) {
   // --min-frames 8: a short slice prints "TOO FEW FRAMES" and writes nothing, so a
   // bad roll never overwrites a good prior result. Returns the produced frame count.
   try {
-    const o = execFileSync("python3", [SLICE, raw, out, "--cell", "128", "--max-frames", "8", "--min-frames", "8"], { encoding: "utf8" });
+    const o = execFileSync(
+      "python3",
+      [SLICE, raw, out, "--cell", "128", "--max-frames", "8", "--min-frames", "8"],
+      { encoding: "utf8" },
+    );
     const m = o.match(/sliced (\d+) frames/);
     return m ? parseInt(m[1], 10) : 0;
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 }
 
 const seeds = existsSync(SEEDFILE) ? JSON.parse(readFileSync(SEEDFILE, "utf8")) : {};
 
 for (const id of ids) {
   const v = TOWER_VISUAL[id];
-  if (!v) { console.log(`SKIP ${id}: no TOWER_VISUAL`); continue; }
+  if (!v) {
+    console.log(`SKIP ${id}: no TOWER_VISUAL`);
+    continue;
+  }
   const prompt = charSheetPrompt(v);
   const out = `${GAME}/${id}.png`;
   const tmpOut = `${RAW}/slice__${id}.png`;
@@ -64,9 +101,15 @@ for (const id of ids) {
     writeFileSync(raw, buf);
     const n = sliceFrames(raw, tmpOut);
     console.log(`   -> ${n} frames`);
-    if (n === 8) { won = { seed, tmpOut }; break; }
+    if (n === 8) {
+      won = { seed, tmpOut };
+      break;
+    }
   }
-  if (!won) { console.log(`[${id}] FAILED to reach 8 frames in ${tries} tries — leaving existing art`); continue; }
+  if (!won) {
+    console.log(`[${id}] FAILED to reach 8 frames in ${tries} tries — leaving existing art`);
+    continue;
+  }
   copyFileSync(won.tmpOut, out);
   copyFileSync(won.tmpOut.replace(/\.png$/, ".json"), out.replace(/\.png$/, ".json"));
   seeds[id] = won.seed;

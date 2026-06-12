@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the free-text `meta.weapon` string with a structured `WeaponSpec` so a tower's `damageType`, attack style, and range band are *derived* from its weapon family (bow/gun/crossbow → Physical; staff/tome/scepter → Magic; elemental "enchant" can flip a physical weapon to Magic), then add 16 new towers to populate the empty ranged/magic families.
+**Goal:** Replace the free-text `meta.weapon` string with a structured `WeaponSpec` so a tower's `damageType`, attack style, and range band are _derived_ from its weapon family (bow/gun/crossbow → Physical; staff/tome/scepter → Magic; elemental "enchant" can flip a physical weapon to Magic), then add 16 new towers to populate the empty ranged/magic families.
 
 **Architecture:** A single canonical taxonomy module (`weaponFamily.ts`) maps every family → damage class + base range. `towerBuilder.t()` derives `damageType` from the weapon; `attackStyleFor()` reads the structured family/element instead of keyword-scanning prose. All 37 existing towers are migrated with **zero** damage-type or melee-class drift (guarded by parity tests). Then 16 new towers fill the bow/gun/crossbow/tome/scepter/wand/orb gaps via the `create-character` skill.
 
@@ -31,6 +31,7 @@
 ### Task 1: Weapon-family taxonomy module
 
 **Files:**
+
 - Create: `src/data/weaponFamily.ts`
 - Test: `tests/weapon-family.test.ts`
 
@@ -41,7 +42,10 @@ Create `tests/weapon-family.test.ts`:
 ```ts
 import { describe, expect, it } from "vitest";
 import {
-  WEAPON_FAMILIES, FAMILY, deriveDamageType, weaponBaseRange,
+  WEAPON_FAMILIES,
+  FAMILY,
+  deriveDamageType,
+  weaponBaseRange,
   type WeaponSpec,
 } from "../src/data/weaponFamily.ts";
 
@@ -73,7 +77,9 @@ describe("weapon-family taxonomy", () => {
   it("elemental enchant flips a physical weapon to Magic (option ii)", () => {
     expect(deriveDamageType({ family: "sword", display: "" })).toBe("Physical");
     expect(deriveDamageType({ family: "sword", enchanted: true, display: "" })).toBe("Magic");
-    expect(deriveDamageType({ family: "fist", element: "fire", enchanted: true, display: "" })).toBe("Magic");
+    expect(
+      deriveDamageType({ family: "fist", element: "fire", enchanted: true, display: "" }),
+    ).toBe("Magic");
   });
 
   it("weaponBaseRange returns the family base", () => {
@@ -111,15 +117,34 @@ export type WeaponElement = (typeof WEAPON_ELEMENTS)[number];
 
 export const WEAPON_FAMILIES = [
   // physical melee
-  "fist", "sword", "spear", "blunt",
+  "fist",
+  "sword",
+  "spear",
+  "blunt",
   // physical ranged
-  "bow", "crossbow", "gun", "thrown",
+  "bow",
+  "crossbow",
+  "gun",
+  "thrown",
   // magic implements
-  "staff", "tome", "scepter", "wand", "rod", "orb",
+  "staff",
+  "tome",
+  "scepter",
+  "wand",
+  "rod",
+  "orb",
   // physical conduits / thematic
-  "thorn", "sand", "banner",
+  "thorn",
+  "sand",
+  "banner",
   // magic conduits / thematic
-  "curse", "nature", "shadow", "talisman", "instrument", "aura", "charm",
+  "curse",
+  "nature",
+  "shadow",
+  "talisman",
+  "instrument",
+  "aura",
+  "charm",
 ] as const;
 export type WeaponFamily = (typeof WEAPON_FAMILIES)[number];
 
@@ -211,6 +236,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 This is the type cutover. It will break compilation of `towers.ts`/`towersB.ts` until Tasks 5–6 migrate them — that is expected and resolved within this phase. Do Tasks 2→3→4→5→6 back-to-back; only run the full suite green at the end of Task 6.
 
 **Files:**
+
 - Modify: `src/data/schema.ts:239-246`
 
 - [ ] **Step 1: Change the meta type**
@@ -224,8 +250,8 @@ import type { WeaponSpec } from "./weaponFamily.ts";
 Then replace the `weapon` field in `CharacterMeta` (currently `src/data/schema.ts:244-245`):
 
 ```ts
-  /** The character's signature weapon, structured so damage type/style derive from it. */
-  weapon: WeaponSpec;
+/** The character's signature weapon, structured so damage type/style derive from it. */
+weapon: WeaponSpec;
 ```
 
 - [ ] **Step 2: Typecheck to confirm the expected breakage**
@@ -238,6 +264,7 @@ Expected: FAIL — many errors in `towers.ts`/`towersB.ts` ("Type 'string' is no
 ### Task 3: Derive `damageType` in `towerBuilder.t()`
 
 **Files:**
+
 - Modify: `src/data/towerBuilder.ts`
 
 - [ ] **Step 1: Rewrite `t()` to derive the damage type**
@@ -299,6 +326,7 @@ Expected: FAIL still — but now only in `towers.ts`/`towersB.ts` (the `weapon:`
 ### Task 4: Rewrite `attackStyleFor()` to read the structured spec
 
 **Files:**
+
 - Modify: `src/data/attackStyle.ts:33-82`
 
 - [ ] **Step 1: Replace `attackStyleFor` and its helpers**
@@ -312,7 +340,10 @@ export function attackStyleFor(def: CharacterDef): AttackStyle {
   if (!spec) return fallbackStyle(def); // defensive: towers always carry a spec
 
   const el = spec.element;
-  const fire = el === "fire", ice = el === "ice", elec = el === "lightning", poison = el === "poison";
+  const fire = el === "fire",
+    ice = el === "ice",
+    elec = el === "lightning",
+    poison = el === "poison";
 
   // Aura-based archetypes read by effect, not by a flying projectile.
   if (def.role === "support") return "holy";
@@ -377,6 +408,7 @@ Expected: FAIL only in `towers.ts`/`towersB.ts` now (the string `weapon:` litera
 For each tower below, in `src/data/towers.ts`: (a) **delete** the `damageType: "…",` line (it is now derived), and (b) replace the `weapon: "…"` line inside `meta` with the structured object shown. Every value is chosen so the derived `damageType` equals the one being deleted and the attack style is unchanged (verified in Task 7).
 
 **Files:**
+
 - Modify: `src/data/towers.ts`
 
 - [ ] **Step 1: Migrate all 17 `weapon` fields and drop `damageType`**
@@ -442,6 +474,7 @@ Expected: FAIL only in `towersB.ts` now. Proceed to Task 6.
 ### Task 6: Migrate the 20 towers in `towersB.ts`, fold `weaponRange`, fix the codex display
 
 **Files:**
+
 - Modify: `src/data/towersB.ts`
 - Modify: `src/data/weaponRange.ts`
 - Modify: `src/scenes/CollectionScene.ts:183`
@@ -527,13 +560,13 @@ export function heroRangeForWeapon(weaponType: WeaponType | null): number {
 In `src/scenes/CollectionScene.ts`, change line 183 from:
 
 ```ts
-      field("Weapon", m.weapon);
+field("Weapon", m.weapon);
 ```
 
 to:
 
 ```ts
-      field("Weapon", m.weapon.display);
+field("Weapon", m.weapon.display);
 ```
 
 - [ ] **Step 4: Add weapon-spec validation**
@@ -541,16 +574,16 @@ to:
 In `src/data/schemaValidators.ts`, inside `validateCharacter` (after the existing `damageType` assertion around line 24-26), add:
 
 ```ts
-  if (c.meta) {
-    assert(
-      (WEAPON_FAMILIES as readonly string[]).includes(c.meta.weapon.family),
-      `character ${c.id}: invalid weapon family ${c.meta.weapon.family}`,
-    );
-    assert(
-      deriveDamageType(c.meta.weapon) === c.damageType,
-      `character ${c.id}: weapon ${c.meta.weapon.family} derives ${deriveDamageType(c.meta.weapon)} but damageType is ${c.damageType}`,
-    );
-  }
+if (c.meta) {
+  assert(
+    (WEAPON_FAMILIES as readonly string[]).includes(c.meta.weapon.family),
+    `character ${c.id}: invalid weapon family ${c.meta.weapon.family}`,
+  );
+  assert(
+    deriveDamageType(c.meta.weapon) === c.damageType,
+    `character ${c.id}: weapon ${c.meta.weapon.family} derives ${deriveDamageType(c.meta.weapon)} but damageType is ${c.damageType}`,
+  );
+}
 ```
 
 And add to the imports at the top of `schemaValidators.ts`:
@@ -585,6 +618,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 7: Enforcement tests (parity + coverage)
 
 **Files:**
+
 - Create: `tests/weapon-migration.test.ts`
 
 - [ ] **Step 1: Write the parity + coverage test**
@@ -599,27 +633,60 @@ import { deriveDamageType, FAMILY, type WeaponFamily } from "../src/data/weaponF
 
 /** Pre-rework damage types — frozen snapshot guarding against silent drift. */
 const EXPECTED_DAMAGE: Record<string, "Physical" | "Magic"> = {
-  "yamo-desert-bandit": "Physical", "kazu-spirit-brawler": "Magic", "zoran-thricedraw": "Physical",
-  "prince-vael": "Physical", "karu-sunfist": "Magic", "jugo-limitless": "Magic", "sota-caped-fist": "Physical",
-  "pip-powderkeg": "Physical", "iron-bo-cannonarm": "Physical", "kanae-petalfall": "Magic",
-  "akagan-ashen": "Magic", "megu-explosion-sage": "Magic",
-  "tobi-skipstone": "Physical", "zeni-spark": "Magic", "hyo-frost-arc": "Magic",
-  "kilo-lightning-hand": "Magic", "sasu-stormblade": "Magic",
-  "bram-thornling": "Physical", "kona-ember-fox": "Magic", "shion-venom-priestess": "Magic",
-  "roan-flame-alchemist": "Magic", "morren-plaguebearer": "Magic",
-  "doro-mire-spirit": "Magic", "shika-shadowbinder": "Magic", "glace-ice-maker": "Magic",
-  "yuki-frostward-maiden": "Magic", "garan-sandshackle": "Physical",
-  "mochi-morale-sprite": "Magic", "lyra-tempo": "Magic", "orin-celestial-herald": "Magic",
-  "aldric-banner-bearer": "Physical", "senna-slug-sannin": "Physical",
-  "riku-ironhide": "Physical", "garrek-ironscale": "Magic", "joro-diamondhide": "Physical",
-  "reinhart-armored-wall": "Physical", "garron-unbreaking-pillar": "Physical",
+  "yamo-desert-bandit": "Physical",
+  "kazu-spirit-brawler": "Magic",
+  "zoran-thricedraw": "Physical",
+  "prince-vael": "Physical",
+  "karu-sunfist": "Magic",
+  "jugo-limitless": "Magic",
+  "sota-caped-fist": "Physical",
+  "pip-powderkeg": "Physical",
+  "iron-bo-cannonarm": "Physical",
+  "kanae-petalfall": "Magic",
+  "akagan-ashen": "Magic",
+  "megu-explosion-sage": "Magic",
+  "tobi-skipstone": "Physical",
+  "zeni-spark": "Magic",
+  "hyo-frost-arc": "Magic",
+  "kilo-lightning-hand": "Magic",
+  "sasu-stormblade": "Magic",
+  "bram-thornling": "Physical",
+  "kona-ember-fox": "Magic",
+  "shion-venom-priestess": "Magic",
+  "roan-flame-alchemist": "Magic",
+  "morren-plaguebearer": "Magic",
+  "doro-mire-spirit": "Magic",
+  "shika-shadowbinder": "Magic",
+  "glace-ice-maker": "Magic",
+  "yuki-frostward-maiden": "Magic",
+  "garan-sandshackle": "Physical",
+  "mochi-morale-sprite": "Magic",
+  "lyra-tempo": "Magic",
+  "orin-celestial-herald": "Magic",
+  "aldric-banner-bearer": "Physical",
+  "senna-slug-sannin": "Physical",
+  "riku-ironhide": "Physical",
+  "garrek-ironscale": "Magic",
+  "joro-diamondhide": "Physical",
+  "reinhart-armored-wall": "Physical",
+  "garron-unbreaking-pillar": "Physical",
 };
 
 /** Which towers fought in melee (cleave) before the rework — must not flip. */
 const EXPECTED_MELEE = new Set<string>([
-  "yamo-desert-bandit", "kazu-spirit-brawler", "zoran-thricedraw", "prince-vael", "sota-caped-fist",
-  "senna-slug-sannin", "riku-ironhide", "garrek-ironscale", "joro-diamondhide",
-  "reinhart-armored-wall", "garron-unbreaking-pillar", "doro-mire-spirit", "shika-shadowbinder",
+  "yamo-desert-bandit",
+  "kazu-spirit-brawler",
+  "zoran-thricedraw",
+  "prince-vael",
+  "sota-caped-fist",
+  "senna-slug-sannin",
+  "riku-ironhide",
+  "garrek-ironscale",
+  "joro-diamondhide",
+  "reinhart-armored-wall",
+  "garron-unbreaking-pillar",
+  "doro-mire-spirit",
+  "shika-shadowbinder",
   "garan-sandshackle",
 ]);
 
@@ -645,7 +712,9 @@ describe("weapon migration parity", () => {
   it("melee-vs-ranged class (cleave) is unchanged for existing towers", () => {
     for (const id of Object.keys(EXPECTED_DAMAGE)) {
       const t = TOWERS.find((x) => x.id === id)!;
-      expect(isMeleeStyle(attackStyleFor(t)), `${id} → ${attackStyleFor(t)}`).toBe(EXPECTED_MELEE.has(id));
+      expect(isMeleeStyle(attackStyleFor(t)), `${id} → ${attackStyleFor(t)}`).toBe(
+        EXPECTED_MELEE.has(id),
+      );
     }
   });
 });
@@ -669,9 +738,10 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ## PHASE B — 16 new towers filling the empty families (Tasks 8–9)
 
-Phase A leaves the ruleset complete but the roster still has **zero** real bows, guns, crossbows, tomes, scepters, wands, or orbs. Phase B adds 16 towers via the `create-character` skill, one per character. The skill owns story → trait analysis → stats/skills → art (SDXL) → animation; this plan supplies only the canonical *weapon assignment* (family/element) and the role/rarity slot each character must fill so the family gaps close.
+Phase A leaves the ruleset complete but the roster still has **zero** real bows, guns, crossbows, tomes, scepters, wands, or orbs. Phase B adds 16 towers via the `create-character` skill, one per character. The skill owns story → trait analysis → stats/skills → art (SDXL) → animation; this plan supplies only the canonical _weapon assignment_ (family/element) and the role/rarity slot each character must fill so the family gaps close.
 
 **Constraints (carry into every `create-character` run):**
+
 - Legal safety: original homages only, never a real anime/game/movie name in shipped fields; `homage` is a designer-only note.
 - The new tower's `meta.weapon` MUST be a `WeaponSpec` with the family below; do NOT author `damageType` (it derives).
 - Set `baseStats.range` near `FAMILY[family].range` so the tower reads as ranged/melee correctly.
@@ -681,6 +751,7 @@ Phase A leaves the ruleset complete but the roster still has **zero** real bows,
 ### Task 8: Create the 9 physical-ranged towers (bow / crossbow / gun / thrown)
 
 **Files:**
+
 - Modify/Create: `src/data/towers.ts` / `src/data/towersB.ts` / `src/data/towersC.ts` (via `create-character`)
 
 - [ ] **Step 1: Create each character via the `create-character` skill**
@@ -715,6 +786,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ### Task 9: Create the 7 magic-implement towers (tome / scepter / wand / orb)
 
 **Files:**
+
 - Modify/Create: `src/data/towers.ts` / `src/data/towersB.ts` / `src/data/towersC.ts` (via `create-character`)
 
 - [ ] **Step 1: Create each character via the `create-character` skill**
@@ -739,7 +811,15 @@ Create/extend `tests/weapon-migration.test.ts` with a coverage block (append ins
 describe("weapon-family coverage", () => {
   const present = new Set(TOWERS.map((t) => t.meta!.weapon.family));
   it("every previously-empty ranged/magic family now has a tower", () => {
-    for (const fam of ["bow", "crossbow", "gun", "tome", "scepter", "wand", "orb"] as WeaponFamily[]) {
+    for (const fam of [
+      "bow",
+      "crossbow",
+      "gun",
+      "tome",
+      "scepter",
+      "wand",
+      "orb",
+    ] as WeaponFamily[]) {
       expect(present.has(fam), `no tower uses family ${fam}`).toBe(true);
     }
   });
@@ -747,14 +827,17 @@ describe("weapon-family coverage", () => {
     for (const t of TOWERS) {
       const band = FAMILY[t.meta!.weapon.family].range;
       // tower range is an identity stat but should stay within 60u of the band.
-      expect(Math.abs(t.baseStats.range - band) <= 60, `${t.id} range ${t.baseStats.range} vs band ${band}`).toBe(true);
+      expect(
+        Math.abs(t.baseStats.range - band) <= 60,
+        `${t.id} range ${t.baseStats.range} vs band ${band}`,
+      ).toBe(true);
     }
   });
 });
 ```
 
 Run: `npm test -- weapon-migration`
-Expected: PASS. (If the band test fails for a brand-new tower, nudge its authored `baseStats.range` toward `FAMILY[family].range`. If it fails for a *pre-existing* tower whose identity range is intentionally far from the band, relax that specific case — but for the 16 new towers, keep them in band.)
+Expected: PASS. (If the band test fails for a brand-new tower, nudge its authored `baseStats.range` toward `FAMILY[family].range`. If it fails for a _pre-existing_ tower whose identity range is intentionally far from the band, relax that specific case — but for the 16 new towers, keep them in band.)
 
 - [ ] **Step 3: Final verification + commit**
 
@@ -773,6 +856,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Self-Review
 
 **Spec coverage:**
+
 - §1 taxonomy → Task 1 (`weaponFamily.ts` + `FAMILY` table). ✓
 - §2 structured `WeaponSpec`, derived `damageType`, rewritten `attackStyleFor`, `CollectionScene` display, `weaponRange` fold, hero `WeaponType` subset alias → Tasks 2,3,4,6. ✓
 - §3 audit/re-tag of 37 existing towers, display touch-ups (doro, glace), zero drift → Tasks 5,6 + parity test Task 7. ✓

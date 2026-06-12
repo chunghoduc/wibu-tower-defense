@@ -8,7 +8,13 @@ import type { HeroSave } from "./save.ts";
 import { TOWERS } from "../data/towers.ts";
 import { unlockedTitles } from "./milestones.ts";
 
-const RARITY_WEIGHT: Record<string, number> = { Common: 1, Magic: 2, Rare: 4, Legendary: 8, Unique: 16 };
+const RARITY_WEIGHT: Record<string, number> = {
+  Common: 1,
+  Magic: 2,
+  Rare: 4,
+  Legendary: 8,
+  Unique: 16,
+};
 const TOWER_RARITY = new Map(TOWERS.map((t) => [t.id, t.rarity]));
 
 /**
@@ -42,7 +48,10 @@ export function collectionPct(save: HeroSave): number {
 
 /** Equip a title the player has unlocked (or "" to clear). Returns false if locked. */
 export function setTitle(save: HeroSave, titleId: string): boolean {
-  if (titleId === "") { save.meta.profile.titleId = ""; return true; }
+  if (titleId === "") {
+    save.meta.profile.titleId = "";
+    return true;
+  }
   if (!unlockedTitles(save).includes(titleId)) return false;
   save.meta.profile.titleId = titleId;
   return true;

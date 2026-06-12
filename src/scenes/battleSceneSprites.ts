@@ -26,7 +26,7 @@ export const spritesMethods = {
     if (ev.type === "attack") {
       this.sfx.attack(ev.ranged);
       if (ev.source === "hero") {
-        this.heroSprite?.playAttack();   // body anim + weapon swing arc
+        this.heroSprite?.playAttack(); // body anim + weapon swing arc
       } else {
         const ts = this.towerSprites.get(ev.uid) ?? null;
         ts?.setData("atkUntil", this.time.now + TOWER_STRIKE_MS); // procedural recoil punch
@@ -35,19 +35,26 @@ export const spritesMethods = {
     } else if (ev.type === "hit") {
       this.sfx.hit();
       const e = this.enemySprites.get(ev.uid);
-      if (e) { this.flash(e, 0xffffff); e.setData("hurtUntil", this.time.now + 160); } // hurt squash (procedural fallback)
-      this.playSpriteOneShot(e ?? null, ["hurt"], "idle");    // single SDXL frame: hurt anim absent → safe no-op, procedural squash carries it
+      if (e) {
+        this.flash(e, 0xffffff);
+        e.setData("hurtUntil", this.time.now + 160);
+      } // hurt squash (procedural fallback)
+      this.playSpriteOneShot(e ?? null, ["hurt"], "idle"); // single SDXL frame: hurt anim absent → safe no-op, procedural squash carries it
     } else if (ev.type === "enemyAttack") {
       this.sfx.enemyHit();
-      const victim = ev.target === "hero" ? (this.heroSprite?.getBodySprite() ?? null) : this.towerNear(ev.targetAt);
+      const victim =
+        ev.target === "hero"
+          ? (this.heroSprite?.getBodySprite() ?? null)
+          : this.towerNear(ev.targetAt);
       if (victim) this.flash(victim, 0xff4444);
-      if (ev.target === "hero") this.heroSprite?.playHurt();   // recoil + hurt frames
+      if (ev.target === "hero") this.heroSprite?.playHurt(); // recoil + hurt frames
       this.playSpriteOneShot(this.enemySprites.get(ev.uid) ?? null, ["attack"], "idle"); // single SDXL frame: attack anim absent → safe no-op
     } else if (ev.type === "death") {
       this.sfx.death();
     } else if (ev.type === "cast") {
       this.sfx.cast();
-      if (ev.source === "hero") this.heroSprite?.playCast();   // hero skill frames + flourish
+      if (ev.source === "hero")
+        this.heroSprite?.playCast(); // hero skill frames + flourish
       else {
         const ts = this.towerSprites.get(ev.uid) ?? null;
         ts?.setData("atkUntil", this.time.now + TOWER_STRIKE_MS); // procedural recoil punch
@@ -58,17 +65,32 @@ export const spritesMethods = {
     } else if (ev.type === "loot") {
       this.sfx.coin();
     } else if (ev.type === "killReward") {
-      this.killSaveDirty = true;   // XP/loot already in the save; flush debounced
+      this.killSaveDirty = true; // XP/loot already in the save; flush debounced
       // F17 loot fanfare: a high-tier boss chest gets an escalated cue.
       if (ev.box) {
         const tier = Number(ev.box.match(/t(\d)$/)?.[1] ?? 1);
-        if (tier >= 4) { this.sfx.coin(); this.cameras.main.flash(180, 255, 230, 150); }
-        this.floatWorldText(ev.at.x, ev.at.y, tier >= 4 ? "✦ RARE CHEST!" : "Chest!", tier >= 4 ? "#ffd24d" : "#cfe0f5", tier >= 4 ? 16 : 12);
+        if (tier >= 4) {
+          this.sfx.coin();
+          this.cameras.main.flash(180, 255, 230, 150);
+        }
+        this.floatWorldText(
+          ev.at.x,
+          ev.at.y,
+          tier >= 4 ? "✦ RARE CHEST!" : "Chest!",
+          tier >= 4 ? "#ffd24d" : "#cfe0f5",
+          tier >= 4 ? 16 : 12,
+        );
       }
     } else if (ev.type === "combo") {
       // F13: escalating kill-streak text, hotter as the streak climbs.
       const hot = ev.mult >= 2.4 ? "#ff5a3c" : ev.mult >= 1.7 ? "#ffae3c" : "#ffe07a";
-      this.floatWorldText(ev.at.x, ev.at.y, `${ev.count}x  ·  ×${ev.mult.toFixed(1)}`, hot, 12 + Math.min(10, ev.count / 3));
+      this.floatWorldText(
+        ev.at.x,
+        ev.at.y,
+        `${ev.count}x  ·  ×${ev.mult.toFixed(1)}`,
+        hot,
+        12 + Math.min(10, ev.count / 3),
+      );
     } else if (ev.type === "perfect") {
       // F14: brief center banner + sting for a flawless wave.
       this.flashBanner(`PERFECT WAVE!  +${ev.bonus}🪙`, "#9fe0b0");
@@ -77,35 +99,82 @@ export const spritesMethods = {
       // Early clear: chime + float the banked time-saved bonus near the HUD gold.
       if (ev.bonus > 0) {
         this.sfx.coin();
-        const pop = crispText(this, this.scale.width - 14, 56, `+${ev.bonus}g`, { fontSize: "16px", color: "#ffe27a", fontStyle: "bold" })
-          .setOrigin(1, 0).setDepth(60);
+        const pop = crispText(this, this.scale.width - 14, 56, `+${ev.bonus}g`, {
+          fontSize: "16px",
+          color: "#ffe27a",
+          fontStyle: "bold",
+        })
+          .setOrigin(1, 0)
+          .setDepth(60);
         this.ui.add(pop);
-        this.tweens.add({ targets: pop, y: 38, alpha: 0, duration: 800, ease: "Cubic.out", onComplete: () => pop.destroy() });
+        this.tweens.add({
+          targets: pop,
+          y: 38,
+          alpha: 0,
+          duration: 800,
+          ease: "Cubic.out",
+          onComplete: () => pop.destroy(),
+        });
       }
     }
   },
 
   /** Floating, rising, fading text at a WORLD position (combo/loot fanfare). */
-  floatWorldText(this: BattleScene, wx: number, wy: number, msg: string, color: string, size: number): void {
-    const t = crispText(this, wx, wy, msg, { fontSize: `${Math.round(size)}px`, color, fontStyle: "bold", stroke: "#1a1206", strokeThickness: 3 })
-      .setOrigin(0.5).setDepth(14);
+  floatWorldText(
+    this: BattleScene,
+    wx: number,
+    wy: number,
+    msg: string,
+    color: string,
+    size: number,
+  ): void {
+    const t = crispText(this, wx, wy, msg, {
+      fontSize: `${Math.round(size)}px`,
+      color,
+      fontStyle: "bold",
+      stroke: "#1a1206",
+      strokeThickness: 3,
+    })
+      .setOrigin(0.5)
+      .setDepth(14);
     this.world.add(t);
-    this.tweens.add({ targets: t, y: wy - 28, alpha: 0, scale: 1.25, duration: 760, ease: "Sine.easeOut", onComplete: () => t.destroy() });
+    this.tweens.add({
+      targets: t,
+      y: wy - 28,
+      alpha: 0,
+      scale: 1.25,
+      duration: 760,
+      ease: "Sine.easeOut",
+      onComplete: () => t.destroy(),
+    });
   },
 
   /** Briefly flash a message on the big center banner, then clear it. */
   flashBanner(this: BattleScene, msg: string, color: string): void {
     this.banner.setText(msg).setColor(color).setAlpha(1).setScale(0.7);
     this.tweens.add({ targets: this.banner, scale: 1, duration: 220, ease: "Back.easeOut" });
-    this.time.delayedCall(1100, () => this.tweens.add({ targets: this.banner, alpha: 0, duration: 350, onComplete: () => this.banner.setText("") }));
+    this.time.delayedCall(1100, () =>
+      this.tweens.add({
+        targets: this.banner,
+        alpha: 0,
+        duration: 350,
+        onComplete: () => this.banner.setText(""),
+      }),
+    );
   },
 
   /** Tower sprite nearest a position (towers are static, so this is exact). */
   towerNear(this: BattleScene, at: { x: number; y: number }): Phaser.GameObjects.Sprite | null {
-    let best: Phaser.GameObjects.Sprite | null = null, bd = 12 * 12;
+    let best: Phaser.GameObjects.Sprite | null = null,
+      bd = 12 * 12;
     for (const s of this.towerSprites.values()) {
-      const dx = s.x - at.x, dy = s.y - at.y, d = dx * dx + dy * dy;
-      if (d < bd) { bd = d; best = s; }
+      const dx = s.x - at.x,
+        dy = s.y - at.y,
+        d = dx * dx + dy * dy;
+      if (d < bd) {
+        bd = d;
+        best = s;
+      }
     }
     return best;
   },
@@ -116,7 +185,12 @@ export const spritesMethods = {
    * clips fall through the list (so skill→attack fallback works), and a no-op
    * keeps the base playing — partial/old sheets degrade gracefully.
    */
-  playSpriteOneShot(this: BattleScene, s: Phaser.GameObjects.Sprite | null, names: string[], base: string): void {
+  playSpriteOneShot(
+    this: BattleScene,
+    s: Phaser.GameObjects.Sprite | null,
+    names: string[],
+    base: string,
+  ): void {
     if (!s || !s.active) return;
     const key = s.texture.key;
     const anim = names.map((n) => `${key}_${n}`).find((a) => this.anims.exists(a));
@@ -134,7 +208,12 @@ export const spritesMethods = {
     const prev = s.getData("flashTimer") as Phaser.Time.TimerEvent | undefined;
     prev?.remove();
     s.setTintFill(color);
-    s.setData("flashTimer", this.time.delayedCall(80, () => { if (s.active) s.clearTint(); }));
+    s.setData(
+      "flashTimer",
+      this.time.delayedCall(80, () => {
+        if (s.active) s.clearTint();
+      }),
+    );
   },
 
   /** Acquire/update a pooled sprite for an entity; null if no art for this key. */
@@ -167,7 +246,13 @@ export const spritesMethods = {
    * so it always renders on the ground beneath the creature. `animateEnemy` then
    * pins and modulates it each frame (it stays on the ground while the body bobs).
    */
-  ensureShadow(this: BattleScene, uid: number, x: number, y: number, displayH: number): Phaser.GameObjects.Ellipse {
+  ensureShadow(
+    this: BattleScene,
+    uid: number,
+    x: number,
+    y: number,
+    displayH: number,
+  ): Phaser.GameObjects.Ellipse {
     let sh = this.enemyShadows.get(uid);
     if (!sh) {
       sh = this.add.ellipse(x, y, displayH * 0.6, displayH * 0.24, 0x000000, 0.34).setDepth(1);
@@ -211,11 +296,13 @@ export const spritesMethods = {
     // pause the loop while frozen so a held enemy doesn't moon-walk in place.
     if (this.anims.exists(`${key}_walk`)) {
       const cur = s.anims.currentAnim?.key;
-      const inOneShot = s.anims.isPlaying &&
+      const inOneShot =
+        s.anims.isPlaying &&
         (cur === `${key}_attack` || cur === `${key}_skill` || cur === `${key}_hurt`);
       if (!inOneShot) {
-        if (frozen) { if (s.anims.isPlaying) s.anims.pause(); }
-        else {
+        if (frozen) {
+          if (s.anims.isPlaying) s.anims.pause();
+        } else {
           if (cur !== `${key}_walk` || !s.anims.isPlaying) s.play(`${key}_walk`);
           // Couple step cadence to actual ground speed: ~1x at a brisk walk,
           // slower when slowed, up to ~1.8x for fast "runners".
@@ -226,41 +313,50 @@ export const spritesMethods = {
     }
 
     // Distance travelled since last frame → couples the gait to the ground.
-    const px = e.pos.x, py = e.pos.y;
+    const px = e.pos.x,
+      py = e.pos.y;
     const lx = s.getData("lastPosX") as number | undefined;
     const ly = s.getData("lastPosY") as number | undefined;
     const moved = lx === undefined ? 0 : Math.min(20, Math.hypot(px - lx, py - (ly as number)));
-    s.setData("lastPosX", px); s.setData("lastPosY", py);
+    s.setData("lastPosX", px);
+    s.setData("lastPosY", py);
     const prevMoved = (s.getData("recentMoved") as number) ?? moved;
     s.setData("recentMoved", prevMoved * 0.8 + moved * 0.2); // smoothed travel → walk timeScale
 
-    let scaleX = base, scaleY = base, angle = 0, yOff = 0, xOff = 0;
+    let scaleX = base,
+      scaleY = base,
+      angle = 0,
+      yOff = 0,
+      xOff = 0;
 
     if (e.flying) {
-      const w = now * 0.017 + e.uid * 1.7;              // ~2.7 wing-beats/sec
+      const w = now * 0.017 + e.uid * 1.7; // ~2.7 wing-beats/sec
       const beat = Math.sin(w);
-      yOff = -15 + Math.cos(w) * 4.5;                   // body rises on the downstroke
-      angle = Math.sin(w * 0.5) * 6;                    // slow banking roll
-      scaleX = base * (1 + beat * 0.05);                // wings spread on the beat
+      yOff = -15 + Math.cos(w) * 4.5; // body rises on the downstroke
+      angle = Math.sin(w * 0.5) * 6; // slow banking roll
+      scaleX = base * (1 + beat * 0.05); // wings spread on the beat
       scaleY = base * (1 - beat * 0.03);
     } else if (frozen) {
-      angle = Math.sin(now * 0.05) * 1.2;               // faint shiver, no stepping
+      angle = Math.sin(now * 0.05) * 1.2; // faint shiver, no stepping
     } else {
-      const A = boss ? 0.6 : 1;                          // bosses bob/rock less (heavy)
+      const A = boss ? 0.6 : 1; // bosses bob/rock less (heavy)
       let c = (s.getData("gaitPhase") as number) ?? e.uid * 1.3;
-      c += moved * 0.16 * (boss ? 0.7 : 1);              // ~one step per ~20px; longer boss stride
+      c += moved * 0.16 * (boss ? 0.7 : 1); // ~one step per ~20px; longer boss stride
       s.setData("gaitPhase", c);
       const lean = moved > 0.2 && lx !== undefined ? Math.sign(px - lx) * 2 : 0; // lean into travel
       const t = enemyWalkTransform(c, { amp: A, lean });
-      yOff = t.yOff; xOff = t.xOff; angle = t.angle;
-      scaleX = base * t.scaleMulX; scaleY = base * t.scaleMulY;
+      yOff = t.yOff;
+      xOff = t.xOff;
+      angle = t.angle;
+      scaleX = base * t.scaleMulX;
+      scaleY = base * t.scaleMulY;
       s.setData("liftNorm", t.liftNorm);
     }
 
     // Hurt squash overlays the base motion (set on the hit FX, decays ~160ms).
     const hurtUntil = (s.getData("hurtUntil") as number) ?? 0;
     if (now < hurtUntil) {
-      const k = (hurtUntil - now) / 160;                // 1 → 0
+      const k = (hurtUntil - now) / 160; // 1 → 0
       scaleX = base * (1 + 0.18 * k);
       scaleY = base * (1 - 0.22 * k);
       angle *= 0.3;
@@ -297,22 +393,27 @@ export const spritesMethods = {
    * (anticipation stretch + lift + angle kick, set by attack/skill FX) on each
    * strike. `base` already folds in the upgrade-level scale.
    */
-  animateTower(this: BattleScene, s: Phaser.GameObjects.Sprite, t: TowerRuntime, base: number): void {
+  animateTower(
+    this: BattleScene,
+    s: Phaser.GameObjects.Sprite,
+    t: TowerRuntime,
+    base: number,
+  ): void {
     const now = this.time.now;
-    const ph = now * 0.004 + t.uid * 2.1;             // slow idle phase, desynced per tower
+    const ph = now * 0.004 + t.uid * 2.1; // slow idle phase, desynced per tower
     let scaleX = base;
     let scaleY = base * (1 + Math.sin(ph * 2) * 0.025); // breathing
-    let angle = Math.sin(ph) * 1.5;                    // faint idle sway
-    let yOff = Math.sin(ph * 2) * 1.2;                 // subtle bob
+    let angle = Math.sin(ph) * 1.5; // faint idle sway
+    let yOff = Math.sin(ph * 2) * 1.2; // subtle bob
 
     // Strike recoil overlays the idle motion (set on attack/cast FX, decays).
     const atkUntil = (s.getData("atkUntil") as number) ?? 0;
     if (now < atkUntil) {
-      const k = (atkUntil - now) / TOWER_STRIKE_MS;   // 1 → 0
+      const k = (atkUntil - now) / TOWER_STRIKE_MS; // 1 → 0
       scaleY = base * (1 + 0.16 * k);
-      scaleX = base * (1 - 0.10 * k);
-      yOff -= 6 * k;                                   // lift on the strike
-      angle += (t.uid % 2 ? 1 : -1) * 6 * k;          // directional kick
+      scaleX = base * (1 - 0.1 * k);
+      yOff -= 6 * k; // lift on the strike
+      angle += (t.uid % 2 ? 1 : -1) * 6 * k; // directional kick
     }
 
     s.setAngle(angle);
@@ -326,7 +427,14 @@ export const spritesMethods = {
     for (const t of this.battle.towers) {
       if (!t.alive) continue;
       seenT.add(t.uid);
-      const s = this.ensureSprite(this.towerSprites, t.uid, towerTex(t.def.id), t.pos.x, t.pos.y, 50);
+      const s = this.ensureSprite(
+        this.towerSprites,
+        t.uid,
+        towerTex(t.def.id),
+        t.pos.x,
+        t.pos.y,
+        50,
+      );
       if (s) {
         s.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
         if (s.height) {
@@ -352,8 +460,16 @@ export const spritesMethods = {
         b.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
       }
     }
-    for (const [uid, s] of this.towerSprites) if (!seenT.has(uid)) { s.destroy(); this.towerSprites.delete(uid); }
-    for (const [uid, b] of this.roleBadges) if (!seenT.has(uid)) { b.destroy(); this.roleBadges.delete(uid); }
+    for (const [uid, s] of this.towerSprites)
+      if (!seenT.has(uid)) {
+        s.destroy();
+        this.towerSprites.delete(uid);
+      }
+    for (const [uid, b] of this.roleBadges)
+      if (!seenT.has(uid)) {
+        b.destroy();
+        this.roleBadges.delete(uid);
+      }
 
     const seenE = new Set<number>();
     for (const e of this.battle.enemies) {
@@ -365,14 +481,23 @@ export const spritesMethods = {
       if (s) {
         seenE.add(e.uid);
         s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1);
-        const tint = enemyStatusTint(e);   // burn/poison/freeze body tint (T8)
-        if (tint === null) s.clearTint(); else s.setTint(tint);
+        const tint = enemyStatusTint(e); // burn/poison/freeze body tint (T8)
+        if (tint === null) s.clearTint();
+        else s.setTint(tint);
         const shadow = this.ensureShadow(e.uid, e.pos.x, e.pos.y, displayH);
-        this.animateEnemy(s, e, key, shadow);  // walk / fly / hurt animation + ground shadow
+        this.animateEnemy(s, e, key, shadow); // walk / fly / hurt animation + ground shadow
       }
     }
-    for (const [uid, s] of this.enemySprites) if (!seenE.has(uid)) { s.destroy(); this.enemySprites.delete(uid); }
-    for (const [uid, sh] of this.enemyShadows) if (!seenE.has(uid)) { sh.destroy(); this.enemyShadows.delete(uid); }
+    for (const [uid, s] of this.enemySprites)
+      if (!seenE.has(uid)) {
+        s.destroy();
+        this.enemySprites.delete(uid);
+      }
+    for (const [uid, sh] of this.enemyShadows)
+      if (!seenE.has(uid)) {
+        sh.destroy();
+        this.enemyShadows.delete(uid);
+      }
 
     const h = this.battle.hero;
     if (h.alive && hasSprite(this, "hero__hero")) {
@@ -391,7 +516,8 @@ export const spritesMethods = {
         this.heroSprite.syncEquipment(this.saveManager.getSave().inventory);
       }
       // Drive locomotion (walk vs float), facing, wing hover and pet wander.
-      const dx = h.moveTarget.x - h.pos.x, dy = h.moveTarget.y - h.pos.y;
+      const dx = h.moveTarget.x - h.pos.x,
+        dy = h.moveTarget.y - h.pos.y;
       const moving = Math.hypot(dx, dy) > 1.5;
       const facingLeft = dx < -0.5 ? true : dx > 0.5 ? false : undefined;
       this.heroSprite.tick(this.time.now, moving, facingLeft);

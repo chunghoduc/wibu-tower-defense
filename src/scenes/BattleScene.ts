@@ -20,7 +20,13 @@
 import Phaser from "phaser";
 import { BattleState } from "../core/battle.ts";
 import { loadCatalog, type Catalog } from "../data/catalog.ts";
-import { defaultHeroStats, STAGE_1, WORLD_WIDTH, WORLD_HEIGHT, stageNumber } from "../data/stage.ts";
+import {
+  defaultHeroStats,
+  STAGE_1,
+  WORLD_WIDTH,
+  WORLD_HEIGHT,
+  stageNumber,
+} from "../data/stage.ts";
 import { endlessArenaStage } from "../core/endlessArena.ts";
 import { bgKey } from "../data/bgManifest.ts";
 import { buildEndlessBackdrop } from "../core/endlessBackdrop.ts";
@@ -68,14 +74,14 @@ export class BattleScene extends Phaser.Scene {
 
   staticGfx!: Phaser.GameObjects.Graphics;
   dynGfx!: Phaser.GameObjects.Graphics;
-  uiGfx!: Phaser.GameObjects.Graphics;     // screen-space HUD shapes
-  world!: Phaser.GameObjects.Layer;        // battlefield (zoomed camera)
-  ui!: Phaser.GameObjects.Layer;           // HUD (fixed camera)
+  uiGfx!: Phaser.GameObjects.Graphics; // screen-space HUD shapes
+  world!: Phaser.GameObjects.Layer; // battlefield (zoomed camera)
+  ui!: Phaser.GameObjects.Layer; // HUD (fixed camera)
   hud!: Phaser.GameObjects.Text;
   banner!: Phaser.GameObjects.Text;
   info!: Phaser.GameObjects.Text;
   avatarTiles: Phaser.GameObjects.Container[] = [];
-  avatarPulses: Phaser.Tweens.Tween[] = [];   // breathing-glow tweens on rarer build-bar cards
+  avatarPulses: Phaser.Tweens.Tween[] = []; // breathing-glow tweens on rarer build-bar cards
   terrainSprites: Phaser.GameObjects.Image[] = [];
   /** SDXL castle sprite (when art exists); swaps to damaged art at low HP. */
   castleSprite?: Phaser.GameObjects.Image;
@@ -94,12 +100,12 @@ export class BattleScene extends Phaser.Scene {
   _defeatPlayed = false;
   _rewardsShown = false;
   _menuBtn: Phaser.GameObjects.Text | null = null;
-  killSaveDirty = false;   // kill XP/loot pending a debounced flush
+  killSaveDirty = false; // kill XP/loot pending a debounced flush
   lastKillFlush = 0;
 
   // Pixel-art sprite pools (keyed by entity uid); fall back to shapes if missing.
   towerSprites = new Map<number, Phaser.GameObjects.Sprite>();
-  roleBadges = new Map<number, Phaser.GameObjects.Image>();      // per-tower role emblem
+  roleBadges = new Map<number, Phaser.GameObjects.Image>(); // per-tower role emblem
   enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
   enemyShadows = new Map<number, Phaser.GameObjects.Ellipse>(); // ground-contact anchors
 
@@ -113,12 +119,16 @@ export class BattleScene extends Phaser.Scene {
   selectedTowerUid = -1;
   quickActions: Phaser.GameObjects.Container | null = null;
   confirmDialog: Phaser.GameObjects.Container | null = null;
-  rangePreviewUid = -1;   // tower whose range ring to show (on upgrade hover)
+  rangePreviewUid = -1; // tower whose range ring to show (on upgrade hover)
   keys?: {
-    up: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key;
-    left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key;
-    w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key;
-    s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key;
+    up: Phaser.Input.Keyboard.Key;
+    down: Phaser.Input.Keyboard.Key;
+    left: Phaser.Input.Keyboard.Key;
+    right: Phaser.Input.Keyboard.Key;
+    w: Phaser.Input.Keyboard.Key;
+    a: Phaser.Input.Keyboard.Key;
+    s: Phaser.Input.Keyboard.Key;
+    d: Phaser.Input.Keyboard.Key;
   };
 
   constructor() {
@@ -142,7 +152,7 @@ export class BattleScene extends Phaser.Scene {
     this.quickActions = null;
     this.confirmDialog = null;
     this.rangePreviewUid = -1;
-    this.avatarTiles = [];      // stale refs from a prior battle are destroyed by shutdown
+    this.avatarTiles = []; // stale refs from a prior battle are destroyed by shutdown
     this.avatarPulses = [];
     this.terrainSprites = [];
     this.endlessBackdropFx?.destroy();
@@ -151,10 +161,13 @@ export class BattleScene extends Phaser.Scene {
 
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
     this.stage = (this.registry.get("selectedStage") as StageDef | undefined) ?? STAGE_1;
-    this.difficulty = (this.registry.get("selectedDifficulty") as Difficulty | undefined) ?? "Normal";
+    this.difficulty =
+      (this.registry.get("selectedDifficulty") as Difficulty | undefined) ?? "Normal";
     // Optional special mode (F5 challenge / F11 endless / F12 boss rush) from the
     // Activities hub; cleared after reading so it doesn't leak into the next battle.
-    this.battleMode = (this.registry.get("battleMode") as BattleMode | undefined) ?? { kind: "normal" };
+    this.battleMode = (this.registry.get("battleMode") as BattleMode | undefined) ?? {
+      kind: "normal",
+    };
     this.registry.set("battleMode", undefined);
 
     // Endless mode fights on a generated maze arena (central castle, multi-gate
@@ -197,31 +210,106 @@ export class BattleScene extends Phaser.Scene {
     this.battleW = this.scale.width;
     const bcx = this.battleW / 2;
     this.uiGfx = this.add.graphics().setDepth(8);
-    this.hud = crispText(this, 10, 8, "", { fontSize: "15px", color: "#ffffff", wordWrap: { width: this.battleW - 120 } }).setDepth(10);
-    this.banner = crispText(this, bcx, 150, "", { fontSize: "40px", color: "#ffffff", fontStyle: "bold", strokeThickness: 6 }).setOrigin(0.5).setDepth(20);
-    this.info = crispText(this, 10, this.scale.height - 16, "", { fontSize: "12px", color: "#dbe6ee", wordWrap: { width: this.battleW - 20 } }).setDepth(10);
-    this.hudLevelText = crispText(this, 36, 97, "", { fontSize: "11px", color: "#ffffff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
-    this.hudSkillText = crispText(this, 58, 117, "", { fontSize: "10px", color: "#ddaaff", align: "center" }).setOrigin(0.5).setDepth(20).setVisible(false);
+    this.hud = crispText(this, 10, 8, "", {
+      fontSize: "15px",
+      color: "#ffffff",
+      wordWrap: { width: this.battleW - 120 },
+    }).setDepth(10);
+    this.banner = crispText(this, bcx, 150, "", {
+      fontSize: "40px",
+      color: "#ffffff",
+      fontStyle: "bold",
+      strokeThickness: 6,
+    })
+      .setOrigin(0.5)
+      .setDepth(20);
+    this.info = crispText(this, 10, this.scale.height - 16, "", {
+      fontSize: "12px",
+      color: "#dbe6ee",
+      wordWrap: { width: this.battleW - 20 },
+    }).setDepth(10);
+    this.hudLevelText = crispText(this, 36, 97, "", {
+      fontSize: "11px",
+      color: "#ffffff",
+      align: "center",
+    })
+      .setOrigin(0.5)
+      .setDepth(20)
+      .setVisible(false);
+    this.hudSkillText = crispText(this, 58, 117, "", {
+      fontSize: "10px",
+      color: "#ddaaff",
+      align: "center",
+    })
+      .setOrigin(0.5)
+      .setDepth(20)
+      .setVisible(false);
     this.gameSpeed = 1;
     // Speed / mute float above the panel (depth 50) at the top-right.
-    this.speedBtn = crispText(this, this.scale.width - 12, 8, "", { fontSize: "13px", color: "#fff", backgroundColor: "#243a5a" })
-      .setOrigin(1, 0).setPadding(8, 4, 8, 4).setDepth(50).setInteractive({ useHandCursor: true });
-    this.speedBtn.on("pointerdown", () => { this.gameSpeed = this.gameSpeed === 0 ? 1 : this.gameSpeed >= 3 ? 0 : this.gameSpeed + 1; this.updateSpeedBtn(); });
+    this.speedBtn = crispText(this, this.scale.width - 12, 8, "", {
+      fontSize: "13px",
+      color: "#fff",
+      backgroundColor: "#243a5a",
+    })
+      .setOrigin(1, 0)
+      .setPadding(8, 4, 8, 4)
+      .setDepth(50)
+      .setInteractive({ useHandCursor: true });
+    this.speedBtn.on("pointerdown", () => {
+      this.gameSpeed = this.gameSpeed === 0 ? 1 : this.gameSpeed >= 3 ? 0 : this.gameSpeed + 1;
+      this.updateSpeedBtn();
+    });
     this.updateSpeedBtn();
-    const muteBtn = crispText(this, this.scale.width - 64, 8, "🔊", { fontSize: "13px", backgroundColor: "#243a5a" })
-      .setOrigin(1, 0).setPadding(6, 4, 6, 4).setDepth(50).setInteractive({ useHandCursor: true });
+    const muteBtn = crispText(this, this.scale.width - 64, 8, "🔊", {
+      fontSize: "13px",
+      backgroundColor: "#243a5a",
+    })
+      .setOrigin(1, 0)
+      .setPadding(6, 4, 6, 4)
+      .setDepth(50)
+      .setInteractive({ useHandCursor: true });
     muteBtn.on("pointerdown", () => muteBtn.setText(this.sfx.toggleMute() ? "🔇" : "🔊"));
     // Call-wave-early skip: spawn the next wave now for bonus gold (campaign only).
-    this.callWaveBtn = crispText(this, this.scale.width - 12, 34, "", { fontSize: "13px", color: "#fff5cc", backgroundColor: "#5a4a18", fontStyle: "bold" })
-      .setOrigin(1, 0).setPadding(8, 4, 8, 4).setDepth(50).setInteractive({ useHandCursor: true }).setVisible(false);
+    this.callWaveBtn = crispText(this, this.scale.width - 12, 34, "", {
+      fontSize: "13px",
+      color: "#fff5cc",
+      backgroundColor: "#5a4a18",
+      fontStyle: "bold",
+    })
+      .setOrigin(1, 0)
+      .setPadding(8, 4, 8, 4)
+      .setDepth(50)
+      .setInteractive({ useHandCursor: true })
+      .setVisible(false);
     this.callWaveBtn.on("pointerdown", () => this.onCallWave());
     // Early-clear auto-skip: a centered "Next wave in N…" countdown shown after the
     // field is wiped out before its cadence elapses (driven by refreshCallWaveBtn).
-    this.autoSkipText = crispText(this, this.scale.width / 2, 92, "", { fontSize: "20px", color: "#ffe27a", fontStyle: "bold", stroke: "#1a1206", strokeThickness: 5 })
-      .setOrigin(0.5, 0).setDepth(55).setVisible(false);
-    this.ui.add([this.uiGfx, this.hud, this.banner, this.info, this.hudLevelText, this.hudSkillText, this.speedBtn, muteBtn, this.callWaveBtn, this.autoSkipText]);
+    this.autoSkipText = crispText(this, this.scale.width / 2, 92, "", {
+      fontSize: "20px",
+      color: "#ffe27a",
+      fontStyle: "bold",
+      stroke: "#1a1206",
+      strokeThickness: 5,
+    })
+      .setOrigin(0.5, 0)
+      .setDepth(55)
+      .setVisible(false);
+    this.ui.add([
+      this.uiGfx,
+      this.hud,
+      this.banner,
+      this.info,
+      this.hudLevelText,
+      this.hudSkillText,
+      this.speedBtn,
+      muteBtn,
+      this.callWaveBtn,
+      this.autoSkipText,
+    ]);
 
-    this.panel = new BattleInfoPanel(this, this.ui, this.scale.width, this.scale.height, () => this.togglePanel());
+    this.panel = new BattleInfoPanel(this, this.ui, this.scale.width, this.scale.height, () =>
+      this.togglePanel(),
+    );
 
     this.buildBuildBar();
     this.setupPlacementDrag(); // register drag handlers once (tiles rebuild without re-registering)
@@ -230,7 +318,10 @@ export class BattleScene extends Phaser.Scene {
     // Camera: world zoom-to-fit the FULL screen (panel overlays it); uiCam 1:1.
     const zoom = Math.min(this.scale.width / WORLD_WIDTH, this.scale.height / WORLD_HEIGHT);
     this.cameras.main.setViewport(0, 0, this.scale.width, this.scale.height);
-    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT).setZoom(zoom).centerOn(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
+    this.cameras.main
+      .setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT)
+      .setZoom(zoom)
+      .centerOn(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
     this.cameras.main.ignore(this.ui);
     const uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     uiCam.ignore(this.world);
@@ -238,21 +329,32 @@ export class BattleScene extends Phaser.Scene {
     // Pinch / wheel / drag-to-pan camera — zoom in to see sprites & combat VFX
     // at full resolution; drag the field to move the window once zoomed.
     this.camCtl = new BattleCameraController(this, this.cameras.main, {
-      worldW: WORLD_WIDTH, worldH: WORLD_HEIGHT,
-      minZoom: zoom, maxZoom: zoom * 2.4,
+      worldW: WORLD_WIDTH,
+      worldH: WORLD_HEIGHT,
+      minZoom: zoom,
+      maxZoom: zoom * 2.4,
       blockAt: (p) => this.panel.hitsPanel(p.x) || this.panel.hitsTab(p.x, p.y) || p.y >= 500,
       isBusy: () => this.placeGhost != null,
     });
     this.addZoomButtons();
 
-    this.panel.showHero(this.heroVM());  // build hero content (panel starts collapsed)
+    this.panel.showHero(this.heroVM()); // build hero content (panel starts collapsed)
     const KC = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard?.addKeys({
-      up: KC.UP, down: KC.DOWN, left: KC.LEFT, right: KC.RIGHT,
-      w: KC.W, a: KC.A, s: KC.S, d: KC.D,
+      up: KC.UP,
+      down: KC.DOWN,
+      left: KC.LEFT,
+      right: KC.RIGHT,
+      w: KC.W,
+      a: KC.A,
+      s: KC.S,
+      d: KC.D,
     }) as typeof this.keys;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      if (this.killSaveDirty) { this.saveManager.flush(); this.killSaveDirty = false; }
+      if (this.killSaveDirty) {
+        this.saveManager.flush();
+        this.killSaveDirty = false;
+      }
       this.deselectTower();
       this.clearGhost();
       this.camCtl?.destroy();
@@ -285,10 +387,14 @@ export class BattleScene extends Phaser.Scene {
     // per-chapter SDXL backdrop, then a flat ground tint.
     const stageBg = stageBgKey(this.stage.id);
     const endlessBg = bgKey("endless-siege");
-    const bgKeyToUse = this.stage.arena && this.textures.exists(endlessBg)
-      ? endlessBg
-      : this.textures.exists(stageBg) ? stageBg
-      : this.textures.exists(theme.bgKey) ? theme.bgKey : null;
+    const bgKeyToUse =
+      this.stage.arena && this.textures.exists(endlessBg)
+        ? endlessBg
+        : this.textures.exists(stageBg)
+          ? stageBg
+          : this.textures.exists(theme.bgKey)
+            ? theme.bgKey
+            : null;
     if (bgKeyToUse) {
       const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
       bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
@@ -306,7 +412,11 @@ export class BattleScene extends Phaser.Scene {
     this.endlessBackdropFx = null;
     if (this.stage.arena) {
       const seed = stageNumber(this.stage.id) || 1;
-      const spec = buildEndlessBackdrop(this.stage.arena, { width: WORLD_WIDTH, height: WORLD_HEIGHT }, seed);
+      const spec = buildEndlessBackdrop(
+        this.stage.arena,
+        { width: WORLD_WIDTH, height: WORLD_HEIGHT },
+        seed,
+      );
       this.endlessBackdropFx = new EndlessBackdropFx(this, spec, this.world);
     }
     // terrain features (T13): SVG art authored by the svg-asset-gen skill, drawn
@@ -317,8 +427,10 @@ export class BattleScene extends Phaser.Scene {
       if (this.textures.exists(key)) {
         // The art's silhouette fills ~0.45 of the 128px box; scale so the blob's
         // radius ≈ the feature radius (a touch of overhang reads as organic).
-        const img = this.add.image(f.x, f.y, key)
-          .setDisplaySize(f.r * 2.6, f.r * 2.6).setDepth(1);
+        const img = this.add
+          .image(f.x, f.y, key)
+          .setDisplaySize(f.r * 2.6, f.r * 2.6)
+          .setDepth(1);
         if (theme.terrainTint !== 0xffffff) img.setTint(theme.terrainTint); // match the biome
         if (!f.blocks) img.setAlpha(0.92); // decor sits a hair lighter than obstacles
         this.world.add(img);
@@ -327,8 +439,21 @@ export class BattleScene extends Phaser.Scene {
       }
       const col = TERRAIN_COLOR[f.type];
       g.fillStyle(col, f.blocks ? 0.95 : 0.5).fillCircle(f.x, f.y, f.r);
-      g.lineStyle(2, Phaser.Display.Color.IntegerToColor(col).darken(30).color, f.blocks ? 0.9 : 0.4).strokeCircle(f.x, f.y, f.r);
-      if (f.type === "mountain") { g.fillStyle(0xe8eef4, 0.5).fillTriangle(f.x - f.r * 0.4, f.y + f.r * 0.2, f.x, f.y - f.r * 0.5, f.x + f.r * 0.4, f.y + f.r * 0.2); }
+      g.lineStyle(
+        2,
+        Phaser.Display.Color.IntegerToColor(col).darken(30).color,
+        f.blocks ? 0.9 : 0.4,
+      ).strokeCircle(f.x, f.y, f.r);
+      if (f.type === "mountain") {
+        g.fillStyle(0xe8eef4, 0.5).fillTriangle(
+          f.x - f.r * 0.4,
+          f.y + f.r * 0.2,
+          f.x,
+          f.y - f.r * 0.5,
+          f.x + f.r * 0.4,
+          f.y + f.r * 0.2,
+        );
+      }
     }
     // roads: the single campaign lane, or every corridor of the maze arena.
     const roads = this.stage.arena ? this.stage.arena.routes : [this.stage.path];
@@ -386,14 +511,21 @@ export class BattleScene extends Phaser.Scene {
     // Per-rarity glow: base alpha + an optional breathing pulse (stronger/faster up
     // the chain) so a card's rarity reads at a glance during battle. Common is plain.
     const RGLOW: Record<string, { glow: number; pulse: number }> = {
-      Common: { glow: 0, pulse: 0 }, Magic: { glow: 0.16, pulse: 0 },
-      Rare: { glow: 0.24, pulse: 900 }, Legendary: { glow: 0.32, pulse: 720 },
+      Common: { glow: 0, pulse: 0 },
+      Magic: { glow: 0.16, pulse: 0 },
+      Rare: { glow: 0.24, pulse: 900 },
+      Legendary: { glow: 0.32, pulse: 720 },
       Unique: { glow: 0.42, pulse: 560 },
     };
     this.buildOrder.forEach((def, i) => {
-      const x = 14 + i * TW, y = 504;
-      const c = this.add.container(x + TW / 2, y + 16).setSize(TW - 8, 44).setDepth(12);
-      const w = TW - 8, hw = w / 2;
+      const x = 14 + i * TW,
+        y = 504;
+      const c = this.add
+        .container(x + TW / 2, y + 16)
+        .setSize(TW - 8, 44)
+        .setDepth(12);
+      const w = TW - 8,
+        hw = w / 2;
       const rarityCol = RARITY_INT[def.rarity] ?? 0x3a4a64;
       const rg = RGLOW[def.rarity] ?? RGLOW.Common;
       // Rarity glow sits behind the card body — a soft rarity-colored halo.
@@ -403,10 +535,16 @@ export class BattleScene extends Phaser.Scene {
         glow.setAlpha(rg.glow);
         c.add(glow);
         if (rg.pulse > 0) {
-          this.avatarPulses.push(this.tweens.add({
-            targets: glow, alpha: rg.glow * 0.4, duration: rg.pulse,
-            yoyo: true, repeat: -1, ease: "Sine.easeInOut",
-          }));
+          this.avatarPulses.push(
+            this.tweens.add({
+              targets: glow,
+              alpha: rg.glow * 0.4,
+              duration: rg.pulse,
+              yoyo: true,
+              repeat: -1,
+              ease: "Sine.easeInOut",
+            }),
+          );
         }
       }
       const bg = this.add.graphics();
@@ -419,7 +557,11 @@ export class BattleScene extends Phaser.Scene {
         img.setScale(34 / img.height);
         c.add(img);
       }
-      c.add(crispText(this, 0, 14, `${def.cost}g`, { fontSize: "10px", color: "#ffd86a" }).setOrigin(0.5));
+      c.add(
+        crispText(this, 0, 14, `${def.cost}g`, { fontSize: "10px", color: "#ffd86a" }).setOrigin(
+          0.5,
+        ),
+      );
       const badge = this.add.graphics();
       this.drawTypeBadge(badge, (TW - 8) / 2 - 9, -8, def); // melee/ranged + role (T5)
       c.add(badge);
@@ -432,7 +574,7 @@ export class BattleScene extends Phaser.Scene {
 
   /** Recreate the avatar tiles (e.g. to snap a dragged tile home). */
   rebuildAvatarTiles(): void {
-    this.avatarPulses.forEach((t) => t.stop());   // drop tweens before their glow graphics die
+    this.avatarPulses.forEach((t) => t.stop()); // drop tweens before their glow graphics die
     this.avatarPulses = [];
     this.avatarTiles.forEach((t) => t.destroy());
     this.avatarTiles = [];

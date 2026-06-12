@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { DAILY_QUESTS } from "../src/data/quests.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import {
-  rolloverQuests, getQuestProgress, claimQuestReward, claimAllBonus,
+  rolloverQuests,
+  getQuestProgress,
+  claimQuestReward,
+  claimAllBonus,
   incrementQuestKey,
 } from "../src/core/questTracker.ts";
 import { SUMMON_SCROLL } from "../src/data/materials.ts";

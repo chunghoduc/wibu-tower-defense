@@ -1,8 +1,21 @@
 import { describe, it, expect } from "vitest";
 import {
-  itemTex, towerTex, jewelTex, materialTex, boxTex, skillTex, menuTex, fxTex,
-  structureTex, roleTex, CASTLE_TEX, CASTLE_DAMAGED_TEX,
-  GOLD_TEX, GEM_TEX, XP_TEX, HERODOLL_BASE_TEX,
+  itemTex,
+  towerTex,
+  jewelTex,
+  materialTex,
+  boxTex,
+  skillTex,
+  menuTex,
+  fxTex,
+  structureTex,
+  roleTex,
+  CASTLE_TEX,
+  CASTLE_DAMAGED_TEX,
+  GOLD_TEX,
+  GEM_TEX,
+  XP_TEX,
+  HERODOLL_BASE_TEX,
 } from "../src/data/assetKeys.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 import { TOWERS } from "../src/data/towers.ts";
@@ -47,7 +60,9 @@ describe("catalog → key contract", () => {
     for (const t of TOWERS) expect(towerTex(t.id)).toMatch(/^tower__/);
   });
   it("non-box materials are exactly the set loaded as material__ icons", () => {
-    const nonBox = MATERIALS.filter((m) => m.kind !== "box").map((m) => m.id).sort();
+    const nonBox = MATERIALS.filter((m) => m.kind !== "box")
+      .map((m) => m.id)
+      .sort();
     expect([...MATERIAL_ICON_IDS].sort()).toEqual(nonBox);
   });
   it("every jewel id is in the loaded jewel icon set", () => {

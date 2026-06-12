@@ -75,7 +75,8 @@ export class StageSelectScene extends Phaser.Scene {
     const place = (label: string, color: string, onClick: () => void): void => {
       const b = this.add
         .text(rightX, 12, label, { fontSize: "14px", color: "#fff", backgroundColor: color })
-        .setOrigin(1, 0).setPadding(10, 5, 10, 5)
+        .setOrigin(1, 0)
+        .setPadding(10, 5, 10, 5)
         .setInteractive({ useHandCursor: true });
       b.on("pointerover", () => b.setAlpha(0.85));
       b.on("pointerout", () => b.setAlpha(1));
@@ -87,13 +88,19 @@ export class StageSelectScene extends Phaser.Scene {
     place("⚔ Squad", "#2a4a3a", () => this.openLoadout("SquadScene"));
 
     // Chapter (region) tabs — only chapters that actually have stages.
-    const chapters = CAMPAIGN_CHAPTERS.filter((c) => STAGES.some((s) => playerChapterOf(s.id) === c.chapter));
+    const chapters = CAMPAIGN_CHAPTERS.filter((c) =>
+      STAGES.some((s) => playerChapterOf(s.id) === c.chapter),
+    );
     const chTabY = 50;
     const chSpan = 150;
     chapters.forEach((c, i) => {
       const x = W / 2 - ((chapters.length - 1) * chSpan) / 2 + i * chSpan;
       const btn = this.add
-        .text(x, chTabY, `Ch.${c.chapter}`, { fontSize: "15px", color: "#ffd9a0", backgroundColor: "#241a2e" })
+        .text(x, chTabY, `Ch.${c.chapter}`, {
+          fontSize: "15px",
+          color: "#ffd9a0",
+          backgroundColor: "#241a2e",
+        })
         .setOrigin(0.5)
         .setPadding(14, 6, 14, 6)
         .setInteractive({ useHandCursor: true });
@@ -110,7 +117,12 @@ export class StageSelectScene extends Phaser.Scene {
 
     // Region name + lore blurb for the selected chapter.
     this.regionText = this.add
-      .text(W / 2, 76, "", { fontSize: "11px", color: "#c8b8a0", align: "center", wordWrap: { width: W - 80 } })
+      .text(W / 2, 76, "", {
+        fontSize: "11px",
+        color: "#c8b8a0",
+        align: "center",
+        wordWrap: { width: W - 80 },
+      })
       .setOrigin(0.5, 0);
     this.refreshRegion();
 
@@ -164,9 +176,9 @@ export class StageSelectScene extends Phaser.Scene {
     // Only the selected chapter's stages, but keep each stage's GLOBAL index so
     // sequential unlocking and the displayed stage number stay continuous across
     // chapters (a chapter's first stage gates behind the prior chapter's last).
-    const chapterStages = STAGES
-      .map((stage, gi) => ({ stage, gi }))
-      .filter(({ stage }) => playerChapterOf(stage.id) === this.selectedChapter);
+    const chapterStages = STAGES.map((stage, gi) => ({ stage, gi })).filter(
+      ({ stage }) => playerChapterOf(stage.id) === this.selectedChapter,
+    );
 
     chapterStages.forEach(({ stage, gi }, li) => {
       const col = li % COLS;
@@ -175,12 +187,14 @@ export class StageSelectScene extends Phaser.Scene {
       const y = START_Y + row * GAP_Y;
 
       const clearRecord = clearMap[stage.id];
-      const anyCleared = clearRecord && (clearRecord.Normal || clearRecord.Hard || clearRecord.Nightmare);
+      const anyCleared =
+        clearRecord && (clearRecord.Normal || clearRecord.Hard || clearRecord.Nightmare);
       // Sequential gate: can't even open a stage until the previous one is
       // cleared on Normal. Tier gate: this stage's chapter must be conquered on
       // the tier below before the selected harder tier can be played.
       const isLocked = gi > 0 && !clearMap[STAGES[gi - 1].id]?.Normal;
-      const tierLocked = !isLocked && !isDifficultyUnlocked(save, stage.id, this.selectedDifficulty);
+      const tierLocked =
+        !isLocked && !isDifficultyUnlocked(save, stage.id, this.selectedDifficulty);
       const dimmed = isLocked || tierLocked;
       const left = x - CARD_W / 2;
 
@@ -202,48 +216,71 @@ export class StageSelectScene extends Phaser.Scene {
         const img = add(this.add.image(x, y + CARD_H / 2, bgkey));
         img.setScale(Math.max(CARD_W / img.width, CARD_H / img.height));
         // Invisible mask child — destroyed with the layer on rebuild (no leak).
-        const maskG = add(this.add.graphics().fillStyle(0xffffff).fillRoundedRect(left, y, CARD_W, CARD_H, 8));
+        const maskG = add(
+          this.add.graphics().fillStyle(0xffffff).fillRoundedRect(left, y, CARD_W, CARD_H, 8),
+        );
         maskG.setVisible(false);
         img.setMask(maskG.createGeometryMask());
         if (dimmed) img.setTint(isLocked ? 0x55585f : 0x8a7fa0);
         // Dark veil so the card text stays legible over the art.
-        add(this.add.graphics().fillStyle(0x05070c, dimmed ? 0.6 : 0.5).fillRoundedRect(left, y, CARD_W, CARD_H, 8));
+        add(
+          this.add
+            .graphics()
+            .fillStyle(0x05070c, dimmed ? 0.6 : 0.5)
+            .fillRoundedRect(left, y, CARD_W, CARD_H, 8),
+        );
       }
-      add(this.add.graphics().lineStyle(2, isLocked ? 0x333333 : tierLocked ? 0x5a4a6a : 0x4a6a8a, 1).strokeRoundedRect(left, y, CARD_W, CARD_H, 8));
+      add(
+        this.add
+          .graphics()
+          .lineStyle(2, isLocked ? 0x333333 : tierLocked ? 0x5a4a6a : 0x4a6a8a, 1)
+          .strokeRoundedRect(left, y, CARD_W, CARD_H, 8),
+      );
 
       // Per-stage "Foes" scout button (top-left) — list the enemies & boss this
       // stage fields, so the player can plan a loadout. Available even when the
       // stage is locked, so the road ahead can be scouted.
-      const foes = add(this.add
-        .text(left + 6, y + 6, "👁 Foes", { fontSize: "9px", color: "#ffe0a0", backgroundColor: "#00000088" })
-        .setOrigin(0, 0).setPadding(4, 2, 4, 2)
-        .setInteractive({ useHandCursor: true }));
+      const foes = add(
+        this.add
+          .text(left + 6, y + 6, "👁 Foes", {
+            fontSize: "9px",
+            color: "#ffe0a0",
+            backgroundColor: "#00000088",
+          })
+          .setOrigin(0, 0)
+          .setPadding(4, 2, 4, 2)
+          .setInteractive({ useHandCursor: true }),
+      );
       foes.on("pointerover", () => foes.setColor("#fff2cc"));
       foes.on("pointerout", () => foes.setColor("#ffe0a0"));
       foes.on("pointerdown", () => this.openStageEnemies(stage));
 
       // Stage number + name (stroked so they read over the painted backdrop)
       const nameColor = dimmed ? "#888888" : "#ffffff";
-      add(this.add
-        .text(x, y + 10, `Stage ${stageNumber(stage.id)}`, {
-          fontSize: "11px",
-          color: isLocked ? "#556677" : "#9fd0ff",
-          fontStyle: "bold",
-          stroke: "#05070c",
-          strokeThickness: 3,
-        })
-        .setOrigin(0.5, 0));
+      add(
+        this.add
+          .text(x, y + 10, `Stage ${stageNumber(stage.id)}`, {
+            fontSize: "11px",
+            color: isLocked ? "#556677" : "#9fd0ff",
+            fontStyle: "bold",
+            stroke: "#05070c",
+            strokeThickness: 3,
+          })
+          .setOrigin(0.5, 0),
+      );
 
-      add(this.add
-        .text(x, y + 26, stage.name, {
-          fontSize: "9px",
-          color: nameColor,
-          wordWrap: { width: CARD_W - 12 },
-          align: "center",
-          stroke: "#05070c",
-          strokeThickness: 3,
-        })
-        .setOrigin(0.5, 0));
+      add(
+        this.add
+          .text(x, y + 26, stage.name, {
+            fontSize: "9px",
+            color: nameColor,
+            wordWrap: { width: CARD_W - 12 },
+            align: "center",
+            stroke: "#05070c",
+            strokeThickness: 3,
+          })
+          .setOrigin(0.5, 0),
+      );
 
       // Clear badges
       if (clearRecord) {
@@ -252,19 +289,19 @@ export class StageSelectScene extends Phaser.Scene {
         if (clearRecord.Hard) badges.push("H");
         if (clearRecord.Nightmare) badges.push("NM");
         if (badges.length > 0) {
-          add(this.add
-            .text(x, y + 54, badges.join(" · "), {
-              fontSize: "9px",
-              color: "#ffd700",
-            })
-            .setOrigin(0.5, 0));
+          add(
+            this.add
+              .text(x, y + 54, badges.join(" · "), {
+                fontSize: "9px",
+                color: "#ffd700",
+              })
+              .setOrigin(0.5, 0),
+          );
         }
       }
 
       if (isLocked) {
-        add(this.add
-          .text(x, y + CARD_H / 2, "🔒", { fontSize: "20px" })
-          .setOrigin(0.5, 0.5));
+        add(this.add.text(x, y + CARD_H / 2, "🔒", { fontSize: "20px" }).setOrigin(0.5, 0.5));
         return;
       }
 
@@ -273,28 +310,32 @@ export class StageSelectScene extends Phaser.Scene {
       // of a Play button.
       if (tierLocked) {
         const prereq = prerequisiteTier(this.selectedDifficulty);
-        add(this.add
-          .text(x, y + CARD_H - 10, `🔒 Clear chapter on ${prereq}`, {
-            fontSize: "9px",
-            color: "#caa6e0",
-            backgroundColor: "#3a2a4a",
-            align: "center",
-          })
-          .setOrigin(0.5, 1)
-          .setPadding(8, 4, 8, 4));
+        add(
+          this.add
+            .text(x, y + CARD_H - 10, `🔒 Clear chapter on ${prereq}`, {
+              fontSize: "9px",
+              color: "#caa6e0",
+              backgroundColor: "#3a2a4a",
+              align: "center",
+            })
+            .setOrigin(0.5, 1)
+            .setPadding(8, 4, 8, 4),
+        );
         return;
       }
 
       // Play button area
-      const playBtn = add(this.add
-        .text(x, y + CARD_H - 10, "▶ Play", {
-          fontSize: "12px",
-          color: "#ffffff",
-          backgroundColor: "#1565c0",
-        })
-        .setOrigin(0.5, 1)
-        .setPadding(10, 4, 10, 4)
-        .setInteractive({ useHandCursor: true }));
+      const playBtn = add(
+        this.add
+          .text(x, y + CARD_H - 10, "▶ Play", {
+            fontSize: "12px",
+            color: "#ffffff",
+            backgroundColor: "#1565c0",
+          })
+          .setOrigin(0.5, 1)
+          .setPadding(10, 4, 10, 4)
+          .setInteractive({ useHandCursor: true }),
+      );
 
       playBtn.on("pointerover", () => playBtn.setBackgroundColor("#1e88e5"));
       playBtn.on("pointerout", () => playBtn.setBackgroundColor("#1565c0"));
@@ -341,9 +382,9 @@ export class StageSelectScene extends Phaser.Scene {
   /** The deepest region whose first stage is unlocked, so we open there. */
   private furthestReachedChapter(save: HeroSave): number {
     const clearMap = save.progress.stageClearMap;
-    const present = CAMPAIGN_CHAPTERS
-      .map((c) => c.chapter)
-      .filter((ch) => STAGES.some((s) => playerChapterOf(s.id) === ch));
+    const present = CAMPAIGN_CHAPTERS.map((c) => c.chapter).filter((ch) =>
+      STAGES.some((s) => playerChapterOf(s.id) === ch),
+    );
     let best = present[0] ?? 1;
     for (const ch of present) {
       const first = STAGES.findIndex((s) => playerChapterOf(s.id) === ch);
@@ -378,13 +419,25 @@ export class StageSelectScene extends Phaser.Scene {
 
   /** The full enemy compendium — every foe in the game. */
   private openCompendium(): void {
-    const ordered = [...ENEMIES].sort((a, b) => Number(a.archetype === "Boss") - Number(b.archetype === "Boss"));
-    openEnemyPanel(this, "Enemy Compendium", "Know your foes — their specialties and immunities. Scroll to see all.", ordered);
+    const ordered = [...ENEMIES].sort(
+      (a, b) => Number(a.archetype === "Boss") - Number(b.archetype === "Boss"),
+    );
+    openEnemyPanel(
+      this,
+      "Enemy Compendium",
+      "Know your foes — their specialties and immunities. Scroll to see all.",
+      ordered,
+    );
   }
 
   /** Just the foes a specific stage fields, so the player can plan a loadout. */
   private openStageEnemies(stage: StageDef): void {
     const list = enemiesForStage(stage);
-    openEnemyPanel(this, `${stage.name} — Foes`, "Enemies and the boss you'll face here. Plan your squad accordingly.", list);
+    openEnemyPanel(
+      this,
+      `${stage.name} — Foes`,
+      "Enemies and the boss you'll face here. Plan your squad accordingly.",
+      list,
+    );
   }
 }

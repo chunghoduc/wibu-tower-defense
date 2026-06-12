@@ -31,24 +31,39 @@ export interface ItemStatRow {
 }
 
 export const SOURCE_COLOR: Record<StatSource, string> = {
-  base: "#ffffff",     // primary/base stat
-  primary: "#5fa8ff",  // primary affix
-  affix: "#c98bff",    // additional affix
+  base: "#ffffff", // primary/base stat
+  primary: "#5fa8ff", // primary affix
+  affix: "#c98bff", // additional affix
 };
 export const QUALITY_COLOR: Record<Quality, string> = {
-  base: "#ffffff",     // on-par with base roll
-  better: "#6ee06e",   // rolled above base
-  worse: "#ff7a7a",    // rolled below base
+  base: "#ffffff", // on-par with base roll
+  better: "#6ee06e", // rolled above base
+  worse: "#ff7a7a", // rolled below base
 };
 
 export const STAT_LABEL: Record<string, string> = {
-  atk: "ATK", maxHp: "HP", range: "Range", attackSpeed: "Atk Spd", critRate: "Crit",
-  critDamage: "Crit Dmg", armor: "Armor", magicResist: "M.Resist", moveSpeed: "Move",
-  hpRegen: "HP Regen", skillPower: "Skill Pwr", omnivamp: "Omnivamp", goldFind: "Gold",
-  armorPen: "Armor Pen", magicPen: "Magic Pen", damageReduction: "Dmg Reduc",
-  critDefense: "Crit Def", tenacity: "Tenacity",
-  manaOnHit: "Mana/Hit", manaOnKill: "Mana/Kill",
-  physicalDamage: "Phys Dmg", magicDamage: "Magic Dmg",
+  atk: "ATK",
+  maxHp: "HP",
+  range: "Range",
+  attackSpeed: "Atk Spd",
+  critRate: "Crit",
+  critDamage: "Crit Dmg",
+  armor: "Armor",
+  magicResist: "M.Resist",
+  moveSpeed: "Move",
+  hpRegen: "HP Regen",
+  skillPower: "Skill Pwr",
+  omnivamp: "Omnivamp",
+  goldFind: "Gold",
+  armorPen: "Armor Pen",
+  magicPen: "Magic Pen",
+  damageReduction: "Dmg Reduc",
+  critDefense: "Crit Def",
+  tenacity: "Tenacity",
+  manaOnHit: "Mana/Hit",
+  manaOnKill: "Mana/Kill",
+  physicalDamage: "Phys Dmg",
+  magicDamage: "Magic Dmg",
 };
 
 /** Full-sentence wording for an affix: [prefix, suffix] around the value. */
@@ -79,8 +94,17 @@ const AFFIX_PHRASE: Record<string, [string, string]> = {
 
 // Stat keys whose value is a small fraction shown as a percentage.
 export const FRACTION = new Set<keyof Stats | string>([
-  "critRate", "critDamage", "armorPen", "magicPen", "damageReduction", "critDefense",
-  "tenacity", "omnivamp", "goldFind", "skillPower", "attackSpeed",
+  "critRate",
+  "critDamage",
+  "armorPen",
+  "magicPen",
+  "damageReduction",
+  "critDefense",
+  "tenacity",
+  "omnivamp",
+  "goldFind",
+  "skillPower",
+  "attackSpeed",
 ]);
 
 function label(key: string): string {
@@ -186,7 +210,13 @@ export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[
     if (typeof v !== "number") continue;
     const base = (def.baseStats[k as keyof Stats] ?? 0) * lvlScale;
     const total = v * mult;
-    const row: ItemStatRow = { source: "base", quality: quality(v, base), before: label(k), value: fmtBaseValue(k, total), after: "" };
+    const row: ItemStatRow = {
+      source: "base",
+      quality: quality(v, base),
+      before: label(k),
+      value: fmtBaseValue(k, total),
+      after: "",
+    };
     if (level > 0) row.bonus = `(+${fmtBaseValue(k, total - v)})`;
     rows.push(row);
   }
@@ -194,8 +224,14 @@ export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[
   // Primary affix (blue): full sentence. Enhancement scales the primary affix
   // too (see affixStats), so show the enhanced TOTAL; quality still compares the
   // raw rolled value to its base. Apex copies expect +25% here too.
-  rows.push(affixRow(def.primaryAffix.type, inst.rolledPrimaryAffix * mult, "primary",
-    quality(inst.rolledPrimaryAffix, def.primaryAffix.baseValue * apexMult)));
+  rows.push(
+    affixRow(
+      def.primaryAffix.type,
+      inst.rolledPrimaryAffix * mult,
+      "primary",
+      quality(inst.rolledPrimaryAffix, def.primaryAffix.baseValue * apexMult),
+    ),
+  );
 
   // Additional affixes (purple): full sentences.
   for (const a of inst.rolledAffixes) {

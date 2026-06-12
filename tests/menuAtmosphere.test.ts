@@ -1,9 +1,15 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildMenuAtmosphere, motePos, emberPos, rayAlpha, flicker,
+  buildMenuAtmosphere,
+  motePos,
+  emberPos,
+  rayAlpha,
+  flicker,
 } from "../src/scenes/menuAtmosphere.ts";
 
-const W = 960, H = 540, SEED = 1337;
+const W = 960,
+  H = 540,
+  SEED = 1337;
 const dims = { width: W, height: H };
 
 describe("buildMenuAtmosphere", () => {
@@ -27,20 +33,24 @@ describe("buildMenuAtmosphere", () => {
     const s = buildMenuAtmosphere(W, H, SEED);
     for (const m of s.motes) {
       const p = motePos(m, 0, dims);
-      expect(p.x).toBeGreaterThanOrEqual(-20); expect(p.x).toBeLessThanOrEqual(W + 20);
-      expect(p.y).toBeGreaterThanOrEqual(-20); expect(p.y).toBeLessThanOrEqual(H + 20);
+      expect(p.x).toBeGreaterThanOrEqual(-20);
+      expect(p.x).toBeLessThanOrEqual(W + 20);
+      expect(p.y).toBeGreaterThanOrEqual(-20);
+      expect(p.y).toBeLessThanOrEqual(H + 20);
     }
     for (const e of s.embers) {
       const p = emberPos(e, 0, dims);
       expect(Number.isFinite(p.x)).toBe(true);
-      expect(p.y).toBeGreaterThanOrEqual(0); expect(p.y).toBeLessThanOrEqual(H);
+      expect(p.y).toBeGreaterThanOrEqual(0);
+      expect(p.y).toBeLessThanOrEqual(H);
     }
   });
 
   it("keeps positions finite and embers rising across a time sweep", () => {
     const s = buildMenuAtmosphere(W, H, SEED);
     const e = s.embers[0];
-    const y0 = emberPos(e, 0, dims).y, y1 = emberPos(e, 0.5, dims).y;
+    const y0 = emberPos(e, 0, dims).y,
+      y1 = emberPos(e, 0.5, dims).y;
     expect(y1).toBeLessThan(y0);
     for (let t = 0; t < 12; t += 0.37) {
       for (const m of s.motes) {
@@ -53,11 +63,19 @@ describe("buildMenuAtmosphere", () => {
   it("rayAlpha and flicker are bounded in [0,1] and vary with t", () => {
     const s = buildMenuAtmosphere(W, H, SEED);
     const r = s.rays[0];
-    const a0 = rayAlpha(r, 0), a1 = rayAlpha(r, 1.3);
-    for (const a of [a0, a1]) { expect(a).toBeGreaterThanOrEqual(0); expect(a).toBeLessThanOrEqual(1); }
+    const a0 = rayAlpha(r, 0),
+      a1 = rayAlpha(r, 1.3);
+    for (const a of [a0, a1]) {
+      expect(a).toBeGreaterThanOrEqual(0);
+      expect(a).toBeLessThanOrEqual(1);
+    }
     expect(a0).not.toBe(a1);
-    const f0 = flicker(0, 0.3), f1 = flicker(0.9, 0.3);
-    for (const f of [f0, f1]) { expect(f).toBeGreaterThanOrEqual(0); expect(f).toBeLessThanOrEqual(1); }
+    const f0 = flicker(0, 0.3),
+      f1 = flicker(0.9, 0.3);
+    for (const f of [f0, f1]) {
+      expect(f).toBeGreaterThanOrEqual(0);
+      expect(f).toBeLessThanOrEqual(1);
+    }
     expect(f0).not.toBe(f1);
   });
 });

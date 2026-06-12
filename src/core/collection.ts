@@ -6,7 +6,11 @@ export const MAX_STARS = 5;
 
 /** Rarer heroes cost more crystals to ascend (the copy cost stays by star). */
 export const RARITY_COST_MULT: Record<Rarity, number> = {
-  Common: 1, Magic: 1.6, Rare: 2.4, Legendary: 3.5, Unique: 5,
+  Common: 1,
+  Magic: 1.6,
+  Rare: 2.4,
+  Legendary: 3.5,
+  Unique: 5,
 };
 const TOWER_RARITY = new Map<string, Rarity>(TOWERS.map((t) => [t.id, t.rarity]));
 export function towerRarity(towerId: string): Rarity {
@@ -59,7 +63,10 @@ export function isTowerMaxStar(save: HeroSave, towerId: string): boolean {
  * crystal cost scales with BOTH the current star (rising base) and the hero's
  * `rarity` (rarer heroes cost more); the copy cost depends on star only.
  */
-export function starUpCost(stars: number, rarity: Rarity = "Common"): { copies: number; crystals: number } | null {
+export function starUpCost(
+  stars: number,
+  rarity: Rarity = "Common",
+): { copies: number; crystals: number } | null {
   if (stars < 1 || stars >= MAX_STARS) return null;
   return {
     copies: STAR_UP_COPIES[stars],
@@ -79,8 +86,10 @@ export function upgradeTowerStar(save: HeroSave, towerId: string): StarUpResult 
   if (entry.stars >= MAX_STARS) return { success: false, message: "Already 5★" };
   const cost = starUpCost(entry.stars, towerRarity(towerId))!;
   const copies = entry.copies ?? 0;
-  if (copies < cost.copies) return { success: false, message: `Need ${cost.copies - copies} more copies` };
-  if (save.currency.gold < cost.crystals) return { success: false, message: `Need ${cost.crystals} 🪙` };
+  if (copies < cost.copies)
+    return { success: false, message: `Need ${cost.copies - copies} more copies` };
+  if (save.currency.gold < cost.crystals)
+    return { success: false, message: `Need ${cost.crystals} 🪙` };
   entry.copies = copies - cost.copies;
   save.currency.gold -= cost.crystals;
   entry.stars += 1;

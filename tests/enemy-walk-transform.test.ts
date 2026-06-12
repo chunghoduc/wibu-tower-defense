@@ -3,10 +3,10 @@ import { enemyWalkTransform } from "../src/scenes/enemyWalkTransform.ts";
 
 describe("enemyWalkTransform", () => {
   it("bobs the body up mid-stride and plants at phase 0", () => {
-    const plant = enemyWalkTransform(0);          // sin(0)=0 → foot-plant
-    const mid = enemyWalkTransform(Math.PI / 2);  // sin=1   → mid-swing
+    const plant = enemyWalkTransform(0); // sin(0)=0 → foot-plant
+    const mid = enemyWalkTransform(Math.PI / 2); // sin=1   → mid-swing
     expect(plant.yOff).toBeCloseTo(0, 5);
-    expect(mid.yOff).toBeLessThan(plant.yOff);    // up = more negative
+    expect(mid.yOff).toBeLessThan(plant.yOff); // up = more negative
   });
 
   it("keeps the bob within [-amp*BOB, 0] (never dips below ground)", () => {

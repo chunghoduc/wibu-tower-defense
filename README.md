@@ -35,12 +35,12 @@ npm run typecheck  # tsc --noEmit
 
 Logic is split from rendering so the game is testable headlessly:
 
-| Path | Responsibility |
-|---|---|
-| `src/core/` | Pure game logic — no Phaser. RNG, pathing, damage, targeting, the `BattleState` simulation. |
-| `src/data/` | Canonical schemas + validators and the (placeholder) content catalogs. |
-| `src/scenes/` | Thin Phaser layer that renders `BattleState` and feeds it input. |
-| `tests/` | Vitest unit + integration tests over the core logic. |
+| Path          | Responsibility                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| `src/core/`   | Pure game logic — no Phaser. RNG, pathing, damage, targeting, the `BattleState` simulation. |
+| `src/data/`   | Canonical schemas + validators and the (placeholder) content catalogs.                      |
+| `src/scenes/` | Thin Phaser layer that renders `BattleState` and feeds it input.                            |
+| `tests/`      | Vitest unit + integration tests over the core logic.                                        |
 
 Content (characters, items, enemies, stages) is **plain data** validated at load,
 so balancing and playtesting happen before any art exists.
@@ -52,6 +52,7 @@ so balancing and playtesting happen before any art exists.
 win/lose), the 3-damage-type + single-immunity systems, and a battle scene.
 
 **Phase 2 — content & data systems:**
+
 - **All 7 tower roles** work: damage, splash, chain, dot, debuff (slow/stun),
   support (buff aura), economy (passive gold).
 - **Enemy specials:** shields, heal auras, split-on-death, summons, stealth, and

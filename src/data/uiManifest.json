@@ -1,76 +1,154 @@
 {
   "_comment": "AUTO-AUTHORED asset manifest for UI/icon/background art. Maps Phaser texture keys to file paths so code can preload via a loop. Sizes are intrinsic SVG/PNG dimensions.",
   "icons": [
-    { "key": "icon__gold",        "path": "assets/ui/icons/gold.svg",        "w": 64, "h": 64 },
-    { "key": "icon__gem",         "path": "assets/ui/icons/gem.svg",         "w": 64, "h": 64 },
-    { "key": "icon__mana",        "path": "assets/ui/icons/mana.svg",        "w": 64, "h": 64 },
-    { "key": "icon__energy",      "path": "assets/ui/icons/energy.svg",      "w": 64, "h": 64 },
-    { "key": "icon__material",    "path": "assets/ui/icons/material.svg",    "w": 64, "h": 64 },
-    { "key": "dmg__physical",     "path": "assets/ui/icons/dmg-physical.svg", "w": 48, "h": 48 },
-    { "key": "dmg__magic",        "path": "assets/ui/icons/dmg-magic.svg",    "w": 48, "h": 48 },
-    { "key": "dmg__true",         "path": "assets/ui/icons/dmg-true.svg",     "w": 48, "h": 48 },
-    { "key": "status__burn",      "path": "assets/ui/icons/status-burn.svg",     "w": 40, "h": 40 },
-    { "key": "status__freeze",    "path": "assets/ui/icons/status-freeze.svg",   "w": 40, "h": 40 },
-    { "key": "status__poison",    "path": "assets/ui/icons/status-poison.svg",   "w": 40, "h": 40 },
-    { "key": "status__stun",      "path": "assets/ui/icons/status-stun.svg",     "w": 40, "h": 40 },
-    { "key": "status__slow",      "path": "assets/ui/icons/status-slow.svg",     "w": 40, "h": 40 },
-    { "key": "status__shield",    "path": "assets/ui/icons/status-shield.svg",   "w": 40, "h": 40 },
-    { "key": "status__heal",      "path": "assets/ui/icons/status-heal.svg",     "w": 40, "h": 40 },
-    { "key": "status__atkup",     "path": "assets/ui/icons/status-atkup.svg",    "w": 40, "h": 40 },
-    { "key": "status__speedup",   "path": "assets/ui/icons/status-speedup.svg",  "w": 40, "h": 40 }
+    { "key": "icon__gold", "path": "assets/ui/icons/gold.svg", "w": 64, "h": 64 },
+    { "key": "icon__gem", "path": "assets/ui/icons/gem.svg", "w": 64, "h": 64 },
+    { "key": "icon__mana", "path": "assets/ui/icons/mana.svg", "w": 64, "h": 64 },
+    { "key": "icon__energy", "path": "assets/ui/icons/energy.svg", "w": 64, "h": 64 },
+    { "key": "icon__material", "path": "assets/ui/icons/material.svg", "w": 64, "h": 64 },
+    { "key": "dmg__physical", "path": "assets/ui/icons/dmg-physical.svg", "w": 48, "h": 48 },
+    { "key": "dmg__magic", "path": "assets/ui/icons/dmg-magic.svg", "w": 48, "h": 48 },
+    { "key": "dmg__true", "path": "assets/ui/icons/dmg-true.svg", "w": 48, "h": 48 },
+    { "key": "status__burn", "path": "assets/ui/icons/status-burn.svg", "w": 40, "h": 40 },
+    { "key": "status__freeze", "path": "assets/ui/icons/status-freeze.svg", "w": 40, "h": 40 },
+    { "key": "status__poison", "path": "assets/ui/icons/status-poison.svg", "w": 40, "h": 40 },
+    { "key": "status__stun", "path": "assets/ui/icons/status-stun.svg", "w": 40, "h": 40 },
+    { "key": "status__slow", "path": "assets/ui/icons/status-slow.svg", "w": 40, "h": 40 },
+    { "key": "status__shield", "path": "assets/ui/icons/status-shield.svg", "w": 40, "h": 40 },
+    { "key": "status__heal", "path": "assets/ui/icons/status-heal.svg", "w": 40, "h": 40 },
+    { "key": "status__atkup", "path": "assets/ui/icons/status-atkup.svg", "w": 40, "h": 40 },
+    { "key": "status__speedup", "path": "assets/ui/icons/status-speedup.svg", "w": 40, "h": 40 }
   ],
   "frames": [
-    { "key": "frame__common",    "path": "assets/ui/frames/frame-common.svg",    "w": 200, "h": 260 },
-    { "key": "frame__magic",     "path": "assets/ui/frames/frame-magic.svg",     "w": 200, "h": 260 },
-    { "key": "frame__rare",      "path": "assets/ui/frames/frame-rare.svg",      "w": 200, "h": 260 },
-    { "key": "frame__legendary", "path": "assets/ui/frames/frame-legendary.svg", "w": 200, "h": 260 },
-    { "key": "frame__unique",    "path": "assets/ui/frames/frame-unique.svg",    "w": 200, "h": 260 }
+    { "key": "frame__common", "path": "assets/ui/frames/frame-common.svg", "w": 200, "h": 260 },
+    { "key": "frame__magic", "path": "assets/ui/frames/frame-magic.svg", "w": 200, "h": 260 },
+    { "key": "frame__rare", "path": "assets/ui/frames/frame-rare.svg", "w": 200, "h": 260 },
+    {
+      "key": "frame__legendary",
+      "path": "assets/ui/frames/frame-legendary.svg",
+      "w": 200,
+      "h": 260
+    },
+    { "key": "frame__unique", "path": "assets/ui/frames/frame-unique.svg", "w": 200, "h": 260 }
   ],
   "buttons": [
-    { "key": "btn__primary",   "path": "assets/ui/buttons/button-primary.svg",   "w": 220, "h": 64 },
-    { "key": "btn__secondary", "path": "assets/ui/buttons/button-secondary.svg", "w": 220, "h": 64 },
-    { "key": "btn__danger",    "path": "assets/ui/buttons/button-danger.svg",    "w": 220, "h": 64 }
+    { "key": "btn__primary", "path": "assets/ui/buttons/button-primary.svg", "w": 220, "h": 64 },
+    {
+      "key": "btn__secondary",
+      "path": "assets/ui/buttons/button-secondary.svg",
+      "w": 220,
+      "h": 64
+    },
+    { "key": "btn__danger", "path": "assets/ui/buttons/button-danger.svg", "w": 220, "h": 64 }
   ],
   "panels": [
-    { "key": "ui__panel",  "path": "assets/ui/panel.svg",  "w": 320, "h": 240 },
+    { "key": "ui__panel", "path": "assets/ui/panel.svg", "w": 320, "h": 240 },
     { "key": "ui__banner", "path": "assets/ui/banner.svg", "w": 360, "h": 80 }
   ],
   "passive": [
-    { "key": "passive__brawler",   "path": "assets/ui/passive/brawler.svg",   "w": 80, "h": 80 },
-    { "key": "passive__arcane",    "path": "assets/ui/passive/arcane.svg",    "w": 80, "h": 80 },
-    { "key": "passive__warden",    "path": "assets/ui/passive/warden.svg",    "w": 80, "h": 80 },
+    { "key": "passive__brawler", "path": "assets/ui/passive/brawler.svg", "w": 80, "h": 80 },
+    { "key": "passive__arcane", "path": "assets/ui/passive/arcane.svg", "w": 80, "h": 80 },
+    { "key": "passive__warden", "path": "assets/ui/passive/warden.svg", "w": 80, "h": 80 },
     { "key": "passive__tactician", "path": "assets/ui/passive/tactician.svg", "w": 80, "h": 80 },
-    { "key": "passive__predator",  "path": "assets/ui/passive/predator.svg",  "w": 80, "h": 80 },
-    { "key": "passive__phantom",   "path": "assets/ui/passive/phantom.svg",   "w": 80, "h": 80 },
-    { "key": "passive__conduit",   "path": "assets/ui/passive/conduit.svg",   "w": 80, "h": 80 },
-    { "key": "passive__prestige",  "path": "assets/ui/passive/prestige.svg",  "w": 80, "h": 80 }
+    { "key": "passive__predator", "path": "assets/ui/passive/predator.svg", "w": 80, "h": 80 },
+    { "key": "passive__phantom", "path": "assets/ui/passive/phantom.svg", "w": 80, "h": 80 },
+    { "key": "passive__conduit", "path": "assets/ui/passive/conduit.svg", "w": 80, "h": 80 },
+    { "key": "passive__prestige", "path": "assets/ui/passive/prestige.svg", "w": 80, "h": 80 }
   ],
   "badges": [
-    { "key": "badge__first-win",  "path": "assets/ui/badges/badge-first-win.svg",  "w": 72, "h": 72 },
-    { "key": "badge__slayer",     "path": "assets/ui/badges/badge-slayer.svg",     "w": 72, "h": 72 },
-    { "key": "badge__collector",  "path": "assets/ui/badges/badge-collector.svg",  "w": 72, "h": 72 },
-    { "key": "badge__summoner",   "path": "assets/ui/badges/badge-summoner.svg",   "w": 72, "h": 72 },
-    { "key": "badge__survivor",   "path": "assets/ui/badges/badge-survivor.svg",   "w": 72, "h": 72 },
-    { "key": "badge__champion",   "path": "assets/ui/badges/badge-champion.svg",   "w": 72, "h": 72 },
-    { "key": "badge__perfect",    "path": "assets/ui/badges/badge-perfect.svg",    "w": 72, "h": 72 },
-    { "key": "badge__legend",     "path": "assets/ui/badges/badge-legend.svg",     "w": 72, "h": 72 }
+    { "key": "badge__first-win", "path": "assets/ui/badges/badge-first-win.svg", "w": 72, "h": 72 },
+    { "key": "badge__slayer", "path": "assets/ui/badges/badge-slayer.svg", "w": 72, "h": 72 },
+    { "key": "badge__collector", "path": "assets/ui/badges/badge-collector.svg", "w": 72, "h": 72 },
+    { "key": "badge__summoner", "path": "assets/ui/badges/badge-summoner.svg", "w": 72, "h": 72 },
+    { "key": "badge__survivor", "path": "assets/ui/badges/badge-survivor.svg", "w": 72, "h": 72 },
+    { "key": "badge__champion", "path": "assets/ui/badges/badge-champion.svg", "w": 72, "h": 72 },
+    { "key": "badge__perfect", "path": "assets/ui/badges/badge-perfect.svg", "w": 72, "h": 72 },
+    { "key": "badge__legend", "path": "assets/ui/badges/badge-legend.svg", "w": 72, "h": 72 }
   ],
-  "logo": [
-    { "key": "ui__logo", "path": "assets/ui/logo.png", "w": 512, "h": 512 }
-  ],
+  "logo": [{ "key": "ui__logo", "path": "assets/ui/logo.png", "w": 512, "h": 512 }],
   "backgrounds": [
-    { "key": "bg__stage-1",  "path": "assets/backgrounds/stage-1.png",  "w": 1280, "h": 720, "stageIndex": 0, "stageName": "Greywood Trailhead" },
-    { "key": "bg__stage-2",  "path": "assets/backgrounds/stage-2.png",  "w": 1280, "h": 720, "stageIndex": 1, "stageName": "Switchback Gully" },
-    { "key": "bg__stage-3",  "path": "assets/backgrounds/stage-3.png",  "w": 1280, "h": 720, "stageIndex": 2, "stageName": "Twin Fords" },
-    { "key": "bg__stage-4",  "path": "assets/backgrounds/stage-4.png",  "w": 1280, "h": 720, "stageIndex": 3, "stageName": "Hollow Stair" },
-    { "key": "bg__stage-5",  "path": "assets/backgrounds/stage-5.png",  "w": 1280, "h": 720, "stageIndex": 4, "stageName": "Serpent Bend" },
-    { "key": "bg__stage-6",  "path": "assets/backgrounds/stage-6.png",  "w": 1280, "h": 720, "stageIndex": 5, "stageName": "Quarry Descent" },
-    { "key": "bg__stage-7",  "path": "assets/backgrounds/stage-7.png",  "w": 1280, "h": 720, "stageIndex": 6, "stageName": "Cinder Crossroads" },
-    { "key": "bg__stage-8",  "path": "assets/backgrounds/stage-8.png",  "w": 1280, "h": 720, "stageIndex": 7, "stageName": "Mistgrove Loop" },
-    { "key": "bg__stage-9",  "path": "assets/backgrounds/stage-9.png",  "w": 1280, "h": 720, "stageIndex": 8, "stageName": "Broken Aqueduct" },
-    { "key": "bg__stage-10", "path": "assets/backgrounds/stage-10.png", "w": 1280, "h": 720, "stageIndex": 9, "stageName": "Wardens' Gate" },
+    {
+      "key": "bg__stage-1",
+      "path": "assets/backgrounds/stage-1.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 0,
+      "stageName": "Greywood Trailhead"
+    },
+    {
+      "key": "bg__stage-2",
+      "path": "assets/backgrounds/stage-2.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 1,
+      "stageName": "Switchback Gully"
+    },
+    {
+      "key": "bg__stage-3",
+      "path": "assets/backgrounds/stage-3.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 2,
+      "stageName": "Twin Fords"
+    },
+    {
+      "key": "bg__stage-4",
+      "path": "assets/backgrounds/stage-4.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 3,
+      "stageName": "Hollow Stair"
+    },
+    {
+      "key": "bg__stage-5",
+      "path": "assets/backgrounds/stage-5.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 4,
+      "stageName": "Serpent Bend"
+    },
+    {
+      "key": "bg__stage-6",
+      "path": "assets/backgrounds/stage-6.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 5,
+      "stageName": "Quarry Descent"
+    },
+    {
+      "key": "bg__stage-7",
+      "path": "assets/backgrounds/stage-7.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 6,
+      "stageName": "Cinder Crossroads"
+    },
+    {
+      "key": "bg__stage-8",
+      "path": "assets/backgrounds/stage-8.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 7,
+      "stageName": "Mistgrove Loop"
+    },
+    {
+      "key": "bg__stage-9",
+      "path": "assets/backgrounds/stage-9.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 8,
+      "stageName": "Broken Aqueduct"
+    },
+    {
+      "key": "bg__stage-10",
+      "path": "assets/backgrounds/stage-10.png",
+      "w": 1280,
+      "h": 720,
+      "stageIndex": 9,
+      "stageName": "Wardens' Gate"
+    },
     { "key": "bg__main-menu", "path": "assets/backgrounds/main-menu.png", "w": 1280, "h": 720 },
-    { "key": "bg__loading",   "path": "assets/backgrounds/loading.png",   "w": 1280, "h": 720 },
-    { "key": "bg__gacha",     "path": "assets/backgrounds/gacha.png",     "w": 1024, "h": 1024 }
+    { "key": "bg__loading", "path": "assets/backgrounds/loading.png", "w": 1280, "h": 720 },
+    { "key": "bg__gacha", "path": "assets/backgrounds/gacha.png", "w": 1024, "h": 1024 }
   ]
 }

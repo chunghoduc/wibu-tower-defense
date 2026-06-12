@@ -19,7 +19,7 @@ The hero's equipped weapon should completely define how the hero fights:
 - `range` is a first-class `Stats` field; the hero's base is `130` (`stage.ts`
   `defaultHeroStats`). Targeting uses it (`battle.ts` `updateHero` →
   `selectTarget(h.pos, h.stats.range, …)`).
-- `HeroLayeredSprite.playAttack()` already tweens the *held weapon* per family
+- `HeroLayeredSprite.playAttack()` already tweens the _held weapon_ per family
   (bow draws, gun recoils, staff raises, sword swings).
 - `fx.ts attackFx(style, …)` already dispatches projectile visuals per style string
   (arrow, arcane orb, cannon, slash, …).
@@ -36,16 +36,16 @@ A single source of truth mapping weapon family → characteristic reach. Values
 straddle the existing `RANGED_MELEE = 120` threshold so families read correctly as
 melee vs. ranged:
 
-| Family       | Range |
-|--------------|-------|
-| Fist         | 90    |
-| Sword        | 115   |
-| Bow          | 240   |
-| Gun          | 260   |
-| Staff        | 210   |
-| Tome         | 195   |
-| Any          | 150   |
-| (unarmed)    | 90    |
+| Family    | Range |
+| --------- | ----- |
+| Fist      | 90    |
+| Sword     | 115   |
+| Bow       | 240   |
+| Gun       | 260   |
+| Staff     | 210   |
+| Tome      | 195   |
+| Any       | 150   |
+| (unarmed) | 90    |
 
 `heroRangeForWeapon(weaponType: WeaponType | null): number` returns the unarmed
 (Fist) value for `null`.
@@ -94,7 +94,7 @@ sword swing it currently falls through to).
 - `weaponRange.test.ts`: every `WeaponType` resolves to a positive range; melee
   families < 120 < ranged families; `null` → Fist range.
 - `attack-style.test.ts`: update the hero block — `heroAttackStyle("Gun", "Physical",
-  260) === "gunshot"`, `("Sword", …) === "slash"`, `(null, …) === "punch"`,
+260) === "gunshot"`, `("Sword", …) === "slash"`, `(null, …) === "punch"`,
   `("Staff", …) === "arcane"`, `("Bow", …) === "arrow"`; "known styles" set gains
   `punch`/`gunshot`.
 - Existing battle/hero tests stay green (range numbers change but assertions are on

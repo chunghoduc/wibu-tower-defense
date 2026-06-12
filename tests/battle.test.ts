@@ -68,7 +68,13 @@ function stage(waves: WaveDef[], castleHp: number, startingGold = 0): StageDef {
   };
 }
 
-function world(enemyDef: EnemyDef, char: CharacterDef, waves: WaveDef[], castleHp: number, gold = 0) {
+function world(
+  enemyDef: EnemyDef,
+  char: CharacterDef,
+  waves: WaveDef[],
+  castleHp: number,
+  gold = 0,
+) {
   return {
     stage: stage(waves, castleHp, gold),
     catalog: {
@@ -142,7 +148,12 @@ describe("single-immunity rule", () => {
   const physImmune: Immunity = "Physical";
 
   it("a Physical tower cannot kill a Physical-immune enemy (castle falls)", () => {
-    const { stage, catalog } = world(enemy({ immunity: physImmune }), turret("Physical"), oneWave(2), 1);
+    const { stage, catalog } = world(
+      enemy({ immunity: physImmune }),
+      turret("Physical"),
+      oneWave(2),
+      1,
+    );
     const b = new BattleState(stage, catalog, { hero: inertHero });
     b.placeTower("turret", 0);
     runUntilDone(b);

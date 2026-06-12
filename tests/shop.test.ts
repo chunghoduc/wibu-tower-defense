@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { generateShopStock, ensureShopStock, refreshShop, shopRefreshCost, buyShopSlot, SHOP_SIZE, SHOP_FREE_REFRESHES, SHOP_REFRESH_STEP, SCROLL_SHOP_COST, SCROLL_SLOT_CHANCE } from "../src/core/shop.ts";
+import {
+  generateShopStock,
+  ensureShopStock,
+  refreshShop,
+  shopRefreshCost,
+  buyShopSlot,
+  SHOP_SIZE,
+  SHOP_FREE_REFRESHES,
+  SHOP_REFRESH_STEP,
+  SCROLL_SHOP_COST,
+  SCROLL_SLOT_CHANCE,
+} from "../src/core/shop.ts";
 import { SINGLE_PULL_COST } from "../src/core/gacha.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { rollItem, ITEM_CATALOG } from "../src/data/items.ts";
@@ -70,9 +81,16 @@ describe("shop stock", () => {
 describe("buy", () => {
   it("buying an item slot adds it to inventory and removes the slot", () => {
     const save = createFreshSave();
-    save.shop.stock = generateShopStock(save, new Rng(7)).map((s, i) => i === 0
-      ? { slotId: "s0", kind: "item" as const, cost: 100, item: toItemInstanceSave(rollItem(ITEM_CATALOG[0], 5, 1)) }
-      : s);
+    save.shop.stock = generateShopStock(save, new Rng(7)).map((s, i) =>
+      i === 0
+        ? {
+            slotId: "s0",
+            kind: "item" as const,
+            cost: 100,
+            item: toItemInstanceSave(rollItem(ITEM_CATALOG[0], 5, 1)),
+          }
+        : s,
+    );
     save.currency.gold = 100;
     const before = save.inventory.items.length;
     const r = buyShopSlot(save, "s0");

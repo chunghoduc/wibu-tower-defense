@@ -18,10 +18,10 @@ where `bossHpMult` is the ONLY multiplier that distinguishes a boss's bulk from
 trash scaling. Its current values (`src/data/schema.ts` `DIFFICULTY_SCALING`):
 
 | Tier      | hpMult | bossHpMult | effective boss HP factor |
-|-----------|--------|-----------:|--------------------------|
-| Normal    | 1.55   | **1.0**    | 1.55× base               |
-| Hard      | 7.8    | 1.5        | 11.7× base               |
-| Nightmare | 14.8   | 1.8        | 26.6× base               |
+| --------- | ------ | ---------: | ------------------------ |
+| Normal    | 1.55   |    **1.0** | 1.55× base               |
+| Hard      | 7.8    |        1.5 | 11.7× base               |
+| Nightmare | 14.8   |        1.8 | 26.6× base               |
 
 On **Normal** `bossHpMult` is a no-op: a boss is exactly as tanky as scaled trash
 of equal base HP. That is the tier most players spend the most time in, and it is
@@ -29,14 +29,14 @@ where bosses feel flimsiest.
 
 ## Goal
 
-Make bosses tankier across all tiers, with the largest *relative* lift on Normal
+Make bosses tankier across all tiers, with the largest _relative_ lift on Normal
 (where the lever is currently dead), without:
 
 - breaking the monotonic difficulty law (Normal < Hard < Nightmare must hold —
   see the `difficulty_monotonic_law` memory),
 - touching trash/elite HP (this is a boss-bulk change only),
-- changing boss ATK (kept separate; bumping HP alone makes the fight *longer*,
-  not *swingier* — the intended "more tanky" feel).
+- changing boss ATK (kept separate; bumping HP alone makes the fight _longer_,
+  not _swingier_ — the intended "more tanky" feel).
 
 ## Approach (chosen)
 
@@ -46,7 +46,7 @@ propagates to all 20 bosses, campaign + endless + boss-rush, with zero new code
 paths and no risk of per-boss drift.
 
 | Tier      | bossHpMult old → new | new effective boss HP factor | boss bulk change |
-|-----------|----------------------|------------------------------|------------------|
+| --------- | -------------------- | ---------------------------- | ---------------- |
 | Normal    | 1.0 → **1.6**        | 2.48× base                   | +60%             |
 | Hard      | 1.5 → **2.0**        | 15.6× base                   | +33%             |
 | Nightmare | 1.8 → **2.4**        | 35.5× base                   | +33%             |
@@ -68,7 +68,7 @@ Rationale for the numbers:
    structural "Normal lever is dead" issue. The relative ranking (`BOSS_HP_RANK`)
    would also need re-checking.
 2. **Add boss flat damage reduction (like elites' 50% DR).** Rejected: changes
-   *how* bosses tank (favours chip/true damage, nerfs burst) — a balance shift
+   _how_ bosses tank (favours chip/true damage, nerfs burst) — a balance shift
    beyond "more tanky", and a new code path in the damage pipeline.
 3. **Raise `bossHpMult` (chosen).** One constant, no new code, preserves all
    existing intent and ordering.

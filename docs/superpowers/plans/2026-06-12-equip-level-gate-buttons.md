@@ -24,6 +24,7 @@
 ### Task 1: Pure `equipLevelGate`
 
 **Files:**
+
 - Create: `src/data/equipGate.ts`
 - Test: `tests/equipGate.test.ts`
 
@@ -109,6 +110,7 @@ git commit -m "feat(equip): pure equipLevelGate for level-gated actions"
 ### Task 2: `addGatedButton` presenter
 
 **Files:**
+
 - Create: `src/scenes/gatedButton.ts`
 
 No unit test (Phaser presenter; covered structurally by the CDP playtest in Task 5 — matches how `itemCompareDialog`/`itemEnhanceDialog` are verified). Keep it small.
@@ -128,13 +130,13 @@ import { crispText } from "./ui.ts";
 import type { EquipLevelGate } from "../data/equipGate.ts";
 
 export interface GatedButtonOpts {
-  x: number;            // absolute scene x (button is origin 0.5,0)
-  y: number;            // absolute scene y
-  label: string;        // e.g. "⇄  Replace"
-  bg: string;           // background colour when enabled
-  color?: string;       // text colour when enabled (default white)
+  x: number; // absolute scene x (button is origin 0.5,0)
+  y: number; // absolute scene y
+  label: string; // e.g. "⇄  Replace"
+  bg: string; // background colour when enabled
+  color?: string; // text colour when enabled (default white)
   gate: EquipLevelGate;
-  onClick: () => void;  // wired only when gate.met
+  onClick: () => void; // wired only when gate.met
 }
 
 /** Add a level-gated action button (and, when locked, its hover hint) to `container`. */
@@ -149,7 +151,10 @@ export function addGatedButton(
     fontSize: "14px",
     color: met ? (opts.color ?? "#fff") : "#c2c9d2",
     backgroundColor: met ? bg : "#3a3f48",
-  }).setOrigin(0.5, 0).setPadding(14, 8, 14, 8).setAlpha(met ? 1 : 0.55);
+  })
+    .setOrigin(0.5, 0)
+    .setPadding(14, 8, 14, 8)
+    .setAlpha(met ? 1 : 0.55);
   btn.setInteractive({ useHandCursor: met });
   container.add(btn);
 
@@ -161,8 +166,13 @@ export function addGatedButton(
   // Locked: no click handler (tapping is a no-op and shields the scrim, keeping
   // the dialog open). Reveal the requirement on hover, just under the button.
   const hint = crispText(scene, x, y + btn.height + 6, gate.hint, {
-    fontSize: "11px", color: "#ffb38a", backgroundColor: "#1a1f29",
-  }).setOrigin(0.5, 0).setPadding(6, 3, 6, 3).setVisible(false);
+    fontSize: "11px",
+    color: "#ffb38a",
+    backgroundColor: "#1a1f29",
+  })
+    .setOrigin(0.5, 0)
+    .setPadding(6, 3, 6, 3)
+    .setVisible(false);
   container.add(hint);
   btn.on("pointerover", () => hint.setVisible(true));
   btn.on("pointerout", () => hint.setVisible(false));
@@ -186,6 +196,7 @@ git commit -m "feat(equip): addGatedButton presenter with locked hover hint"
 ### Task 3: Wire the Replace button (compare dialog)
 
 **Files:**
+
 - Modify: `src/scenes/itemCompareDialog.ts`
 - Modify: `src/scenes/HeroScene.ts`
 
@@ -220,21 +231,29 @@ export function renderCompareDialog(
 Find the current Replace button block:
 
 ```ts
-  const replace = crispText(scene, dx + rightX + colW / 2, btnY, "⇄  Replace", {
-    fontSize: "14px", color: "#fff", backgroundColor: "#1565c0",
-  }).setOrigin(0.5, 0).setPadding(14, 8, 14, 8).setInteractive({ useHandCursor: true });
-  replace.on("pointerup", cb.onReplace);
-  dialog.add(replace);
+const replace = crispText(scene, dx + rightX + colW / 2, btnY, "⇄  Replace", {
+  fontSize: "14px",
+  color: "#fff",
+  backgroundColor: "#1565c0",
+})
+  .setOrigin(0.5, 0)
+  .setPadding(14, 8, 14, 8)
+  .setInteractive({ useHandCursor: true });
+replace.on("pointerup", cb.onReplace);
+dialog.add(replace);
 ```
 
 Replace it with:
 
 ```ts
-  addGatedButton(scene, dialog, {
-    x: dx + rightX + colW / 2, y: btnY, label: "⇄  Replace", bg: "#1565c0",
-    gate: equipLevelGate(heroLevel, instanceReqLevel(bag.inst, bag.def)),
-    onClick: cb.onReplace,
-  });
+addGatedButton(scene, dialog, {
+  x: dx + rightX + colW / 2,
+  y: btnY,
+  label: "⇄  Replace",
+  bg: "#1565c0",
+  gate: equipLevelGate(heroLevel, instanceReqLevel(bag.inst, bag.def)),
+  onClick: cb.onReplace,
+});
 ```
 
 - [ ] **Step 4: Update the caller in `HeroScene.ts`**
@@ -268,6 +287,7 @@ git commit -m "feat(compare): level-gate the Replace button"
 ### Task 4: Wire the Equip button (enhance dialog)
 
 **Files:**
+
 - Modify: `src/scenes/itemEnhanceDialog.ts`
 
 - [ ] **Step 1: Add imports**
@@ -285,25 +305,33 @@ import { addGatedButton } from "./gatedButton.ts";
 Find the current Equip block inside `render()`:
 
 ```ts
-    if (cb.onEquip) {
-      const equip = crispText(scene, dx + W * 0.34, dy + H - 50, "✓  Equip", {
-        fontSize: "15px", color: "#fff", backgroundColor: "#2e7d32",
-      }).setOrigin(0.5, 0).setPadding(16, 8, 16, 8).setInteractive({ useHandCursor: true });
-      equip.on("pointerup", cb.onEquip);
-      dialog.add(equip);
-    }
+if (cb.onEquip) {
+  const equip = crispText(scene, dx + W * 0.34, dy + H - 50, "✓  Equip", {
+    fontSize: "15px",
+    color: "#fff",
+    backgroundColor: "#2e7d32",
+  })
+    .setOrigin(0.5, 0)
+    .setPadding(16, 8, 16, 8)
+    .setInteractive({ useHandCursor: true });
+  equip.on("pointerup", cb.onEquip);
+  dialog.add(equip);
+}
 ```
 
 Replace it with:
 
 ```ts
-    if (cb.onEquip) {
-      addGatedButton(scene, dialog, {
-        x: dx + W * 0.34, y: dy + H - 50, label: "✓  Equip", bg: "#2e7d32",
-        gate: equipLevelGate(save.hero.level, instanceReqLevel(inst, def)),
-        onClick: cb.onEquip,
-      });
-    }
+if (cb.onEquip) {
+  addGatedButton(scene, dialog, {
+    x: dx + W * 0.34,
+    y: dy + H - 50,
+    label: "✓  Equip",
+    bg: "#2e7d32",
+    gate: equipLevelGate(save.hero.level, instanceReqLevel(inst, def)),
+    onClick: cb.onEquip,
+  });
+}
 ```
 
 - [ ] **Step 3: Typecheck**
@@ -361,6 +389,7 @@ Append to `memory/project_inventory_compare_replace.md` a note that Replace/Equi
 ## Self-Review
 
 **1. Spec coverage:**
+
 - Disable when `heroLevel < reqLevel` → Task 2 (`addGatedButton` unmet branch) + Tasks 3/4 wiring. ✓
 - Hover shows requirement → Task 2 hint on `pointerover`/`pointerout`. ✓
 - Met behaves as today → Task 2 met branch keeps colour + `pointerup`. ✓

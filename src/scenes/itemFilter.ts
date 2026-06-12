@@ -24,13 +24,22 @@ export interface CategoryChips {
  * and should call `update()` to repaint highlights after handling the pick.
  */
 export function buildCategoryChips(
-  scene: Phaser.Scene, x: number, y: number, onPick: (c: ItemCategory) => void,
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  onPick: (c: ItemCategory) => void,
 ): CategoryChips {
   const chips: Phaser.GameObjects.Text[] = [];
   let cx = x;
   for (const cat of CATS) {
-    const t = crispText(scene, cx, y, cat.label, { fontSize: "11px", color: "#fff", backgroundColor: "#16222f" })
-      .setOrigin(0, 0).setPadding(8, 3, 8, 3).setInteractive({ useHandCursor: true });
+    const t = crispText(scene, cx, y, cat.label, {
+      fontSize: "11px",
+      color: "#fff",
+      backgroundColor: "#16222f",
+    })
+      .setOrigin(0, 0)
+      .setPadding(8, 3, 8, 3)
+      .setInteractive({ useHandCursor: true });
     t.setData("cat", cat.id);
     t.on("pointerup", () => onPick(cat.id));
     chips.push(t);
@@ -38,7 +47,9 @@ export function buildCategoryChips(
   }
   return {
     chips,
-    setVisible(v) { for (const c of chips) c.setVisible(v); },
+    setVisible(v) {
+      for (const c of chips) c.setVisible(v);
+    },
     update(active) {
       for (const c of chips) {
         const on = c.getData("cat") === active;

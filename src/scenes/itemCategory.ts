@@ -20,9 +20,13 @@ const ARMOR_SLOTS: ItemDefSlot[] = ["Helmet", "BodyArmor", "Gloves", "Boots"];
 /** Does an item with this def-slot belong to the given category? */
 export function slotInCategory(slot: ItemDefSlot, cat: ItemCategory): boolean {
   switch (cat) {
-    case "all": return true;
-    case "weapon": return slot === "Weapon";
-    case "armor": return ARMOR_SLOTS.includes(slot);
-    case "accessory": return slot === "Amulet" || slot === "Ring" || slot === "Pet" || slot === "Wing";
+    case "all":
+      return true;
+    case "weapon":
+      return slot === "Weapon";
+    case "armor":
+      return ARMOR_SLOTS.includes(slot);
+    case "accessory":
+      return slot === "Amulet" || slot === "Ring" || slot === "Pet" || slot === "Wing";
   }
 }

@@ -7,7 +7,10 @@
 import type { DamageType, EnemySpecial } from "../data/schema.ts";
 
 /** The damage type the enemy is currently immune to for this phase index (null if not an Adapter). */
-export function adaptiveImmuneType(special: EnemySpecial | undefined, phaseIndex: number): DamageType | null {
+export function adaptiveImmuneType(
+  special: EnemySpecial | undefined,
+  phaseIndex: number,
+): DamageType | null {
   const a = special?.adaptiveImmunity;
   if (!a || a.types.length === 0) return null;
   return a.types[phaseIndex % a.types.length];

@@ -49,7 +49,13 @@ export type SkillSignature =
 export type DeliveryKind = "bolt" | "beam" | "skyfall" | "ground" | "cast";
 
 /** Runtime-checkable list of every delivery kind (keep in sync with DeliveryKind). */
-export const DELIVERY_KINDS: readonly DeliveryKind[] = ["bolt", "beam", "skyfall", "ground", "cast"];
+export const DELIVERY_KINDS: readonly DeliveryKind[] = [
+  "bolt",
+  "beam",
+  "skyfall",
+  "ground",
+  "cast",
+];
 
 /**
  * Map of active-skill id → its cast-effect identity. MUST stay 1:1 with
@@ -187,13 +193,21 @@ export function deliveryForStyle(style: SkillStyle): DeliveryKind {
 /** Source-delivery for a tower-skill SHAPE (the "fly-from-source" beat). */
 export function deliveryForShape(shape: SkillShape): DeliveryKind {
   switch (shape) {
-    case "nova": return "skyfall";
-    case "beam": return "beam";
-    case "cloud": return "ground";
-    case "slam": return "ground";
-    case "aura": return "cast";
-    case "chain": return "bolt";
-    case "barrage": return "bolt";
-    case "bolt": return "bolt";
+    case "nova":
+      return "skyfall";
+    case "beam":
+      return "beam";
+    case "cloud":
+      return "ground";
+    case "slam":
+      return "ground";
+    case "aura":
+      return "cast";
+    case "chain":
+      return "bolt";
+    case "barrage":
+      return "bolt";
+    case "bolt":
+      return "bolt";
   }
 }

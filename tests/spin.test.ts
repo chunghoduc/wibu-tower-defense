@@ -16,7 +16,8 @@ describe("F4 lucky spin", () => {
     const s = createFreshSave();
     const before = s.currency.gold + s.currency.diamonds;
     const res = spin(s, "2026-06-09", new Rng(3), true);
-    const after = s.currency.gold + s.currency.diamonds + Object.values(s.materials).reduce((a, b) => a + b, 0);
+    const after =
+      s.currency.gold + s.currency.diamonds + Object.values(s.materials).reduce((a, b) => a + b, 0);
     expect(after).toBeGreaterThan(before);
     expect(SPIN_WHEEL.some((p) => p.id === res.prize.id)).toBe(true);
   });

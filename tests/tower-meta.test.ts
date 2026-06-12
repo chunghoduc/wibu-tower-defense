@@ -15,7 +15,8 @@ describe("character codex metadata", () => {
   it("every tower active + passive skill referenced is catalogued (so it has an icon key)", () => {
     for (const t of TOWERS) {
       if (t.active) expect(TOWER_ACTIVES[t.active], `${t.id} active ${t.active}`).toBeDefined();
-      for (const pid of t.passives) expect(PASSIVE_SKILLS[pid], `${t.id} passive ${pid}`).toBeDefined();
+      for (const pid of t.passives)
+        expect(PASSIVE_SKILLS[pid], `${t.id} passive ${pid}`).toBeDefined();
     }
   });
 });

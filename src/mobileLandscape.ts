@@ -45,7 +45,7 @@ function makeRotateOverlay(): HTMLDivElement {
   el.id = "rotate-overlay";
   el.innerHTML =
     '<div class="rotate-icon">⟳</div>' +
-    "<div class=\"rotate-text\">Rotate your device<br><span>Play in landscape</span></div>";
+    '<div class="rotate-text">Rotate your device<br><span>Play in landscape</span></div>';
   const style = document.createElement("style");
   style.textContent = `
     #rotate-overlay {

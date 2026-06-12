@@ -18,7 +18,10 @@ describe("plateLineLayout", () => {
   });
 
   it("keeps all baselines inside the band", () => {
-    const topY = 0, h = 26, n = 2, px = 11;
+    const topY = 0,
+      h = 26,
+      n = 2,
+      px = 11;
     const ys = plateLineLayout(topY, h, n, px);
     for (const y of ys) {
       expect(y - px / 2).toBeGreaterThanOrEqual(topY - 1);

@@ -38,7 +38,10 @@ describe("character roster", () => {
       if (c.damageType === "Physical") {
         expect(c.baseStats.skillPower, `${c.id} (Physical) should have no skill power`).toBe(1);
       } else if (c.damageType === "Magic") {
-        expect(c.baseStats.skillPower, `${c.id} (Magic) should have high skill power`).toBeGreaterThanOrEqual(1.6);
+        expect(
+          c.baseStats.skillPower,
+          `${c.id} (Magic) should have high skill power`,
+        ).toBeGreaterThanOrEqual(1.6);
       }
     }
   });
@@ -67,9 +70,20 @@ describe("character roster", () => {
 describe("enemy roster", () => {
   it("includes every designed archetype", () => {
     const required: EnemyArchetype[] = [
-      "Rusher", "Brute", "Bulwark", "Mender", "Regenerator", "Splitter",
-      "Gargoyle", "StormFlyer", "Sapper", "Phantom", "Summoner", "Raider",
-      "Courier", "Boss",
+      "Rusher",
+      "Brute",
+      "Bulwark",
+      "Mender",
+      "Regenerator",
+      "Splitter",
+      "Gargoyle",
+      "StormFlyer",
+      "Sapper",
+      "Phantom",
+      "Summoner",
+      "Raider",
+      "Courier",
+      "Boss",
     ];
     const present = new Set([...cat.enemies.values()].map((e) => e.archetype));
     for (const a of required) expect(present.has(a)).toBe(true);

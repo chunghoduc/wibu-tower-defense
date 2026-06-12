@@ -11,7 +11,9 @@ describe("bossSkillSignature", () => {
   });
 
   it("gives each signature a distinct theme color", () => {
-    const colors = ["quake", "rally", "barrier", "summon-surge"].map((s) => bossSkillSignature(s).color);
+    const colors = ["quake", "rally", "barrier", "summon-surge"].map(
+      (s) => bossSkillSignature(s).color,
+    );
     expect(new Set(colors).size).toBe(4);
   });
 
@@ -36,7 +38,9 @@ describe("bossSkillTheme", () => {
   });
 
   it("gives the same signature a distinct accent per element", () => {
-    const accents = (["Physical", "Magic", "True"] as const).map((el) => bossSkillTheme("quake", el).accent);
+    const accents = (["Physical", "Magic", "True"] as const).map(
+      (el) => bossSkillTheme("quake", el).accent,
+    );
     expect(new Set(accents).size).toBe(3);
   });
 

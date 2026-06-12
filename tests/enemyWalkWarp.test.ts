@@ -26,8 +26,8 @@ describe("bandWarp — walk", () => {
   });
 
   it("contact bob lifts the body (dy <= 0) and peaks at the passing phase", () => {
-    const contact = bandWarp("walk", 0.2, 1, 0).dy;        // foot planted
-    const passing = bandWarp("walk", 0.2, 1, HALF_PI).dy;  // mid-swing
+    const contact = bandWarp("walk", 0.2, 1, 0).dy; // foot planted
+    const passing = bandWarp("walk", 0.2, 1, HALF_PI).dy; // mid-swing
     expect(passing).toBeLessThanOrEqual(0);
     expect(passing).toBeLessThan(contact);
   });

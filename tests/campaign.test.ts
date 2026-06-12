@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { STAGES, stageNumber, boxTierForStage } from "../src/data/stage.ts";
-import { playerChapterOf, campaignChapterForStage, CAMPAIGN_CHAPTERS } from "../src/data/campaign.ts";
+import {
+  playerChapterOf,
+  campaignChapterForStage,
+  CAMPAIGN_CHAPTERS,
+} from "../src/data/campaign.ts";
 import { chapterStageIds } from "../src/core/difficultyUnlock.ts";
 import { goldDepthMultiplier, processStageClear, GOLD_REWARD } from "../src/core/drops.ts";
 import { createFreshSave } from "../src/core/save.ts";
@@ -60,10 +64,34 @@ describe("stage numbering continuity", () => {
 
 describe("difficulty-unlock bands for the expansion", () => {
   it("groups Chapters 2, 3, 4 and 5 into their own 5-stage bands", () => {
-    expect(chapterStageIds("ch2-s11")).toEqual(["ch2-s11", "ch2-s12", "ch2-s13", "ch2-s14", "ch2-s15"]);
-    expect(chapterStageIds("ch3-s16")).toEqual(["ch3-s16", "ch3-s17", "ch3-s18", "ch3-s19", "ch3-s20"]);
-    expect(chapterStageIds("ch4-s21")).toEqual(["ch4-s21", "ch4-s22", "ch4-s23", "ch4-s24", "ch4-s25"]);
-    expect(chapterStageIds("ch5-s26")).toEqual(["ch5-s26", "ch5-s27", "ch5-s28", "ch5-s29", "ch5-s30"]);
+    expect(chapterStageIds("ch2-s11")).toEqual([
+      "ch2-s11",
+      "ch2-s12",
+      "ch2-s13",
+      "ch2-s14",
+      "ch2-s15",
+    ]);
+    expect(chapterStageIds("ch3-s16")).toEqual([
+      "ch3-s16",
+      "ch3-s17",
+      "ch3-s18",
+      "ch3-s19",
+      "ch3-s20",
+    ]);
+    expect(chapterStageIds("ch4-s21")).toEqual([
+      "ch4-s21",
+      "ch4-s22",
+      "ch4-s23",
+      "ch4-s24",
+      "ch4-s25",
+    ]);
+    expect(chapterStageIds("ch5-s26")).toEqual([
+      "ch5-s26",
+      "ch5-s27",
+      "ch5-s28",
+      "ch5-s29",
+      "ch5-s30",
+    ]);
   });
 });
 

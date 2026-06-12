@@ -12,22 +12,23 @@
 
 ## File Structure
 
-| File | Action | Responsibility |
-|------|--------|----------------|
-| `src/data/bossSkillVfx.ts` | Modify | Add `BossSkillTheme`, `ELEMENT_ACCENT`, `SIGNATURE_WEIGHT`, `bossSkillTheme()` (pure) |
-| `tests/bossSkillVfx.test.ts` | Modify | Add `bossSkillTheme` cases (distinct accent, preserved primary, weight) |
-| `src/core/battleTypes.ts` | Modify | Add `element: DamageType` to the `bossCast` event variant |
-| `src/core/battleEnemies.ts` | Modify | Emit `element: e.def.damageType` in `castBossSkill` |
-| `tests/boss-skill.test.ts` | Modify | Assert a `bossCast` event carries the boss's `damageType` |
-| `src/scenes/bossSkillFxPrimitives.ts` | Create | Shared cinematic primitives: `flare`, `chargeCore`, `emberDrift`, `punch`, `ring`, `disc`, `tween`, `after` |
-| `src/scenes/bossSkillSignatures.ts` | Modify | Use primitives + theme; rebuild each signature as telegraph→burst→aftermath; new `cast(...element)` signature |
-| `src/scenes/fx.ts` | Modify | Pass `e.element` through `bossCast` → `bossFx.cast(...)` |
+| File                                  | Action | Responsibility                                                                                                |
+| ------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
+| `src/data/bossSkillVfx.ts`            | Modify | Add `BossSkillTheme`, `ELEMENT_ACCENT`, `SIGNATURE_WEIGHT`, `bossSkillTheme()` (pure)                         |
+| `tests/bossSkillVfx.test.ts`          | Modify | Add `bossSkillTheme` cases (distinct accent, preserved primary, weight)                                       |
+| `src/core/battleTypes.ts`             | Modify | Add `element: DamageType` to the `bossCast` event variant                                                     |
+| `src/core/battleEnemies.ts`           | Modify | Emit `element: e.def.damageType` in `castBossSkill`                                                           |
+| `tests/boss-skill.test.ts`            | Modify | Assert a `bossCast` event carries the boss's `damageType`                                                     |
+| `src/scenes/bossSkillFxPrimitives.ts` | Create | Shared cinematic primitives: `flare`, `chargeCore`, `emberDrift`, `punch`, `ring`, `disc`, `tween`, `after`   |
+| `src/scenes/bossSkillSignatures.ts`   | Modify | Use primitives + theme; rebuild each signature as telegraph→burst→aftermath; new `cast(...element)` signature |
+| `src/scenes/fx.ts`                    | Modify | Pass `e.element` through `bossCast` → `bossFx.cast(...)`                                                      |
 
 ---
 
 ## Task 1: Pure `bossSkillTheme` resolver
 
 **Files:**
+
 - Modify: `src/data/bossSkillVfx.ts`
 - Test: `tests/bossSkillVfx.test.ts`
 
@@ -36,11 +37,13 @@
 Add to `tests/bossSkillVfx.test.ts` (after the existing imports add `bossSkillTheme`; add a new `describe`):
 
 Change line 2 import to:
+
 ```ts
 import { bossSkillSignature, bossSkillTheme } from "../src/data/bossSkillVfx.ts";
 ```
 
 Append this describe block:
+
 ```ts
 describe("bossSkillTheme", () => {
   it("keeps the signature's base hue as the primary anchor for every element", () => {
@@ -50,7 +53,9 @@ describe("bossSkillTheme", () => {
   });
 
   it("gives the same signature a distinct accent per element", () => {
-    const accents = (["Physical", "Magic", "True"] as const).map((el) => bossSkillTheme("quake", el).accent);
+    const accents = (["Physical", "Magic", "True"] as const).map(
+      (el) => bossSkillTheme("quake", el).accent,
+    );
     expect(new Set(accents).size).toBe(3);
   });
 
@@ -83,11 +88,13 @@ Expected: FAIL — `bossSkillTheme is not a function` / not exported.
 - [ ] **Step 3: Implement `bossSkillTheme`**
 
 In `src/data/bossSkillVfx.ts`, add the `DamageType` import at the top (after the file's opening comment, before `export type BossSignature`):
+
 ```ts
 import type { DamageType } from "./schemaEnums.ts";
 ```
 
 Then append below the existing `bossSkillSignature` function:
+
 ```ts
 /** Resolved cast palette + camera weight for ONE boss cast. */
 export interface BossSkillTheme {
@@ -106,17 +113,17 @@ export interface BossSkillTheme {
 /** Element → accent colour (mirrors the DMG_COLOR family in fx.ts). */
 const ELEMENT_ACCENT: Record<DamageType, number> = {
   Physical: 0xdfe7f2, // steel white
-  Magic: 0xc77dde,    // violet
-  True: 0xfff3a0,     // gold
+  Magic: 0xc77dde, // violet
+  True: 0xfff3a0, // gold
 };
 
 /** Per-signature camera weight: quake hits hardest, barrier softest. */
 const SIGNATURE_WEIGHT: Record<BossSignature, number> = {
-  "quake": 1.0,
+  quake: 1.0,
   "summon-surge": 0.7,
-  "rally": 0.6,
-  "barrier": 0.4,
-  "ring": 0.5,
+  rally: 0.6,
+  barrier: 0.4,
+  ring: 0.5,
 };
 
 /** Resolve a boss cast to its full themed palette + camera weight (never throws). */
@@ -151,6 +158,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 2: Plumb `element` through the bossCast event
 
 **Files:**
+
 - Modify: `src/core/battleTypes.ts:49`
 - Modify: `src/core/battleEnemies.ts:204`
 - Test: `tests/boss-skill.test.ts`
@@ -182,24 +190,46 @@ Expected: FAIL — `cast.element` is `undefined` (event doesn't carry it yet).
 - [ ] **Step 3a: Add `element` to the event type**
 
 In `src/core/battleTypes.ts`, change line 49 from:
+
 ```ts
   | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
 ```
+
 to:
+
 ```ts
   | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string; element: DamageType }
 ```
+
 (`DamageType` is already imported in this file — it is used by the other variants.)
 
 - [ ] **Step 3b: Populate `element` at the emit site**
 
 In `src/core/battleEnemies.ts`, in `castBossSkill` (line ~204), change:
+
 ```ts
-    this.emit({ type: "bossCast", uid: e.uid, at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name });
+this.emit({
+  type: "bossCast",
+  uid: e.uid,
+  at: { x: e.pos.x, y: e.pos.y },
+  skill: skill.type,
+  radius: R,
+  name: skill.name,
+});
 ```
+
 to:
+
 ```ts
-    this.emit({ type: "bossCast", uid: e.uid, at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name, element: e.def.damageType });
+this.emit({
+  type: "bossCast",
+  uid: e.uid,
+  at: { x: e.pos.x, y: e.pos.y },
+  skill: skill.type,
+  radius: R,
+  name: skill.name,
+  element: e.def.damageType,
+});
 ```
 
 - [ ] **Step 4: Run test + typecheck to verify they pass**
@@ -223,6 +253,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 3: Extract shared cinematic primitives
 
 **Files:**
+
 - Create: `src/scenes/bossSkillFxPrimitives.ts`
 - Modify: `src/scenes/bossSkillSignatures.ts`
 
@@ -231,6 +262,7 @@ This task is a pure refactor + new primitives — no behavior change yet beyond 
 - [ ] **Step 1: Create the primitives module**
 
 Create `src/scenes/bossSkillFxPrimitives.ts`:
+
 ```ts
 // Shared cinematic primitives for boss-skill set-pieces: telegraph charge,
 // additive bloom, settling embers, and a weight-tuned camera punch. Pure
@@ -251,8 +283,21 @@ export class BossFxKit {
   ) {}
 
   /** Tween a transient object, destroying it on complete. */
-  tween(o: Phaser.GameObjects.GameObject, props: Record<string, number>, dur: number, ease = "Quad.easeOut", delay = 0): void {
-    this.scene.tweens.add({ targets: o, ...props, duration: dur, ease, delay, onComplete: () => o.destroy() });
+  tween(
+    o: Phaser.GameObjects.GameObject,
+    props: Record<string, number>,
+    dur: number,
+    ease = "Quad.easeOut",
+    delay = 0,
+  ): void {
+    this.scene.tweens.add({
+      targets: o,
+      ...props,
+      duration: dur,
+      ease,
+      delay,
+      onComplete: () => o.destroy(),
+    });
   }
 
   /** Run `fn` after `ms`. */
@@ -267,23 +312,45 @@ export class BossFxKit {
   }
 
   /** A filled additive disc that grows and fades. */
-  disc(at: Vec2, r: number, color: number, alpha: number, grow: number, dur: number, delay = 0): void {
-    const d = this.fac.circle(at.x, at.y, r, color, alpha).setDepth(this.depth + 3).setBlendMode(ADD);
+  disc(
+    at: Vec2,
+    r: number,
+    color: number,
+    alpha: number,
+    grow: number,
+    dur: number,
+    delay = 0,
+  ): void {
+    const d = this.fac
+      .circle(at.x, at.y, r, color, alpha)
+      .setDepth(this.depth + 3)
+      .setBlendMode(ADD);
     this.tween(d, { scale: grow, alpha: 0 }, dur, "Cubic.easeOut", delay);
   }
 
   /** Soft additive radial bloom — the "impressive" glow layer behind a burst. */
   flare(at: Vec2, r: number, color: number, dur: number, delay = 0): void {
-    const f = this.fac.circle(at.x, at.y, r, color, 0.5).setDepth(this.depth + 2).setBlendMode(ADD).setScale(0.2);
+    const f = this.fac
+      .circle(at.x, at.y, r, color, 0.5)
+      .setDepth(this.depth + 2)
+      .setBlendMode(ADD)
+      .setScale(0.2);
     this.tween(f, { scale: 1.4, alpha: 0 }, dur, "Quint.easeOut", delay);
   }
 
   /** Telegraph wind-up: a core that scales DOWN into a tight bright point. */
   chargeCore(at: Vec2, from: number, color: number, dur: number): void {
-    const core = this.fac.circle(at.x, at.y, from, color, 0.0).setStrokeStyle(2, color, 0.9)
-      .setDepth(this.depth + 2).setBlendMode(ADD);
+    const core = this.fac
+      .circle(at.x, at.y, from, color, 0.0)
+      .setStrokeStyle(2, color, 0.9)
+      .setDepth(this.depth + 2)
+      .setBlendMode(ADD);
     this.scene.tweens.add({
-      targets: core, scale: 0.15, alpha: 1, duration: dur, ease: "Cubic.easeIn",
+      targets: core,
+      scale: 0.15,
+      alpha: 1,
+      duration: dur,
+      ease: "Cubic.easeIn",
       onComplete: () => this.tween(core, { scale: 2.2, alpha: 0 }, 160, "Quad.easeOut"),
     });
   }
@@ -293,8 +360,17 @@ export class BossFxKit {
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n + Math.random() * 0.5;
       const d = spread * (0.4 + Math.random() * 0.7);
-      const m = this.fac.circle(at.x, at.y, 2 + Math.random() * 2, color).setDepth(this.depth + 2).setBlendMode(ADD);
-      this.tween(m, { x: at.x + Math.cos(a) * d, y: at.y + Math.sin(a) * d - 14, alpha: 0, scale: 0.3 }, 420 + Math.random() * 260, "Quad.easeOut", 80 + i * 14);
+      const m = this.fac
+        .circle(at.x, at.y, 2 + Math.random() * 2, color)
+        .setDepth(this.depth + 2)
+        .setBlendMode(ADD);
+      this.tween(
+        m,
+        { x: at.x + Math.cos(a) * d, y: at.y + Math.sin(a) * d - 14, alpha: 0, scale: 0.3 },
+        420 + Math.random() * 260,
+        "Quad.easeOut",
+        80 + i * 14,
+      );
     }
   }
 
@@ -302,7 +378,9 @@ export class BossFxKit {
   punch(weight: number, color: number): void {
     const cam = this.scene.cameras.main;
     cam.shake(180 + weight * 140, 0.004 + weight * 0.007);
-    const r = (color >> 16) & 0xff, g = (color >> 8) & 0xff, b = color & 0xff;
+    const r = (color >> 16) & 0xff,
+      g = (color >> 8) & 0xff,
+      b = color & 0xff;
     cam.flash(110 + weight * 90, Math.round(r * 0.5), Math.round(g * 0.5), Math.round(b * 0.5));
   }
 }
@@ -313,11 +391,13 @@ export class BossFxKit {
 In `src/scenes/bossSkillSignatures.ts`:
 
 Replace the import block + class field setup. Change the top imports to add:
+
 ```ts
 import { BossFxKit } from "./bossSkillFxPrimitives.ts";
 ```
 
 In the constructor, build a kit and keep it:
+
 ```ts
   private readonly kit: BossFxKit;
 
@@ -355,23 +435,28 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ## Task 4: Themed 3-beat signatures + wire element through fx.ts
 
 **Files:**
+
 - Modify: `src/scenes/bossSkillSignatures.ts`
 - Modify: `src/scenes/fx.ts:103-104,133-135`
 
 - [ ] **Step 1: Change `BossSkillFx.cast` to take an element and resolve the theme**
 
 In `src/scenes/bossSkillSignatures.ts`, change the import:
+
 ```ts
 import { bossSkillTheme } from "../data/bossSkillVfx.ts";
 ```
+
 (replacing the `bossSkillSignature` import — `bossSkillTheme` is what we use now.)
 
 Add the `DamageType` import:
+
 ```ts
 import type { DamageType, Vec2 } from "../data/schema.ts";
 ```
 
 Rewrite `cast` and each signature method to take `(primary, accent, weight)`. Replace the whole `cast(...)` method and the four signature methods with:
+
 ```ts
   /** Entry point: draw the themed signature for `skillType` at `at`. */
   cast(at: Vec2, skillType: string, radius: number, name: string, element: DamageType): void {
@@ -480,12 +565,15 @@ Rewrite `cast` and each signature method to take `(primary, accent, weight)`. Re
 - [ ] **Step 2: Wire the element through `fx.ts`**
 
 In `src/scenes/fx.ts`, change the `bossCast` case (line ~103-104) from:
+
 ```ts
       case "bossCast":
         this.bossCast(e.at, e.skill, e.radius, e.name);
         break;
 ```
+
 to:
+
 ```ts
       case "bossCast":
         this.bossCast(e.at, e.skill, e.radius, e.name, e.element);
@@ -493,17 +581,21 @@ to:
 ```
 
 And the private `bossCast` method (line ~133-135) from:
+
 ```ts
   private bossCast(at: Vec2, skill: string, radius: number, name: string): void {
     this.bossFx.cast(at, skill, radius, name);
   }
 ```
+
 to:
+
 ```ts
   private bossCast(at: Vec2, skill: string, radius: number, name: string, element: DamageType): void {
     this.bossFx.cast(at, skill, radius, name, element);
   }
 ```
+
 (`DamageType` is already imported in `fx.ts` — it types `DMG_COLOR`.)
 
 - [ ] **Step 3: Typecheck + full test suite**

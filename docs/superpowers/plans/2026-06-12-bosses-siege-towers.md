@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make ground bosses halt and siege the nearest tower in range (instead of steamrolling past), and scale a boss's damage *against towers only* down so a tank tower can hold a boss for a meaningful window before falling.
+**Goal:** Make ground bosses halt and siege the nearest tower in range (instead of steamrolling past), and scale a boss's damage _against towers only_ down so a tank tower can hold a boss for a meaningful window before falling.
 
-**Architecture:** Two surgical levers, no new files or data edits. (A) The boss branch of `enemyTowerAttack()` returns `whileMoving: def.flying === true` so ground bosses become *blocking* — the sim already turns `whileMoving:false` into "stop and demolish" via `chooseEnemyAction`, so no loop change is needed. (B) A new `BOSS_TOWER_DAMAGE_MULT` constant is multiplied into `dealDamageToTower()` only when the attacker is a boss, leaving boss-vs-hero/castle damage untouched.
+**Architecture:** Two surgical levers, no new files or data edits. (A) The boss branch of `enemyTowerAttack()` returns `whileMoving: def.flying === true` so ground bosses become _blocking_ — the sim already turns `whileMoving:false` into "stop and demolish" via `chooseEnemyAction`, so no loop change is needed. (B) A new `BOSS_TOWER_DAMAGE_MULT` constant is multiplied into `dealDamageToTower()` only when the attacker is a boss, leaving boss-vs-hero/castle damage untouched.
 
 **Tech Stack:** TypeScript, Vitest. Pure/sim tests via the existing `tests/fixtures.ts` battle world.
 
@@ -13,6 +13,7 @@
 ### Task 1: Ground bosses halt to siege towers
 
 **Files:**
+
 - Modify: `src/core/enemyCombat.ts:30-52` (boss branch + doc comment)
 - Test: `tests/enemyCombat.test.ts:64-73` (update the boss-profile expectation)
 
@@ -21,27 +22,27 @@
 In `tests/enemyCombat.test.ts`, the existing test "derives a boss's reach from its weapon and never halts it" asserts `whileMoving` is `true`. Replace that block (lines 64-73) with two tests — a ground boss now halts, a flying boss still passes:
 
 ```ts
-  it("derives a ground boss's reach from its weapon and HALTS it to siege the tower", () => {
-    const boss = mkEnemy({
-      archetype: "Boss",
-      weapon: { family: "thrown", display: "magma fists" },
-      boss: { enrage: { belowHpPct: 0.4, atkMult: 1.5, speedMult: 1.5 } },
-    });
-    const p = enemyTowerAttack(boss)!;
-    expect(p.range).toBe(weaponBaseRange({ family: "thrown", display: "" }));
-    expect(p.whileMoving).toBe(false); // ground boss stops to siege
+it("derives a ground boss's reach from its weapon and HALTS it to siege the tower", () => {
+  const boss = mkEnemy({
+    archetype: "Boss",
+    weapon: { family: "thrown", display: "magma fists" },
+    boss: { enrage: { belowHpPct: 0.4, atkMult: 1.5, speedMult: 1.5 } },
   });
+  const p = enemyTowerAttack(boss)!;
+  expect(p.range).toBe(weaponBaseRange({ family: "thrown", display: "" }));
+  expect(p.whileMoving).toBe(false); // ground boss stops to siege
+});
 
-  it("lets a FLYING boss strike towers in passing (never halts mid-air)", () => {
-    const boss = mkEnemy({
-      archetype: "Boss",
-      flying: true,
-      weapon: { family: "thrown", display: "storm bolts" },
-      boss: { enrage: { belowHpPct: 0.4, atkMult: 1.5, speedMult: 1.5 } },
-    });
-    const p = enemyTowerAttack(boss)!;
-    expect(p.whileMoving).toBe(true);
+it("lets a FLYING boss strike towers in passing (never halts mid-air)", () => {
+  const boss = mkEnemy({
+    archetype: "Boss",
+    flying: true,
+    weapon: { family: "thrown", display: "storm bolts" },
+    boss: { enrage: { belowHpPct: 0.4, atkMult: 1.5, speedMult: 1.5 } },
   });
+  const p = enemyTowerAttack(boss)!;
+  expect(p.whileMoving).toBe(true);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -54,13 +55,13 @@ Expected: the ground-boss test FAILS — current code returns `whileMoving:true`
 In `src/core/enemyCombat.ts`, in the `if (def.boss)` branch, change the return so ground bosses block and flyers pass, and update the comment:
 
 ```ts
-  if (def.boss) {
-    // Bosses siege towers based on their weapon's reach. Ground bosses HALT to
-    // demolish the tower (a tank tower can wall them for a while); flying bosses
-    // (none today, future-proofed) strike in passing like flyer tower-killers.
-    const range = def.weapon ? weaponBaseRange(def.weapon) : BOSS_DEFAULT_TOWER_RANGE;
-    return { range, whileMoving: def.flying === true };
-  }
+if (def.boss) {
+  // Bosses siege towers based on their weapon's reach. Ground bosses HALT to
+  // demolish the tower (a tank tower can wall them for a while); flying bosses
+  // (none today, future-proofed) strike in passing like flyer tower-killers.
+  const range = def.weapon ? weaponBaseRange(def.weapon) : BOSS_DEFAULT_TOWER_RANGE;
+  return { range, whileMoving: def.flying === true };
+}
 ```
 
 Also update the file's top doc-comment line that reads
@@ -85,6 +86,7 @@ git commit -m "feat(bosses): ground bosses halt to siege towers instead of steam
 ### Task 2: Boss→tower damage scalar (the tank-hold lever)
 
 **Files:**
+
 - Modify: `src/core/battleTypes.ts` (add `BOSS_TOWER_DAMAGE_MULT` near `MELEE_TOWER_RANGE`)
 - Modify: `src/core/battleEnemies.ts:306-317` (`dealDamageToTower`)
 - Test: `tests/bossSiege.test.ts` (create)
@@ -123,9 +125,14 @@ describe("boss sieges a tower", () => {
       baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: towerHp, armor: 30 }),
     });
     // Tower planted right on the lane so the boss's weapon reach covers it.
-    const b = world([boss], [tower], mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 0 }] }), {
-      hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
-    });
+    const b = world(
+      [boss],
+      [tower],
+      mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 0 }] }),
+      {
+        hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
+      },
+    );
     expect(b.placeTower("wall", 0)).toBe(true);
     return b;
   }

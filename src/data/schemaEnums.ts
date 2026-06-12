@@ -90,11 +90,23 @@ export function equipSlotsFor(slot: ItemDefSlot): ItemSlot[] {
 export const WEAPON_TYPES = ["Sword", "Bow", "Staff", "Gun", "Tome", "Fist", "Any"] as const;
 export type WeaponType = (typeof WEAPON_TYPES)[number];
 
-export const PASSIVE_NODE_TYPES = ["path", "notable", "keystone", "mastery", "jewel-socket"] as const;
+export const PASSIVE_NODE_TYPES = [
+  "path",
+  "notable",
+  "keystone",
+  "mastery",
+  "jewel-socket",
+] as const;
 export type PassiveNodeType = (typeof PASSIVE_NODE_TYPES)[number];
 
 export const PASSIVE_REGIONS = [
-  "brawler", "arcane", "warden", "tactician",
-  "predator", "phantom", "conduit", "prestige",
+  "brawler",
+  "arcane",
+  "warden",
+  "tactician",
+  "predator",
+  "phantom",
+  "conduit",
+  "prestige",
 ] as const;
 export type PassiveRegion = (typeof PASSIVE_REGIONS)[number];

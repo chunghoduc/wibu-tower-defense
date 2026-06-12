@@ -30,9 +30,9 @@ export interface WalkOpts {
 // frames AND its wide canvas could flash as a strip). So this transform IS the
 // whole walk: it must carry the full step. Amplitudes are sized to read as a
 // lively, weighty stride at a 44px enemy, not a faint settle.
-const BOB = 5;       // vertical step — the body clearly lifts between footfalls
-const WADDLE = 2.5;  // lateral weight-shift sway (px)
-const ROCK = 4;      // body rock toward the planted side (deg)
+const BOB = 5; // vertical step — the body clearly lifts between footfalls
+const WADDLE = 2.5; // lateral weight-shift sway (px)
+const ROCK = 4; // body rock toward the planted side (deg)
 const SQUASH = 0.12; // contact squash on the foot-plant
 const STRETCH = 0.08; // anticipation stretch on the foot-plant
 
@@ -41,7 +41,7 @@ export function enemyWalkTransform(phase: number, opts: WalkOpts = {}): WalkTran
   const lean = opts.lean ?? 0;
   const s = Math.sin(phase);
   const swing = Math.abs(s); // 0 at foot-plant, 1 mid-swing
-  const plant = 1 - swing;   // weight settling on the planted foot
+  const plant = 1 - swing; // weight settling on the planted foot
   return {
     yOff: -swing * BOB * amp,
     xOff: s * WADDLE * amp,

@@ -21,7 +21,10 @@ const ADD = Phaser.BlendModes.ADD;
 export class BoxOpenOverlay {
   private root: Phaser.GameObjects.Container | null = null;
 
-  constructor(private readonly scene: Phaser.Scene, private readonly onClose: () => void) {}
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly onClose: () => void,
+  ) {}
 
   isOpen(): boolean {
     return this.root !== null;
@@ -30,8 +33,10 @@ export class BoxOpenOverlay {
   play(boxId: string, reward: BoxReward): void {
     this.close();
     const s = this.scene;
-    const W = s.scale.width, H = s.scale.height;
-    const cx = W / 2, cy = H / 2 - 30;
+    const W = s.scale.width,
+      H = s.scale.height;
+    const cx = W / 2,
+      cy = H / 2 - 30;
     const tier = tierOfBox(boxId);
     const color = BOX_RARITY_COLOR[tier] ?? 0xffd34d;
 
@@ -40,9 +45,14 @@ export class BoxOpenOverlay {
     const dim = s.add.rectangle(cx, H / 2, W, H, 0x05070c, 0.82).setInteractive();
     root.add(dim);
 
-    const title = s.add.text(cx, cy - 150, `${boxRarityName(tier)} Boss Chest`, {
-      fontSize: "20px", color: "#" + color.toString(16).padStart(6, "0"), fontStyle: "bold",
-    }).setOrigin(0.5).setAlpha(0);
+    const title = s.add
+      .text(cx, cy - 150, `${boxRarityName(tier)} Boss Chest`, {
+        fontSize: "20px",
+        color: "#" + color.toString(16).padStart(6, "0"),
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
     root.add(title);
 
     // Glow halo behind the chest (subtle, growing).
@@ -63,8 +73,20 @@ export class BoxOpenOverlay {
     s.tweens.add({ targets: title, alpha: 1, duration: 300 });
 
     // Anticipation shake, then the pop.
-    s.tweens.add({ targets: chest, x: cx + 4, duration: 60, yoyo: true, repeat: 5, ease: "Sine.easeInOut" });
-    s.tweens.add({ targets: chest, scale: { from: chest.scale, to: chest.scale * 1.12 }, duration: 620, ease: "Quad.easeIn" });
+    s.tweens.add({
+      targets: chest,
+      x: cx + 4,
+      duration: 60,
+      yoyo: true,
+      repeat: 5,
+      ease: "Sine.easeInOut",
+    });
+    s.tweens.add({
+      targets: chest,
+      scale: { from: chest.scale, to: chest.scale * 1.12 },
+      duration: 620,
+      ease: "Quad.easeIn",
+    });
 
     s.time.delayedCall(640, () => this.pop(cx, cy, color, chest));
     s.time.delayedCall(1000, () => this.reveal(reward, cx, cy));
@@ -73,21 +95,48 @@ export class BoxOpenOverlay {
     s.time.delayedCall(1050, () => dim.once("pointerdown", () => this.close()));
   }
 
-  private pop(cx: number, cy: number, color: number, chest: Phaser.GameObjects.Image | Phaser.GameObjects.Text): void {
+  private pop(
+    cx: number,
+    cy: number,
+    color: number,
+    chest: Phaser.GameObjects.Image | Phaser.GameObjects.Text,
+  ): void {
     const s = this.scene;
     if (!this.root) return;
 
     // White flash.
-    const flash = s.add.rectangle(s.scale.width / 2, s.scale.height / 2, s.scale.width, s.scale.height, 0xffffff, 0.0);
+    const flash = s.add.rectangle(
+      s.scale.width / 2,
+      s.scale.height / 2,
+      s.scale.width,
+      s.scale.height,
+      0xffffff,
+      0.0,
+    );
     flash.setBlendMode(ADD);
     this.root.add(flash);
-    s.tweens.add({ targets: flash, fillAlpha: 0.55, duration: 80, yoyo: true, ease: "Quad.easeOut", onComplete: () => flash.destroy() });
+    s.tweens.add({
+      targets: flash,
+      fillAlpha: 0.55,
+      duration: 80,
+      yoyo: true,
+      ease: "Quad.easeOut",
+      onComplete: () => flash.destroy(),
+    });
 
     // Two crossed light bursts that bloom and fade.
     for (const spin of [0, 35]) {
       const burst = this.fx("burst", cx, cy, color, 1).setScale(0.2).setAngle(spin);
       this.root.add(burst);
-      s.tweens.add({ targets: burst, scale: 1.8, angle: spin + 55, alpha: 0, duration: 720, ease: "Cubic.easeOut", onComplete: () => burst.destroy() });
+      s.tweens.add({
+        targets: burst,
+        scale: 1.8,
+        angle: spin + 55,
+        alpha: 0,
+        duration: 720,
+        ease: "Cubic.easeOut",
+        onComplete: () => burst.destroy(),
+      });
     }
 
     // Sparkle scatter.
@@ -96,28 +145,46 @@ export class BoxOpenOverlay {
       const sp = this.fx("sparkle", cx, cy, i % 2 ? 0xffffff : color, 1).setScale(0.12);
       this.root.add(sp);
       s.tweens.add({
-        targets: sp, x: cx + Math.cos(a) * (70 + i * 6), y: cy + Math.sin(a) * (60 + i * 5),
-        scale: 0.3, alpha: 0, duration: 600 + i * 20, ease: "Quad.easeOut", onComplete: () => sp.destroy(),
+        targets: sp,
+        x: cx + Math.cos(a) * (70 + i * 6),
+        y: cy + Math.sin(a) * (60 + i * 5),
+        scale: 0.3,
+        alpha: 0,
+        duration: 600 + i * 20,
+        ease: "Quad.easeOut",
+        onComplete: () => sp.destroy(),
       });
     }
 
     // Chest pops then settles.
     const base = chest.scale / 1.12;
-    s.tweens.add({ targets: chest, scale: base * 1.25, duration: 120, yoyo: true, ease: "Back.easeOut" });
+    s.tweens.add({
+      targets: chest,
+      scale: base * 1.25,
+      duration: 120,
+      yoyo: true,
+      ease: "Back.easeOut",
+    });
   }
 
   private reveal(reward: BoxReward, cx: number, cy: number): void {
     const s = this.scene;
     if (!this.root) return;
     const entries = boxRewardEntries(reward);
-    const tw = 86, th = 84, plateH = 28, gap = 10;
-    const top = -th / 2;                 // tile spans top..top+th
+    const tw = 86,
+      th = 84,
+      plateH = 28,
+      gap = 10;
+    const top = -th / 2; // tile spans top..top+th
     const totalW = entries.length * tw + (entries.length - 1) * gap;
     const startX = cx - totalW / 2 + tw / 2;
     const ty = cy + 110;
 
     entries.forEach((e, i) => {
-      const tile = s.add.container(startX + i * (tw + gap), ty).setAlpha(0).setScale(0.7);
+      const tile = s.add
+        .container(startX + i * (tw + gap), ty)
+        .setAlpha(0)
+        .setScale(0.7);
       const col = Phaser.Display.Color.HexStringToColor(e.color).color;
       const g = s.add.graphics();
       g.fillStyle(0x121a28, 1).fillRoundedRect(-tw / 2, top, tw, th, 8);
@@ -128,22 +195,50 @@ export class BoxOpenOverlay {
       // to how it reads everywhere else; icon centred in the region above the plate.
       const fallback = e.kind === "gold" ? "🪙" : e.kind === "item" ? "📦" : "💠";
       tile.add(makeFitIcon(s, 0, top + (th - plateH) / 2, e.iconKey ?? "", 50, fallback));
-      const label = e.kind === "gold" || e.kind === "diamond" ? `+${e.count}` : e.count > 1 ? `${e.name} ×${e.count}` : e.name;
+      const label =
+        e.kind === "gold" || e.kind === "diamond"
+          ? `+${e.count}`
+          : e.count > 1
+            ? `${e.name} ×${e.count}`
+            : e.name;
       addNamePlate(s, tile, label, {
-        width: tw, topY: top + th - plateH, height: plateH, radius: 8,
-        accent: col, color: e.color, basePx: 10, minPx: 7, maxLines: 2,
+        width: tw,
+        topY: top + th - plateH,
+        height: plateH,
+        radius: 8,
+        accent: col,
+        color: e.color,
+        basePx: 10,
+        minPx: 7,
+        maxLines: 2,
       });
       this.root!.add(tile);
-      s.tweens.add({ targets: tile, alpha: 1, scale: 1, duration: 280, delay: i * 110, ease: "Back.easeOut" });
+      s.tweens.add({
+        targets: tile,
+        alpha: 1,
+        scale: 1,
+        duration: 280,
+        delay: i * 110,
+        ease: "Back.easeOut",
+      });
     });
 
-    const hint = s.add.text(cx, ty + 70, "tap to continue", { fontSize: "11px", color: "#8aa0bb" }).setOrigin(0.5).setAlpha(0);
+    const hint = s.add
+      .text(cx, ty + 70, "tap to continue", { fontSize: "11px", color: "#8aa0bb" })
+      .setOrigin(0.5)
+      .setAlpha(0);
     this.root.add(hint);
     s.tweens.add({ targets: hint, alpha: 1, duration: 400, delay: entries.length * 110 + 200 });
   }
 
   /** A bright-on-black VFX texture set up for additive, rarity-tinted rendering. */
-  private fx(id: "burst" | "glow" | "sparkle", x: number, y: number, color: number, alpha: number): Phaser.GameObjects.Image {
+  private fx(
+    id: "burst" | "glow" | "sparkle",
+    x: number,
+    y: number,
+    color: number,
+    alpha: number,
+  ): Phaser.GameObjects.Image {
     const img = this.scene.add.image(x, y, fxTex(id)).setBlendMode(ADD).setAlpha(alpha);
     img.setTint(color);
     return img;

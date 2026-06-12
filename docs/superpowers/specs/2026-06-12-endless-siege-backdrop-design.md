@@ -8,7 +8,7 @@
 
 Endless mode now fights on a generated braided-maze arena with a central castle
 besieged from eight gates (see `project_endless_maze_arena`). But the battlefield
-*background* is still just the cleared campaign stage's painted backdrop — a flat
+_background_ is still just the cleared campaign stage's painted backdrop — a flat
 greenwood/desert/etc. panorama that has nothing to do with "a citadel at the heart
 of the world under siege from every direction." The endless mode deserves a
 distinctive, impressive backdrop that sells its fantasy.
@@ -42,19 +42,19 @@ castle naturally sits on a hotspot and the corners fall to shadow. Saved to
 
 Prompt (style-layered per the generating-images guidance):
 
-> *epic dark fantasy battlefield seen from directly above, a scorched circular
+> _epic dark fantasy battlefield seen from directly above, a scorched circular
 > plain with a faint glowing arcane focal point at the very center, cracked earth
 > and ash, embers and smoke drifting, blood-red and ember-orange light radiating
 > from the middle fading to deep shadow at the edges, ominous siege atmosphere,
 > ground-level war ruins around the rim, cinematic top-down concept art, highly
-> detailed, dramatic volumetric light, dark moody palette with warm core glow*
+> detailed, dramatic volumetric light, dark moody palette with warm core glow_
 
 960×540, steps 9, fixed seed for reproducibility.
 
 ### 2. Procedural siege-atmosphere layer
 
 A pure geometry module computes the overlay; an animated presenter draws it. This
-is what makes the scene *specifically* an endless siege and guarantees an
+is what makes the scene _specifically_ an endless siege and guarantees an
 impressive result even if the texture is absent (graceful: layer 2 alone over the
 chapter/flat ground still looks like a siege arena).
 
@@ -71,7 +71,7 @@ chapter/flat ground still looks like a siege arena).
 - `castleRing` — `{ cx, cy, baseR, color }` the pulsing heart-aura under the
   castle.
 - `embers: Ember[]` — N drifting motes with `{ x, y, r, speed, drift, alpha,
-  phase }`; the presenter advances them each frame (rise + sine sway, wrap at
+phase }`; the presenter advances them each frame (rise + sine sway, wrap at
   top). Seeded layout → deterministic initial field.
 
 All numbers are plain data (no Phaser types), so the module is fully unit-testable
@@ -91,8 +91,8 @@ toward each gate, embers within bounds, determinism) are asserted in Vitest.
 
 ### Why hybrid (rejected alternatives)
 
-- **SDXL image only:** can't center focus on a *procedural* castle position, can't
-  show siege lines toward *generated* gates, and is static. Misses "alive" and
+- **SDXL image only:** can't center focus on a _procedural_ castle position, can't
+  show siege lines toward _generated_ gates, and is static. Misses "alive" and
   "from every direction toward this exact center."
 - **Procedural only:** loses painted richness; the SDXL base adds texture depth a
   few Phaser primitives can't. Cheap to keep both.
@@ -116,7 +116,7 @@ toward each gate, embers within bounds, determinism) are asserted in Vitest.
 
 ## Data flow
 
-`endlessArenaStage` (existing) attaches `arena` →  `BattleScene.drawStatic` sees
+`endlessArenaStage` (existing) attaches `arena` → `BattleScene.drawStatic` sees
 `stage.arena`, swaps in the `bg__endless-siege` base and constructs
 `EndlessBackdropFx(scene, buildEndlessBackdrop(arena, dims, seed))` → presenter
 draws static siege geometry now and animates embers/pulses each `update`.
@@ -127,6 +127,7 @@ the scar/ember layout is stable and matches the arena it overlays.
 ## Testing
 
 `tests/endlessBackdrop.test.ts` (pure module):
+
 - Determinism: same `(arena, dims, seed)` → deep-equal spec.
 - Vignette centered on `arena.center`.
 - One scar per gate; each scar starts at the castle center and its far end lies

@@ -30,18 +30,25 @@ function wrap(text: string, maxWidth: number, px: number, measure: Measure): str
   const pushWord = (w: string) => {
     // Hard-break a single oversized word.
     if (measure(w, px) > maxWidth) {
-      if (line) { lines.push(line); line = ""; }
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
       let chunk = "";
       for (const ch of w) {
-        if (chunk && measure(chunk + ch, px) > maxWidth) { lines.push(chunk); chunk = ch; }
-        else chunk += ch;
+        if (chunk && measure(chunk + ch, px) > maxWidth) {
+          lines.push(chunk);
+          chunk = ch;
+        } else chunk += ch;
       }
       line = chunk;
       return;
     }
     const next = line ? line + " " + w : w;
-    if (measure(next, px) > maxWidth) { if (line) lines.push(line); line = w; }
-    else line = next;
+    if (measure(next, px) > maxWidth) {
+      if (line) lines.push(line);
+      line = w;
+    } else line = next;
   };
   for (const w of words) pushWord(w);
   if (line) lines.push(line);

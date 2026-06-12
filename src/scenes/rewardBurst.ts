@@ -46,7 +46,11 @@ export function rewardBurst(scene: Phaser.Scene, x: number, y: number, opts: Bur
   const ring = scene.add.graphics().setDepth(DEPTH);
   const flash = { r: 6, a: 0.9 };
   scene.tweens.add({
-    targets: flash, r: 64, a: 0, duration: 420, ease: "Cubic.easeOut",
+    targets: flash,
+    r: 64,
+    a: 0,
+    duration: 420,
+    ease: "Cubic.easeOut",
     onUpdate: () => {
       ring.clear();
       ring.lineStyle(3, accent, flash.a).strokeCircle(x, y, flash.r);
@@ -70,7 +74,10 @@ export function rewardBurst(scene: Phaser.Scene, x: number, y: number, opts: Bur
     const proxy = { t: 0 };
     p.setScale(0.6 + Math.random() * 0.5);
     scene.tweens.add({
-      targets: proxy, t: dur / 1000, duration: dur, ease: "Linear",
+      targets: proxy,
+      t: dur / 1000,
+      duration: dur,
+      ease: "Linear",
       onUpdate: () => {
         const s = proxy.t;
         p.x = x + vx * s;
@@ -86,11 +93,23 @@ export function rewardBurst(scene: Phaser.Scene, x: number, y: number, opts: Bur
   // ── Rising headline label. ──
   if (opts.label) {
     const t = crispText(scene, x, y - 18, opts.label, {
-      fontSize: "16px", color: "#fff4d0", fontStyle: "bold", stroke: "#3a2606", strokeThickness: 5,
-    }).setOrigin(0.5).setDepth(DEPTH + 1).setScale(0.5);
+      fontSize: "16px",
+      color: "#fff4d0",
+      fontStyle: "bold",
+      stroke: "#3a2606",
+      strokeThickness: 5,
+    })
+      .setOrigin(0.5)
+      .setDepth(DEPTH + 1)
+      .setScale(0.5);
     scene.tweens.add({ targets: t, scale: 1.08, duration: 220, ease: "Back.easeOut", yoyo: false });
     scene.tweens.add({
-      targets: t, y: y - 64, alpha: 0, duration: 1100, delay: 260, ease: "Cubic.easeIn",
+      targets: t,
+      y: y - 64,
+      alpha: 0,
+      duration: 1100,
+      delay: 260,
+      ease: "Cubic.easeIn",
       onComplete: () => t.destroy(),
     });
   }

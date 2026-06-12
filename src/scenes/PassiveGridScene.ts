@@ -13,10 +13,10 @@ import { RESPEC_DIAMOND_COST } from "../core/saveManager.ts";
 // ── Layout constants ─────────────────────────────────────────────────────────
 const MIN_X = 4;
 const MIN_Y = -1;
-const CELL = 28;           // px per grid unit
-const GRID_LEFT = 18;      // left edge of grid area
-const GRID_TOP = 40;       // top edge of grid area
-const PANEL_X = 545;       // right info panel x start
+const CELL = 28; // px per grid unit
+const GRID_LEFT = 18; // left edge of grid area
+const GRID_TOP = 40; // top edge of grid area
+const PANEL_X = 545; // right info panel x start
 const PANEL_W = 400;
 
 function toPixel(gridX: number, gridY: number): { x: number; y: number } {
@@ -28,21 +28,21 @@ function toPixel(gridX: number, gridY: number): { x: number; y: number } {
 
 // ── Visual config ─────────────────────────────────────────────────────────────
 const REGION_COLOR: Record<string, number> = {
-  brawler:   0xff7043,
-  arcane:    0xce93d8,
-  warden:    0x66bb6a,
-  predator:  0x26c6da,
+  brawler: 0xff7043,
+  arcane: 0xce93d8,
+  warden: 0x66bb6a,
+  predator: 0x26c6da,
   tactician: 0xffd54f,
-  phantom:   0x7986cb,
-  conduit:   0xef5350,
-  prestige:  0xffd700,
+  phantom: 0x7986cb,
+  conduit: 0xef5350,
+  prestige: 0xffd700,
 };
 
 const NODE_RADIUS: Record<string, number> = {
-  path:          7,
-  notable:       11,
-  mastery:       11,
-  keystone:      14,
+  path: 7,
+  notable: 11,
+  mastery: 11,
+  keystone: 14,
   "jewel-socket": 9,
 };
 
@@ -86,7 +86,9 @@ export class PassiveGridScene extends Phaser.Scene {
 
     this.add
       .text(PANEL_X + PANEL_W / 2, 10, "Passive Tree", {
-        fontSize: "18px", color: "#ffd700", fontStyle: "bold",
+        fontSize: "18px",
+        color: "#ffd700",
+        fontStyle: "bold",
       })
       .setOrigin(0.5, 0);
 
@@ -95,34 +97,44 @@ export class PassiveGridScene extends Phaser.Scene {
 
     // Side panel text objects
     this.panelPoints = this.add.text(PANEL_X, 38, "", {
-      fontSize: "16px", color: "#90caf9", fontStyle: "bold",
+      fontSize: "16px",
+      color: "#90caf9",
+      fontStyle: "bold",
     });
 
     this.panelName = this.add.text(PANEL_X, 70, "", {
-      fontSize: "16px", color: "#ffd700", fontStyle: "bold",
+      fontSize: "16px",
+      color: "#ffd700",
+      fontStyle: "bold",
     });
 
     this.panelType = this.add.text(PANEL_X, 94, "", {
-      fontSize: "12px", color: "#aaaaaa",
+      fontSize: "12px",
+      color: "#aaaaaa",
     });
 
     this.panelDesc = this.add.text(PANEL_X, 116, "", {
-      fontSize: "12px", color: "#dddddd",
+      fontSize: "12px",
+      color: "#dddddd",
       wordWrap: { width: PANEL_W - 10 },
     });
 
     this.panelStats = this.add.text(PANEL_X, 176, "", {
-      fontSize: "12px", color: "#a5d6a7",
+      fontSize: "12px",
+      color: "#a5d6a7",
       wordWrap: { width: PANEL_W - 10 },
     });
 
     this.panelLevelReq = this.add.text(PANEL_X, 260, "", {
-      fontSize: "12px", color: "#ffb74d",
+      fontSize: "12px",
+      color: "#ffb74d",
     });
 
     this.unlockBtn = this.add
       .text(PANEL_X + PANEL_W / 2, 310, "Unlock  (1 pt)", {
-        fontSize: "16px", color: "#ffffff", backgroundColor: "#1a5276",
+        fontSize: "16px",
+        color: "#ffffff",
+        backgroundColor: "#1a5276",
       })
       .setOrigin(0.5)
       .setPadding(16, 8, 16, 8)
@@ -130,56 +142,70 @@ export class PassiveGridScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     this.unlockBtn.on("pointerover", () => this.unlockBtn.setBackgroundColor("#2e86c1"));
-    this.unlockBtn.on("pointerout",  () => this.unlockBtn.setBackgroundColor("#1a5276"));
+    this.unlockBtn.on("pointerout", () => this.unlockBtn.setBackgroundColor("#1a5276"));
     this.unlockBtn.on("pointerdown", () => this.tryUnlock());
 
     // Forget the selected (already-unlocked) node, refunding its point. Shares the
     // unlock button's slot — the two are mutually exclusive per node.
     this.forgetBtn = this.add
       .text(PANEL_X + PANEL_W / 2, 310, "Forget", {
-        fontSize: "16px", color: "#ffffff", backgroundColor: "#7b241c",
+        fontSize: "16px",
+        color: "#ffffff",
+        backgroundColor: "#7b241c",
       })
       .setOrigin(0.5)
       .setPadding(16, 8, 16, 8)
       .setVisible(false)
       .setInteractive({ useHandCursor: true });
     this.forgetBtn.on("pointerover", () => this.forgetBtn.setBackgroundColor("#a93226"));
-    this.forgetBtn.on("pointerout",  () => this.forgetBtn.setBackgroundColor("#7b241c"));
+    this.forgetBtn.on("pointerout", () => this.forgetBtn.setBackgroundColor("#7b241c"));
     this.forgetBtn.on("pointerdown", () => this.tryForget());
 
     // Reset the whole tree, refunding every point. Two-click confirm so a stray
     // tap can't wipe a carefully-built path.
     this.resetBtn = this.add
       .text(PANEL_X + PANEL_W / 2, 365, "Reset all points", {
-        fontSize: "14px", color: "#ffcdd2", backgroundColor: "#4a235a",
+        fontSize: "14px",
+        color: "#ffcdd2",
+        backgroundColor: "#4a235a",
       })
       .setOrigin(0.5)
       .setPadding(14, 7, 14, 7)
       .setVisible(false)
       .setInteractive({ useHandCursor: true });
     this.resetBtn.on("pointerover", () => this.resetBtn.setBackgroundColor("#6c3483"));
-    this.resetBtn.on("pointerout",  () => this.resetBtn.setBackgroundColor(this.resetArmed ? "#922b21" : "#4a235a"));
+    this.resetBtn.on("pointerout", () =>
+      this.resetBtn.setBackgroundColor(this.resetArmed ? "#922b21" : "#4a235a"),
+    );
     this.resetBtn.on("pointerdown", () => this.tryResetAll());
 
     // Jewel-socket actions (share the y310 slot; only one shows per node state).
     this.socketBtn = this.add
       .text(PANEL_X + PANEL_W / 2, 310, "Socket Jewel", {
-        fontSize: "16px", color: "#ffffff", backgroundColor: "#1e6f50",
+        fontSize: "16px",
+        color: "#ffffff",
+        backgroundColor: "#1e6f50",
       })
-      .setOrigin(0.5).setPadding(16, 8, 16, 8).setVisible(false)
+      .setOrigin(0.5)
+      .setPadding(16, 8, 16, 8)
+      .setVisible(false)
       .setInteractive({ useHandCursor: true });
     this.socketBtn.on("pointerover", () => this.socketBtn.setBackgroundColor("#27946a"));
-    this.socketBtn.on("pointerout",  () => this.socketBtn.setBackgroundColor("#1e6f50"));
+    this.socketBtn.on("pointerout", () => this.socketBtn.setBackgroundColor("#1e6f50"));
     this.socketBtn.on("pointerdown", () => this.openSocketPicker());
 
     this.removeBtn = this.add
       .text(PANEL_X + PANEL_W / 2, 310, "Remove — destroy", {
-        fontSize: "15px", color: "#ffffff", backgroundColor: "#7b241c",
+        fontSize: "15px",
+        color: "#ffffff",
+        backgroundColor: "#7b241c",
       })
-      .setOrigin(0.5).setPadding(14, 8, 14, 8).setVisible(false)
+      .setOrigin(0.5)
+      .setPadding(14, 8, 14, 8)
+      .setVisible(false)
       .setInteractive({ useHandCursor: true });
     this.removeBtn.on("pointerover", () => this.removeBtn.setBackgroundColor("#a93226"));
-    this.removeBtn.on("pointerout",  () => this.removeBtn.setBackgroundColor("#7b241c"));
+    this.removeBtn.on("pointerout", () => this.removeBtn.setBackgroundColor("#7b241c"));
     this.removeBtn.on("pointerdown", () => this.confirmRemoveSocket());
 
     this.jewelOverlay = new JewelOverlay(this, this.mgr, () => this.redraw());
@@ -218,9 +244,7 @@ export class PassiveGridScene extends Phaser.Scene {
         const b = toPixel(nbr.gridX, nbr.gridY);
         const bothUnlocked = unlockedSet.has(node.id) && unlockedSet.has(nbrId);
         const alpha = bothUnlocked ? 0.9 : 0.2;
-        const color = bothUnlocked
-          ? (REGION_COLOR[node.region] ?? 0x888888)
-          : 0x445566;
+        const color = bothUnlocked ? (REGION_COLOR[node.region] ?? 0x888888) : 0x445566;
         this.gfx.lineStyle(bothUnlocked ? 2 : 1, color, alpha);
         this.gfx.beginPath();
         this.gfx.moveTo(a.x, a.y);
@@ -300,19 +324,25 @@ export class PassiveGridScene extends Phaser.Scene {
     if (node.type === "jewel-socket") {
       // Diamond
       this.gfx.fillStyle(fillColor, fillAlpha);
-      this.gfx.fillPoints([
-        new Phaser.Geom.Point(x, y - r),
-        new Phaser.Geom.Point(x + r, y),
-        new Phaser.Geom.Point(x, y + r),
-        new Phaser.Geom.Point(x - r, y),
-      ], true);
+      this.gfx.fillPoints(
+        [
+          new Phaser.Geom.Point(x, y - r),
+          new Phaser.Geom.Point(x + r, y),
+          new Phaser.Geom.Point(x, y + r),
+          new Phaser.Geom.Point(x - r, y),
+        ],
+        true,
+      );
       this.gfx.lineStyle(lineWidth, lineColor, lineAlpha);
-      this.gfx.strokePoints([
-        new Phaser.Geom.Point(x, y - r),
-        new Phaser.Geom.Point(x + r, y),
-        new Phaser.Geom.Point(x, y + r),
-        new Phaser.Geom.Point(x - r, y),
-      ], true);
+      this.gfx.strokePoints(
+        [
+          new Phaser.Geom.Point(x, y - r),
+          new Phaser.Geom.Point(x + r, y),
+          new Phaser.Geom.Point(x, y + r),
+          new Phaser.Geom.Point(x - r, y),
+        ],
+        true,
+      );
     } else {
       this.gfx.fillStyle(fillColor, fillAlpha);
       this.gfx.fillCircle(x, y, r);
@@ -368,7 +398,9 @@ export class PassiveGridScene extends Phaser.Scene {
     if (this.mgr.getSave().currency.diamonds < RESPEC_DIAMOND_COST) return; // can't afford
     if (!this.resetArmed) {
       this.resetArmed = true;
-      this.resetBtn.setText(`Confirm — spend ${RESPEC_DIAMOND_COST}💎?`).setBackgroundColor("#922b21");
+      this.resetBtn
+        .setText(`Confirm — spend ${RESPEC_DIAMOND_COST}💎?`)
+        .setBackgroundColor("#922b21");
       return;
     }
     this.disarmReset();
@@ -384,7 +416,8 @@ export class PassiveGridScene extends Phaser.Scene {
   }
 
   private openSocketPicker(): void {
-    if (this.selectedNode?.type === "jewel-socket") this.jewelOverlay.openPicker(this.selectedNode.id);
+    if (this.selectedNode?.type === "jewel-socket")
+      this.jewelOverlay.openPicker(this.selectedNode.id);
   }
 
   private confirmRemoveSocket(): void {
@@ -402,7 +435,7 @@ export class PassiveGridScene extends Phaser.Scene {
     const instId = this.mgr.getSave().hero.socketedJewels[nodeId];
     if (!instId) return null;
     const inst = this.mgr.getSave().hero.jewels.find((j) => j.id === instId);
-    return inst ? JEWEL_CATALOG_MAP.get(inst.defId) ?? null : null;
+    return inst ? (JEWEL_CATALOG_MAP.get(inst.defId) ?? null) : null;
   }
 
   // ── Side panel ───────────────────────────────────────────────────────────────
@@ -421,7 +454,11 @@ export class PassiveGridScene extends Phaser.Scene {
     if (unlockedSet.size === 0) this.disarmReset();
     if (!this.resetArmed) {
       const afford = this.mgr.getSave().currency.diamonds >= RESPEC_DIAMOND_COST;
-      this.resetBtn.setText(afford ? `Reset all  (${RESPEC_DIAMOND_COST}💎)` : `Reset all — need ${RESPEC_DIAMOND_COST}💎`);
+      this.resetBtn.setText(
+        afford
+          ? `Reset all  (${RESPEC_DIAMOND_COST}💎)`
+          : `Reset all — need ${RESPEC_DIAMOND_COST}💎`,
+      );
       this.resetBtn.setAlpha(afford ? 1 : 0.45);
     }
 
@@ -466,7 +503,8 @@ export class PassiveGridScene extends Phaser.Scene {
     // removing the node won't orphan the rest of the tree. The label shows your
     // orb stock, or prompts to find one. Jewel sockets show socket/remove instead.
     const orbs = this.mgr.getMaterial(OBLIVION_ORB);
-    const forgettable = isUnlocked && !isJewel && orbs > 0 && canForgetNode([...unlockedSet], node.id);
+    const forgettable =
+      isUnlocked && !isJewel && orbs > 0 && canForgetNode([...unlockedSet], node.id);
     this.forgetBtn.setVisible(isUnlocked && !isJewel);
     this.forgetBtn.setText(orbs > 0 ? `Forget  (Orb ×${orbs})` : "Forget — need Oblivion Orb");
     this.forgetBtn.setAlpha(forgettable ? 1 : 0.4);
@@ -476,11 +514,13 @@ export class PassiveGridScene extends Phaser.Scene {
     this.socketBtn.setVisible(isJewel && isUnlocked && !jewelDef);
     this.removeBtn.setVisible(isJewel && isUnlocked && !!jewelDef);
     if (isJewel && isUnlocked) {
-      this.panelStats.setText(
-        jewelDef
-          ? `Socketed: ${jewelDef.name}\n${jewelDef.description}`
-          : "Empty socket — socket a jewel to empower your hero and towers.",
-      ).setColor(jewelDef ? "#80d8ff" : "#a5d6a7");
+      this.panelStats
+        .setText(
+          jewelDef
+            ? `Socketed: ${jewelDef.name}\n${jewelDef.description}`
+            : "Empty socket — socket a jewel to empower your hero and towers.",
+        )
+        .setColor(jewelDef ? "#80d8ff" : "#a5d6a7");
     }
 
     if (isUnlocked) {

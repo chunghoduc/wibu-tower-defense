@@ -10,12 +10,13 @@ describe("waveScaling — intra-stage escalation", () => {
 
   it("the last wave of a stage hits the full intra-stage ramp", () => {
     const s = waveScaling(5, 6); // last of 6
-    expect(s.hpMult).toBeCloseTo(1 + WAVE_HP_RAMP, 6);   // ≈2.6×
+    expect(s.hpMult).toBeCloseTo(1 + WAVE_HP_RAMP, 6); // ≈2.6×
     expect(s.atkMult).toBeCloseTo(1 + WAVE_ATK_RAMP, 6); // ≈1.7×
   });
 
   it("HP/atk multipliers increase monotonically across waves", () => {
-    let prevHp = 0, prevAtk = 0;
+    let prevHp = 0,
+      prevAtk = 0;
     for (let i = 0; i < 6; i++) {
       const s = waveScaling(i, 6);
       expect(s.hpMult).toBeGreaterThan(prevHp);

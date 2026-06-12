@@ -25,7 +25,7 @@ describe("per-instance required level", () => {
 
   it("never rolls below the def floor or above the cap", () => {
     const def = ITEM_CATALOG_MAP.get("dawnbreaker")!; // floor 60
-    expect(rollItem(def, 1, 1, 5).requiredLevel).toBe(60);        // clamped up to floor
+    expect(rollItem(def, 1, 1, 5).requiredLevel).toBe(60); // clamped up to floor
     expect(rollItem(def, 1, 1, 999).requiredLevel).toBe(MAX_ITEM_REQ_LEVEL); // clamped to cap
   });
 
@@ -85,7 +85,8 @@ describe("chapter drop bands", () => {
 
 describe("box gear level tracks the hero, rarity tracks the box", () => {
   it("a level-50 hero pulls box gear around their own level from any tier", () => {
-    const lo = Math.round(50 * 0.85), hi = Math.round(50 * 1.15); // ±15% around hero level
+    const lo = Math.round(50 * 0.85),
+      hi = Math.round(50 * 1.15); // ±15% around hero level
     let seen = 0;
     for (const tier of [1, 5]) {
       const rng = new Rng(9 + tier);

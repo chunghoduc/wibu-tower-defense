@@ -12,7 +12,7 @@ export const MAX_AWAKENING = 3;
 /** Crystals to reach each rank (index = target rank). Rank 0 is free/default. */
 export const AWAKENING_CRYSTAL_COST = [0, 8, 10, 12];
 /** Per-rank permanent stat bonus (atk & hp). rank3 → +30%. */
-export const AWAKENING_BONUS_PER_RANK = 0.10;
+export const AWAKENING_BONUS_PER_RANK = 0.1;
 
 export function getAwakening(save: HeroSave, towerId: string): number {
   return save.meta.awakening[towerId] ?? 0;

@@ -62,7 +62,7 @@ function drawRarity(pityCount: number, rng: Rng): Rarity {
   // Scale remaining rarities proportionally to fill 1 - legPlusRate
   const base = 1 - legPlusBase;
   const remaining = 1 - legPlusRate;
-  const rareRate  = (BASE_RATES.Rare  / base) * remaining;
+  const rareRate = (BASE_RATES.Rare / base) * remaining;
   const magicRate = (BASE_RATES.Magic / base) * remaining;
 
   if (roll < legPlusRate + rareRate) return "Rare";

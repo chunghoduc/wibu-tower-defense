@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { ACTIVE_SKILLS } from "../src/data/skills.ts";
-import { SKILL_VFX, skillVfxSpec, DELIVERY_KINDS, deliveryForStyle, deliveryForShape } from "../src/data/skillVfxMeta.ts";
+import {
+  SKILL_VFX,
+  skillVfxSpec,
+  DELIVERY_KINDS,
+  deliveryForStyle,
+  deliveryForShape,
+} from "../src/data/skillVfxMeta.ts";
 import { towerSkillShape, SKILL_SHAPES } from "../src/data/attackStyle.ts";
 import { SKILL_SHAPE, skillShapeFor } from "../src/data/towerSkillShapeIndex.ts";
 import { TOWERS } from "../src/data/towers.ts";
@@ -12,7 +18,7 @@ import { mkEnemy, mkStage, oneWave } from "./fixtures.ts";
 
 // minimal def factory — only the fields towerSkillShape reads (role + active).
 const defOf = (role: CharacterDef["role"], active: string | null): CharacterDef =>
-  ({ role, active } as unknown as CharacterDef);
+  ({ role, active }) as unknown as CharacterDef;
 
 describe("tower skill shape", () => {
   it("maps each role to its base shape", () => {
@@ -112,7 +118,9 @@ describe("skill VFX delivery", () => {
   it("gives every active skill a known delivery archetype", () => {
     for (const s of ACTIVE_SKILLS) {
       const spec = SKILL_VFX[s.id];
-      expect(DELIVERY_KINDS.includes(spec.delivery), `${s.id}.delivery="${spec.delivery}"`).toBe(true);
+      expect(DELIVERY_KINDS.includes(spec.delivery), `${s.id}.delivery="${spec.delivery}"`).toBe(
+        true,
+      );
     }
   });
 
@@ -134,13 +142,17 @@ describe("hero cast plumbing", () => {
     const save = createFreshSave();
     save.hero.obtainedSkills = [{ skillId, level: 1, useXp: 0 }];
     save.hero.equippedSkillIds = [skillId];
-    const enemy = mkEnemy({ baseStats: makeStats({ maxHp: 1e9, moveSpeed: 1, atk: 0, attackSpeed: 0 }) });
+    const enemy = mkEnemy({
+      baseStats: makeStats({ maxHp: 1e9, moveSpeed: 1, atk: 0, attackSpeed: 0 }),
+    });
     const stage = mkStage(oneWave("grunt", 1), { castleHp: 1e9 });
     return new BattleState(
       stage,
       { enemies: new Map([["grunt", enemy]]), characters: new Map() },
       {
-        seed: 1, eliteChance: 0, heroSave: save,
+        seed: 1,
+        eliteChance: 0,
+        heroSave: save,
         hero: { stats: makeStats({ maxHp: 1e9 }), startPos: { x: 0, y: 0 } },
       },
     );
@@ -162,7 +174,8 @@ describe("hero cast plumbing", () => {
     for (let t = 0; t < 160 && castSkillId === null; t++) {
       b.hero.mana = MANA_MAX;
       b.tick(0.05);
-      for (const fx of b.fx) if (fx.type === "cast" && fx.source === "hero") castSkillId = fx.skillId;
+      for (const fx of b.fx)
+        if (fx.type === "cast" && fx.source === "hero") castSkillId = fx.skillId;
     }
     expect(castSkillId).toBe("execute-slash");
   });
@@ -216,7 +229,8 @@ describe("hero cast plumbing", () => {
     for (let t = 0; t < 160 && castType === null; t++) {
       b.hero.mana = MANA_MAX;
       b.tick(0.05);
-      for (const fx of b.fx) if (fx.type === "cast" && fx.source === "hero") castType = fx.damageType;
+      for (const fx of b.fx)
+        if (fx.type === "cast" && fx.source === "hero") castType = fx.damageType;
     }
     expect(castType).toBe("True");
   });

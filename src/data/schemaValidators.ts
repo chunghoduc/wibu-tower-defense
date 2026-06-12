@@ -4,9 +4,23 @@
  * so loaders can `indexById(DATA, validateX)`.
  */
 import {
-  ATTACK_DAMAGE_TYPES, DAMAGE_TYPES, ENEMY_ARCHETYPES, IMMUNITIES, ITEM_SLOTS,
-  PASSIVE_NODE_TYPES, PASSIVE_REGIONS, RARITIES, TARGET_TYPES, TOWER_ROLES, WEAPON_TYPES,
-  type ActiveSkillDef, type CharacterDef, type EnemyDef, type ItemDef, type PassiveNodeDef, type StageDef,
+  ATTACK_DAMAGE_TYPES,
+  DAMAGE_TYPES,
+  ENEMY_ARCHETYPES,
+  IMMUNITIES,
+  ITEM_SLOTS,
+  PASSIVE_NODE_TYPES,
+  PASSIVE_REGIONS,
+  RARITIES,
+  TARGET_TYPES,
+  TOWER_ROLES,
+  WEAPON_TYPES,
+  type ActiveSkillDef,
+  type CharacterDef,
+  type EnemyDef,
+  type ItemDef,
+  type PassiveNodeDef,
+  type StageDef,
 } from "./schema.ts";
 import { WEAPON_ELEMENTS, WEAPON_FAMILIES, deriveDamageType } from "./weaponFamily.ts";
 
@@ -77,10 +91,16 @@ export function validateActiveSkill(s: ActiveSkillDef): ActiveSkillDef {
   assert(s.name.trim().length > 0, `activeSkill ${s.id}: missing name`);
   assert(s.description.trim().length > 0, `activeSkill ${s.id}: missing description`);
   assert((RARITIES as readonly string[]).includes(s.rarity), `activeSkill ${s.id}: bad rarity`);
-  assert((DAMAGE_TYPES as readonly string[]).includes(s.damageType), `activeSkill ${s.id}: bad damageType`);
+  assert(
+    (DAMAGE_TYPES as readonly string[]).includes(s.damageType),
+    `activeSkill ${s.id}: bad damageType`,
+  );
   assert(s.basePower > 0, `activeSkill ${s.id}: basePower must be > 0`);
   if (s.requiresWeapon !== undefined) {
-    assert((WEAPON_TYPES as readonly string[]).includes(s.requiresWeapon), `activeSkill ${s.id}: bad requiresWeapon`);
+    assert(
+      (WEAPON_TYPES as readonly string[]).includes(s.requiresWeapon),
+      `activeSkill ${s.id}: bad requiresWeapon`,
+    );
   }
   return s;
 }
@@ -89,8 +109,14 @@ export function validatePassiveNode(n: PassiveNodeDef): PassiveNodeDef {
   assert(n.id.trim().length > 0, "passiveNode: missing id");
   assert(n.name.trim().length > 0, `passiveNode ${n.id}: missing name`);
   assert(n.description.trim().length > 0, `passiveNode ${n.id}: missing description`);
-  assert((PASSIVE_NODE_TYPES as readonly string[]).includes(n.type), `passiveNode ${n.id}: bad type`);
-  assert((PASSIVE_REGIONS as readonly string[]).includes(n.region), `passiveNode ${n.id}: bad region`);
+  assert(
+    (PASSIVE_NODE_TYPES as readonly string[]).includes(n.type),
+    `passiveNode ${n.id}: bad type`,
+  );
+  assert(
+    (PASSIVE_REGIONS as readonly string[]).includes(n.region),
+    `passiveNode ${n.id}: bad region`,
+  );
   assert(n.neighbors.length >= 1, `passiveNode ${n.id}: must have at least 1 neighbor`);
   return n;
 }
@@ -101,14 +127,18 @@ export function validateItemDef(item: ItemDef): ItemDef {
   // Items use category slots: any equip slot EXCEPT the two ring slots, or "Ring".
   const s = item.slot as string;
   assert(
-    s === "Ring" || ((ITEM_SLOTS as readonly string[]).includes(s) && s !== "Ring1" && s !== "Ring2"),
+    s === "Ring" ||
+      ((ITEM_SLOTS as readonly string[]).includes(s) && s !== "Ring1" && s !== "Ring2"),
     `item ${item.id}: bad slot (rings must use "Ring", not Ring1/Ring2)`,
   );
   assert((RARITIES as readonly string[]).includes(item.rarity), `item ${item.id}: bad rarity`);
   assert(item.requiredLevel >= 1, `item ${item.id}: requiredLevel must be >= 1`);
   if (item.slot === "Weapon") {
     assert(item.weaponType !== undefined, `item ${item.id}: Weapon slot requires weaponType`);
-    assert((WEAPON_TYPES as readonly string[]).includes(item.weaponType!), `item ${item.id}: invalid weaponType`);
+    assert(
+      (WEAPON_TYPES as readonly string[]).includes(item.weaponType!),
+      `item ${item.id}: invalid weaponType`,
+    );
   }
   assert(item.primaryAffix.baseValue > 0, `item ${item.id}: primaryAffix.baseValue must be > 0`);
   return item;

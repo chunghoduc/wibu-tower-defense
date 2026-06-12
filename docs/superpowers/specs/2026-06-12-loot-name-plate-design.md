@@ -14,20 +14,20 @@ loot-style tile in the game:
    `wordWrap: { width: tileW - pad }` — but the background was never sized to
    reserve that text band.
 3. A long, multi-word name wraps to a 2nd (or 3rd) line whose baseline falls
-   *below* the tile's bottom edge, so the glyphs hang off the plate.
+   _below_ the tile's bottom edge, so the glyphs hang off the plate.
 4. There is no shrink-to-fit or ellipsis floor, so name length alone drives the
    overflow.
 
 Concrete offenders (all confirmed in code):
 
-| File | Line | Tile box | Name band | Overflow mode |
-|------|------|----------|-----------|---------------|
-| `boxOpenOverlay.ts` | 130 | `86×72`, bottom `y=36` | text at `y=22`, wrap `78`, no reserved band | 2-line name (e.g. "Legendary Boss Chest ×2") runs to `y≈44`, **below the plate** |
-| `spinReel.ts` | 43 | `132×104`, bottom `y=52` | text at `y=30`, wrap `120` | long prize labels wrap past the cell |
-| `jewelOverlay.ts` | 131 | `88×78`, bottom `y=39` | text at `y=20`, wrap `82` | long jewel names wrap past the tile |
-| `ExpeditionScene.ts` | 125 | `~102×76` | text at `y=h/2-16`, wrap `w-8` | long character names wrap past the tile |
-| `summonResultOverlay.ts` | ~150 | `~84×96` | character name band | same pattern |
-| `rewardPanel.ts` | 185 | `56×56`, in `ROW_H=78` row | rarity word only (not a full name) | fits today, but inconsistent styling |
+| File                     | Line | Tile box                   | Name band                                   | Overflow mode                                                                    |
+| ------------------------ | ---- | -------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------- |
+| `boxOpenOverlay.ts`      | 130  | `86×72`, bottom `y=36`     | text at `y=22`, wrap `78`, no reserved band | 2-line name (e.g. "Legendary Boss Chest ×2") runs to `y≈44`, **below the plate** |
+| `spinReel.ts`            | 43   | `132×104`, bottom `y=52`   | text at `y=30`, wrap `120`                  | long prize labels wrap past the cell                                             |
+| `jewelOverlay.ts`        | 131  | `88×78`, bottom `y=39`     | text at `y=20`, wrap `82`                   | long jewel names wrap past the tile                                              |
+| `ExpeditionScene.ts`     | 125  | `~102×76`                  | text at `y=h/2-16`, wrap `w-8`              | long character names wrap past the tile                                          |
+| `summonResultOverlay.ts` | ~150 | `~84×96`                   | character name band                         | same pattern                                                                     |
+| `rewardPanel.ts`         | 185  | `56×56`, in `ROW_H=78` row | rarity word only (not a full name)          | fits today, but inconsistent styling                                             |
 
 ## Goal
 
@@ -42,11 +42,11 @@ tile so the look is consistent and the bug cannot recur per-call-site.
 **Reserve a name-plate band in the tile background + a shared auto-fit text
 helper.** Considered alternatives:
 
-- *Auto-fit text only (no plate)* — fixes horizontal spill but not the vertical
+- _Auto-fit text only (no plate)_ — fixes horizontal spill but not the vertical
   case in `boxOpenOverlay` where the label sits below the box; rejected.
-- *Background grows to fit text (dynamic plate height)* — variable tile heights
+- _Background grows to fit text (dynamic plate height)_ — variable tile heights
   make grids ragged and break the existing centered grid math; rejected.
-- *Reserved plate band + auto-fit text* — fixed tile footprint (grids stay
+- _Reserved plate band + auto-fit text_ — fixed tile footprint (grids stay
   clean), text is structurally contained, and one component standardises the
   look. **Chosen.**
 
@@ -54,14 +54,14 @@ helper.** Considered alternatives:
 
 ```ts
 export interface FitOpts {
-  maxWidth: number;   // px the text band allows
-  maxLines: number;   // hard cap (default 2)
-  basePx: number;     // preferred font size
-  minPx: number;      // smallest font before ellipsis kicks in
+  maxWidth: number; // px the text band allows
+  maxLines: number; // hard cap (default 2)
+  basePx: number; // preferred font size
+  minPx: number; // smallest font before ellipsis kicks in
 }
 export interface FitPlan {
   fontPx: number;
-  lines: string[];    // already word-wrapped, ready to join with "\n"
+  lines: string[]; // already word-wrapped, ready to join with "\n"
   truncated: boolean; // true if an ellipsis was applied
 }
 export type Measure = (text: string, fontPx: number) => number; // width in px
@@ -89,17 +89,21 @@ lines; very long names end `…` and never exceed `maxWidth`/`maxLines`.
 
 ```ts
 export interface PlateOpts {
-  width: number;        // tile width
-  topY: number;         // y of the plate's top edge (plate spans topY..topY+height)
-  height: number;       // plate band height
-  radius: number;       // bottom-corner radius (matches the tile)
-  accent: number;       // rarity / reward color for the divider line
-  color: string;        // text color
-  basePx?: number; minPx?: number; maxLines?: number;
+  width: number; // tile width
+  topY: number; // y of the plate's top edge (plate spans topY..topY+height)
+  height: number; // plate band height
+  radius: number; // bottom-corner radius (matches the tile)
+  accent: number; // rarity / reward color for the divider line
+  color: string; // text color
+  basePx?: number;
+  minPx?: number;
+  maxLines?: number;
 }
 export function addNamePlate(
-  scene: Phaser.Scene, container: Phaser.GameObjects.Container,
-  text: string, opts: PlateOpts,
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  text: string,
+  opts: PlateOpts,
 ): void;
 ```
 

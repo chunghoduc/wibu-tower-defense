@@ -21,7 +21,10 @@ export function getBountyProgress(save: HeroSave, bountyId: string): number {
 export function isBountyClaimable(save: HeroSave, bountyId: string): boolean {
   const def = WEEKLY_BOUNTIES_MAP.get(bountyId);
   if (!def) return false;
-  return (save.meta.bounties.progress[bountyId] ?? 0) >= def.target && !save.meta.bounties.claimed.includes(bountyId);
+  return (
+    (save.meta.bounties.progress[bountyId] ?? 0) >= def.target &&
+    !save.meta.bounties.claimed.includes(bountyId)
+  );
 }
 
 /** How many bounty rewards are collectable right now (main-menu badge). */
@@ -33,7 +36,12 @@ export function claimableBountyCount(save: HeroSave): number {
  * Advance every bounty listening to `event` by `amount`, rolling the week over
  * first if needed. Progress is capped at each bounty's target.
  */
-export function incrementBountyEvent(save: HeroSave, event: BountyEvent, amount: number, weekKey: string): void {
+export function incrementBountyEvent(
+  save: HeroSave,
+  event: BountyEvent,
+  amount: number,
+  weekKey: string,
+): void {
   rolloverBounties(save, weekKey);
   for (const def of WEEKLY_BOUNTIES) {
     if (def.event !== event) continue;

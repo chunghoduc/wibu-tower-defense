@@ -13,6 +13,7 @@
 ### Task 1: Articulated walk frames in the creature composer
 
 **Files:**
+
 - Modify: `scripts/pixelart/creatures.mjs` (replace `pose()` + `ENEMY_POSES`, add `reposeFrame()`)
 - Test: `tests/enemy-walk.test.ts` (create)
 
@@ -91,19 +92,28 @@ In `scripts/pixelart/creatures.mjs`, replace the `pose()` function (the block st
 // `legL`/`legR` = {dx,dy} offsets applied only to that half's leg-band pixels;
 // `tint` reddens for the hurt flash.
 function reposeFrame(base, g = {}) {
-  const S = base.w, out = canvas(S, S), hurt = "#ff5a5a";
-  const dx = g.dx || 0, bob = g.bob || 0, lean = g.lean || 0, tint = g.tint || 0;
-  const legL = g.legL || { dx: 0, dy: 0 }, legR = g.legR || { dx: 0, dy: 0 };
+  const S = base.w,
+    out = canvas(S, S),
+    hurt = "#ff5a5a";
+  const dx = g.dx || 0,
+    bob = g.bob || 0,
+    lean = g.lean || 0,
+    tint = g.tint || 0;
+  const legL = g.legL || { dx: 0, dy: 0 },
+    legR = g.legR || { dx: 0, dy: 0 };
   const legTop = S - Math.max(7, Math.round(S * 0.28));
   for (let y = 0; y < S; y++) {
-    const sh = Math.round(lean * (S - 1 - y) / (S - 1)); // more shear up top
+    const sh = Math.round((lean * (S - 1 - y)) / (S - 1)); // more shear up top
     for (let x = 0; x < S; x++) {
       const c = base.d[y * S + x];
       if (!c) continue;
-      let nx = x + dx + sh, ny = y + bob;
-      if (y >= legTop) {                 // leg band: each leg moves on its own
+      let nx = x + dx + sh,
+        ny = y + bob;
+      if (y >= legTop) {
+        // leg band: each leg moves on its own
         const leg = x < S / 2 ? legL : legR;
-        nx += leg.dx; ny += leg.dy;
+        nx += leg.dx;
+        ny += leg.dy;
       }
       set(out, nx, ny, tint ? mix(c, hurt, tint) : c);
     }
@@ -115,19 +125,22 @@ function reposeFrame(base, g = {}) {
 // (contact-left -> passing -> contact-right -> passing), a wind-up + strike,
 // and a hurt recoil. `/walk/` (PreloadScene) spans walk1..walk4 at 7fps.
 const ENEMY_POSES = [
-  { name: "idle",  g: {} },
-  { name: "walk1", g: { lean: 1,  legL: { dx: 1, dy: -2 }, legR: { dx: -1, dy: 0 } } },
-  { name: "walk2", g: { bob: -1, lean: 1,  legL: { dx: 0, dy: -1 }, legR: { dx: 0, dy: -1 } } },
+  { name: "idle", g: {} },
+  { name: "walk1", g: { lean: 1, legL: { dx: 1, dy: -2 }, legR: { dx: -1, dy: 0 } } },
+  { name: "walk2", g: { bob: -1, lean: 1, legL: { dx: 0, dy: -1 }, legR: { dx: 0, dy: -1 } } },
   { name: "walk3", g: { lean: -1, legL: { dx: -1, dy: 0 }, legR: { dx: 1, dy: -2 } } },
   { name: "walk4", g: { bob: -1, lean: -1, legL: { dx: 0, dy: -1 }, legR: { dx: 0, dy: -1 } } },
-  { name: "atk1",  g: { bob: -1, lean: -2 } },
-  { name: "atk2",  g: { dx: 2, lean: 3 } },
-  { name: "hurt",  g: { dx: -2, bob: 1, tint: 0.5 } },
+  { name: "atk1", g: { bob: -1, lean: -2 } },
+  { name: "atk2", g: { dx: 2, lean: 3 } },
+  { name: "hurt", g: { dx: -2, bob: 1, tint: 0.5 } },
 ];
 
 export function composeEnemyFrames(spec) {
   const base = composeEnemy(spec);
-  return { names: ENEMY_POSES.map((p) => p.name), frames: ENEMY_POSES.map((p) => reposeFrame(base, p.g)) };
+  return {
+    names: ENEMY_POSES.map((p) => p.name),
+    frames: ENEMY_POSES.map((p) => reposeFrame(base, p.g)),
+  };
 }
 ```
 
@@ -150,6 +163,7 @@ git commit -m "feat: articulated 4-frame enemy walk cycle (real alternating legs
 ### Task 2: Regenerate enemy sprite sheets + manifest
 
 **Files:**
+
 - Modify (generated): `public/assets/sprites/enemy/*.png`, `public/assets/sprites/enemy/*.json`
 - Modify (generated): `src/data/spriteManifest.ts`
 
@@ -180,6 +194,7 @@ git commit -m "feat: regen enemy sprite sheets with 4-frame walk cycle"
 ### Task 3: Trim runtime body-bob so the legs read
 
 **Files:**
+
 - Modify: `src/scenes/battleSceneSprites.ts` (`animateEnemy` GROUND branch + shadow lift normalization)
 
 - [ ] **Step 1: Reduce the procedural bob + waddle amplitude**
@@ -187,17 +202,17 @@ git commit -m "feat: regen enemy sprite sheets with 4-frame walk cycle"
 In `animateEnemy`, the GROUND `else` branch currently reads:
 
 ```ts
-      yOff = -swing * 5 * A;                             // body lifts clear off the ground between footfalls
-      xOff = Math.sin(c) * 1.6 * A;                      // lateral weight-shift waddle as it strides
-      angle = -Math.cos(c) * 4.5 * A;                    // waddle rock toward the planted foot
+yOff = -swing * 5 * A; // body lifts clear off the ground between footfalls
+xOff = Math.sin(c) * 1.6 * A; // lateral weight-shift waddle as it strides
+angle = -Math.cos(c) * 4.5 * A; // waddle rock toward the planted foot
 ```
 
 Change the three magnitudes (the legs now carry the step, so the body moves less):
 
 ```ts
-      yOff = -swing * 3 * A;                             // gentle body bob; the stride legs carry the step now
-      xOff = Math.sin(c) * 1.2 * A;                      // lateral weight-shift waddle as it strides
-      angle = -Math.cos(c) * 3.5 * A;                    // waddle rock toward the planted foot
+yOff = -swing * 3 * A; // gentle body bob; the stride legs carry the step now
+xOff = Math.sin(c) * 1.2 * A; // lateral weight-shift waddle as it strides
+angle = -Math.cos(c) * 3.5 * A; // waddle rock toward the planted foot
 ```
 
 - [ ] **Step 2: Keep the ground-shadow lift normalization consistent with the new bob**
@@ -205,7 +220,7 @@ Change the three magnitudes (the legs now carry the step, so the body moves less
 The shadow block computes `lift` by dividing `-yOff` by the old peak `5`. Update the divisor to `3` so a planted foot still maps to `lift≈0` and full lift to `≈1`:
 
 ```ts
-        const lift = Math.max(0, -yOff) / (3 * (boss ? 0.6 : 1)); // 0 planted → 1 airborne
+const lift = Math.max(0, -yOff) / (3 * (boss ? 0.6 : 1)); // 0 planted → 1 airborne
 ```
 
 - [ ] **Step 3: Typecheck**

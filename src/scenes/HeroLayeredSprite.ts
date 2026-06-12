@@ -54,12 +54,14 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   private readonly weaponSprite: Phaser.GameObjects.Sprite;
   private readonly wingsSprite: Phaser.GameObjects.Sprite;
 
-
   /** Pet wanders outside the container — managed here but positioned separately. */
   readonly petSprite: Phaser.GameObjects.Sprite;
 
   private _lastConfig: HeroLayerConfig = {
-    weaponKey: null, weaponType: null, wingKey: null, petKey: null,
+    weaponKey: null,
+    weaponType: null,
+    wingKey: null,
+    petKey: null,
   };
 
   // Base (un-flapped) scale/anchor captured from scaleToHeight, so the flap and
@@ -101,7 +103,10 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     // the flap tween pivots there and the wings rise behind the shoulders.
     this.wingsSprite = scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.72);
     this.bodySprite = scene.add.sprite(0, 0, "hero__hero").setOrigin(0.5, 0.78);
-    this.weaponSprite = scene.add.sprite(DEFAULT_POSE.x, DEFAULT_POSE.y, "__missing").setVisible(false).setScale(0.22);
+    this.weaponSprite = scene.add
+      .sprite(DEFAULT_POSE.x, DEFAULT_POSE.y, "__missing")
+      .setVisible(false)
+      .setScale(0.22);
 
     // Back→front: wings · body · weapon. (Worn armour isn't composited on the
     // battle body — the rig already reads as a fully-armoured knight, and flat
@@ -109,7 +114,10 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     // icon tiles + stats on the equipment screen instead.)
     this.add([this.wingsSprite, this.bodySprite, this.weaponSprite]);
 
-    this.petSprite = scene.add.sprite(x + 30, y + 8, "__missing").setVisible(false).setScale(0.32);
+    this.petSprite = scene.add
+      .sprite(x + 30, y + 8, "__missing")
+      .setVisible(false)
+      .setScale(0.32);
 
     scene.add.existing(this);
   }
@@ -175,7 +183,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
    */
   private beginOneShot(key: string, prio: number): boolean {
     if (!this.scene.anims.exists(key)) return false;
-    if (this.oneShot && this.oneShot.prio > prio) return false;                       // outranked
+    if (this.oneShot && this.oneShot.prio > prio) return false; // outranked
     if (this.oneShot && this.oneShot.key === key && this.bodySprite.anims.isPlaying) return false; // already in it
     const body = this.bodySprite;
     this.oneShot = { key, prio };
@@ -208,27 +216,87 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     const { rx, ry, ra, side } = this.restGeom();
     this.scene.tweens.killTweensOf(w);
     w.setPosition(rx, ry).setAngle(ra).setScale(this.weaponScale);
-    const back = () => this.scene.tweens.add({ targets: w, x: rx, y: ry, angle: ra, scaleX: this.weaponScale, scaleY: this.weaponScale, duration: 130, ease: "Back.easeOut" });
+    const back = () =>
+      this.scene.tweens.add({
+        targets: w,
+        x: rx,
+        y: ry,
+        angle: ra,
+        scaleX: this.weaponScale,
+        scaleY: this.weaponScale,
+        duration: 130,
+        ease: "Back.easeOut",
+      });
 
     switch (this.weaponType) {
       case "Bow": // draw back, then loose forward
-        this.scene.tweens.add({ targets: w, x: rx - 8 * side, duration: 100, ease: "Sine.easeIn",
-          onComplete: () => this.scene.tweens.add({ targets: w, x: rx + 12 * side, duration: 70, ease: "Quint.easeOut", onComplete: back }) });
+        this.scene.tweens.add({
+          targets: w,
+          x: rx - 8 * side,
+          duration: 100,
+          ease: "Sine.easeIn",
+          onComplete: () =>
+            this.scene.tweens.add({
+              targets: w,
+              x: rx + 12 * side,
+              duration: 70,
+              ease: "Quint.easeOut",
+              onComplete: back,
+            }),
+        });
         break;
       case "Gun": // sharp recoil up-back, then settle
-        this.scene.tweens.add({ targets: w, x: rx - 6 * side, y: ry - 4, angle: ra - 12 * side, duration: 55, ease: "Quad.easeOut", onComplete: back });
+        this.scene.tweens.add({
+          targets: w,
+          x: rx - 6 * side,
+          y: ry - 4,
+          angle: ra - 12 * side,
+          duration: 55,
+          ease: "Quad.easeOut",
+          onComplete: back,
+        });
         break;
       case "Staff":
       case "Tome": // raise and charge-pulse to cast
-        this.scene.tweens.add({ targets: w, y: ry - 10, scaleX: this.weaponScale * 1.18, scaleY: this.weaponScale * 1.18, duration: 120, ease: "Sine.easeOut", onComplete: back });
+        this.scene.tweens.add({
+          targets: w,
+          y: ry - 10,
+          scaleX: this.weaponScale * 1.18,
+          scaleY: this.weaponScale * 1.18,
+          duration: 120,
+          ease: "Sine.easeOut",
+          onComplete: back,
+        });
         break;
       case "Fist": // quick straight jab — punch forward and snap back
-        this.scene.tweens.add({ targets: w, x: rx + 12 * side, duration: 55, ease: "Quint.easeIn",
-          onComplete: () => this.scene.tweens.add({ targets: w, x: rx, duration: 90, ease: "Back.easeOut" }) });
+        this.scene.tweens.add({
+          targets: w,
+          x: rx + 12 * side,
+          duration: 55,
+          ease: "Quint.easeIn",
+          onComplete: () =>
+            this.scene.tweens.add({ targets: w, x: rx, duration: 90, ease: "Back.easeOut" }),
+        });
         break;
       default: // Sword / Any — wind-up then swing arc
-        this.scene.tweens.add({ targets: w, x: rx - 6 * side, y: ry - 6, angle: ra - 50 * side, duration: 80, ease: "Sine.easeIn",
-          onComplete: () => this.scene.tweens.add({ targets: w, x: rx + 8 * side, y: ry + 6, angle: ra + 45 * side, duration: 60, ease: "Quint.easeOut", onComplete: back }) });
+        this.scene.tweens.add({
+          targets: w,
+          x: rx - 6 * side,
+          y: ry - 6,
+          angle: ra - 50 * side,
+          duration: 80,
+          ease: "Sine.easeIn",
+          onComplete: () =>
+            this.scene.tweens.add({
+              targets: w,
+              x: rx + 8 * side,
+              y: ry + 6,
+              angle: ra + 45 * side,
+              duration: 60,
+              ease: "Quint.easeOut",
+              onComplete: back,
+            }),
+        });
     }
   }
 
@@ -249,13 +317,25 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     w.setPosition(rx, ry).setAngle(ra).setScale(this.weaponScale);
     // Raise overhead with a bright scale pulse, then settle back to rest.
     this.scene.tweens.add({
-      targets: w, x: rx - 4 * side, y: ry - 18, angle: ra - 24 * side,
-      scaleX: this.weaponScale * 1.32, scaleY: this.weaponScale * 1.32,
-      duration: 170, ease: "Sine.easeOut",
-      onComplete: () => this.scene.tweens.add({
-        targets: w, x: rx, y: ry, angle: ra, scaleX: this.weaponScale, scaleY: this.weaponScale,
-        duration: 220, ease: "Back.easeOut",
-      }),
+      targets: w,
+      x: rx - 4 * side,
+      y: ry - 18,
+      angle: ra - 24 * side,
+      scaleX: this.weaponScale * 1.32,
+      scaleY: this.weaponScale * 1.32,
+      duration: 170,
+      ease: "Sine.easeOut",
+      onComplete: () =>
+        this.scene.tweens.add({
+          targets: w,
+          x: rx,
+          y: ry,
+          angle: ra,
+          scaleX: this.weaponScale,
+          scaleY: this.weaponScale,
+          duration: 220,
+          ease: "Back.easeOut",
+        }),
     });
   }
 
@@ -266,21 +346,34 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     const dirx = this.facingLeft ? 7 : -7; // shoved opposite the way it faces
     this.scene.tweens.killTweensOf(body);
     this.scene.tweens.add({
-      targets: body, x: dirx, duration: 70, yoyo: true, ease: "Quad.easeOut",
-      onComplete: () => { if (body.active) body.x = 0; },
+      targets: body,
+      x: dirx,
+      duration: 70,
+      yoyo: true,
+      ease: "Quad.easeOut",
+      onComplete: () => {
+        if (body.active) body.x = 0;
+      },
     });
   }
 
   /** Pet wander: roam to random points around the hero, hopping as it runs. */
   private updatePet(now: number, dt: number): void {
     const pet = this.petSprite;
-    if (!pet.visible) { this.petReady = false; return; }
-    if (!this.petReady) { // drop in beside the hero on first appearance
-      this.petX = this.heroX + 26; this.petY = this.heroY + 8;
-      this.petRepickAt = 0; this.petReady = true;
+    if (!pet.visible) {
+      this.petReady = false;
+      return;
+    }
+    if (!this.petReady) {
+      // drop in beside the hero on first appearance
+      this.petX = this.heroX + 26;
+      this.petY = this.heroY + 8;
+      this.petRepickAt = 0;
+      this.petReady = true;
     }
 
-    const dx = this.petTX - this.petX, dy = this.petTY - this.petY;
+    const dx = this.petTX - this.petX,
+      dy = this.petTY - this.petY;
     const d = Math.hypot(dx, dy);
     if (now >= this.petRepickAt || d < 8) {
       // New roam target on a ring around the hero's current position.
@@ -362,14 +455,20 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   }
 
   private stopFlap(): void {
-    if (this.flapTween) { this.flapTween.stop(); this.flapTween = null; }
+    if (this.flapTween) {
+      this.flapTween.stop();
+      this.flapTween = null;
+    }
     this.wingsSprite.setScale(this.wingScale).setAngle(0);
   }
 
   syncEquipment(inventory: InventorySave): void {
     const config = resolveHeroLayers(inventory);
 
-    if (config.weaponKey !== this._lastConfig.weaponKey || config.weaponType !== this._lastConfig.weaponType) {
+    if (
+      config.weaponKey !== this._lastConfig.weaponKey ||
+      config.weaponType !== this._lastConfig.weaponType
+    ) {
       this.weaponType = config.weaponType;
       if (config.weaponKey && this.scene.textures.exists(config.weaponKey)) {
         this.weaponSprite.setTexture(config.weaponKey).setVisible(true);

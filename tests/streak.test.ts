@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createFreshSave } from "../src/core/save.ts";
-import { claimStreak, streakClaimable, STREAK_CYCLE, STREAK_MILESTONE_DAYS } from "../src/core/streak.ts";
+import {
+  claimStreak,
+  streakClaimable,
+  STREAK_CYCLE,
+  STREAK_MILESTONE_DAYS,
+} from "../src/core/streak.ts";
 
 describe("F1 login streak", () => {
   it("first claim starts the chain at 1 and grants day-1 reward", () => {

@@ -29,39 +29,70 @@ export interface MilestoneDef {
 
 export const MILESTONES: MilestoneDef[] = [
   {
-    id: "slayer", name: "Slayer", metric: "kills", description: "Defeat enemies across all battles.",
+    id: "slayer",
+    name: "Slayer",
+    metric: "kills",
+    description: "Defeat enemies across all battles.",
     tiers: [
       { target: 500, reward: { diamonds: 20 } },
       { target: 5000, reward: { diamonds: 50 }, title: "the Relentless" },
-      { target: 25000, reward: { diamonds: 100, materials: { [AWAKENING_CRYSTAL]: 2 } }, title: "Worldender" },
+      {
+        target: 25000,
+        reward: { diamonds: 100, materials: { [AWAKENING_CRYSTAL]: 2 } },
+        title: "Worldender",
+      },
     ],
   },
   {
-    id: "conqueror", name: "Conqueror", metric: "clears", description: "Clear stages on any difficulty.",
+    id: "conqueror",
+    name: "Conqueror",
+    metric: "clears",
+    description: "Clear stages on any difficulty.",
     tiers: [
       { target: 25, reward: { diamonds: 20 } },
       { target: 100, reward: { diamonds: 50 }, title: "Conqueror" },
-      { target: 300, reward: { diamonds: 120, materials: { [SUMMON_SCROLL]: 3 } }, title: "Grand Marshal" },
+      {
+        target: 300,
+        reward: { diamonds: 120, materials: { [SUMMON_SCROLL]: 3 } },
+        title: "Grand Marshal",
+      },
     ],
   },
   {
-    id: "collector", name: "Collector", metric: "collection", description: "Recruit unique heroes.",
+    id: "collector",
+    name: "Collector",
+    metric: "collection",
+    description: "Recruit unique heroes.",
     tiers: [
       { target: 10, reward: { diamonds: 30 } },
       { target: 20, reward: { diamonds: 60 }, title: "Curator" },
-      { target: 32, reward: { diamonds: 160, materials: { [AWAKENING_CRYSTAL]: 3 } }, title: "Completionist" },
+      {
+        target: 32,
+        reward: { diamonds: 160, materials: { [AWAKENING_CRYSTAL]: 3 } },
+        title: "Completionist",
+      },
     ],
   },
   {
-    id: "survivor", name: "Survivor", metric: "endless", description: "Reach deep endless waves.",
+    id: "survivor",
+    name: "Survivor",
+    metric: "endless",
+    description: "Reach deep endless waves.",
     tiers: [
       { target: 10, reward: { diamonds: 25 } },
       { target: 25, reward: { diamonds: 60 }, title: "the Unyielding" },
-      { target: 50, reward: { diamonds: 150, materials: { [AWAKENING_CRYSTAL]: 2 } }, title: "Eternal" },
+      {
+        target: 50,
+        reward: { diamonds: 150, materials: { [AWAKENING_CRYSTAL]: 2 } },
+        title: "Eternal",
+      },
     ],
   },
   {
-    id: "ascendant", name: "Ascendant", metric: "awakened", description: "Awaken your heroes' true potential.",
+    id: "ascendant",
+    name: "Ascendant",
+    metric: "awakened",
+    description: "Awaken your heroes' true potential.",
     tiers: [
       { target: 1, reward: { diamonds: 30 } },
       { target: 5, reward: { diamonds: 80 }, title: "Awakener" },
