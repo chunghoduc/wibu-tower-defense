@@ -20,8 +20,12 @@ export function uiTextResolution(): number {
   return Math.min(4, Math.max(3, Math.round(dpr * 2)));
 }
 
+/** The single UI font stack. Shared so canvas-measured layout (name plates)
+ *  matches what crispText actually rasterises. */
+export const UI_FONT_FAMILY = '"Trebuchet MS", "Segoe UI", system-ui, sans-serif';
+
 const DEFAULT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-  fontFamily: '"Trebuchet MS", "Segoe UI", system-ui, sans-serif',
+  fontFamily: UI_FONT_FAMILY,
   stroke: "#0a0d14",
   strokeThickness: 3,
 };
