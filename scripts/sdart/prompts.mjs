@@ -147,6 +147,25 @@ export function structureStyle(visual, state) {
   return STRUCTURE_STYLE.replace("{V}", `${visual}, ${state}`);
 }
 
+// ---- ROLE BADGE EMBLEMS (the small upper-right tower-role icon) ----
+// Flat UI glyphs (not creatures), so they get their own style + negative — the
+// character STYLE/NEGATIVE ban "icon/symbol/flat" and demand a full-body figure.
+// One emblem per TowerRole; tinted to the role color at render time.
+export const ROLE_VISUAL = {
+  damage:  "a sharp target reticle crosshair pierced by a single arrowhead, sky-blue",
+  splash:  "a bold radiating explosion starburst blast, coral orange",
+  chain:   "a forked lightning bolt arcing between two small nodes, violet purple",
+  dot:     "a single dripping venom droplet with a faint rising bubble, toxic green",
+  support: "three upward chevrons rising inside a soft radiant halo ring, warm gold",
+  debuff:  "a downward arrow over a cracked hourglass, teal cyan",
+  tanker:  "a sturdy heater knight shield with a central round boss, steel grey",
+};
+const ROLEICON_STYLE = "a single flat vector game UI emblem icon of {V}, bold thick clean outline, high contrast, minimal flat cel-shaded, centered, simple iconography, crisp and readable at small size, isolated on a pure plain flat white background, empty background, no text";
+const ROLEICON_NEG = "character, person, creature, hero, knight figure, full body, anime girl, realistic, 3d render, photo, complex scene, landscape, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, signature, frame, border";
+export const ROLEICON_NEGATIVE = ROLEICON_NEG;
+/** Flat role-emblem prompt from a visual description. */
+export function roleIconStyle(visual) { return ROLEICON_STYLE.replace("{V}", visual); }
+
 // ---- ITEMS (icon style) ----
 const ITEM_STYLE = "a single game item icon, {V}, clean cel-shaded anime game asset, centered, isolated on a plain solid light grey background, no shadow, soft rim light";
 export function itemStyle(v) { return ITEM_STYLE.replace("{V}", v); }

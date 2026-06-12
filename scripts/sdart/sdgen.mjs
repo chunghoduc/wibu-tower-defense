@@ -8,6 +8,7 @@ import {
   TOWER_VISUAL, ENEMY_VISUAL, BOSS_VISUAL,
   HERO_BASE, HERO_WEAPON,
   STRUCTURE_VISUAL, STRUCTURE_STATE, structureStyle, STRUCTURE_NEGATIVE,
+  ROLE_VISUAL, roleIconStyle, ROLEICON_NEGATIVE,
 } from "./prompts.mjs";
 
 // Item icons are catalog-driven: `npm run gen:item-visual` dumps every item's
@@ -77,6 +78,10 @@ function buildJobs() {
     const sd = seedOf(id);
     jobs.push({ kind: "structure", id, file: `${id}.png`, prompt: structureStyle(v, STRUCTURE_STATE.intact), seed: sd, w: 768, h: 768, size: 256, neg: STRUCTURE_NEGATIVE });
     jobs.push({ kind: "structure", id, file: `${id}__damaged.png`, prompt: structureStyle(v, STRUCTURE_STATE.damaged), seed: sd, w: 768, h: 768, size: 256, neg: STRUCTURE_NEGATIVE });
+  }
+  // role badge emblems — one flat icon per TowerRole, transparent-cut to 64px.
+  for (const [role, v] of Object.entries(ROLE_VISUAL)) {
+    jobs.push({ kind: "roleicon", id: role, file: `${role}.png`, prompt: roleIconStyle(v), seed: seedOf(role), w: 768, h: 768, size: 64, neg: ROLEICON_NEGATIVE });
   }
   const items = existsSync(ITEM_VISUAL_PATH) ? JSON.parse(readFileSync(ITEM_VISUAL_PATH, "utf8")) : [];
   if (!items.length) console.log(`  WARN: ${ITEM_VISUAL_PATH} missing/empty — run \`npm run gen:item-visual\` first`);
