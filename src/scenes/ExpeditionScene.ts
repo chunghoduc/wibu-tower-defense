@@ -8,6 +8,7 @@
 import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { crispText } from "./ui.ts";
+import { addNamePlate } from "./namePlate.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { getTowerStars } from "../core/collection.ts";
 import { TOWERS } from "../data/towers.ts";
@@ -122,7 +123,10 @@ export class ExpeditionScene extends Phaser.Scene {
       const img = this.add.image(0, -10, key).setOrigin(0.5);
       img.setScale(44 / img.height); c.add(img);
     }
-    c.add(crispText(this, 0, h / 2 - 16, t.name, { fontSize: "8px", color: RARITY_HEX[t.rarity], align: "center", wordWrap: { width: w - 8 } }).setOrigin(0.5, 0));
+    addNamePlate(this, c, t.name, {
+      width: w, topY: h / 2 - 24, height: 24, radius: 6,
+      accent: RARITY_INT[t.rarity], color: RARITY_HEX[t.rarity], basePx: 9, minPx: 7, maxLines: 2,
+    });
     if (stars > 0) c.add(crispText(this, -w / 2 + 4, -h / 2 + 3, "★".repeat(stars), { fontSize: "9px", color: "#ffd24a" }));
     if (picked) c.add(crispText(this, w / 2 - 6, -h / 2 + 3, `${order + 1}`, { fontSize: "12px", color: "#a5f0b8", fontStyle: "bold" }).setOrigin(1, 0));
 

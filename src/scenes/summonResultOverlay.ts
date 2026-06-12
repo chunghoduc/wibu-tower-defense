@@ -3,6 +3,7 @@ import type { SummonResult } from "../core/gacha.ts";
 import { TOWERS } from "../data/towers.ts";
 import { frameKey } from "../data/uiManifest.ts";
 import { button } from "./uiKit.ts";
+import { addNamePlate } from "./namePlate.ts";
 import { towerTex, fxTex } from "../data/assetKeys.ts";
 
 const ADD = Phaser.BlendModes.ADD;
@@ -165,7 +166,10 @@ export class SummonResultOverlay {
         card.add(g);
       }
 
-      card.add(s.add.text(0, -half.h + 6, def?.name ?? r.characterId, { fontSize: "8px", color: hexStr, wordWrap: { width: CARD_W - 14 }, align: "center" }).setOrigin(0.5, 0));
+      addNamePlate(s, card, def?.name ?? r.characterId, {
+        width: CARD_W, topY: -half.h, height: 22, radius: 8, corner: "top",
+        accent: colorInt, color: hexStr, basePx: 8, minPx: 7, maxLines: 2,
+      });
       card.add(s.add.text(0, half.h - 28, r.rarity, { fontSize: "10px", color: hexStr, fontStyle: "bold" }).setOrigin(0.5, 0));
       card.add(s.add.text(0, half.h - 15, "★".repeat(r.newStars), { fontSize: "11px", color: "#ffd700" }).setOrigin(0.5, 0));
       if (r.isNew) {

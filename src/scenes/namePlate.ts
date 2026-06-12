@@ -22,6 +22,7 @@ export interface PlateOpts {
   minPx?: number;
   maxLines?: number;
   pad?: number;         // horizontal inset for text width
+  corner?: "top" | "bottom"; // which tile edge the band hugs (default bottom)
 }
 
 let measureCtx: CanvasRenderingContext2D | null = null;
@@ -44,15 +45,20 @@ export function addNamePlate(
   const { width, topY, height, radius, accent, color } = opts;
   const basePx = opts.basePx ?? 10, minPx = opts.minPx ?? 7;
   const maxLines = opts.maxLines ?? 2, pad = opts.pad ?? 6;
+  const corner = opts.corner ?? "bottom";
 
-  // Band fill with only the bottom corners rounded, plus a thin accent divider
-  // along the top edge so the name region reads as an intentional "plate".
+  // Band fill hugging the named tile edge (outer corners rounded), plus a thin
+  // accent divider on the INNER edge so the name region reads as a "plate".
   const g = scene.add.graphics();
   g.fillStyle(0x0b1119, 1);
-  g.fillRoundedRect(-width / 2, topY, width, height, { tl: 0, tr: 0, bl: radius, br: radius });
+  const corners = corner === "bottom"
+    ? { tl: 0, tr: 0, bl: radius, br: radius }
+    : { tl: radius, tr: radius, bl: 0, br: 0 };
+  g.fillRoundedRect(-width / 2, topY, width, height, corners);
+  const dividerY = corner === "bottom" ? topY + 0.5 : topY + height - 0.5;
   g.lineStyle(1, accent, 0.5).beginPath();
-  g.moveTo(-width / 2 + 1, topY + 0.5);
-  g.lineTo(width / 2 - 1, topY + 0.5);
+  g.moveTo(-width / 2 + 1, dividerY);
+  g.lineTo(width / 2 - 1, dividerY);
   g.strokePath();
   container.add(g);
 
