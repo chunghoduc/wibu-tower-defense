@@ -18,7 +18,8 @@
  * Fields the modules read are public-but-internal — not a public API.
  */
 import Phaser from "phaser";
-import { BattleState } from "../core/battle.ts";
+import { BattleState, type FxEvent } from "../core/battle.ts";
+import { FixedStepper, SIM_STEP } from "../core/fixedStep.ts";
 import { loadCatalog, type Catalog } from "../data/catalog.ts";
 import {
   defaultHeroStats,
@@ -81,6 +82,10 @@ export class BattleScene extends Phaser.Scene {
   endlessBackdropFx: EndlessBackdropFx | null = null;
   placeGhost: Phaser.GameObjects.Container | null = null;
   gameSpeed = 1;
+  /** Fixed-timestep driver — the sim only ever ticks in SIM_STEP increments. */
+  stepper = new FixedStepper();
+  /** Sim fx batched across this frame's fixed steps (the sim clears its own array per tick). */
+  pendingFx: FxEvent[] = [];
   speedBtn!: Phaser.GameObjects.Text;
   callWaveBtn!: Phaser.GameObjects.Text;
   autoSkipText!: Phaser.GameObjects.Text;
@@ -150,6 +155,8 @@ export class BattleScene extends Phaser.Scene {
     this.endlessBackdropFx?.destroy();
     this.endlessBackdropFx = null;
     this.placeGhost = null;
+    this.stepper.reset();
+    this.pendingFx = [];
 
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
     this.stage = (this.registry.get("selectedStage") as StageDef | undefined) ?? STAGE_1;
@@ -451,9 +458,17 @@ export class BattleScene extends Phaser.Scene {
   }
 
   update(time: number, deltaMs: number): void {
-    const dt = Math.min(deltaMs / 1000, 0.05);
     this.handleKeyboardHero();
-    for (let i = 0; i < this.gameSpeed; i++) this.battle.tick(dt); // 0 = paused, 2/3 = fast-forward
+    // Fixed timestep: accumulate (speed-scaled, frame-clamped) wall time and run
+    // the sim in whole SIM_STEP ticks — the exact discretization the tests use.
+    // gameSpeed: 0 = paused, 2/3 = fast-forward (more steps, never a bigger dt).
+    const frame = Math.min(deltaMs / 1000, 0.25) * this.gameSpeed;
+    const steps = this.stepper.advance(frame);
+    this.pendingFx.length = 0;
+    for (let i = 0; i < steps; i++) {
+      this.battle.tick(SIM_STEP);
+      this.pendingFx.push(...this.battle.fx);
+    }
     this.syncCastleArt();
     this.draw();
     this.endlessBackdropFx?.update(time);

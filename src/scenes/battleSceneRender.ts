@@ -66,7 +66,9 @@ export const renderMethods = {
     }
 
     this.manageSprites();
-    for (const ev of this.battle.fx) this.playFx(ev);
+    // Batched in update(): replays nothing on 0-step frames, drops nothing on
+    // multi-step frames (the old direct read did both under fast-forward).
+    for (const ev of this.pendingFx) this.playFx(ev);
     this.maybeFlushKillRewards();
     for (const t of this.battle.towers) this.drawAuraRing(g, t);
     for (const t of this.battle.towers) this.drawTower(g, t);
