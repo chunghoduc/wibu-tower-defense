@@ -34,6 +34,34 @@ describe("boss sieges a tower", () => {
     return b;
   }
 
+  it("keeps marching when no tower is in range (only halts for a target in reach)", () => {
+    // Same boss, but the only tower is parked far off-lane (well outside weapon
+    // reach), so the boss never has a target and must advance every tick.
+    const boss = mkEnemy({
+      archetype: "Boss",
+      boss: { enrage: { belowHpPct: 0.0, atkMult: 1, speedMult: 1 } },
+      weapon: { family: "sword", display: "greatblade" },
+      castleDamage: 0,
+      baseStats: makeStats({ maxHp: 1e9, moveSpeed: 30, atk: 60, attackSpeed: 1 }),
+    });
+    const tower = mkTower({
+      id: "faraway",
+      role: "tanker",
+      baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 1e9, armor: 30 }),
+    });
+    const b = world([boss], [tower], mkStage(oneWave("grunt", 1), { castleHp: 1e9, slots: [{ x: 150, y: 900 }] }), {
+      hero: { stats: makeStats({ maxHp: 100 }), startPos: { x: -2000, y: -2000 } },
+    });
+    b.placeTower("faraway", 0); // tower exists, just never in reach
+    while (b.enemies.length === 0) b.tick(0.05); // let the boss spawn
+    const e = b.enemies[0]!;
+    const d1 = e.distanceAlong;
+    for (let i = 0; i < 100; i++) b.tick(0.05);
+    const d2 = e.distanceAlong;
+    expect(b.towers.length).toBe(1); // tower untouched (boss never reached it)
+    expect(d2 - d1).toBeGreaterThan(10); // boss kept marching — no target halted it
+  });
+
   it("halts on the tower (distance along the route plateaus while the tower lives)", () => {
     const b = siegeWorld(1e9); // unbreakable wall — boss can never pass
     for (let i = 0; i < 200; i++) b.tick(0.05);
