@@ -5,7 +5,7 @@
  * (F15), and read the profile / Power Rating (F16). Scrolls vertically.
  */
 import Phaser from "phaser";
-import { fadeIn, fadeToScene } from "./uiKit.ts";
+import { fadeIn, fadeToScene, accentPanel, actionChip } from "./uiKit.ts";
 import { crispText } from "./ui.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { rewardLabel } from "../core/rewards.ts";
@@ -115,10 +115,7 @@ export class ActivitiesScene extends Phaser.Scene {
 
   // ── panels ──────────────────────────────────────────────────────────────────
   private panel(y: number, h: number, accent: number, hot = false): void {
-    const g = this.add.graphics();
-    g.fillStyle(hot ? 0x22180c : 0x141b26, 1).fillRoundedRect(PANEL_X, y, PANEL_W, h, 12);
-    g.lineStyle(2, hot ? 0xffc94d : accent, 1).strokeRoundedRect(PANEL_X, y, PANEL_W, h, 12);
-    this.layer.add(g);
+    this.layer.add(accentPanel(this, PANEL_X, y, PANEL_W, h, accent, hot));
   }
 
   private button(
@@ -129,23 +126,9 @@ export class ActivitiesScene extends Phaser.Scene {
     enabled: boolean,
     cb: () => void,
   ): void {
-    if (!enabled) {
-      this.layer.add(
-        crispText(this, x, y, label, { fontSize: "13px", color: "#6b7a8d" }).setOrigin(1, 0.5),
-      );
-      return;
-    }
-    const btn = crispText(this, x, y, label, {
-      fontSize: "14px",
-      color: "#ffffff",
-      backgroundColor: color,
-      fontStyle: "bold",
-    })
-      .setOrigin(1, 0.5)
-      .setPadding(14, 6, 14, 6)
-      .setInteractive({ useHandCursor: true });
-    btn.on("pointerup", cb);
+    const btn = actionChip(this, x, y, label, color, enabled, cb);
     this.layer.add(btn);
+    if (!enabled) return;
     this.tweens.add({
       targets: btn,
       scale: 1.05,

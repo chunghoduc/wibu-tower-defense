@@ -15,22 +15,7 @@ import { instanceReqLevel } from "../data/items.ts";
 import { equipLevelGate } from "../data/equipGate.ts";
 import { addGatedButton } from "./gatedButton.ts";
 import type { SaveManager } from "../core/saveManager.ts";
-import type { Rarity } from "../data/schema.ts";
-
-const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
+import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
 export interface EnhanceCallbacks {
   onChange: () => void; // an enhance attempt landed — refresh the inventory

@@ -10,24 +10,11 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { ACTIVE_SKILLS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { skillXpToLevel, skillEffectivePower } from "../core/hero.ts";
 import { skillWeaponMet } from "../core/loadout.ts";
-import type { Rarity, ActiveSkillDef } from "../data/schema.ts";
+import type { ActiveSkillDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 import { skillTex } from "../data/assetKeys.ts";
+import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
-const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
 const DMG_HEX: Record<string, string> = { Physical: "#ff8a65", Magic: "#b39ddb", True: "#fff176" };
 const DMG_INT: Record<string, number> = { Physical: 0xff8a65, Magic: 0xb39ddb, True: 0xfff176 };
 

@@ -108,3 +108,81 @@ export function popIn(
   obj.setScale(0.86).setAlpha(0);
   scene.tweens.add({ targets: obj, scale: 1, alpha: 1, duration: DUR.pop, ease: "Back.easeOut" });
 }
+
+/**
+ * Accent panel — the rounded card used by the Activities/Forge-style menus:
+ * dark body, 2px accent border; `hot` swaps to the warm "ready to claim" look.
+ */
+export function accentPanel(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  accent: number,
+  hot = false,
+): Phaser.GameObjects.Graphics {
+  const g = scene.add.graphics();
+  g.fillStyle(hot ? 0x22180c : 0x141b26, 1).fillRoundedRect(x, y, w, h, 12);
+  g.lineStyle(2, hot ? 0xffc94d : accent, 1).strokeRoundedRect(x, y, w, h, 12);
+  return g;
+}
+
+export interface ActionChipOpts {
+  fontSize?: string;
+  padX?: number;
+  padY?: number;
+  disabledFontSize?: string;
+}
+
+/**
+ * Compact right-aligned action chip (claim/run/forge buttons on list rows).
+ * Disabled renders as a muted plain label. Returns the Text either way.
+ */
+export function actionChip(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  label: string,
+  color: string,
+  enabled: boolean,
+  cb: () => void,
+  opts: ActionChipOpts = {},
+): Phaser.GameObjects.Text {
+  if (!enabled) {
+    return crispText(scene, x, y, label, {
+      fontSize: opts.disabledFontSize ?? "13px",
+      color: "#6b7a8d",
+    }).setOrigin(1, 0.5);
+  }
+  const btn = crispText(scene, x, y, label, {
+    fontSize: opts.fontSize ?? "14px",
+    color: "#ffffff",
+    backgroundColor: color,
+    fontStyle: "bold",
+  })
+    .setOrigin(1, 0.5)
+    .setPadding(opts.padX ?? 14, opts.padY ?? 6, opts.padX ?? 14, opts.padY ?? 6)
+    .setInteractive({ useHandCursor: true });
+  btn.on("pointerup", cb);
+  return btn;
+}
+
+/**
+ * Full-screen dim layer + tap-to-dismiss zone for modal dialogs. Adds both to
+ * `container` so they die with it.
+ */
+export function dimBackdrop(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  onDismiss?: () => void,
+  alpha = 0.55,
+): void {
+  const W = scene.scale.width,
+    H = scene.scale.height;
+  const dim = scene.add.graphics();
+  dim.fillStyle(0x000000, alpha).fillRect(0, 0, W, H);
+  const zone = scene.add.zone(W / 2, H / 2, W, H).setInteractive();
+  if (onDismiss) zone.on("pointerup", onDismiss);
+  container.add([dim, zone]);
+}

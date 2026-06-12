@@ -15,21 +15,8 @@ import { TOWERS } from "../data/towers.ts";
 import { MAX_EXPEDITION_TOWERS, MIN_COLLECT_MS } from "../core/expedition.ts";
 import type { Rarity, CharacterDef } from "../data/schema.ts";
 import { towerTex } from "../data/assetKeys.ts";
+import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
-const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
 const RARITY_ORDER: Record<Rarity, number> = {
   Common: 0,
   Magic: 1,

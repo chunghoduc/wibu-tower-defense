@@ -7,6 +7,7 @@
 // fallback when not. Phaser-free so it is unit-testable.
 import type { Reward } from "../core/rewards.ts";
 import type { Rarity } from "./schema.ts";
+import { RARITY_INT } from "./rarityColors.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS_MAP } from "./materials.ts";
 import { ITEM_CATALOG_MAP } from "./items.ts";
@@ -33,13 +34,8 @@ export interface RewardIconView {
 }
 
 export const RARITY_ORDER: Rarity[] = ["Common", "Magic", "Rare", "Legendary", "Unique"];
-export const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
+// Re-exported for historical importers; the table itself lives in rarityColors.ts.
+export { RARITY_INT };
 export const GOLD_INT = 0xffcf4d,
   DIAMOND_INT = 0x7ec8ff,
   MAT_INT = 0xa5d6a7,

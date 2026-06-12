@@ -6,24 +6,13 @@
  */
 import type Phaser from "phaser";
 import { starUpCost } from "../core/collection.ts";
-import type { Rarity, CharacterDef } from "../data/schema.ts";
+import type { CharacterDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 import { towerTex } from "../data/assetKeys.ts";
+import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
-export const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
+// Re-exported for SquadScene (historical import site); table lives in rarityColors.ts.
+export { RARITY_HEX };
 
 /** A slotted character: draggable (to swap/remove) + clickable (to inspect). */
 export function makeSlotTile(

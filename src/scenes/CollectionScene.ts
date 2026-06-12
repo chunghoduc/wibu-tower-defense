@@ -8,22 +8,7 @@ import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { drawScrollbar } from "./scrollbar.ts";
 import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
 import { towerTex, skillTex } from "../data/assetKeys.ts";
-
-const RARITY_INT: Record<string, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
-
-const RARITY_HEX: Record<string, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
+import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
 // Avatar-forward grid: each card shows the tower's portrait (frame 0 of its
 // `tower__<id>` sheet). Owned cards are full colour; locked ones render as a

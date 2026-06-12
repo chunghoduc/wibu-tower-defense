@@ -19,6 +19,7 @@ import { equipLevelGate } from "../data/equipGate.ts";
 import { instanceReqLevel } from "../data/items.ts";
 import type { Rarity, ItemSlot } from "../data/schema.ts";
 import { itemTex } from "../data/assetKeys.ts";
+import { RARITY_INT } from "../data/rarityColors.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#c8d2dc",
@@ -26,13 +27,6 @@ const RARITY_HEX: Record<Rarity, string> = {
   Rare: "#c98bff",
   Legendary: "#ffb74d",
   Unique: "#ff7a7a",
-};
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
 };
 const DELTA_COLOR = { "1": "#6ee06e", "-1": "#ff7a7a", "0": "#8aa0bb" } as const;
 

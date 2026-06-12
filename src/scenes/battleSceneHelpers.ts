@@ -4,7 +4,7 @@
  */
 import Phaser from "phaser";
 import type { StatRow } from "./battleInfoPanel.ts";
-import type { Rarity, CharacterDef } from "../data/schema.ts";
+import type { CharacterDef } from "../data/schema.ts";
 import type { HeroSave } from "../core/save.ts";
 import type { EnemyRuntime } from "../core/battle.ts";
 import type { Catalog } from "../data/catalog.ts";
@@ -37,13 +37,8 @@ export const TERRAIN_COLOR: Record<string, number> = {
   crystal: 0x6a32b0,
 };
 
-export const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
+// Re-exported for BattleScene/battleSceneInput (historical import site).
+export { RARITY_INT } from "../data/rarityColors.ts";
 export const n0 = (v: number) => `${Math.round(v)}`;
 export const n1 = (v: number) => v.toFixed(1);
 export const pct = (v: number) => `${Math.round(v * 100)}%`;

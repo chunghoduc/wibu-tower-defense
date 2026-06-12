@@ -6,7 +6,7 @@
  *    cash a 200-spark guarantee.
  */
 import Phaser from "phaser";
-import { fadeIn, fadeToScene } from "./uiKit.ts";
+import { fadeIn, fadeToScene, accentPanel, actionChip } from "./uiKit.ts";
 import { crispText } from "./ui.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { TOWERS } from "../data/towers.ts";
@@ -77,10 +77,7 @@ export class ForgeScene extends Phaser.Scene {
   }
 
   private panel(y: number, h: number, accent: number, hot = false): void {
-    const g = this.add.graphics();
-    g.fillStyle(hot ? 0x22180c : 0x141b26, 1).fillRoundedRect(PX, y, PW, h, 12);
-    g.lineStyle(2, hot ? 0xffc94d : accent, 1).strokeRoundedRect(PX, y, PW, h, 12);
-    this.layer.add(g);
+    this.layer.add(accentPanel(this, PX, y, PW, h, accent, hot));
   }
 
   private button(
@@ -91,23 +88,14 @@ export class ForgeScene extends Phaser.Scene {
     enabled: boolean,
     cb: () => void,
   ): void {
-    if (!enabled) {
-      this.layer.add(
-        crispText(this, x, y, label, { fontSize: "12px", color: "#6b7a8d" }).setOrigin(1, 0.5),
-      );
-      return;
-    }
-    const b = crispText(this, x, y, label, {
-      fontSize: "13px",
-      color: "#fff",
-      backgroundColor: color,
-      fontStyle: "bold",
-    })
-      .setOrigin(1, 0.5)
-      .setPadding(12, 5, 12, 5)
-      .setInteractive({ useHandCursor: true });
-    b.on("pointerup", cb);
-    this.layer.add(b);
+    this.layer.add(
+      actionChip(this, x, y, label, color, enabled, cb, {
+        fontSize: "13px",
+        padX: 12,
+        padY: 5,
+        disabledFontSize: "12px",
+      }),
+    );
   }
 
   private drawCurrency(y: number): number {

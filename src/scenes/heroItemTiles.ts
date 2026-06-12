@@ -8,28 +8,14 @@
 import Phaser from "phaser";
 import { crispText, panelText } from "./ui.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
-import type { ItemSlot, Rarity } from "../data/schema.ts";
+import type { ItemSlot } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { boxOddsText } from "../core/boxes.ts";
 import { materialTex, boxTex, itemTex } from "../data/assetKeys.ts";
+import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
 export const TILE = 52;
-
-const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
 
 export interface ItemTileCallbacks {
   showTooltip(inst: ItemInstanceSave, x: number, y: number): void;

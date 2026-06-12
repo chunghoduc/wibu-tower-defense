@@ -7,7 +7,7 @@
  * recycle grid hides equipped items — unequip first.
  */
 import Phaser from "phaser";
-import { fadeIn, fadeToScene } from "./uiKit.ts";
+import { fadeIn, fadeToScene, dimBackdrop } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import type { ShopStockEntry, ItemInstanceSave } from "../core/save.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
@@ -27,14 +27,8 @@ import {
 import { renderItemTooltip } from "./itemTooltip.ts";
 import type { Rarity } from "../data/schema.ts";
 import { itemTex } from "../data/assetKeys.ts";
+import { RARITY_INT } from "../data/rarityColors.ts";
 
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
 const SCROLL_GOLD = 0xffcf4a;
 const CHAOS_COL = 0xe0457a; // crimson-magenta — matches the Jewel of Chaos icon
 
@@ -454,13 +448,7 @@ export class ShopScene extends Phaser.Scene {
       H = this.scale.height;
     const c = this.add.container(0, 0).setDepth(300);
 
-    const dim = this.add.graphics();
-    dim.fillStyle(0x000000, 0.55).fillRect(0, 0, W, H);
-    const dimZone = this.add
-      .zone(W / 2, H / 2, W, H)
-      .setInteractive()
-      .on("pointerup", () => this.closeConfirm());
-    c.add([dim, dimZone]);
+    dimBackdrop(this, c, () => this.closeConfirm());
 
     const bw = 340,
       bh = cost ? 188 : 150,

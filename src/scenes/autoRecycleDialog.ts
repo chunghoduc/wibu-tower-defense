@@ -8,14 +8,8 @@ import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { AUTO_SMELT_RARITIES, type BulkSmeltPreview } from "../core/smelt.ts";
 import type { Rarity } from "../data/schema.ts";
+import { RARITY_INT } from "../data/rarityColors.ts";
 
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
 const CHAOS_COL = 0xe0457a;
 
 export interface AutoRecycleOpts {

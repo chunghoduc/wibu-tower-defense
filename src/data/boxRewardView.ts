@@ -6,7 +6,7 @@
 import type { BoxReward } from "../core/boxes.ts";
 import { MATERIALS_MAP } from "./materials.ts";
 import { ITEM_CATALOG_MAP } from "./items.ts";
-import type { Rarity } from "./schema.ts";
+import { RARITY_HEX } from "./rarityColors.ts";
 import { itemTex, materialTex, GOLD_TEX, GEM_TEX } from "./assetKeys.ts";
 
 export interface BoxRewardEntry {
@@ -16,14 +16,6 @@ export interface BoxRewardEntry {
   color: string; // hex string for the tile tint / border
   iconKey?: string; // texture key (icon__gold / material__<id> / item__<id>)
 }
-
-const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
 
 export function boxRewardEntries(reward: BoxReward): BoxRewardEntry[] {
   const entries: BoxRewardEntry[] = [

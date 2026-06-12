@@ -1,29 +1,17 @@
 import Phaser from "phaser";
 import type { SummonResult } from "../core/gacha.ts";
+import type { Rarity } from "../data/schema.ts";
 import { TOWERS } from "../data/towers.ts";
 import { frameKey } from "../data/uiManifest.ts";
 import { button } from "./uiKit.ts";
 import { addNamePlate } from "./namePlate.ts";
 import { towerTex, fxTex } from "../data/assetKeys.ts";
+import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
 const ADD = Phaser.BlendModes.ADD;
 
-const RARITY_HEX: Record<string, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
-const RARITY_INT: Record<string, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
-};
 /** Low→high so we can pick the marquee (best) rarity in a pull for the tint. */
-const RARITY_ORDER = ["Common", "Magic", "Rare", "Legendary", "Unique"];
+const RARITY_ORDER: readonly Rarity[] = ["Common", "Magic", "Rare", "Legendary", "Unique"];
 
 /**
  * Summon result reveal — a self-destructing depth-2000 modal. A dim backdrop
@@ -54,7 +42,7 @@ export class SummonResultOverlay {
     const cardsCy = 248; // vertical centre of the card cluster (backdrop focus)
 
     // Highest rarity in the pull drives the backdrop colour — the marquee moment.
-    const best = results.reduce(
+    const best = results.reduce<Rarity>(
       (a, r) => (RARITY_ORDER.indexOf(r.rarity) > RARITY_ORDER.indexOf(a) ? r.rarity : a),
       "Common",
     );

@@ -13,14 +13,8 @@ import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { towerStatPipeline, starUpStepPct } from "../core/stats.ts";
 import { starUpCost, MAX_STARS } from "../core/collection.ts";
 import { towerTex } from "../data/assetKeys.ts";
+import { RARITY_HEX } from "../data/rarityColors.ts";
 
-const RARITY_HEX: Record<Rarity, string> = {
-  Common: "#9e9e9e",
-  Magic: "#2196f3",
-  Rare: "#9c27b0",
-  Legendary: "#ff9800",
-  Unique: "#f44336",
-};
 const ROLE_LABEL: Record<string, string> = {
   damage: "Damage",
   splash: "Splash",

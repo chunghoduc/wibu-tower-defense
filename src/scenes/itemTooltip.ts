@@ -11,6 +11,7 @@ import { itemStatRows, SOURCE_COLOR, QUALITY_COLOR } from "../data/itemDisplay.t
 import { archetypeFor, ARCHETYPE_COLOR, ARCHETYPE_LABEL } from "../data/itemArchetype.ts";
 import type { ItemDef, Rarity } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
+import { RARITY_INT } from "../data/rarityColors.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#c8d2dc",
@@ -18,13 +19,6 @@ const RARITY_HEX: Record<Rarity, string> = {
   Rare: "#c98bff",
   Legendary: "#ffb74d",
   Unique: "#ff7a7a",
-};
-const RARITY_INT: Record<Rarity, number> = {
-  Common: 0x9e9e9e,
-  Magic: 0x2196f3,
-  Rare: 0x9c27b0,
-  Legendary: 0xff9800,
-  Unique: 0xf44336,
 };
 
 /** Render the item's full stat tooltip into `c` near (x, y) and show it. */

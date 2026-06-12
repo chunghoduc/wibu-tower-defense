@@ -5,6 +5,7 @@
  * merged onto the BattleScene prototype in `BattleScene.ts`; `this` is the scene.
  */
 import Phaser from "phaser";
+import { dimBackdrop } from "./uiKit.ts";
 import type { Vec2 } from "../data/schema.ts";
 import { type TowerRuntime, MANA_MAX } from "../core/battle.ts";
 import { dist } from "../core/path.ts";
@@ -382,13 +383,7 @@ export const inputMethods = {
     const refund = this.battle.sellValue(uid);
     const c = this.add.container(0, 0).setDepth(70);
 
-    const dim = this.add.graphics();
-    dim.fillStyle(0x000000, 0.55).fillRect(0, 0, W, H);
-    const dimZone = this.add
-      .zone(W / 2, H / 2, W, H)
-      .setInteractive()
-      .on("pointerup", () => this.closeConfirm());
-    c.add([dim, dimZone]);
+    dimBackdrop(this, c, () => this.closeConfirm());
 
     const bw = 300,
       bh = 132,
