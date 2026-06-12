@@ -3,6 +3,7 @@ import type { SummonResult } from "../core/gacha.ts";
 import { TOWERS } from "../data/towers.ts";
 import { frameKey } from "../data/uiManifest.ts";
 import { button } from "./uiKit.ts";
+import { towerTex, fxTex } from "../data/assetKeys.ts";
 
 const ADD = Phaser.BlendModes.ADD;
 
@@ -148,7 +149,7 @@ export class SummonResultOverlay {
       inner.fillStyle(0x0b0f17, 0.9).fillRoundedRect(-half.w + 5, -half.h + 5, CARD_W - 10, CARD_H - 10, 6);
       card.add(inner);
 
-      const avKey = `tower__${r.characterId}`;
+      const avKey = towerTex(r.characterId);
       if (s.textures.exists(avKey)) {
         const img = s.add.image(0, -8, avKey, 0).setOrigin(0.5);
         img.setScale(Math.min((CARD_W - 20) / img.width, (CARD_H - 44) / img.height));
@@ -181,7 +182,7 @@ export class SummonResultOverlay {
 
   /** A bright-on-black VFX texture set up for additive, rarity-tinted rendering. */
   private fx(id: "burst" | "glow" | "sparkle", x: number, y: number, color: number, alpha: number): Phaser.GameObjects.Image {
-    const img = this.scene.add.image(x, y, `fx__${id}`).setBlendMode(ADD).setAlpha(alpha);
+    const img = this.scene.add.image(x, y, fxTex(id)).setBlendMode(ADD).setAlpha(alpha);
     img.setTint(color);
     return img;
   }

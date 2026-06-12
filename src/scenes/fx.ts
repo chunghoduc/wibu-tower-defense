@@ -15,6 +15,7 @@ import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { tierOfBox } from "../core/boxes.ts";
 import { LootFlyFx } from "./lootFlyFx.ts";
 import { BossSkillFx } from "./bossSkillSignatures.ts";
+import { itemTex, boxTex } from "../data/assetKeys.ts";
 
 const DMG_COLOR: Record<DamageType, number> = {
   Physical: 0xe9eef7,
@@ -93,8 +94,8 @@ export class FxLayer {
         break;
       case "killReward":
         this.xpPop(e.at, e.xp, e.item, e.box);
-        if (e.itemDefId) this.lootFly.fly(e.at, e.to, "icon", { iconKey: `item__${e.itemDefId}`, fallbackColor: 0xffe07a });
-        if (e.box) this.lootFly.fly(e.at, e.to, "icon", { iconKey: `box__${e.box}`, fallbackColor: 0xd9a441, delay: 90 });
+        if (e.itemDefId) this.lootFly.fly(e.at, e.to, "icon", { iconKey: itemTex(e.itemDefId), fallbackColor: 0xffe07a });
+        if (e.box) this.lootFly.fly(e.at, e.to, "icon", { iconKey: boxTex(e.box), fallbackColor: 0xd9a441, delay: 90 });
         break;
       case "enemyAttack":
         this.lunge(e.at, e.targetAt);

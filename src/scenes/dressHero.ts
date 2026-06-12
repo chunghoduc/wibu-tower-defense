@@ -9,6 +9,7 @@ import Phaser from "phaser";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import type { InventorySave } from "../core/save.ts";
 import type { ItemSlot } from "../data/schema.ts";
+import { itemTex } from "../data/assetKeys.ts";
 
 interface OutfitAnchor {
   slot: ItemSlot;
@@ -46,7 +47,7 @@ export function dressHero(
     const inst = inventory.items.find((it) => it.id === instId);
     const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
     if (!def) continue;
-    const key = (a.slot === "Wing" && def.appearanceRef) ? def.appearanceRef : `item__${def.id}`;
+    const key = (a.slot === "Wing" && def.appearanceRef) ? def.appearanceRef : itemTex(def.id);
     if (!scene.textures.exists(key)) continue;
     const img = scene.add.image(cx + (a.nx - 0.5) * 2 * halfW, topY + a.ny * heroH, key)
       .setOrigin(0.5)

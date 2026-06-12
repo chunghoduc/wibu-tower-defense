@@ -7,6 +7,7 @@ import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { drawScrollbar } from "./scrollbar.ts";
 import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
+import { towerTex, skillTex } from "../data/assetKeys.ts";
 
 const RARITY_INT: Record<string, number> = {
   Common: 0x9e9e9e,
@@ -138,7 +139,7 @@ export class CollectionScene extends Phaser.Scene {
 
     // Avatar: frame 0 of the tower sheet, fit into the upper portrait area.
     const avH = 82, avCX = x + CARD_W / 2, avCY = y + 8 + avH / 2;
-    const avKey = `tower__${tower.id}`;
+    const avKey = towerTex(tower.id);
     if (this.textures.exists(avKey)) {
       const img = this.add.image(avCX, avCY, avKey, 0).setOrigin(0.5);
       img.setScale(Math.min((CARD_W - 16) / img.width, avH / img.height));
@@ -206,7 +207,7 @@ export class CollectionScene extends Phaser.Scene {
 
     // Avatar.
     const avSize = 92;
-    const avKey = `tower__${tower.id}`;
+    const avKey = towerTex(tower.id);
     const avBox = this.add.graphics();
     avBox.fillStyle(0x070a10, 1).fillRoundedRect(x, top, avSize, avSize, 8);
     avBox.lineStyle(1.5, accent, 0.8).strokeRoundedRect(x, top, avSize, avSize, 8);
@@ -249,8 +250,8 @@ export class CollectionScene extends Phaser.Scene {
     c.add(this.add.text(x, y, "SKILLS", { fontSize: "12px", color: "#9fb0c4", fontStyle: "bold" }));
     y += 20;
     const rows: { key: string; name: string; desc: string; tag: string; col: string }[] = [];
-    if (tower.active) { const a = towerActiveInfo(tower.active); rows.push({ key: `skill__${tower.active}`, name: a.name, desc: a.description, tag: "Active", col: "#a8d8ff" }); }
-    for (const pid of tower.passives) { const p = passiveInfo(pid); rows.push({ key: `skill__${pid}`, name: p.name, desc: p.description, tag: "Passive", col: "#cdd6e6" }); }
+    if (tower.active) { const a = towerActiveInfo(tower.active); rows.push({ key: skillTex(tower.active), name: a.name, desc: a.description, tag: "Active", col: "#a8d8ff" }); }
+    for (const pid of tower.passives) { const p = passiveInfo(pid); rows.push({ key: skillTex(pid), name: p.name, desc: p.description, tag: "Passive", col: "#cdd6e6" }); }
 
     const S = 34, rowH = 40, colW = (PW - pad * 2) / 2;
     rows.forEach((r, i) => {

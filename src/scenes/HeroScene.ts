@@ -21,6 +21,7 @@ import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
 import { buildCategoryChips, slotInCategory, type ItemCategory, type CategoryChips } from "./itemFilter.ts";
 import { BoxOpenOverlay } from "./boxOpenOverlay.ts";
 import { boxOddsText } from "../core/boxes.ts";
+import { materialTex, boxTex, itemTex } from "../data/assetKeys.ts";
 
 type InvFilter = "items" | "materials" | "boxes";
 
@@ -305,7 +306,7 @@ export class HeroScene extends Phaser.Scene {
     g.fillStyle(0x1c2636, 1).fillRoundedRect(-size / 2, -size / 2, size, size, 5);
     g.lineStyle(2, RARITY_INT[rarity], 1).strokeRoundedRect(-size / 2, -size / 2, size, size, 5);
     c.add(g);
-    const key = `item__${inst.defId}`;
+    const key = itemTex(inst.defId);
     if (this.textures.exists(key)) {
       const img = this.add.image(0, -2, key).setOrigin(0.5);
       img.setScale((size - 12) / img.height);
@@ -351,7 +352,7 @@ export class HeroScene extends Phaser.Scene {
     c.add(g);
     // Painted art per material: boxes use their chest art (box__<id>), other
     // materials (enhance jewels, scroll) use material__<id>. Fall back to an emoji.
-    const spriteKey = this.textures.exists(`material__${id}`) ? `material__${id}` : `box__${id}`;
+    const spriteKey = this.textures.exists(materialTex(id)) ? materialTex(id) : boxTex(id);
     if (this.textures.exists(spriteKey)) {
       const img = this.add.image(0, -4, spriteKey).setOrigin(0.5);
       img.setScale((TILE - 16) / img.height);

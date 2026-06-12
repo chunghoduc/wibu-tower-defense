@@ -3,9 +3,11 @@
  * are bright shapes on pure black, drawn in-game with BlendModes.ADD so the black
  * vanishes and the bright parts glow + tint to any colour. Loaded as `fx__<id>`.
  */
+import { fxTex } from "./assetKeys.ts";
+
 export const FX_IDS = ["burst", "glow", "sparkle"] as const;
 export type FxId = (typeof FX_IDS)[number];
 
 export function fxKey(id: FxId): string {
-  return `fx__${id}`;
+  return fxTex(id);
 }

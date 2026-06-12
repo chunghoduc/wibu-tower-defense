@@ -16,6 +16,7 @@ import { ITEM_CATALOG } from "../data/items.ts";
 import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
 import { bakeEnemyWalks } from "./enemyWalkBake.ts";
 import { bakeBossWalks } from "./bossWalkBake.ts";
+import { skillTex, jewelTex, menuTex, fxTex, materialTex, itemTex, HERODOLL_BASE_TEX } from "../data/assetKeys.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -34,13 +35,13 @@ export class PreloadScene extends Phaser.Scene {
     // Painted skill ability icons (96×96). Skip ids already in the manifest so a
     // future `gen.mjs --only=manifest` that folds them in won't double-load.
     for (const id of SKILL_ICON_IDS) {
-      const key = `skill__${id}`;
+      const key = skillTex(id);
       if (SPRITE_BY_KEY.has(key)) continue;
       this.load.spritesheet(key, `assets/sprites/skill/${id}.png`, { frameWidth: 96, frameHeight: 96 });
     }
     // Painted skill-jewel gem icons (96×96).
     for (const id of JEWEL_ICON_IDS) {
-      const key = `jewel__${id}`;
+      const key = jewelTex(id);
       if (SPRITE_BY_KEY.has(key)) continue;
       this.load.spritesheet(key, `assets/sprites/jewel/${id}.png`, { frameWidth: 96, frameHeight: 96 });
     }
@@ -54,19 +55,19 @@ export class PreloadScene extends Phaser.Scene {
     for (const e of UI_IMAGES) this.load.image(e.key, e.path);
     // Painted main-menu button icons (SDXL).
     for (const id of ["battle", "summon", "collection", "inventory", "squad", "passive", "shop", "skills", "settings"]) {
-      this.load.image(`menu__${id}`, `assets/ui/menu/${id}.png`);
+      this.load.image(menuTex(id), `assets/ui/menu/${id}.png`);
     }
     // Inventory paper-doll mannequin (equipment slots map onto its body).
-    this.load.image("herodoll__base", "assets/ui/hero-doll/hero-base.png");
+    this.load.image(HERODOLL_BASE_TEX, "assets/ui/hero-doll/hero-base.png");
     // Additive-blend VFX textures (box-open burst/glow/sparkle).
-    for (const id of FX_IDS) this.load.image(`fx__${id}`, `assets/sprites/fx/${id}.png`);
+    for (const id of FX_IDS) this.load.image(fxTex(id), `assets/sprites/fx/${id}.png`);
     // Crafting-material icons (enhance jewels + summon scroll).
-    for (const id of MATERIAL_ICON_IDS) this.load.image(`material__${id}`, `assets/sprites/material/${id}.png`);
+    for (const id of MATERIAL_ICON_IDS) this.load.image(materialTex(id), `assets/sprites/material/${id}.png`);
     // Every catalog item's 96×96 inventory icon (worn on the hero + shown in
     // inventory). Driven by the catalog so newly-added items load without a
     // manifest regen; skip any already provided by the sprite manifest.
     for (const it of ITEM_CATALOG) {
-      const key = `item__${it.id}`;
+      const key = itemTex(it.id);
       if (SPRITE_BY_KEY.has(key)) continue;
       this.load.spritesheet(key, `assets/sprites/item/${it.id}.png`, { frameWidth: 96, frameHeight: 96 });
     }

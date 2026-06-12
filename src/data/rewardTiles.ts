@@ -24,6 +24,7 @@ import {
   goldIcon, diamondIcon, xpIcon, itemIcon, jewelIcon, materialIcon,
   RARITY_INT, GOLD_INT, DIAMOND_INT, MAT_INT, XP_INT,
 } from "./rewardIcon.ts";
+import { towerTex } from "./assetKeys.ts";
 
 // Color ints live in rewardIcon.ts (the single icon source of truth); re-export
 // for any external caller that imported them from here historically.
@@ -136,7 +137,7 @@ function characterTile(id: string): RewardTileSpec {
   const def = TOWERS.find((t) => t.id === id);
   const rarity = def?.rarity ?? "Common";
   return {
-    iconKey: `tower__${id}`, emoji: "✨", label: rarity, color: RARITY_INT[rarity],
+    iconKey: towerTex(id), emoji: "✨", label: rarity, color: RARITY_INT[rarity],
     tooltip: { kind: "info", data: { title: def?.name ?? "New Character", titleColor: RARITY_HEX[rarity], borderColor: RARITY_INT[rarity], subtitle: def ? `${rarity} ${def.role}` : "New character", body: def?.description } },
   };
 }

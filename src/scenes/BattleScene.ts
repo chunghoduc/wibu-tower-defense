@@ -41,6 +41,7 @@ import { TERRAIN_COLOR, RARITY_INT, buildSquad } from "./battleSceneHelpers.ts";
 import { renderMethods, type RenderMethods } from "./battleSceneRender.ts";
 import { spritesMethods, type SpritesMethods } from "./battleSceneSprites.ts";
 import { inputMethods, type InputMethods } from "./battleSceneInput.ts";
+import { towerTex } from "../data/assetKeys.ts";
 
 /** A special battle mode launched from the Activities hub (else a normal stage). */
 export interface BattleMode {
@@ -380,7 +381,7 @@ export class BattleScene extends Phaser.Scene {
       bg.fillStyle(0x1a2230, 1).fillRoundedRect(-hw, -16, w, 44, 6);
       bg.lineStyle(1.5, rarityCol, 1).strokeRoundedRect(-hw, -16, w, 44, 6);
       c.add(bg);
-      const key = `tower__${def.id}`;
+      const key = towerTex(def.id);
       if (this.textures.exists(key)) {
         const img = this.add.image(0, -2, key, 0).setOrigin(0.5);
         img.setScale(34 / img.height);

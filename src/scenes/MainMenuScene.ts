@@ -7,6 +7,7 @@ import { bgKey } from "../data/bgManifest.ts";
 import { crispText } from "./ui.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { claimableQuestCount } from "../core/questTracker.ts";
+import { towerTex, itemTex, menuTex } from "../data/assetKeys.ts";
 
 /** A menu destination: an icon-glyph button placed on the left/right/bottom edge. */
 interface MenuItem {
@@ -152,7 +153,7 @@ export class MainMenuScene extends Phaser.Scene {
     }
     const pts = squadStandPoints(stand.members.length, W, H);
     stand.members.forEach((id, i) => {
-      const key = `tower__${id}`;
+      const key = towerTex(id);
       if (!this.textures.exists(key)) return;
       const p = pts[i];
       const s = this.add.sprite(p.x, p.y, key).setOrigin(0.5, 0.85).setDepth(5);
@@ -167,7 +168,7 @@ export class MainMenuScene extends Phaser.Scene {
     if (!instId) return;
     const inst = save.inventory.items.find((it) => it.id === instId);
     const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
-    const key = def ? `item__${def.id}` : "";
+    const key = def ? itemTex(def.id) : "";
     if (!def || !this.textures.exists(key)) return;
     const p = petWander(0, W, H);
     this.pet = this.add.image(p.x, p.y, key).setOrigin(0.5).setDepth(7);
@@ -216,7 +217,7 @@ export class MainMenuScene extends Phaser.Scene {
 
   private iconButton(item: MenuItem, x: number, y: number): void {
     const c = this.add.container(x, y).setDepth(8);
-    const iconKey = `menu__${item.key}`;
+    const iconKey = menuTex(item.key);
     if (this.textures.exists(iconKey)) {
       // Painted SDXL icon (carries its own ornate frame).
       const img = this.add.image(0, -3, iconKey).setOrigin(0.5);

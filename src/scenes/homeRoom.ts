@@ -6,6 +6,7 @@
 import type { HeroSave, InventorySave } from "../core/save.ts";
 import type { ItemSlot } from "../data/schema.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { itemTex } from "../data/assetKeys.ts";
 
 /** The 9 equipped slots shown on wall hangers (Pet is excluded — it flies). */
 export const HANGER_SLOTS: ItemSlot[] = [
@@ -40,7 +41,7 @@ export function equippedHangers(inv: InventorySave): (HangerItem | null)[] {
     const inst = inv.items.find((it) => it.id === instId);
     const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
     if (!def) return null;
-    const iconKey = slot === "Wing" && def.appearanceRef ? def.appearanceRef : `item__${def.id}`;
+    const iconKey = slot === "Wing" && def.appearanceRef ? def.appearanceRef : itemTex(def.id);
     return { slot, defId: def.id, iconKey };
   });
 }

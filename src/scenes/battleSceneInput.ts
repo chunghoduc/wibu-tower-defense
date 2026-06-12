@@ -27,6 +27,7 @@ import {
   SLOT_RADIUS, RARITY_INT, statRows, HERO_STAT_KEYS, TOWER_STAT_KEYS,
 } from "./battleSceneHelpers.ts";
 import type { BattleScene } from "./BattleScene.ts";
+import { towerTex, itemTex, skillTex } from "../data/assetKeys.ts";
 
 export const inputMethods = {
   updateSpeedBtn(this: BattleScene): void {
@@ -105,7 +106,7 @@ export const inputMethods = {
     const g = this.add.container(0, 0).setDepth(7).setAlpha(0.7);
     const ring = this.add.graphics();
     g.add(ring); g.setData("ring", ring);
-    const key = `tower__${towerId}`;
+    const key = towerTex(towerId);
     if (this.textures.exists(key)) {
       const img = this.add.image(0, 0, key, 0).setOrigin(0.5, 0.78);
       img.setScale(50 / img.height); g.add(img);
@@ -196,12 +197,12 @@ export const inputMethods = {
       const inst = instId ? save.inventory.items.find((it) => it.id === instId) : undefined;
       const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
       if (!inst || !def) continue;
-      items[slot] = { iconKey: `item__${inst.defId}`, name: def.name, plus: inst.enhanceLevel ?? 0, rarityColor: RARITY_INT[def.rarity as Rarity] };
+      items[slot] = { iconKey: itemTex(inst.defId), name: def.name, plus: inst.enhanceLevel ?? 0, rarityColor: RARITY_INT[def.rarity as Rarity] };
     }
     const skills = save.hero.equippedSkillIds
       .map((id) => ({ id, def: ACTIVE_SKILLS_MAP.get(id) }))
       .filter((e) => e.def)
-      .map((e) => ({ label: `⚡ ${e.def!.name}`, desc: e.def!.description, color: "#a8d8ff", iconKey: `skill__${e.id}` }));
+      .map((e) => ({ label: `⚡ ${e.def!.name}`, desc: e.def!.description, color: "#a8d8ff", iconKey: skillTex(e.id) }));
     return {
       kind: "hero", name: "Hero", level: save.hero.level,
       hp: h.hp, maxHp: h.stats.maxHp, mana: h.mana, maxMana: MANA_MAX,
@@ -213,11 +214,11 @@ export const inputMethods = {
   /** Build a tower view model from its runtime. */
   towerVM(this: BattleScene, t: TowerRuntime): TowerPanelVM {
     const skills: { label: string; desc: string; color: string; iconKey?: string }[] = [];
-    if (t.def.active) { const a = towerActiveInfo(t.def.active); skills.push({ label: `⚡ ${a.name}`, desc: activeSkillDetail(t.def, t.stats), color: "#a8d8ff", iconKey: `skill__${t.def.active}` }); }
-    for (const pid of t.def.passives) { const p = passiveInfo(pid); skills.push({ label: `• ${p.name}`, desc: p.description, color: "#cdd6e6", iconKey: `skill__${pid}` }); }
+    if (t.def.active) { const a = towerActiveInfo(t.def.active); skills.push({ label: `⚡ ${a.name}`, desc: activeSkillDetail(t.def, t.stats), color: "#a8d8ff", iconKey: skillTex(t.def.active) }); }
+    for (const pid of t.def.passives) { const p = passiveInfo(pid); skills.push({ label: `• ${p.name}`, desc: p.description, color: "#cdd6e6", iconKey: skillTex(pid) }); }
     skills.push({ label: "▲ Upgrades", desc: upgradeSummary(t.def.role), color: "#ffd86a" });
     return {
-      kind: "tower", uid: t.uid, name: t.def.name, iconKey: `tower__${t.def.id}`,
+      kind: "tower", uid: t.uid, name: t.def.name, iconKey: towerTex(t.def.id),
       stars: t.battleLevel + 1, // ★1 freshly placed → ★3 maxed
       hp: t.hp, maxHp: t.stats.maxHp, mana: t.mana, maxMana: t.def.role !== "support" ? MANA_MAX : 0,
       stats: statRows(t.stats as unknown as Record<string, number>, TOWER_STAT_KEYS),

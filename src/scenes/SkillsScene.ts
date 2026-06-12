@@ -12,6 +12,7 @@ import { skillXpToLevel, skillEffectivePower } from "../core/hero.ts";
 import { skillWeaponMet } from "../core/loadout.ts";
 import type { Rarity, ActiveSkillDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
+import { skillTex } from "../data/assetKeys.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#9e9e9e", Magic: "#2196f3", Rare: "#9c27b0", Legendary: "#ff9800", Unique: "#f44336",
@@ -82,7 +83,7 @@ export class SkillsScene extends Phaser.Scene {
     this.layer.add(g);
 
     // Icon.
-    const key = `skill__${def.id}`;
+    const key = skillTex(def.id);
     if (this.textures.exists(key)) {
       const img = this.add.image(x + 32, y + 34, key).setOrigin(0.5);
       img.setScale(Math.min(48 / img.width, 48 / img.height)).setAlpha(owned ? 1 : 0.35);

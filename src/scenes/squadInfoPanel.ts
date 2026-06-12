@@ -12,6 +12,7 @@ import { towerActiveInfo, passiveInfo } from "../data/passiveSkills.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { towerStatPipeline, starUpStepPct } from "../core/stats.ts";
 import { starUpCost, MAX_STARS } from "../core/collection.ts";
+import { towerTex } from "../data/assetKeys.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#9e9e9e", Magic: "#2196f3", Rare: "#9c27b0", Legendary: "#ff9800", Unique: "#f44336",
@@ -58,7 +59,7 @@ export function renderCharInfo(
 ): void {
   const stars = entry.stars;
   // Avatar + name header.
-  const key = `tower__${def.id}`;
+  const key = towerTex(def.id);
   if (scene.textures.exists(key)) {
     const img = scene.add.image(x + 28, y + 28, key, 0).setOrigin(0.5);
     img.setScale(Math.min(56 / img.width, 56 / img.height));

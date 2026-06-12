@@ -2,6 +2,7 @@
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import type { ItemSlot, WeaponType } from "../data/schema.ts";
 import type { InventorySave } from "../core/save.ts";
+import { itemTex } from "../data/assetKeys.ts";
 
 export interface HeroLayerConfig {
   weaponKey: string | null;
@@ -18,7 +19,7 @@ export interface HeroLayerConfig {
 export function resolveHeroLayers(inventory: InventorySave): HeroLayerConfig {
   const weapon = _instanceDef(inventory, "Weapon");
   return {
-    weaponKey: weapon ? `item__${weapon.id}` : null,
+    weaponKey: weapon ? itemTex(weapon.id) : null,
     weaponType: weapon?.weaponType ?? null,
     wingKey:   _resolveWing(inventory),
     petKey:    _resolvePet(inventory),
@@ -36,11 +37,11 @@ function _instanceDef(inventory: InventorySave, slot: ItemSlot) {
 function _resolveWing(inventory: InventorySave): string | null {
   const def = _instanceDef(inventory, "Wing");
   if (!def) return null;
-  return def.appearanceRef ?? `item__${def.id}`;
+  return def.appearanceRef ?? itemTex(def.id);
 }
 
 function _resolvePet(inventory: InventorySave): string | null {
   const def = _instanceDef(inventory, "Pet");
   if (!def) return null;
-  return `item__${def.id}`;
+  return itemTex(def.id);
 }

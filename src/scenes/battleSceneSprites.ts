@@ -13,6 +13,7 @@ import { enemyStatusTint } from "./battleSceneHelpers.ts";
 import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 import { enemyWalkTransform } from "./enemyWalkTransform.ts";
 import type { BattleScene } from "./BattleScene.ts";
+import { towerTex } from "../data/assetKeys.ts";
 
 /** Duration (ms) of a tower's procedural strike-recoil punch. */
 const TOWER_STRIKE_MS = 200;
@@ -323,7 +324,7 @@ export const spritesMethods = {
     const seenT = new Set<number>();
     for (const t of this.battle.towers) {
       if (!t.alive) continue;
-      const s = this.ensureSprite(this.towerSprites, t.uid, `tower__${t.def.id}`, t.pos.x, t.pos.y, 50);
+      const s = this.ensureSprite(this.towerSprites, t.uid, towerTex(t.def.id), t.pos.x, t.pos.y, 50);
       if (s) {
         seenT.add(t.uid);
         s.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);

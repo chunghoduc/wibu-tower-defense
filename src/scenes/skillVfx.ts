@@ -13,6 +13,7 @@ import { renderSignature } from "./skillSignatures.ts";
 import { renderTowerShape } from "./towerSkillFx.ts";
 import { renderDelivery } from "./skillDelivery.ts";
 import { VfxDraw } from "./vfxDraw.ts";
+import { skillTex } from "../data/assetKeys.ts";
 
 type V = { x: number; y: number };
 
@@ -90,7 +91,7 @@ export class SkillVfx {
     }
     // Emblem flare: prefer a dedicated vfx texture, else reuse the skill's icon.
     const key = skillId
-      ? [`vfx__${skillId}`, `skill__${skillId}`].find((k) => this.scene.textures.exists(k)) ?? ""
+      ? [`vfx__${skillId}`, skillTex(skillId)].find((k) => this.scene.textures.exists(k)) ?? ""
       : "";
     if (key) {
       const spr = this.fac.image(at.x, at.y, key).setDepth(this.depth + 4).setScale(0.3).setAlpha(0.95);

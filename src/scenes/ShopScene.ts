@@ -21,6 +21,7 @@ import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
 import { buildCategoryChips, slotInCategory, type ItemCategory, type CategoryChips } from "./itemFilter.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
 import type { Rarity } from "../data/schema.ts";
+import { itemTex } from "../data/assetKeys.ts";
 
 const RARITY_INT: Record<Rarity, number> = {
   Common: 0x9e9e9e, Magic: 0x2196f3, Rare: 0x9c27b0, Legendary: 0xff9800, Unique: 0xf44336,
@@ -177,8 +178,8 @@ export class ShopScene extends Phaser.Scene {
     let icon: Phaser.GameObjects.Image | undefined;
     if (isScroll) {
       this.grid.add(crispText(this, x + w / 2, y + 40, "📜", { fontSize: "44px" }).setOrigin(0.5));
-    } else if (slot.item && this.textures.exists(`item__${slot.item.defId}`)) {
-      icon = this.add.image(x + w / 2, y + 56, `item__${slot.item.defId}`).setOrigin(0.5);
+    } else if (slot.item && this.textures.exists(itemTex(slot.item.defId))) {
+      icon = this.add.image(x + w / 2, y + 56, itemTex(slot.item.defId)).setOrigin(0.5);
       icon.setScale(Math.min(72 / icon.width, 72 / icon.height));
       this.grid.add(icon);
     }
@@ -247,8 +248,8 @@ export class ShopScene extends Phaser.Scene {
     g.lineStyle(1.5, col, 1).strokeRoundedRect(x, y, w, h, 6);
     this.grid.add(g);
     let icon: Phaser.GameObjects.Image | undefined;
-    if (this.textures.exists(`item__${inst.defId}`)) {
-      icon = this.add.image(x + w / 2, y + 32, `item__${inst.defId}`).setOrigin(0.5);
+    if (this.textures.exists(itemTex(inst.defId))) {
+      icon = this.add.image(x + w / 2, y + 32, itemTex(inst.defId)).setOrigin(0.5);
       icon.setScale(Math.min(44 / icon.width, 44 / icon.height));
       this.grid.add(icon);
     }

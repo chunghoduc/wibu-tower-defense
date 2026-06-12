@@ -7,6 +7,7 @@ import type { BoxReward } from "../core/boxes.ts";
 import { MATERIALS_MAP } from "./materials.ts";
 import { ITEM_CATALOG_MAP } from "./items.ts";
 import type { Rarity } from "./schema.ts";
+import { itemTex, materialTex, GOLD_TEX, GEM_TEX } from "./assetKeys.ts";
 
 export interface BoxRewardEntry {
   kind: "gold" | "diamond" | "material" | "item";
@@ -22,14 +23,14 @@ const RARITY_HEX: Record<Rarity, string> = {
 
 export function boxRewardEntries(reward: BoxReward): BoxRewardEntry[] {
   const entries: BoxRewardEntry[] = [
-    { kind: "gold", name: "Gold", count: reward.crystals, color: "#ffcf4d", iconKey: "icon__gold" },
+    { kind: "gold", name: "Gold", count: reward.crystals, color: "#ffcf4d", iconKey: GOLD_TEX },
   ];
   if (reward.diamonds > 0) {
-    entries.push({ kind: "diamond", name: "Diamonds", count: reward.diamonds, color: "#4dd0e1", iconKey: "icon__gem" });
+    entries.push({ kind: "diamond", name: "Diamonds", count: reward.diamonds, color: "#4dd0e1", iconKey: GEM_TEX });
   }
   for (const [mid, n] of Object.entries(reward.materials)) {
     if (!n) continue;
-    entries.push({ kind: "material", name: MATERIALS_MAP.get(mid)?.name ?? mid, count: n, color: "#a5d6a7", iconKey: `material__${mid}` });
+    entries.push({ kind: "material", name: MATERIALS_MAP.get(mid)?.name ?? mid, count: n, color: "#a5d6a7", iconKey: materialTex(mid) });
   }
   for (const item of reward.items) {
     const def = ITEM_CATALOG_MAP.get(item.defId);
@@ -38,7 +39,7 @@ export function boxRewardEntries(reward: BoxReward): BoxRewardEntry[] {
       name: def?.name ?? "Item",
       count: 1,
       color: def ? RARITY_HEX[def.rarity] : "#ffd34d",
-      iconKey: `item__${item.defId}`,
+      iconKey: itemTex(item.defId),
     });
   }
   return entries;

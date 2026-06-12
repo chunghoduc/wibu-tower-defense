@@ -17,6 +17,7 @@ import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { TOWER_ROLES, type Rarity, type TowerRole, type CharacterDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 import { renderCharInfo, renderHeroInfo } from "./squadInfoPanel.ts";
+import { towerTex } from "../data/assetKeys.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#9e9e9e", Magic: "#2196f3", Rare: "#9c27b0", Legendary: "#ff9800", Unique: "#f44336",
@@ -206,7 +207,7 @@ export class SquadScene extends Phaser.Scene {
   /** A slotted character: draggable (to swap/remove) + clickable (to inspect). */
   private makeSlotTile(def: CharacterDef, slot: number, x: number, y: number, w: number, h: number): Phaser.GameObjects.Container {
     const c = this.add.container(x + w / 2, y + h / 2).setSize(w, h);
-    const key = `tower__${def.id}`;
+    const key = towerTex(def.id);
     if (this.textures.exists(key)) {
       const img = this.add.image(-w / 2 + 22, 0, key).setOrigin(0.5);
       img.setScale(38 / img.height); c.add(img);
@@ -270,7 +271,7 @@ export class SquadScene extends Phaser.Scene {
     g.fillStyle(inSquad ? 0x23344a : 0x18202c, 1).fillRoundedRect(-w / 2, -h / 2, w, h, 6);
     g.lineStyle(selected ? 3 : inSquad ? 2.5 : 1.5, selected ? 0x7ec8ff : inSquad ? 0xffd24a : RARITY_INT[t.rarity], selected || inSquad ? 1 : 0.85).strokeRoundedRect(-w / 2, -h / 2, w, h, 6);
     c.add(g);
-    const key = `tower__${t.id}`;
+    const key = towerTex(t.id);
     if (this.textures.exists(key)) {
       const img = this.add.image(0, -8, key).setOrigin(0.5);
       img.setScale(40 / img.height); c.add(img);

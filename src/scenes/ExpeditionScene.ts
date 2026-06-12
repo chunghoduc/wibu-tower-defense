@@ -13,6 +13,7 @@ import { getTowerStars } from "../core/collection.ts";
 import { TOWERS } from "../data/towers.ts";
 import { MAX_EXPEDITION_TOWERS, MIN_COLLECT_MS } from "../core/expedition.ts";
 import type { Rarity, CharacterDef } from "../data/schema.ts";
+import { towerTex } from "../data/assetKeys.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#9e9e9e", Magic: "#2196f3", Rare: "#9c27b0", Legendary: "#ff9800", Unique: "#f44336",
@@ -116,7 +117,7 @@ export class ExpeditionScene extends Phaser.Scene {
     g.fillStyle(picked ? 0x1f3322 : 0x18202c, 1).fillRoundedRect(-w / 2, -h / 2, w, h, 6);
     g.lineStyle(picked ? 3 : 1.5, picked ? 0x52c878 : RARITY_INT[t.rarity], picked ? 1 : 0.85).strokeRoundedRect(-w / 2, -h / 2, w, h, 6);
     c.add(g);
-    const key = `tower__${t.id}`;
+    const key = towerTex(t.id);
     if (this.textures.exists(key)) {
       const img = this.add.image(0, -10, key).setOrigin(0.5);
       img.setScale(44 / img.height); c.add(img);

@@ -4,6 +4,7 @@ import { tierOfBox } from "../core/boxes.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { boxRewardEntries } from "../data/boxRewardView.ts";
 import { makeFitIcon } from "./itemIcon.ts";
+import { boxTex, fxTex } from "../data/assetKeys.ts";
 
 const ADD = Phaser.BlendModes.ADD;
 
@@ -50,7 +51,7 @@ export class BoxOpenOverlay {
 
     // The chest art (falls back to a gift glyph if unloaded).
     let chest: Phaser.GameObjects.Image | Phaser.GameObjects.Text;
-    const key = `box__${boxId}`;
+    const key = boxTex(boxId);
     if (s.textures.exists(key)) {
       chest = s.add.image(cx, cy, key).setOrigin(0.5);
       chest.setScale(110 / chest.height);
@@ -138,7 +139,7 @@ export class BoxOpenOverlay {
 
   /** A bright-on-black VFX texture set up for additive, rarity-tinted rendering. */
   private fx(id: "burst" | "glow" | "sparkle", x: number, y: number, color: number, alpha: number): Phaser.GameObjects.Image {
-    const img = this.scene.add.image(x, y, `fx__${id}`).setBlendMode(ADD).setAlpha(alpha);
+    const img = this.scene.add.image(x, y, fxTex(id)).setBlendMode(ADD).setAlpha(alpha);
     img.setTint(color);
     return img;
   }

@@ -18,6 +18,7 @@ import { addGatedButton } from "./gatedButton.ts";
 import { equipLevelGate } from "../data/equipGate.ts";
 import { instanceReqLevel } from "../data/items.ts";
 import type { Rarity, ItemSlot } from "../data/schema.ts";
+import { itemTex } from "../data/assetKeys.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#c8d2dc", Magic: "#5fa8ff", Rare: "#c98bff", Legendary: "#ffb74d", Unique: "#ff7a7a",
@@ -91,7 +92,7 @@ export function renderCompareDialog(
 
   // Column header: icon + role tag + item name in its rarity colour.
   const header = (originX: number, tag: string, ref: ItemRef) => {
-    const icon = makeFitIcon(scene, dx + originX + 16, dy + 26, `item__${ref.def.id}`, 30, "❔");
+    const icon = makeFitIcon(scene, dx + originX + 16, dy + 26, itemTex(ref.def.id), 30, "❔");
     dialog.add(icon);
     txt(originX + 36, 10, tag, { fontSize: "9px", color: "#7e8ea3" });
     txt(originX + 36, 22, `${ref.def.name}${enh(ref)}`,
