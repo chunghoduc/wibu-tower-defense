@@ -64,4 +64,15 @@ describe("T16 — boss active skills", () => {
     b.tick(1.0);
     expect(boss.mana).toBeGreaterThan(0);
   });
+
+  it("a boss cast emits a bossCast FX event carrying the boss's element", () => {
+    const b = bossBattle("warden");
+    for (let i = 0; i < 60 && b.enemies.length === 0; i++) b.tick(0.1);
+    const boss = b.enemies.find((e) => e.def.id === "warden")!;
+    boss.mana = boss.def.boss!.skill!.manaCost;
+    b.tick(0.1); // FX events for this tick land in b.fx (cleared at each tick start)
+    const cast = b.fx.find((e) => e.type === "bossCast");
+    expect(cast).toBeDefined();
+    expect(cast).toMatchObject({ element: boss.def.damageType });
+  });
 });

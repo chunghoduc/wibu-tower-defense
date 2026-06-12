@@ -46,7 +46,7 @@ export type FxEvent =
   | { type: "cast"; uid: number; from: Vec2; at: Vec2; damageType: DamageType; radius: number; source: "tower" | "hero"; skillId?: string }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
-  | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string }
+  | { type: "bossCast"; uid: number; at: Vec2; skill: string; radius: number; name: string; element: DamageType }
   | { type: "loot"; at: Vec2; to: Vec2; gold: number }
   | { type: "killReward"; at: Vec2; to: Vec2; xp: number; item: boolean; itemDefId: string | null; box: string | null }
   // F13 combo: rapid-kill streak feedback. `mult` is the current gold multiplier.

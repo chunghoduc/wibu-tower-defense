@@ -201,7 +201,7 @@ export const enemyMethods = {
   /** Apply a boss's active skill and emit its cast FX. */
   castBossSkill(this: BattleState, e: EnemyRuntime, skill: BossSkill): void {
     const R = skill.radius ?? 150;
-    this.emit({ type: "bossCast", uid: e.uid, at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name });
+    this.emit({ type: "bossCast", uid: e.uid, at: { x: e.pos.x, y: e.pos.y }, skill: skill.type, radius: R, name: skill.name, element: e.def.damageType });
     switch (skill.type) {
       case "quake": {
         // Disable towers in radius and hammer the hero if caught inside.
