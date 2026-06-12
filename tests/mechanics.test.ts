@@ -191,7 +191,7 @@ describe("difficulty scaling", () => {
     };
     const trash = spawn("Rusher");
     const boss = spawn("Boss");
-    expect(boss.maxHp / trash.maxHp).toBeCloseTo(1.5, 5); // bossHpMult on Hard
+    expect(boss.maxHp / trash.maxHp).toBeCloseTo(2.0, 5); // bossHpMult on Hard
     expect(boss.atk / trash.atk).toBeCloseTo(1.3, 5); // bossAtkMult on Hard
   });
 });

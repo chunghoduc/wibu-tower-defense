@@ -375,17 +375,20 @@ export interface DifficultyScaling {
  *   Hard      7.8  × 2.5  ≈ 19.5   (≈10× Normal)
  *   Nightmare 14.8 × 3.3  ≈ 48.8   (≈25× Normal)
  *
- * BOSSES get a further multiplier (bossHpMult/bossAtkMult) on top, so a Hard
- * boss is ~11.7× HP / 3.25× ATK and a Nightmare boss ~26.6× HP / 4.95× ATK over
- * its Normal-tier self — the marquee threat scales harder than the trash.
+ * BOSSES get a further multiplier (bossHpMult/bossAtkMult) on top, so a Normal
+ * boss is ~2.48× HP over equal-base trash, a Hard boss ~15.6× HP / 3.25× ATK and
+ * a Nightmare boss ~35.5× HP / 4.95× ATK over its Normal-tier self — the marquee
+ * threat scales harder than the trash, and now reads as a real wall even on Normal
+ * (where bossHpMult used to be a no-op 1.0).
  */
 export const DIFFICULTY_SCALING: Record<Difficulty, DifficultyScaling> = {
   // Normal floor lifted (1.3→1.55 HP, 1.15→1.25 atk): the base game asks for
   // real defence from wave one. Most of the "too easy" fix comes from the
   // intra-stage wave ramp (see waveScaling.ts), not this flat multiplier.
-  Normal: { hpMult: 1.55, atkMult: 1.25, bountyMult: 1, bossHpMult: 1, bossAtkMult: 1 },
-  Hard: { hpMult: 7.8, atkMult: 2.5, bountyMult: 3, bossHpMult: 1.5, bossAtkMult: 1.3 },
-  Nightmare: { hpMult: 14.8, atkMult: 3.3, bountyMult: 5, bossHpMult: 1.8, bossAtkMult: 1.5 },
+  // bossHpMult lifted off 1.0 so the one boss per stage is a genuine wall.
+  Normal: { hpMult: 1.55, atkMult: 1.25, bountyMult: 1, bossHpMult: 1.6, bossAtkMult: 1 },
+  Hard: { hpMult: 7.8, atkMult: 2.5, bountyMult: 3, bossHpMult: 2.0, bossAtkMult: 1.3 },
+  Nightmare: { hpMult: 14.8, atkMult: 3.3, bountyMult: 5, bossHpMult: 2.4, bossAtkMult: 1.5 },
 };
 
 /** A point on the map in world coordinates. */
