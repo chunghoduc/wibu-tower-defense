@@ -14,7 +14,7 @@ import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 import { enemyWalkTransform } from "./enemyWalkTransform.ts";
 import type { BattleScene } from "./BattleScene.ts";
 import { towerTex } from "../data/assetKeys.ts";
-import { roleBadgeTex, ROLE_BADGE, ROLE_BADGE_COLOR } from "./roleBadge.ts";
+import { roleBadgeTex, ROLE_BADGE } from "./roleBadge.ts";
 
 /** Duration (ms) of a tower's procedural strike-recoil punch. */
 const TOWER_STRIKE_MS = 200;
@@ -341,9 +341,10 @@ export const spritesMethods = {
       if (this.textures.exists(badgeKey)) {
         let b = this.roleBadges.get(t.uid);
         if (!b) {
+          // No tint: the SDXL emblem already carries its role color, and it sits
+          // on the role-colored disc drawn by drawTypeBadge (depth 5, under it).
           b = this.add.image(0, 0, badgeKey).setDepth(6);
           if (b.height) b.setScale(ROLE_BADGE.diameter / b.height);
-          b.setTint(ROLE_BADGE_COLOR[t.def.role] ?? 0xffffff);
           this.world.add(b);
           this.roleBadges.set(t.uid, b);
         }
