@@ -68,7 +68,7 @@ def _frame_names(n):
             + [f"atk{i+1}" for i in range(atk)]
             + [f"skill{i+1}" for i in range(skill)])
 
-def main(inp, outp, cell=128, max_frames=12):
+def main(inp, outp, cell=128, max_frames=12, min_frames=1):
     im = Image.open(inp).convert("RGBA")
     cut = _cutout(im)
     alpha = np.asarray(cut)[:, :, 3]
@@ -85,6 +85,14 @@ def main(inp, outp, cell=128, max_frames=12):
              if (b[3] - b[1]) >= 0.55 * med_h            # tall enough (full body)
              and (b[2] - b[0]) >= 0.18 * med_h            # not a thin sliver
              and (b[3] - b[1]) >= 1.05 * (b[2] - b[0])]   # portrait: drops merged side-by-side pairs
+    # Ghost-frame guard: a partial/failed cutout packs as a faint semi-transparent
+    # figure (this caused the rivka/vesska faded frames). Drop boxes whose bbox is
+    # mostly transparent OR whose average alpha is too low, so we never emit a ghost.
+    def _solid(b):
+        x0, y0, x1, y1 = b
+        sub = alpha[y0:y1 + 1, x0:x1 + 1]
+        return sub.size > 0 and (sub > 30).mean() >= 0.20 and sub.mean() >= 60
+    boxes = [b for b in boxes if _solid(b)]
     # Single-frame fallback: a dramatic boss with a full-bleed aura/glow can merge
     # its poses into one wide blob that the portrait filter rejects, yielding zero
     # frames. Rather than lose the (cinematic) art entirely, keep the largest raw
@@ -100,6 +108,10 @@ def main(inp, outp, cell=128, max_frames=12):
     n = len(boxes)
     if n == 0:
         print("NO FRAMES"); return 0
+    if n < min_frames:
+        # too few clean figures — don't overwrite a good prior result; let the caller
+        # (regen harness) re-roll the seed instead.
+        print(f"TOO FEW FRAMES: {n} < {min_frames}"); return n
 
     # one global scale so motion/scale stays relative; fit tallest into cell*0.92
     tallest = max(b[3] - b[1] for b in boxes)
@@ -128,5 +140,6 @@ if __name__ == "__main__":
     while i < len(args):
         if args[i] == "--cell": kw["cell"] = int(args[i+1]); i += 2
         elif args[i] == "--max-frames": kw["max_frames"] = int(args[i+1]); i += 2
+        elif args[i] == "--min-frames": kw["min_frames"] = int(args[i+1]); i += 2
         else: i += 1
     main(inp, outp, **kw)
