@@ -4,6 +4,7 @@ import { tierOfBox } from "../core/boxes.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { boxRewardEntries } from "../data/boxRewardView.ts";
 import { makeFitIcon } from "./itemIcon.ts";
+import { addNamePlate } from "./namePlate.ts";
 import { boxTex, fxTex } from "../data/assetKeys.ts";
 
 const ADD = Phaser.BlendModes.ADD;
@@ -109,7 +110,8 @@ export class BoxOpenOverlay {
     const s = this.scene;
     if (!this.root) return;
     const entries = boxRewardEntries(reward);
-    const tw = 86, gap = 10;
+    const tw = 86, th = 84, plateH = 28, gap = 10;
+    const top = -th / 2;                 // tile spans top..top+th
     const totalW = entries.length * tw + (entries.length - 1) * gap;
     const startX = cx - totalW / 2 + tw / 2;
     const ty = cy + 110;
@@ -118,16 +120,19 @@ export class BoxOpenOverlay {
       const tile = s.add.container(startX + i * (tw + gap), ty).setAlpha(0).setScale(0.7);
       const col = Phaser.Display.Color.HexStringToColor(e.color).color;
       const g = s.add.graphics();
-      g.fillStyle(0x121a28, 1).fillRoundedRect(-tw / 2, -36, tw, 72, 8);
-      g.lineStyle(2, col, 1).strokeRoundedRect(-tw / 2, -36, tw, 72, 8);
+      g.fillStyle(0x121a28, 1).fillRoundedRect(-tw / 2, top, tw, th, 8);
+      g.lineStyle(2, col, 1).strokeRoundedRect(-tw / 2, top, tw, th, 8);
       tile.add(g);
 
       // Same scale-to-fill rule as the bag/shop so a looted item looks identical
-      // to how it reads everywhere else (was a tiny fixed 34px → looked "old").
+      // to how it reads everywhere else; icon centred in the region above the plate.
       const fallback = e.kind === "gold" ? "🪙" : e.kind === "item" ? "📦" : "💠";
-      tile.add(makeFitIcon(s, 0, -8, e.iconKey ?? "", 50, fallback));
+      tile.add(makeFitIcon(s, 0, top + (th - plateH) / 2, e.iconKey ?? "", 50, fallback));
       const label = e.kind === "gold" || e.kind === "diamond" ? `+${e.count}` : e.count > 1 ? `${e.name} ×${e.count}` : e.name;
-      tile.add(s.add.text(0, 22, label, { fontSize: "9px", color: e.color, align: "center", wordWrap: { width: tw - 8 }, fontStyle: "bold" }).setOrigin(0.5, 0));
+      addNamePlate(s, tile, label, {
+        width: tw, topY: top + th - plateH, height: plateH, radius: 8,
+        accent: col, color: e.color, basePx: 10, minPx: 7, maxLines: 2,
+      });
       this.root!.add(tile);
       s.tweens.add({ targets: tile, alpha: 1, scale: 1, duration: 280, delay: i * 110, ease: "Back.easeOut" });
     });
