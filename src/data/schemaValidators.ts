@@ -3,6 +3,8 @@
  * Each asserts the invariants the catalogs rely on and returns the value through,
  * so loaders can `indexById(DATA, validateX)`.
  */
+// Enum constants come from the leaf schemaEnums.ts (not schema.ts) so the only
+// schema.ts ⇄ schemaValidators.ts edge left is type-only — no runtime cycle.
 import {
   ATTACK_DAMAGE_TYPES,
   DAMAGE_TYPES,
@@ -15,12 +17,14 @@ import {
   TARGET_TYPES,
   TOWER_ROLES,
   WEAPON_TYPES,
-  type ActiveSkillDef,
-  type CharacterDef,
-  type EnemyDef,
-  type ItemDef,
-  type PassiveNodeDef,
-  type StageDef,
+} from "./schemaEnums.ts";
+import type {
+  ActiveSkillDef,
+  CharacterDef,
+  EnemyDef,
+  ItemDef,
+  PassiveNodeDef,
+  StageDef,
 } from "./schema.ts";
 import { WEAPON_ELEMENTS, WEAPON_FAMILIES, deriveDamageType } from "./weaponFamily.ts";
 

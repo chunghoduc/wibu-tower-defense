@@ -13,6 +13,8 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:cycles": "node scripts/checkCycles.mjs",
     "gen:sprites": "vite-node scripts/sdart/sdgen.mjs",
     "gen:sprites:anim": "vite-node scripts/sdart/animgen.mjs",
     "gen:item-visual": "vite-node scripts/genItemVisual.ts",
@@ -22,9 +24,13 @@
     "phaser": "^3.80.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^25.9.2",
+    "eslint": "^10.5.0",
+    "madge": "^8.0.0",
     "prettier": "^3.8.4",
     "typescript": "^5.5.4",
+    "typescript-eslint": "^8.61.0",
     "vite": "^5.4.0",
     "vitest": "^2.0.5"
   }
