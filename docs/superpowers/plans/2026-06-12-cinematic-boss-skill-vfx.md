@@ -162,19 +162,17 @@ Add to `tests/boss-skill.test.ts` inside the `describe("T16 — boss active skil
 ```ts
 it("a boss cast emits a bossCast FX event carrying the boss's element", () => {
   const b = bossBattle("warden");
-  const events: any[] = [];
-  b.onFx((e) => events.push(e)); // capture emitted FX
   for (let i = 0; i < 60 && b.enemies.length === 0; i++) b.tick(0.1);
   const boss = b.enemies.find((e) => e.def.id === "warden")!;
   boss.mana = boss.def.boss!.skill!.manaCost;
-  b.tick(0.1);
-  const cast = events.find((e) => e.type === "bossCast");
+  b.tick(0.1); // FX events for this tick land in b.fx (cleared at each tick start)
+  const cast = b.fx.find((e) => e.type === "bossCast");
   expect(cast).toBeDefined();
-  expect(cast.element).toBe(boss.def.damageType);
+  expect(cast).toMatchObject({ element: boss.def.damageType });
 });
 ```
 
-> **Note for the engineer:** confirm the FX subscription method name. Search: `grep -n "onFx\|fxSink\|this.emit\b" src/core/battle*.ts`. If the hook is named differently (e.g. `setFxSink`, `onEvent`), use that name instead — the assertion logic is unchanged. If no public subscription exists, instead assert on the event by stubbing: replace `b.onFx(...)` with reading from whatever sink the other FX tests use (search `grep -rn "type === \"bossCast\"\|bossCast" tests/`).
+> The battle exposes emitted FX as the public `readonly fx: FxEvent[]` array (`battle.ts:74`), reset at the start of every `tick()` (`battle.ts:417`). Reading `b.fx` right after the casting tick is the established way to inspect emitted events. `toMatchObject` avoids a TS narrow on the union.
 
 - [ ] **Step 2: Run test to verify it fails**
 

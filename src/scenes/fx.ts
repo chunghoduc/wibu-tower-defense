@@ -101,7 +101,7 @@ export class FxLayer {
         this.lunge(e.at, e.targetAt);
         break;
       case "bossCast":
-        this.bossCast(e.at, e.skill, e.radius, e.name);
+        this.bossCast(e.at, e.skill, e.radius, e.name, e.element);
         break;
     }
   }
@@ -130,8 +130,8 @@ export class FxLayer {
   }
 
   /** A menacing boss-skill cast — dispatched to its bespoke signature. */
-  private bossCast(at: Vec2, skill: string, radius: number, name: string): void {
-    this.bossFx.cast(at, skill, radius, name);
+  private bossCast(at: Vec2, skill: string, radius: number, name: string, element: DamageType): void {
+    this.bossFx.cast(at, skill, radius, name, element);
   }
 
   /** A quick enemy strike: a streak toward the target + an impact at the target. */
