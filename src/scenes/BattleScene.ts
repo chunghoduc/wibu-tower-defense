@@ -20,6 +20,7 @@
 import Phaser from "phaser";
 import { BattleState, type FxEvent } from "../core/battle.ts";
 import { FixedStepper, SIM_STEP } from "../core/fixedStep.ts";
+import { snapshotPositions } from "./renderLerp.ts";
 import { loadCatalog, type Catalog } from "../data/catalog.ts";
 import {
   defaultHeroStats,
@@ -86,6 +87,10 @@ export class BattleScene extends Phaser.Scene {
   stepper = new FixedStepper();
   /** Sim fx batched across this frame's fixed steps (the sim clears its own array per tick). */
   pendingFx: FxEvent[] = [];
+  /** Enemy/hero positions as of the START of the latest sim step (render interpolation). */
+  prevEnemyPos = new Map<number, { x: number; y: number }>();
+  prevHeroPos: { x: number; y: number } | null = null;
+  renderAlpha = 1; // lerp factor for draw(); 1 = draw live sim state
   speedBtn!: Phaser.GameObjects.Text;
   callWaveBtn!: Phaser.GameObjects.Text;
   autoSkipText!: Phaser.GameObjects.Text;
@@ -157,6 +162,9 @@ export class BattleScene extends Phaser.Scene {
     this.placeGhost = null;
     this.stepper.reset();
     this.pendingFx = [];
+    this.prevEnemyPos.clear();
+    this.prevHeroPos = null;
+    this.renderAlpha = 1;
 
     // Stage and difficulty come from StageSelectScene via registry; fall back to stage 1 / Normal
     this.stage = (this.registry.get("selectedStage") as StageDef | undefined) ?? STAGE_1;
@@ -466,9 +474,13 @@ export class BattleScene extends Phaser.Scene {
     const steps = this.stepper.advance(frame);
     this.pendingFx.length = 0;
     for (let i = 0; i < steps; i++) {
+      snapshotPositions(this.battle.enemies, this.prevEnemyPos);
+      const h = this.battle.hero;
+      this.prevHeroPos = { x: h.pos.x, y: h.pos.y };
       this.battle.tick(SIM_STEP);
       this.pendingFx.push(...this.battle.fx);
     }
+    this.renderAlpha = this.stepper.alpha;
     this.syncCastleArt();
     this.draw();
     this.endlessBackdropFx?.update(time);

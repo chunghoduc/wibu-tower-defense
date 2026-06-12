@@ -12,6 +12,7 @@ import { crispText } from "./ui.ts";
 import { enemyStatusTint } from "./battleSceneHelpers.ts";
 import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 import { enemyWalkTransform } from "./enemyWalkTransform.ts";
+import { lerpV } from "./renderLerp.ts";
 import type { BattleScene } from "./BattleScene.ts";
 import { towerTex } from "../data/assetKeys.ts";
 import { roleBadgeTex, ROLE_BADGE } from "./roleBadge.ts";
@@ -20,6 +21,16 @@ import { roleBadgeTex, ROLE_BADGE } from "./roleBadge.ts";
 const TOWER_STRIKE_MS = 200;
 
 export const spritesMethods = {
+  /** Interpolated draw position for an enemy (fixed-step sim, smooth display). */
+  enemyRenderPos(this: BattleScene, e: EnemyRuntime): { x: number; y: number } {
+    return lerpV(this.prevEnemyPos.get(e.uid), e.pos, this.renderAlpha);
+  },
+
+  /** Interpolated draw position for the hero. */
+  heroRenderPos(this: BattleScene): { x: number; y: number } {
+    return lerpV(this.prevHeroPos ?? undefined, this.battle.hero.pos, this.renderAlpha);
+  },
+
   /** Render one sim FX event, and trigger sprite animations (attack swing, hit flash). */
   playFx(this: BattleScene, ev: FxEvent): void {
     this.fx.play(ev);
@@ -285,6 +296,8 @@ export const spritesMethods = {
     e: EnemyRuntime,
     key: string,
     shadow: Phaser.GameObjects.Ellipse | null,
+    /** Interpolated render position (fixed-step sim → per-frame smooth display). */
+    p: { x: number; y: number },
   ): void {
     const now = this.time.now;
     const boss = e.def.archetype === "Boss";
@@ -313,8 +326,8 @@ export const spritesMethods = {
     }
 
     // Distance travelled since last frame → couples the gait to the ground.
-    const px = e.pos.x,
-      py = e.pos.y;
+    const px = p.x,
+      py = p.y;
     const lx = s.getData("lastPosX") as number | undefined;
     const ly = s.getData("lastPosY") as number | undefined;
     const moved = lx === undefined ? 0 : Math.min(20, Math.hypot(px - lx, py - (ly as number)));
@@ -364,16 +377,16 @@ export const spritesMethods = {
 
     s.setAngle(angle);
     s.setScale(scaleX, scaleY);
-    s.x = e.pos.x + xOff;
-    s.y = e.pos.y + yOff;
+    s.x = p.x + xOff;
+    s.y = p.y + yOff;
 
     // Ground-contact shadow: pinned at the ground point (never bobs), it shrinks
     // and fades as the body lifts on each step — the anchor that turns a sliding
     // sprite into a creature with weight on solid ground. Flyers keep a fixed,
     // faint, small shadow far below as a pure altitude cue.
     if (shadow) {
-      shadow.x = e.pos.x;
-      shadow.y = e.pos.y + 2;
+      shadow.x = p.x;
+      shadow.y = p.y + 2;
       if (e.flying) {
         shadow.setScale(0.62);
         shadow.setAlpha(0.16 * s.alpha);
@@ -477,15 +490,16 @@ export const spritesMethods = {
       const key = `${boss ? "boss" : "enemy"}__${e.def.id}`;
       // Elites render 150% bigger so the player can spot them at a glance (T17).
       const displayH = (boss ? 80 : 44) * (e.elite ? ELITE_SIZE_MULT : 1);
-      const s = this.ensureSprite(this.enemySprites, e.uid, key, e.pos.x, e.pos.y, displayH);
+      const p = this.enemyRenderPos(e); // interpolated — sim steps at 20Hz, display at frame rate
+      const s = this.ensureSprite(this.enemySprites, e.uid, key, p.x, p.y, displayH);
       if (s) {
         seenE.add(e.uid);
         s.setAlpha(e.stealth ? (e.revealed ? 0.78 : 0.3) : 1);
         const tint = enemyStatusTint(e); // burn/poison/freeze body tint (T8)
         if (tint === null) s.clearTint();
         else s.setTint(tint);
-        const shadow = this.ensureShadow(e.uid, e.pos.x, e.pos.y, displayH);
-        this.animateEnemy(s, e, key, shadow); // walk / fly / hurt animation + ground shadow
+        const shadow = this.ensureShadow(e.uid, p.x, p.y, displayH);
+        this.animateEnemy(s, e, key, shadow, p); // walk / fly / hurt animation + ground shadow
       }
     }
     for (const [uid, s] of this.enemySprites)
@@ -509,7 +523,8 @@ export const spritesMethods = {
         if (this.saveManager) hs.syncEquipment(this.saveManager.getSave().inventory);
         this.heroSprite = hs;
       }
-      this.heroSprite.setPosition(h.pos.x, h.pos.y);
+      const hp = this.heroRenderPos();
+      this.heroSprite.setPosition(hp.x, hp.y);
       this.heroSprite.setVisible(true);
       // Sync equipment visuals each frame (no-op when nothing changed)
       if (this.heroSprite && this.saveManager) {

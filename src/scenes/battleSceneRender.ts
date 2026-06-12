@@ -263,6 +263,7 @@ export const renderMethods = {
   },
 
   drawEnemy(this: BattleScene, g: Phaser.GameObjects.Graphics, e: EnemyRuntime): void {
+    const p = this.enemyRenderPos(e); // interpolated draw position (fixed-step sim)
     const boss = e.def.archetype === "Boss";
     const r = (boss ? 16 : e.flying ? 8 : 10) * (e.elite ? ELITE_SIZE_MULT : 1);
     const alpha = e.stealth ? 0.4 : 1;
@@ -271,36 +272,36 @@ export const renderMethods = {
     if (e.elite) {
       const pulse = 0.5 + 0.5 * Math.sin(this.time.now * 0.006 + e.uid);
       const ar = r + 6 + pulse * 4;
-      g.fillStyle(0xffd34d, 0.12 + pulse * 0.08).fillCircle(e.pos.x, e.pos.y, ar);
-      g.lineStyle(2, 0xffe082, 0.85).strokeCircle(e.pos.x, e.pos.y, ar);
-      g.lineStyle(1, 0xfff3c4, 0.5).strokeCircle(e.pos.x, e.pos.y, r + 3);
+      g.fillStyle(0xffd34d, 0.12 + pulse * 0.08).fillCircle(p.x, p.y, ar);
+      g.lineStyle(2, 0xffe082, 0.85).strokeCircle(p.x, p.y, ar);
+      g.lineStyle(1, 0xfff3c4, 0.5).strokeCircle(p.x, p.y, r + 3);
     }
-    if (!this.enemySprites.has(e.uid)) g.fillStyle(base, alpha).fillCircle(e.pos.x, e.pos.y, r);
-    else if (e.enraged) g.lineStyle(2, 0xff5252, 0.8).strokeCircle(e.pos.x, e.pos.y, r + 4);
-    if (e.stunTimer > 0) g.lineStyle(2, 0xfff176, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
-    else if (e.slowPct > 0) g.lineStyle(2, 0x4fc3f7, 0.9).strokeCircle(e.pos.x, e.pos.y, r + 3);
+    if (!this.enemySprites.has(e.uid)) g.fillStyle(base, alpha).fillCircle(p.x, p.y, r);
+    else if (e.enraged) g.lineStyle(2, 0xff5252, 0.8).strokeCircle(p.x, p.y, r + 4);
+    if (e.stunTimer > 0) g.lineStyle(2, 0xfff176, 0.9).strokeCircle(p.x, p.y, r + 3);
+    else if (e.slowPct > 0) g.lineStyle(2, 0x4fc3f7, 0.9).strokeCircle(p.x, p.y, r + 3);
     // Stealth (T9): a ghostly cyan dashed ring while hidden; an orange "spotted"
     // ring + eye when revealed by the hero (towers can then hit it).
     if (e.stealth) {
       if (e.revealed) {
-        g.lineStyle(2, 0xffa726, 0.95).strokeCircle(e.pos.x, e.pos.y, r + 6);
-        this.drawEye(g, e.pos.x, e.pos.y - r - 11, 0xffd27a);
+        g.lineStyle(2, 0xffa726, 0.95).strokeCircle(p.x, p.y, r + 6);
+        this.drawEye(g, p.x, p.y - r - 11, 0xffd27a);
       } else {
-        this.drawDashedRing(g, e.pos.x, e.pos.y, r + 5, 0x80deea, 0.8);
+        this.drawDashedRing(g, p.x, p.y, r + 5, 0x80deea, 0.8);
       }
     }
     const w = boss ? 40 : e.elite ? 30 : 20;
-    const top = e.pos.y - r - 7;
-    g.fillStyle(0x000000, 0.6).fillRect(e.pos.x - w / 2, top, w, 4);
+    const top = p.y - r - 7;
+    g.fillStyle(0x000000, 0.6).fillRect(p.x - w / 2, top, w, 4);
     g.fillStyle(0x66bb6a, 1).fillRect(
-      e.pos.x - w / 2,
+      p.x - w / 2,
       top,
       w * Phaser.Math.Clamp(e.hp / e.stats.maxHp, 0, 1),
       4,
     );
     if (e.shield > 0) {
       g.fillStyle(0x80d8ff, 1).fillRect(
-        e.pos.x - w / 2,
+        p.x - w / 2,
         top - 4,
         w * Phaser.Math.Clamp(e.shield / e.stats.maxHp, 0, 1),
         3,
@@ -310,11 +311,11 @@ export const renderMethods = {
     const bskill = e.def.boss?.skill;
     if (bskill) {
       const mf = Phaser.Math.Clamp(e.mana / bskill.manaCost, 0, 1);
-      g.fillStyle(0x000000, 0.6).fillRect(e.pos.x - w / 2, top + 5, w, 3);
-      g.fillStyle(0xb085f5, 1).fillRect(e.pos.x - w / 2, top + 5, w * mf, 3);
+      g.fillStyle(0x000000, 0.6).fillRect(p.x - w / 2, top + 5, w, 3);
+      g.fillStyle(0xb085f5, 1).fillRect(p.x - w / 2, top + 5, w * mf, 3);
     }
     // Status glyphs (T8): burning / poison / freeze above the bar.
-    this.drawStatusGlyphs(g, e, top - (e.shield > 0 ? 12 : 8));
+    this.drawStatusGlyphs(g, e, p.x, top - (e.shield > 0 ? 12 : 8));
   },
 
   /** Burning / poison / freeze status glyphs over an enemy (T8). */
@@ -322,6 +323,7 @@ export const renderMethods = {
     this: BattleScene,
     g: Phaser.GameObjects.Graphics,
     e: EnemyRuntime,
+    px: number, // interpolated render X (matches the body, not the raw sim pos)
     gy: number,
   ): void {
     const kinds: ("burn" | "poison" | "freeze")[] = [];
@@ -329,7 +331,7 @@ export const renderMethods = {
     if (e.slowPct >= 0.6) kinds.push("freeze");
     if (kinds.length === 0) return;
     const gap = 11;
-    const startX = e.pos.x - ((kinds.length - 1) * gap) / 2;
+    const startX = px - ((kinds.length - 1) * gap) / 2;
     kinds.forEach((k, i) => this.drawStatusGlyph(g, k, startX + i * gap, gy));
   },
 
@@ -364,18 +366,19 @@ export const renderMethods = {
   drawHero(this: BattleScene, g: Phaser.GameObjects.Graphics): void {
     const h = this.battle.hero;
     if (!h.alive) return;
-    if (!this.heroSprite) g.fillStyle(0xffd700, 1).fillCircle(h.pos.x, h.pos.y, 13);
-    g.lineStyle(1, 0xffd700, 0.25).strokeCircle(h.pos.x, h.pos.y, h.stats.range);
-    g.fillStyle(0x000000, 0.6).fillRect(h.pos.x - 16, h.pos.y - 24, 32, 5);
+    const p = this.heroRenderPos(); // interpolated draw position (fixed-step sim)
+    if (!this.heroSprite) g.fillStyle(0xffd700, 1).fillCircle(p.x, p.y, 13);
+    g.lineStyle(1, 0xffd700, 0.25).strokeCircle(p.x, p.y, h.stats.range);
+    g.fillStyle(0x000000, 0.6).fillRect(p.x - 16, p.y - 24, 32, 5);
     g.fillStyle(0x66bb6a, 1).fillRect(
-      h.pos.x - 16,
-      h.pos.y - 24,
+      p.x - 16,
+      p.y - 24,
       32 * Phaser.Math.Clamp(h.hp / h.stats.maxHp, 0, 1),
       5,
     );
     g.fillStyle(0x42a5f5, 1).fillRect(
-      h.pos.x - 16,
-      h.pos.y - 18,
+      p.x - 16,
+      p.y - 18,
       32 * Phaser.Math.Clamp(h.mana / MANA_MAX, 0, 1),
       3,
     );
