@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildChapter1Waves } from "../src/data/chapter1Waves.ts";
+import { progressionScaling } from "../src/core/progressionScaling.ts";
+import { buildChapter1Waves, CH1_PLANS } from "../src/data/chapter1Waves.ts";
 import { ENEMIES } from "../src/data/enemies.ts";
 import type { WaveDef } from "../src/data/schema.ts";
+import { STAGES as STAGE_DEFS } from "../src/data/stage.ts";
 
 const byId = new Map(ENEMIES.map((e) => [e.id, e]));
 const isBoss = (id: string) => byId.get(id)?.archetype === "Boss";
@@ -13,6 +15,22 @@ const ehp = (id: string) => {
 /** Total non-boss toughness of a wave (the throughput the board must chew). */
 const trashThreat = (wave: WaveDef) =>
   wave.spawns.filter((s) => !isBoss(s.enemyId)).reduce((t, s) => t + s.count * ehp(s.enemyId), 0);
+
+/** Trash threat excluding the stage's featured archetype — the stage "chassis".
+ *  Features rotate (gargoyle 58 ehp vs bulwark 250 ehp), so raw threat zig-zags
+ *  by design; the chassis is what must grow strictly stage over stage. */
+const chassisThreat = (waves: WaveDef[], feature: string) =>
+  waves.reduce(
+    (t, w) =>
+      t +
+      w.spawns
+        .filter((s) => !isBoss(s.enemyId) && s.enemyId !== feature)
+        .reduce((u, s) => u + s.count * ehp(s.enemyId), 0),
+    0,
+  );
+
+/** Total trash threat of a full stage (all 10 waves). */
+const stageThreat = (waves: WaveDef[]) => waves.reduce((t, w) => t + trashThreat(w), 0);
 
 // Boss for stage n is the nth entry; mid-boss is the previous tier.
 const BOSSES = [
@@ -70,6 +88,37 @@ describe("chapter 1 wave design", () => {
       const threats = wavesFor(n).map(trashThreat);
       expect(threats[8], `stage ${n}`).toBeGreaterThanOrEqual(3 * threats[0]);
     }
+  });
+
+  it("walls are permanent from stage 5 and supports from stage 3 (composition curve)", () => {
+    for (const n of STAGES) {
+      const p = CH1_PLANS[n - 1];
+      expect(p.wall !== null, `stage ${n} wall`).toBe(n >= 5);
+      expect(p.support !== null, `stage ${n} support`).toBe(n >= 3);
+      expect(p.support2 !== null, `stage ${n} support2`).toBe(n >= 9);
+    }
+  });
+
+  it("scaled chassis threat strictly increases stage over stage (monotonic law)", () => {
+    const scaled = STAGES.map(
+      (n) => chassisThreat(wavesFor(n), CH1_PLANS[n - 1].feature) * progressionScaling(n).hpMult,
+    );
+    for (let i = 1; i < scaled.length; i++) {
+      expect(scaled[i], `stage ${i + 1} vs ${i}`).toBeGreaterThan(scaled[i - 1]);
+    }
+  });
+
+  it("a harder stage 10 still sits below procedural stage 11 (chapter ordering)", () => {
+    const s10 = stageThreat(wavesFor(10)) * progressionScaling(10).hpMult;
+    const s11 = stageThreat(STAGE_DEFS[10].waves) * progressionScaling(11).hpMult;
+    expect(s10).toBeLessThan(s11);
+  });
+
+  it("later stages spawn faster (cadence pressure), stage 1 keeps the tutorial pace", () => {
+    const i1 = wavesFor(1)[0].spawns[0].interval ?? 1;
+    const i10 = wavesFor(10)[0].spawns[0].interval ?? 1;
+    expect(i1).toBeCloseTo(1.0, 5);
+    expect(i10).toBeLessThanOrEqual(0.56);
   });
 
   it("the chapter's hardest stages (9-10) force both damage types in the gauntlet", () => {
