@@ -4,6 +4,8 @@ import { music } from "./audio.ts";
 import { hangerLayout, equippedHangers, squadStand, squadStandPoints, petWander } from "./homeRoom.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { bgKey } from "../data/bgManifest.ts";
+import { buildMenuAtmosphere } from "./menuAtmosphere.ts";
+import { MenuBackdropFx } from "./menuBackdropFx.ts";
 import { crispText } from "./ui.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { claimableQuestCount } from "../core/questTracker.ts";
@@ -33,10 +35,12 @@ const MENU_ITEMS: MenuItem[] = [
 ];
 
 const BTN = 58; // icon button size
+const ATMOSPHERE_SEED = 4242; // stable look every time the menu is entered
 
 export class MainMenuScene extends Phaser.Scene {
   private badges: Record<string, number> = {};
   private pet?: Phaser.GameObjects.Image; // re-init in create() (scene reuse)
+  private backdropFx?: MenuBackdropFx;    // re-init in create() (scene reuse)
   private elapsed = 0;
 
   constructor() {
@@ -51,6 +55,7 @@ export class MainMenuScene extends Phaser.Scene {
     this.badges = { quests: claimableQuestCount(save), activities: mgr.activityBadgeCount() };
     const W = this.scale.width, H = this.scale.height;
     this.pet = undefined; // scene instances are reused — reset per-entry state
+    this.backdropFx = undefined; // drawBackdrop rebuilds it
     this.elapsed = 0;
     fadeIn(this);
 
@@ -69,9 +74,10 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   /** Pet wanders above the throne each frame (see homeRoom.petWander). */
-  update(_t: number, dtMs: number): void {
-    if (!this.pet) return;
+  update(t: number, dtMs: number): void {
     this.elapsed += dtMs;
+    this.backdropFx?.update(t);
+    if (!this.pet) return;
     const p = petWander(this.elapsed, this.scale.width, this.scale.height);
     this.pet.setPosition(p.x, p.y);
     this.pet.setFlipX(p.faceLeft);
@@ -82,11 +88,12 @@ export class MainMenuScene extends Phaser.Scene {
     if (this.textures.exists(bgKey("menu-hall"))) {
       this.add.image(W / 2, H / 2, bgKey("menu-hall")).setDisplaySize(W, H).setDepth(-10);
     } else {
-      this.add.graphics().fillStyle(0x161b28, 1).fillRect(0, 0, W, H);
+      this.add.graphics().setDepth(-10).fillStyle(0x161b28, 1).fillRect(0, 0, W, H);
     }
-    // gentle vignette/darken at edges so UI reads on top
-    const v = this.add.graphics().setDepth(-9);
-    v.fillStyle(0x05070c, 0.35).fillRect(0, 0, W, 70).fillRect(0, H - 96, W, 96);
+    // Living throne-hall atmosphere: god-rays, dust, embers, key light, vignette.
+    // Also darkens the painted hall so the lit diorama (throne + hero) reads as
+    // the single focal subject (fixes the old double-throne clutter).
+    this.backdropFx = new MenuBackdropFx(this, buildMenuAtmosphere(W, H, ATMOSPHERE_SEED));
   }
 
   // ── procedural king's chair + dais ("the stage") ─────────────────────────────
