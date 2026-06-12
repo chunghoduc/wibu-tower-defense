@@ -7,6 +7,7 @@
 import Phaser from "phaser";
 import type { Vec2 } from "../data/schema.ts";
 import { type ImpactFx } from "./impactFx.ts";
+import type { FxPool } from "./fxPool.ts";
 
 export class ProjectileFx {
   constructor(
@@ -15,6 +16,8 @@ export class ProjectileFx {
     private readonly depth: number,
     /** Per-element projectile contact VFX (fire/ice/shock/arcane/poison/…). */
     private readonly impact: ImpactFx,
+    /** Shared one-shot shape pool — tracers/orbs/sparks reuse instead of churn. */
+    private readonly pool: FxPool,
   ) {}
 
   /** A gunshot — a fast, dead-straight bullet tracer with a muzzle flash at the
@@ -23,16 +26,16 @@ export class ProjectileFx {
     const ang = Math.atan2(to.y - from.y, to.x - from.x);
     const mx = from.x + Math.cos(ang) * 10,
       my = from.y + Math.sin(ang) * 10;
-    const flash = this.fac.circle(mx, my, 4, 0xfff4c2, 0.95).setDepth(this.depth + 1);
+    const flash = this.pool.circle(mx, my, 4, 0xfff4c2, 0.95).setDepth(this.depth + 1);
     this.scene.tweens.add({
       targets: flash,
       scale: 0.2,
       alpha: 0,
       duration: 90,
-      onComplete: () => flash.destroy(),
+      onComplete: () => this.pool.release(flash),
     });
-    const tracer = this.fac
-      .rectangle(mx, my, 16, 2, color)
+    const tracer = this.pool
+      .rect(mx, my, 16, 2, color)
       .setRotation(ang)
       .setOrigin(0, 0.5)
       .setDepth(this.depth);
@@ -53,7 +56,7 @@ export class ProjectileFx {
       ease: "Quad.easeIn",
       onComplete: () => {
         this.impact.bullet(to, color);
-        tracer.destroy();
+        this.pool.release(tracer);
       },
     });
   }
@@ -61,8 +64,8 @@ export class ProjectileFx {
   /** An arrow — a thin streak that flies to the target and sticks briefly. */
   arrow(from: Vec2, to: Vec2, color: number): void {
     const ang = Math.atan2(to.y - from.y, to.x - from.x);
-    const shaft = this.fac
-      .rectangle(from.x, from.y, 14, 2.5, color)
+    const shaft = this.pool
+      .rect(from.x, from.y, 14, 2.5, color)
       .setRotation(ang)
       .setOrigin(0.5)
       .setDepth(this.depth);
@@ -84,7 +87,7 @@ export class ProjectileFx {
       ease: "Sine.easeIn",
       onComplete: () => {
         this.impact.pierce(to, ang);
-        shaft.destroy();
+        this.pool.release(shaft);
       },
     });
   }
@@ -102,10 +105,10 @@ export class ProjectileFx {
   ): void {
     const body =
       shape === "diamond"
-        ? this.fac.star(from.x, from.y, 4, r * 0.5, r, color).setDepth(this.depth)
-        : this.fac.circle(from.x, from.y, r, color).setDepth(this.depth);
+        ? this.pool.star(from.x, from.y, 4, r * 0.5, r, color).setDepth(this.depth)
+        : this.pool.circle(from.x, from.y, r, color).setDepth(this.depth);
     if (shape === "round") body.setStrokeStyle(1.5, core, 0.7);
-    const glow = this.fac.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
+    const glow = this.pool.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
     const dur = Math.min(
       260,
       60 +
@@ -122,8 +125,8 @@ export class ProjectileFx {
       duration: dur,
       ease: "Sine.easeIn",
       onComplete: () => {
-        body.destroy();
-        glow.destroy();
+        this.pool.release(body);
+        this.pool.release(glow);
         onImpact(to);
       },
     });
@@ -133,9 +136,9 @@ export class ProjectileFx {
   projectile(from: Vec2, to: Vec2, color: number, role: string): void {
     const isMagic = role === "dot" || role === "debuff" || role === "support";
     const r = isMagic ? 5 : 4;
-    const dot = this.fac.circle(from.x, from.y, r, color).setDepth(this.depth);
+    const dot = this.pool.circle(from.x, from.y, r, color).setDepth(this.depth);
     dot.setStrokeStyle(2, 0xffffff, 0.5);
-    const glow = this.fac.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
+    const glow = this.pool.circle(from.x, from.y, r + 3, color, 0.25).setDepth(this.depth - 1);
     const dur = Math.min(
       260,
       60 +
@@ -152,9 +155,9 @@ export class ProjectileFx {
       duration: dur,
       ease: "Sine.easeIn",
       onComplete: () => {
-        glow.destroy();
+        this.pool.release(glow);
         this.spark(to, color);
-        dot.destroy();
+        this.pool.release(dot);
       },
     });
   }
@@ -164,7 +167,7 @@ export class ProjectileFx {
     const n = 5;
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n + Math.random() * 0.6;
-      const p = this.fac.circle(at.x, at.y, 2, color).setDepth(this.depth);
+      const p = this.pool.circle(at.x, at.y, 2, color).setDepth(this.depth);
       this.scene.tweens.add({
         targets: p,
         x: at.x + Math.cos(a) * 14,
@@ -173,7 +176,7 @@ export class ProjectileFx {
         scale: 0.3,
         duration: 220,
         ease: "Quad.easeOut",
-        onComplete: () => p.destroy(),
+        onComplete: () => this.pool.release(p),
       });
     }
   }

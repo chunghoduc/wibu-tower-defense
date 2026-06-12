@@ -9,6 +9,7 @@
 import Phaser from "phaser";
 import type { SkillVfxSpec, SkillSignature } from "../data/skillVfxMeta.ts";
 import { VfxDraw, type V } from "./vfxDraw.ts";
+import type { FxPool } from "./fxPool.ts";
 
 type Fac = Phaser.GameObjects.GameObjectFactory;
 
@@ -244,7 +245,8 @@ export function renderSignature(
   at: V,
   spec: SkillVfxSpec,
   radius: number,
+  pool?: FxPool,
 ): void {
-  const d = new VfxDraw(scene, fac, depth);
+  const d = new VfxDraw(scene, fac, depth, pool);
   SIGNATURES[spec.signature](d, at, spec, radius);
 }

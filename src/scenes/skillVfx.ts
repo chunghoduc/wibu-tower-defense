@@ -13,6 +13,7 @@ import { renderSignature } from "./skillSignatures.ts";
 import { renderTowerShape } from "./towerSkillFx.ts";
 import { renderDelivery } from "./skillDelivery.ts";
 import { VfxDraw } from "./vfxDraw.ts";
+import type { FxPool } from "./fxPool.ts";
 import { ACCENT, SkillElementFx } from "./skillElementFx.ts";
 
 type V = { x: number; y: number };
@@ -25,6 +26,8 @@ export class SkillVfx {
     private readonly scene: Phaser.Scene,
     private readonly fac: Phaser.GameObjects.GameObjectFactory,
     private readonly depth: number,
+    /** Shared one-shot shape pool (owned by FxLayer; outlives each cast). */
+    private readonly pool?: FxPool,
   ) {
     this.elements = new SkillElementFx(scene, fac, depth);
   }
@@ -39,14 +42,14 @@ export class SkillVfx {
     skillId: string | undefined,
     source: "tower" | "hero",
   ): void {
-    const draw = new VfxDraw(this.scene, this.fac, this.depth);
+    const draw = new VfxDraw(this.scene, this.fac, this.depth, this.pool);
     const spec = skillVfxSpec(skillId);
     if (spec) {
       // Hero skill: deliver from the source (fly / fall / erupt / beam), then fire
       // the bespoke impact set-piece on arrival. baseBurst carries the icon emblem.
       renderDelivery(draw, spec.delivery, from, at, spec.palette, radius, () => {
         this.elements.baseBurst(at, spec.palette.core, radius, skillId);
-        renderSignature(this.scene, this.fac, this.depth, at, spec, radius);
+        renderSignature(this.scene, this.fac, this.depth, at, spec, radius, this.pool);
       });
       return;
     }

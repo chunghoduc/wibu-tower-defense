@@ -5,6 +5,7 @@
 // (skillSignatures.ts) and the source-delivery choreographies (skillDelivery.ts).
 // No art assets — pure Phaser shapes + tweens.
 import Phaser from "phaser";
+import type { FxPool } from "./fxPool.ts";
 
 export type V = { x: number; y: number };
 export type Fac = Phaser.GameObjects.GameObjectFactory;
@@ -15,9 +16,33 @@ export class VfxDraw {
     private readonly scene: Phaser.Scene,
     private readonly fac: Fac,
     private readonly depth: number,
+    /** Optional shape pool — circles/rects/stars are reused instead of churned. */
+    private readonly pool?: FxPool,
   ) {}
 
-  /** Tween a fresh object then destroy it. */
+  /** Pooled (or fresh) shape creators — same signatures as the factory. */
+  private mkCircle(x: number, y: number, r: number, fill?: number, alpha = 1) {
+    return this.pool
+      ? this.pool.circle(x, y, r, fill, alpha)
+      : this.fac.circle(x, y, r, fill, alpha);
+  }
+  private mkRect(x: number, y: number, w: number, h: number, fill?: number, alpha = 1) {
+    return this.pool
+      ? this.pool.rect(x, y, w, h, fill, alpha)
+      : this.fac.rectangle(x, y, w, h, fill, alpha);
+  }
+  private mkStar(x: number, y: number, pts: number, ir: number, or: number, fill?: number) {
+    return this.pool
+      ? this.pool.star(x, y, pts, ir, or, fill)
+      : this.fac.star(x, y, pts, ir, or, fill);
+  }
+  /** Release a pooled shape (graphics/triangles fall through to destroy). */
+  private dispose(o: Phaser.GameObjects.GameObject): void {
+    if (this.pool) this.pool.release(o as Phaser.GameObjects.Shape);
+    else o.destroy();
+  }
+
+  /** Tween a fresh object then recycle (pool) or destroy it. */
   private go(
     o: Phaser.GameObjects.GameObject,
     props: Record<string, number>,
@@ -31,7 +56,7 @@ export class VfxDraw {
       duration: dur,
       ease,
       delay,
-      onComplete: () => o.destroy(),
+      onComplete: () => this.dispose(o),
     });
   }
 
@@ -49,17 +74,13 @@ export class VfxDraw {
 
   /** Expanding stroked ring. */
   ring(at: V, radius: number, color: number, dur: number, width = 3, alpha = 0.9): void {
-    const c = this.fac
-      .circle(at.x, at.y, 6)
-      .setStrokeStyle(width, color, alpha)
-      .setDepth(this.depth);
+    const c = this.mkCircle(at.x, at.y, 6).setStrokeStyle(width, color, alpha).setDepth(this.depth);
     this.go(c, { scale: radius / 6, alpha: 0 }, dur, "Cubic.easeOut");
   }
 
   /** Bright filled disc that grows and fades — a flash core. */
   disc(at: V, r: number, color: number, alpha: number, grow: number, dur: number): void {
-    const d = this.fac
-      .circle(at.x, at.y, r, color, alpha)
+    const d = this.mkCircle(at.x, at.y, r, color, alpha)
       .setDepth(this.depth + 3)
       .setBlendMode(Phaser.BlendModes.ADD);
     this.go(d, { scale: grow, alpha: 0 }, dur, "Cubic.easeOut");
@@ -69,8 +90,7 @@ export class VfxDraw {
   spark(at: V, color: number, n = 6, reach = 18): void {
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n + Math.random() * 0.6;
-      const p = this.fac
-        .circle(at.x, at.y, 2, color)
+      const p = this.mkCircle(at.x, at.y, 2, color)
         .setDepth(this.depth + 2)
         .setBlendMode(Phaser.BlendModes.ADD);
       this.go(
@@ -84,13 +104,12 @@ export class VfxDraw {
   /** Drifting motes (dir -1 rise, +1 fall). */
   motes(at: V, radius: number, n: number, color: () => number, dir: 1 | -1): void {
     for (let i = 0; i < n; i++) {
-      const p = this.fac
-        .circle(
-          at.x + Phaser.Math.Between(-radius * 0.6, radius * 0.6),
-          at.y,
-          Phaser.Math.Between(2, 4),
-          color(),
-        )
+      const p = this.mkCircle(
+        at.x + Phaser.Math.Between(-radius * 0.6, radius * 0.6),
+        at.y,
+        Phaser.Math.Between(2, 4),
+        color(),
+      )
         .setDepth(this.depth + 2)
         .setBlendMode(Phaser.BlendModes.ADD);
       this.go(
@@ -132,8 +151,7 @@ export class VfxDraw {
 
   /** A straight tapering beam from `at` along `angle` (radians). */
   beam(at: V, angle: number, length: number, color: number, width: number, dur: number): void {
-    const r = this.fac
-      .rectangle(at.x, at.y, 8, width, color)
+    const r = this.mkRect(at.x, at.y, 8, width, color)
       .setOrigin(0, 0.5)
       .setRotation(angle)
       .setDepth(this.depth + 2)
@@ -217,8 +235,14 @@ export class VfxDraw {
   glyphs(at: V, radius: number, n: number, color: number): void {
     for (let i = 0; i < n; i++) {
       const a = (Math.PI * 2 * i) / n;
-      const r = this.fac
-        .star(at.x + Math.cos(a) * radius, at.y + Math.sin(a) * radius, 4, 2, 5.5, color)
+      const r = this.mkStar(
+        at.x + Math.cos(a) * radius,
+        at.y + Math.sin(a) * radius,
+        4,
+        2,
+        5.5,
+        color,
+      )
         .setDepth(this.depth + 2)
         .setAlpha(0)
         .setAngle(45);
@@ -229,14 +253,14 @@ export class VfxDraw {
         duration: 240,
         yoyo: true,
         hold: 120,
-        onComplete: () => r.destroy(),
+        onComplete: () => this.dispose(r),
       });
     }
   }
 
   /** A puff of smoke that bloats and fades. */
   smoke(at: V, color: number, size = 10): void {
-    const s = this.fac.circle(at.x, at.y, size, color, 0.5).setDepth(this.depth + 1);
+    const s = this.mkCircle(at.x, at.y, size, color, 0.5).setDepth(this.depth + 1);
     this.go(
       s,
       { scale: 2.4, y: at.y - 10, alpha: 0 },
@@ -247,8 +271,7 @@ export class VfxDraw {
 
   /** A bright bar that stretches along its length then fades — a gleam streak. */
   gleam(at: V, deg: number, length: number, color: number, width = 4): void {
-    const r = this.fac
-      .rectangle(at.x, at.y, 8, width, color)
+    const r = this.mkRect(at.x, at.y, 8, width, color)
       .setOrigin(0.5)
       .setAngle(deg)
       .setDepth(this.depth + 3)
@@ -260,8 +283,7 @@ export class VfxDraw {
 
   /** A gather/charge glow that swells then implodes at a point (anticipation beat). */
   chargeGlow(at: V, color: number, r: number, dur: number): void {
-    const c = this.fac
-      .circle(at.x, at.y, r, color, 0.5)
+    const c = this.mkCircle(at.x, at.y, r, color, 0.5)
       .setDepth(this.depth + 2)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setScale(0.2);
@@ -285,12 +307,10 @@ export class VfxDraw {
     dur: number,
     onArrive: () => void,
   ): void {
-    const glow = this.fac
-      .circle(from.x, from.y, r + 3, color, 0.35)
+    const glow = this.mkCircle(from.x, from.y, r + 3, color, 0.35)
       .setDepth(this.depth + 1)
       .setBlendMode(Phaser.BlendModes.ADD);
-    const body = this.fac
-      .circle(from.x, from.y, r, hot)
+    const body = this.mkCircle(from.x, from.y, r, hot)
       .setStrokeStyle(2, color, 0.9)
       .setDepth(this.depth + 3)
       .setBlendMode(Phaser.BlendModes.ADD);
@@ -299,8 +319,7 @@ export class VfxDraw {
       delay: 24,
       loop: true,
       callback: () => {
-        const t = this.fac
-          .circle(last.x, last.y, r * 0.7, color, 0.5)
+        const t = this.mkCircle(last.x, last.y, r * 0.7, color, 0.5)
           .setDepth(this.depth)
           .setBlendMode(Phaser.BlendModes.ADD);
         this.go(t, { scale: 0.2, alpha: 0 }, 220);
@@ -315,8 +334,8 @@ export class VfxDraw {
       ease: "Quad.easeIn",
       onComplete: () => {
         trail.remove();
-        glow.destroy();
-        body.destroy();
+        this.dispose(glow);
+        this.dispose(body);
         onArrive();
       },
     });
@@ -333,14 +352,12 @@ export class VfxDraw {
     onArrive: () => void,
   ): void {
     const sky = { x: to.x, y: to.y - height };
-    const streak = this.fac
-      .rectangle(sky.x, sky.y, width, height, color, 0.85)
+    const streak = this.mkRect(sky.x, sky.y, width, height, color, 0.85)
       .setOrigin(0.5, 0)
       .setDepth(this.depth + 2)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setScale(1, 0.1);
-    const head = this.fac
-      .circle(sky.x, sky.y, width * 0.9, hot)
+    const head = this.mkCircle(sky.x, sky.y, width * 0.9, hot)
       .setDepth(this.depth + 3)
       .setBlendMode(Phaser.BlendModes.ADD);
     this.scene.tweens.add({
@@ -356,7 +373,7 @@ export class VfxDraw {
       duration: dur,
       ease: "Quad.easeIn",
       onComplete: () => {
-        head.destroy();
+        this.dispose(head);
         onArrive();
       },
     });
@@ -371,8 +388,7 @@ export class VfxDraw {
     dur: number,
     onArrive: () => void,
   ): void {
-    const col = this.fac
-      .rectangle(at.x, at.y, 10, height, color, 0.55)
+    const col = this.mkRect(at.x, at.y, 10, height, color, 0.55)
       .setOrigin(0.5, 1)
       .setDepth(this.depth + 1)
       .setBlendMode(Phaser.BlendModes.ADD)
@@ -404,8 +420,7 @@ export class VfxDraw {
 
   /** A ground target-marker reticle that blooms then snaps (skyfall telegraph). */
   marker(at: V, radius: number, color: number, dur: number): void {
-    const c = this.fac
-      .circle(at.x, at.y, radius)
+    const c = this.mkCircle(at.x, at.y, radius)
       .setStrokeStyle(2, color, 0.8)
       .setDepth(this.depth)
       .setScale(1.4)

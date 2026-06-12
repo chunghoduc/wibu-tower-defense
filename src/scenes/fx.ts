@@ -12,6 +12,7 @@ import { SkillVfx } from "./skillVfx.ts";
 import { MeleeFx } from "./meleeFx.ts";
 import { ImpactFx } from "./impactFx.ts";
 import { ProjectileFx } from "./projectileFx.ts";
+import { FxPool } from "./fxPool.ts";
 import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { tierOfBox } from "../core/boxes.ts";
 import { LootFlyFx } from "./lootFlyFx.ts";
@@ -45,6 +46,8 @@ export class FxLayer {
   private readonly lootFly: LootFlyFx;
   /** Bespoke per-skill boss cast set-pieces (quake/rally/barrier/summon-surge). */
   private readonly bossFx: BossSkillFx;
+  /** Shared bounded reuse pool for one-shot shape primitives (circle/rect/star). */
+  private readonly pool: FxPool;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -65,10 +68,11 @@ export class FxLayer {
           },
         }) as Phaser.GameObjects.GameObjectFactory)
       : scene.add;
-    this.skillVfx = new SkillVfx(scene, this.fac, this.depth);
+    this.pool = new FxPool(this.fac);
+    this.skillVfx = new SkillVfx(scene, this.fac, this.depth, this.pool);
     this.melee = new MeleeFx(scene, this.fac, this.depth);
     this.impact = new ImpactFx(scene, this.fac, this.depth);
-    this.proj = new ProjectileFx(scene, this.fac, this.depth, this.impact);
+    this.proj = new ProjectileFx(scene, this.fac, this.depth, this.impact, this.pool);
     this.lootFly = new LootFlyFx(scene, this.fac, this.depth);
     this.bossFx = new BossSkillFx(scene, this.fac, this.depth);
   }
