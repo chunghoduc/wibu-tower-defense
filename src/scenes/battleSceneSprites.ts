@@ -14,6 +14,7 @@ import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 import { enemyWalkTransform } from "./enemyWalkTransform.ts";
 import type { BattleScene } from "./BattleScene.ts";
 import { towerTex } from "../data/assetKeys.ts";
+import { roleBadgeTex, ROLE_BADGE, ROLE_BADGE_COLOR } from "./roleBadge.ts";
 
 /** Duration (ms) of a tower's procedural strike-recoil punch. */
 const TOWER_STRIKE_MS = 200;
@@ -324,17 +325,34 @@ export const spritesMethods = {
     const seenT = new Set<number>();
     for (const t of this.battle.towers) {
       if (!t.alive) continue;
+      seenT.add(t.uid);
       const s = this.ensureSprite(this.towerSprites, t.uid, towerTex(t.def.id), t.pos.x, t.pos.y, 50);
       if (s) {
-        seenT.add(t.uid);
         s.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
         if (s.height) {
           const base = (50 / s.height) * (1 + 0.05 * t.battleLevel); // grow as upgraded (T10)
           this.animateTower(s, t, base);
         }
       }
+      // Role badge emblem (upper-right). Managed Image, shown only when its SDXL
+      // texture is loaded — otherwise BattleScene.drawTypeBadge draws the legacy
+      // sword/arrow glyph as a fallback (so headless/no-art runs stay valid).
+      const badgeKey = roleBadgeTex(t.def.role);
+      if (this.textures.exists(badgeKey)) {
+        let b = this.roleBadges.get(t.uid);
+        if (!b) {
+          b = this.add.image(0, 0, badgeKey).setDepth(6);
+          if (b.height) b.setScale(ROLE_BADGE.diameter / b.height);
+          b.setTint(ROLE_BADGE_COLOR[t.def.role] ?? 0xffffff);
+          this.world.add(b);
+          this.roleBadges.set(t.uid, b);
+        }
+        b.setPosition(t.pos.x + ROLE_BADGE.offsetX, t.pos.y + ROLE_BADGE.offsetY);
+        b.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
+      }
     }
     for (const [uid, s] of this.towerSprites) if (!seenT.has(uid)) { s.destroy(); this.towerSprites.delete(uid); }
+    for (const [uid, b] of this.roleBadges) if (!seenT.has(uid)) { b.destroy(); this.roleBadges.delete(uid); }
 
     const seenE = new Set<number>();
     for (const e of this.battle.enemies) {

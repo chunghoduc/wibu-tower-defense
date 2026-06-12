@@ -12,6 +12,7 @@ import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { crispText } from "./ui.ts";
 import { ROLE_COLOR, KIND_COLOR, towerKind, starPoints } from "./battleSceneHelpers.ts";
 import { auraRadiusOf, auraPulse, AURA_RING_COLOR } from "../core/auraIndicator.ts";
+import { roleBadgeTex } from "./roleBadge.ts";
 import type { BattleScene } from "./BattleScene.ts";
 
 export const renderMethods = {
@@ -148,6 +149,10 @@ export const renderMethods = {
     g.fillStyle(0x10141c, 0.9).fillCircle(x, y, 7.5);
     g.lineStyle(1.5, KIND_COLOR[kind], 1).strokeCircle(x, y, 7.5);
     g.fillStyle(ROLE_COLOR[def.role] ?? 0xffffff, 0.5).fillCircle(x, y, 6);
+    // The SDXL role emblem (a managed Image in manageSprites) rides on top when
+    // present and shows the role. Only when its texture is absent do we fall back
+    // to the legacy melee/ranged glyph, so the badge is never empty.
+    if (this.textures.exists(roleBadgeTex(def.role))) return;
     g.lineStyle(1.6, 0xffffff, 0.95);
     if (kind === "melee") {
       // a little sword: blade + crossguard

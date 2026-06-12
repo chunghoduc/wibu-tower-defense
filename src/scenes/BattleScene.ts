@@ -99,6 +99,7 @@ export class BattleScene extends Phaser.Scene {
 
   // Pixel-art sprite pools (keyed by entity uid); fall back to shapes if missing.
   towerSprites = new Map<number, Phaser.GameObjects.Sprite>();
+  roleBadges = new Map<number, Phaser.GameObjects.Image>();      // per-tower role emblem
   enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
   enemyShadows = new Map<number, Phaser.GameObjects.Ellipse>(); // ground-contact anchors
 
@@ -133,6 +134,7 @@ export class BattleScene extends Phaser.Scene {
     this._rewardsShown = false;
     this._menuBtn = null;
     this.towerSprites.clear();
+    this.roleBadges.clear();
     this.enemySprites.clear();
     this.enemyShadows.clear();
     this.heroSprite = null;
