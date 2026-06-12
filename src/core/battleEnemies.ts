@@ -16,7 +16,7 @@ import { castleLeakDamage } from "../data/enemies.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type EnemyRuntime, type TowerRuntime,
-  BOSS_MANA_REGEN, HERO_BLOCK_RANGE,
+  BOSS_MANA_REGEN, HERO_BLOCK_RANGE, BOSS_TOWER_DAMAGE_MULT,
 } from "./battleTypes.ts";
 
 export const enemyMethods = {
@@ -311,7 +311,8 @@ export const enemyMethods = {
       magicPen: attacker.stats.magicPen,
     };
     this.emit({ type: "enemyAttack", uid: attacker.uid, at: { x: attacker.pos.x, y: attacker.pos.y }, targetAt: { x: tower.pos.x, y: tower.pos.y }, target: "tower" });
-    tower.hp -= mitigatedDamage(packet, tower.stats);
+    const bossMul = attacker.def.boss ? BOSS_TOWER_DAMAGE_MULT : 1;
+    tower.hp -= mitigatedDamage(packet, tower.stats) * bossMul;
     this.logEnemyHit(attacker, `tower:${tower.uid}`, packet, tower.stats, tower.hp);
     if (tower.hp <= 0) tower.alive = false;
   },

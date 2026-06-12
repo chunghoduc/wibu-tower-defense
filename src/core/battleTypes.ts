@@ -77,6 +77,13 @@ export const MELEE_TOWER_RANGE = 40;
 /** Fallback tower-attack reach for a boss that authors no weapon. */
 export const BOSS_DEFAULT_TOWER_RANGE = 70;
 /**
+ * A boss's per-hit damage is scaled by this when it strikes a TOWER (not the hero
+ * or castle), so a tank tower can wall a sieging boss for a while before it falls.
+ * Bosses now halt on towers (see enemyCombat.ts); without this softening even the
+ * tankiest tower would pop in ~2-3 hits and the siege would feel pointless.
+ */
+export const BOSS_TOWER_DAMAGE_MULT = 0.4;
+/**
  * Ground enemies at or above this base moveSpeed are treated as high-speed
  * rushers: they blow past the lane and beeline the castle instead of stopping to
  * swipe at towers (like flyers and stealthed infiltrators). Set above the
