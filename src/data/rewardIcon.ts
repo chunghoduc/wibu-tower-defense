@@ -8,6 +8,7 @@
 import type { Reward } from "../core/rewards.ts";
 import type { Rarity } from "./schema.ts";
 import { MATERIALS_MAP } from "./materials.ts";
+import { itemTex, jewelTex, materialTex, boxTex, GOLD_TEX, GEM_TEX, XP_TEX } from "./assetKeys.ts";
 
 export interface RewardIconView {
   /** Texture key to draw when loaded (e.g. "material__soul-jewel"). "" = no texture. */
@@ -24,15 +25,15 @@ export const RARITY_INT: Record<Rarity, number> = {
 };
 export const GOLD_INT = 0xffcf4d, DIAMOND_INT = 0x7ec8ff, MAT_INT = 0xa5d6a7, XP_INT = 0x9cc6ff;
 
-export function goldIcon(): RewardIconView { return { iconKey: "icon__gold", emoji: "🪙", color: GOLD_INT }; }
-export function diamondIcon(): RewardIconView { return { iconKey: "icon__gem", emoji: "💎", color: DIAMOND_INT }; }
-export function xpIcon(): RewardIconView { return { iconKey: "icon__xp", emoji: "⭐", color: XP_INT }; }
+export function goldIcon(): RewardIconView { return { iconKey: GOLD_TEX, emoji: "🪙", color: GOLD_INT }; }
+export function diamondIcon(): RewardIconView { return { iconKey: GEM_TEX, emoji: "💎", color: DIAMOND_INT }; }
+export function xpIcon(): RewardIconView { return { iconKey: XP_TEX, emoji: "⭐", color: XP_INT }; }
 
 export function itemIcon(rarity: Rarity, defId: string): RewardIconView {
-  return { iconKey: `item__${defId}`, emoji: "📦", color: RARITY_INT[rarity] };
+  return { iconKey: itemTex(defId), emoji: "📦", color: RARITY_INT[rarity] };
 }
 export function jewelIcon(rarity: Rarity, defId: string): RewardIconView {
-  return { iconKey: `jewel__${defId}`, emoji: "💠", color: RARITY_INT[rarity] };
+  return { iconKey: jewelTex(defId), emoji: "💠", color: RARITY_INT[rarity] };
 }
 
 /** Material or boss-box icon. Boxes ship a box__<id> texture + rarity color; other materials use material__<id>. */
@@ -40,9 +41,9 @@ export function materialIcon(id: string): RewardIconView {
   const def = MATERIALS_MAP.get(id);
   if (def?.kind === "box") {
     const rarity = RARITY_ORDER[(def.rarity ?? 1) - 1] ?? "Common";
-    return { iconKey: `box__${id}`, emoji: "🎁", color: RARITY_INT[rarity] };
+    return { iconKey: boxTex(id), emoji: "🎁", color: RARITY_INT[rarity] };
   }
-  return { iconKey: `material__${id}`, emoji: "💠", color: MAT_INT };
+  return { iconKey: materialTex(id), emoji: "💠", color: MAT_INT };
 }
 
 /** Salience rank for picking the dominant material in a bundle. Boxes rank by rarity tier; others mid. */
