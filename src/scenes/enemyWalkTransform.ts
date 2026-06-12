@@ -25,14 +25,16 @@ export interface WalkOpts {
   lean?: number;
 }
 
-// Baked walk frames (enemyWalkBake.ts) now carry the vertical step + leg motion,
-// so the procedural layer only adds a faint weight-shift on top — otherwise the
-// body double-bobs over the frame motion.
-const BOB = 1.5;     // was 5 — frames carry the step; keep a faint settle
-const WADDLE = 1.5;  // lateral sway (px)
-const ROCK = 1.5;    // was 4 — frames carry the body rock; keep a faint rock
-const SQUASH = 0.06; // was 0.12 — lighter contact squash over the frame motion
-const STRETCH = 0.04; // was 0.08
+// Enemies are a SINGLE static SDXL sprite — there are NO baked/authored walk
+// frames (the old multi-frame warp bake was removed: it produced near-identical
+// frames AND its wide canvas could flash as a strip). So this transform IS the
+// whole walk: it must carry the full step. Amplitudes are sized to read as a
+// lively, weighty stride at a 44px enemy, not a faint settle.
+const BOB = 5;       // vertical step — the body clearly lifts between footfalls
+const WADDLE = 2.5;  // lateral weight-shift sway (px)
+const ROCK = 4;      // body rock toward the planted side (deg)
+const SQUASH = 0.12; // contact squash on the foot-plant
+const STRETCH = 0.08; // anticipation stretch on the foot-plant
 
 export function enemyWalkTransform(phase: number, opts: WalkOpts = {}): WalkTransform {
   const amp = opts.amp ?? 1;

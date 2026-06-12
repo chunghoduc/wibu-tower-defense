@@ -1,7 +1,7 @@
 // Preload-time synthesis of a heavy 4-frame "stomp" walk cycle for every BOSS,
 // baked from the FIRST frame of its loaded SDXL sprite by warping horizontal
-// bands (see enemyWalkWarp.ts, "stomp" profile). Unlike enemyWalkBake, this
-// writes to a SEPARATE texture key (`boss__<id>__walk`) and never removes the
+// bands (see enemyWalkWarp.ts, "stomp" profile). This writes to a SEPARATE
+// texture key (`boss__<id>__walk`) and never removes the
 // original texture, so the sliced atk*/skill* one-shot frames + their anims
 // (built earlier in PreloadScene.create) survive for the boss cast pose.
 import Phaser from "phaser";

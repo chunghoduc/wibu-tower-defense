@@ -1,7 +1,7 @@
-// Pure (Phaser-free) walk/flap warp math. One source of truth for how a
-// horizontal band of an enemy sprite is displaced at a cycle phase, shared by
-// the unit test and the preload canvas baker (enemyWalkBake.ts). Synthesizes a
-// real, silhouette-changing gait from a single static sprite — no diffusion.
+// Pure (Phaser-free) walk/flap/stomp warp math: how a horizontal band of a
+// sprite is displaced at a cycle phase. Now used only by the BOSS stomp baker
+// (bossWalkBake.ts) — regular enemies walk via enemyWalkTransform.ts on their
+// single static sprite. The "walk"/"flap" profiles are kept for tests + reuse.
 
 export type MotionProfile = "walk" | "flap" | "stomp";
 

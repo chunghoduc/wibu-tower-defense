@@ -14,7 +14,6 @@ import { UI_SVGS, UI_IMAGES } from "../data/uiManifest.ts";
 import { FX_IDS } from "../data/fxManifest.ts";
 import { ITEM_CATALOG } from "../data/items.ts";
 import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
-import { bakeEnemyWalks } from "./enemyWalkBake.ts";
 import { bakeBossWalks } from "./bossWalkBake.ts";
 import { skillTex, jewelTex, menuTex, fxTex, materialTex, itemTex, HERODOLL_BASE_TEX, CASTLE_TEX, CASTLE_DAMAGED_TEX, roleTex } from "../data/assetKeys.ts";
 import { TOWER_ROLES } from "../data/schemaEnums.ts";
@@ -104,7 +103,10 @@ export class PreloadScene extends Phaser.Scene {
       mk("skill", idx(/skill/), 10, 0);      // active-skill frames
       mk("hurt", idx(/hurt/), 8, 0);
     }
-    bakeEnemyWalks(this); // synthesize 4-frame walk/flap cycles from each enemy sprite
+    // Enemies walk via the procedural transform (enemyWalkTransform.ts) on their
+    // single static sprite — no baked walk frames (the wide warp sheet could flash
+    // as a strip and its frames were near-identical anyway). Bosses keep a baked
+    // stomp on a SEPARATE texture key (their base sheet stays for atk/skill poses).
     bakeBossWalks(this);  // synthesize the heavy 4-frame stomp stride for bosses
     this.scene.start("MainMenuScene");
   }
