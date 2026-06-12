@@ -7,6 +7,7 @@
  */
 import { TOWER_ACTIVES, PASSIVE_SKILLS } from "./passiveSkills.ts";
 import { ACTIVE_SKILLS } from "./skills.ts";
+import { skillTex } from "./assetKeys.ts";
 
 export const SKILL_ICON_IDS: string[] = [
   ...Object.keys(TOWER_ACTIVES),
@@ -16,5 +17,5 @@ export const SKILL_ICON_IDS: string[] = [
 
 /** Texture key for a skill's painted icon. */
 export function skillIconKey(id: string): string {
-  return `skill__${id}`;
+  return skillTex(id);
 }

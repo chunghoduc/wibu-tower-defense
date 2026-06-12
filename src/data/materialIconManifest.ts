@@ -4,10 +4,11 @@
  * excluded: they ship their own `box__<id>` chest art. Loaded as `material__<id>`.
  */
 import { MATERIALS } from "./materials.ts";
+import { materialTex } from "./assetKeys.ts";
 
 export const MATERIAL_ICON_IDS: string[] = MATERIALS.filter((m) => m.kind !== "box").map((m) => m.id);
 
 /** Texture key for a material's painted icon. */
 export function materialIconKey(id: string): string {
-  return `material__${id}`;
+  return materialTex(id);
 }

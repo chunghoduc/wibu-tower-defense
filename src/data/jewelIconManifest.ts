@@ -5,10 +5,11 @@
  * `jewel__<id>` texture.
  */
 import { JEWEL_CATALOG } from "./jewels.ts";
+import { jewelTex } from "./assetKeys.ts";
 
 export const JEWEL_ICON_IDS: string[] = JEWEL_CATALOG.map((jw) => jw.id);
 
 /** Texture key for a jewel's painted icon. */
 export function jewelIconKey(id: string): string {
-  return `jewel__${id}`;
+  return jewelTex(id);
 }
