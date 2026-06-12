@@ -55,6 +55,15 @@ function ellipsize(line: string, maxWidth: number, px: number, measure: Measure)
   return s + ELLIPSIS;
 }
 
+/** Pure: y-baseline for each of `n` lines, vertically centered in a band that
+ *  spans [topY, topY+height]. Shared by the name-plate presenter and its tests. */
+export function plateLineLayout(topY: number, height: number, n: number, fontPx: number): number[] {
+  const lineH = fontPx * 1.18;
+  const blockH = n * lineH;
+  const top = topY + (height - blockH) / 2 + lineH / 2;
+  return Array.from({ length: n }, (_, i) => top + i * lineH);
+}
+
 export function fitLabel(text: string, opts: FitOpts, measure: Measure): FitPlan {
   const { maxWidth, maxLines, basePx, minPx } = opts;
   if (text.trim().length === 0) return { fontPx: basePx, lines: [""], truncated: false };
