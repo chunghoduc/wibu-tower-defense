@@ -21,7 +21,7 @@ These are **not** touched. The remaining gaps, in priority order:
 
 1. **No fixed timestep in production.** `BattleScene.update` (BattleScene.ts:453-460)
    passes a variable clamped frame delta to `battle.tick(dt)` and implements 2×/3× speed
-   by re-ticking the *same* dt N times. The test suite drives the sim exclusively at a
+   by re-ticking the _same_ dt N times. The test suite drives the sim exclusively at a
    fixed **0.05s** step — production runs a different temporal discretization than the
    one 1041 tests validate.
 2. **Zero pooling on one-shot VFX.** Every projectile/impact/skill effect creates fresh

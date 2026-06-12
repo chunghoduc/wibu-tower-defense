@@ -13,6 +13,7 @@
 ### Task 1: FixedStepper + BattleScene fixed-timestep driver
 
 **Files:**
+
 - Create: `src/core/fixedStep.ts`
 - Create: `tests/fixed-step.test.ts`
 - Modify: `src/scenes/BattleScene.ts` (fields + `update()`)
@@ -127,12 +128,14 @@ export class FixedStepper {
 - [ ] **Step 5: Wire BattleScene.** In `src/scenes/BattleScene.ts`:
 
 Add imports:
+
 ```ts
 import { FixedStepper, SIM_STEP } from "../core/fixedStep.ts";
 import type { FxEvent } from "../core/battle.ts";
 ```
 
 Add fields (near `gameSpeed = 1;`):
+
 ```ts
 stepper = new FixedStepper();
 /** Sim fx batched across this frame's fixed steps (the sim clears its own array per tick). */
@@ -140,12 +143,14 @@ pendingFx: FxEvent[] = [];
 ```
 
 In `create()`, with the other re-entry resets (scene instances are reused — see memory):
+
 ```ts
 this.stepper.reset();
 this.pendingFx = [];
 ```
 
 Replace `update()`:
+
 ```ts
 update(time: number, deltaMs: number): void {
   this.handleKeyboardHero();
@@ -166,10 +171,13 @@ update(time: number, deltaMs: number): void {
 ```
 
 In `src/scenes/battleSceneRender.ts` `draw()` replace:
+
 ```ts
 for (const ev of this.battle.fx) this.playFx(ev);
 ```
+
 with:
+
 ```ts
 // Batched in update(): replays nothing on 0-step frames, drops nothing on
 // multi-step frames (the old direct read did both under fast-forward).
@@ -179,6 +187,7 @@ for (const ev of this.pendingFx) this.playFx(ev);
 - [ ] **Step 6: Verify gauntlet** — `npm test && npm run typecheck && npm run lint && npm run lint:cycles && npm run format:check` → all green.
 
 - [ ] **Step 7: Commit**
+
 ```bash
 git add src/core/fixedStep.ts tests/fixed-step.test.ts src/scenes/BattleScene.ts src/scenes/battleSceneRender.ts
 git commit -m "feat(core): fixed-timestep sim driver at the canonical 0.05s test step"
@@ -189,6 +198,7 @@ git commit -m "feat(core): fixed-timestep sim driver at the canonical 0.05s test
 ### Task 2: Render interpolation
 
 **Files:**
+
 - Create: `src/scenes/renderLerp.ts` (Phaser-free)
 - Create: `tests/render-lerp.test.ts`
 - Modify: `src/scenes/BattleScene.ts` (snapshot fields + update loop)
@@ -265,6 +275,7 @@ renderAlpha = 1; // lerp factor for draw(); 1 = draw live sim state
 ```
 
 reset in `create()`:
+
 ```ts
 this.prevEnemyPos.clear();
 this.prevHeroPos = null;
@@ -272,6 +283,7 @@ this.renderAlpha = 1;
 ```
 
 and change the step loop in `update()` to snapshot before each tick + publish alpha:
+
 ```ts
 for (let i = 0; i < steps; i++) {
   snapshotPositions(this.battle.enemies, this.prevEnemyPos);
@@ -282,6 +294,7 @@ for (let i = 0; i < steps; i++) {
 }
 this.renderAlpha = this.stepper.alpha;
 ```
+
 (import `snapshotPositions` from `./renderLerp.ts`)
 
 - [ ] **Step 6: Render-pos helpers.** In `src/scenes/battleSceneSprites.ts` add to `spritesMethods` (import `lerpV` from `./renderLerp.ts`):
@@ -315,6 +328,7 @@ const hp = this.heroRenderPos();
 ...
 this.heroSprite.setPosition(hp.x, hp.y);
 ```
+
 (the `moving`/`facingLeft` math keeps using `h.moveTarget`/`h.pos` — sim intent, not display)
 
 - [ ] **Step 8: Consume in drawEnemy/drawHero.** `src/scenes/battleSceneRender.ts`: at the top of `drawEnemy` add `const p = this.enemyRenderPos(e);` and replace every `e.pos.x`/`e.pos.y` in the function (elite aura, body circle, status rings, hp/shield/mana bars via `top`, `drawStatusGlyphs` start X) with `p.x`/`p.y`. Same in `drawHero` with `const p = this.heroRenderPos();` (body, range ring, hp/mana bars). `drawStatusGlyphs` gains the X via its existing `e` param — change its `e.pos.x` to a new `px: number` parameter passed from `drawEnemy`.
@@ -324,6 +338,7 @@ this.heroSprite.setPosition(hp.x, hp.y);
 - [ ] **Step 10: Playtest.** Build + serve + CDP screenshot mid-battle at 1× and 3× (warm server; cold-boot black screen is a known snap.sh race, not a regression). Motion must be smooth, hp bars glued to bodies.
 
 - [ ] **Step 11: Commit**
+
 ```bash
 git add src/scenes/renderLerp.ts tests/render-lerp.test.ts src/scenes/BattleScene.ts src/scenes/battleSceneSprites.ts src/scenes/battleSceneRender.ts
 git commit -m "feat(scenes): render interpolation over the fixed-step sim"
@@ -334,6 +349,7 @@ git commit -m "feat(scenes): render interpolation over the fixed-step sim"
 ### Task 3: FxPool adopted in VfxDraw + ProjectileFx
 
 **Files:**
+
 - Create: `src/scenes/fxPool.ts`
 - Create: `tests/fx-pool.test.ts`
 - Modify: `src/scenes/vfxDraw.ts` (create via pool; `go()` releases)
@@ -350,8 +366,16 @@ type Stub = Record<string, ReturnType<typeof vi.fn>> & { destroyed: boolean };
 function stubShape(): Stub {
   const s = { destroyed: false } as Stub;
   for (const m of [
-    "setPosition", "setFillStyle", "setStrokeStyle", "setAlpha", "setScale",
-    "setAngle", "setOrigin", "setVisible", "setActive", "setDepth",
+    "setPosition",
+    "setFillStyle",
+    "setStrokeStyle",
+    "setAlpha",
+    "setScale",
+    "setAngle",
+    "setOrigin",
+    "setVisible",
+    "setActive",
+    "setDepth",
   ])
     s[m] = vi.fn().mockReturnValue(s);
   s.destroy = vi.fn(() => (s.destroyed = true));
@@ -359,7 +383,11 @@ function stubShape(): Stub {
 }
 function stubFactory() {
   const made: Stub[] = [];
-  const make = () => { const s = stubShape(); made.push(s); return s; };
+  const make = () => {
+    const s = stubShape();
+    made.push(s);
+    return s;
+  };
   return { made, fac: { circle: make, rectangle: make, star: make } };
 }
 
@@ -377,7 +405,10 @@ describe("FxPool", () => {
   it("resets full state on reuse", () => {
     const { fac } = stubFactory();
     const pool = new FxPool(fac as never);
-    const a = pool.circle(1, 2, 3, 0xff0000, 1) as never as Record<string, ReturnType<typeof vi.fn>>;
+    const a = pool.circle(1, 2, 3, 0xff0000, 1) as never as Record<
+      string,
+      ReturnType<typeof vi.fn>
+    >;
     pool.release(a as never);
     pool.circle(9, 8, 7, 0x123456, 0.5);
     expect(a.setPosition).toHaveBeenLastCalledWith(9, 8);
@@ -464,7 +495,14 @@ export class FxPool {
     return o;
   }
 
-  rect(x: number, y: number, w: number, h: number, fill = 0xffffff, alpha = 1): Phaser.GameObjects.Rectangle {
+  rect(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    fill = 0xffffff,
+    alpha = 1,
+  ): Phaser.GameObjects.Rectangle {
     const o = this.free.rect.pop() as Phaser.GameObjects.Rectangle | undefined;
     if (!o) {
       const made = this.fac.rectangle(x, y, w, h, fill, alpha);
@@ -476,7 +514,15 @@ export class FxPool {
     return o;
   }
 
-  star(x: number, y: number, points: number, innerR: number, outerR: number, fill = 0xffffff, alpha = 1): Phaser.GameObjects.Star {
+  star(
+    x: number,
+    y: number,
+    points: number,
+    innerR: number,
+    outerR: number,
+    fill = 0xffffff,
+    alpha = 1,
+  ): Phaser.GameObjects.Star {
     const o = this.free.star.pop() as Phaser.GameObjects.Star | undefined;
     if (!o) {
       const made = this.fac.star(x, y, points, innerR, outerR, fill, alpha);
@@ -510,6 +556,7 @@ NOTE: verify `Phaser.GameObjects.Star` exposes `setTo(points, innerR, outerR)` �
 - [ ] **Step 6: Verify gauntlet** → green. Playtest: heavy-combat screenshot; effects must look identical (no ghost styling on reused shapes).
 
 - [ ] **Step 7: Commit**
+
 ```bash
 git add src/scenes/fxPool.ts tests/fx-pool.test.ts src/scenes/vfxDraw.ts src/scenes/projectileFx.ts src/scenes/fx.ts src/scenes/skillVfx.ts
 git commit -m "perf(scenes): pool one-shot VFX shapes in VfxDraw + ProjectileFx"
@@ -520,6 +567,7 @@ git commit -m "perf(scenes): pool one-shot VFX shapes in VfxDraw + ProjectileFx"
 ### Task 4: Micro-churn fixes + final verification
 
 **Files:**
+
 - Modify: `src/core/battleEnemies.ts:104-116` (in-place DoT compaction)
 - Modify: `src/scenes/battleSceneSprites.ts` `manageSprites` + `src/scenes/BattleScene.ts` (reused Sets)
 
@@ -554,6 +602,7 @@ if (e.dots.length > 0) {
 - [ ] **Step 6: Update memory** (`project_lint_format_tooling` link or new `project_fixed_timestep` memory: SIM_STEP=0.05 is canonical; pendingFx batching; interpolation seam; FxPool seams) + mark tasks #107-#110 complete.
 
 - [ ] **Step 7: Commit**
+
 ```bash
 git add -A src/ docs/
 git commit -m "perf(core): in-place DoT compaction + reused sprite-sync sets"
