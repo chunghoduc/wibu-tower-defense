@@ -74,6 +74,8 @@ export class BattleState {
   readonly fx: FxEvent[] = [];
   readonly hero: HeroRuntime;
   readonly castlePos: Vec2;
+  /** Castle HP at battle start — the denominator for the art damaged-state swap. */
+  readonly castleMax: number;
   readonly difficulty: Difficulty;
 
   castleHp: number;
@@ -162,6 +164,7 @@ export class BattleState {
     this.totalPathLen = pathLength(stage.path);
     this.castlePos = stage.arena ? stage.arena.center : stage.path[stage.path.length - 1];
     this.castleHp = stage.castleHp;
+    this.castleMax = stage.castleHp;
     this.gold = stage.startingGold;
     this.hero = {
       stats: opts.hero.stats,
