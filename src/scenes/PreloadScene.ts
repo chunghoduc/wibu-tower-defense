@@ -17,6 +17,7 @@ import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
 import { bakeBossWalks } from "./bossWalkBake.ts";
 import { skillTex, jewelTex, menuTex, fxTex, materialTex, itemTex, HERODOLL_BASE_TEX, CASTLE_TEX, CASTLE_DAMAGED_TEX, roleTex } from "../data/assetKeys.ts";
 import { TOWER_ROLES } from "../data/schemaEnums.ts";
+import { versioned } from "../data/assetVersion.ts";
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -26,59 +27,59 @@ export class PreloadScene extends Phaser.Scene {
   preload(): void {
     this.load.on("loaderror", (file: Phaser.Loader.File) => void file);
     for (const e of SPRITE_MANIFEST) {
-      this.load.spritesheet(e.key, e.path, { frameWidth: e.frameWidth, frameHeight: e.frameHeight });
+      this.load.spritesheet(e.key, versioned(e.path), { frameWidth: e.frameWidth, frameHeight: e.frameHeight });
     }
     // Terrain map art (T13): Phaser rasterizes the .svg to a texture in-browser.
     for (const t of TERRAIN_ASSETS) {
-      this.load.svg(t.key, t.path, { width: TERRAIN_TEX_SIZE, height: TERRAIN_TEX_SIZE });
+      this.load.svg(t.key, versioned(t.path), { width: TERRAIN_TEX_SIZE, height: TERRAIN_TEX_SIZE });
     }
     // Painted skill ability icons (96×96). Skip ids already in the manifest so a
     // future `gen.mjs --only=manifest` that folds them in won't double-load.
     for (const id of SKILL_ICON_IDS) {
       const key = skillTex(id);
       if (SPRITE_BY_KEY.has(key)) continue;
-      this.load.spritesheet(key, `assets/sprites/skill/${id}.png`, { frameWidth: 96, frameHeight: 96 });
+      this.load.spritesheet(key, versioned(`assets/sprites/skill/${id}.png`), { frameWidth: 96, frameHeight: 96 });
     }
     // Painted skill-jewel gem icons (96×96).
     for (const id of JEWEL_ICON_IDS) {
       const key = jewelTex(id);
       if (SPRITE_BY_KEY.has(key)) continue;
-      this.load.spritesheet(key, `assets/sprites/jewel/${id}.png`, { frameWidth: 96, frameHeight: 96 });
+      this.load.spritesheet(key, versioned(`assets/sprites/jewel/${id}.png`), { frameWidth: 96, frameHeight: 96 });
     }
     // Scene backgrounds: main-menu hall + per-chapter battlefield backdrops.
     for (const id of BG_IMAGES) {
-      this.load.image(bgKey(id), `assets/bg/${id}.png`);
+      this.load.image(bgKey(id), versioned(`assets/bg/${id}.png`));
     }
     // Design-team UI art set (icons, frames, buttons, badges, per-stage
     // backdrops, logo) — catalogued in public/assets/ui/uiManifest.json.
-    for (const e of UI_SVGS) this.load.svg(e.key, e.path, { width: e.w, height: e.h });
-    for (const e of UI_IMAGES) this.load.image(e.key, e.path);
+    for (const e of UI_SVGS) this.load.svg(e.key, versioned(e.path), { width: e.w, height: e.h });
+    for (const e of UI_IMAGES) this.load.image(e.key, versioned(e.path));
     // Painted main-menu button icons (SDXL).
     for (const id of ["battle", "summon", "collection", "inventory", "squad", "passive", "shop", "skills", "settings"]) {
-      this.load.image(menuTex(id), `assets/ui/menu/${id}.png`);
+      this.load.image(menuTex(id), versioned(`assets/ui/menu/${id}.png`));
     }
     // Inventory paper-doll mannequin (equipment slots map onto its body).
-    this.load.image(HERODOLL_BASE_TEX, "assets/ui/hero-doll/hero-base.png");
+    this.load.image(HERODOLL_BASE_TEX, versioned("assets/ui/hero-doll/hero-base.png"));
     // Battle-world castle sprite — intact + battle-damaged states (SDXL). A
     // missing file degrades to the BattleScene rectangle fallback (no crash).
-    this.load.image(CASTLE_TEX, "assets/sprites/structure/castle.png");
-    this.load.image(CASTLE_DAMAGED_TEX, "assets/sprites/structure/castle__damaged.png");
+    this.load.image(CASTLE_TEX, versioned("assets/sprites/structure/castle.png"));
+    this.load.image(CASTLE_DAMAGED_TEX, versioned("assets/sprites/structure/castle__damaged.png"));
     // Per-role tower badge emblems (SDXL). A missing file degrades to the
     // legacy sword/arrow glyph drawn by BattleScene (no crash).
     for (const r of TOWER_ROLES) {
-      this.load.image(roleTex(r), `assets/sprites/roleicon/${r}.png`);
+      this.load.image(roleTex(r), versioned(`assets/sprites/roleicon/${r}.png`));
     }
     // Additive-blend VFX textures (box-open burst/glow/sparkle).
-    for (const id of FX_IDS) this.load.image(fxTex(id), `assets/sprites/fx/${id}.png`);
+    for (const id of FX_IDS) this.load.image(fxTex(id), versioned(`assets/sprites/fx/${id}.png`));
     // Crafting-material icons (enhance jewels + summon scroll).
-    for (const id of MATERIAL_ICON_IDS) this.load.image(materialTex(id), `assets/sprites/material/${id}.png`);
+    for (const id of MATERIAL_ICON_IDS) this.load.image(materialTex(id), versioned(`assets/sprites/material/${id}.png`));
     // Every catalog item's 96×96 inventory icon (worn on the hero + shown in
     // inventory). Driven by the catalog so newly-added items load without a
     // manifest regen; skip any already provided by the sprite manifest.
     for (const it of ITEM_CATALOG) {
       const key = itemTex(it.id);
       if (SPRITE_BY_KEY.has(key)) continue;
-      this.load.spritesheet(key, `assets/sprites/item/${it.id}.png`, { frameWidth: 96, frameHeight: 96 });
+      this.load.spritesheet(key, versioned(`assets/sprites/item/${it.id}.png`), { frameWidth: 96, frameHeight: 96 });
     }
   }
 
