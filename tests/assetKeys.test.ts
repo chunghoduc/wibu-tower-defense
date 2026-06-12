@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   itemTex, towerTex, jewelTex, materialTex, boxTex, skillTex, menuTex, fxTex,
+  structureTex, CASTLE_TEX, CASTLE_DAMAGED_TEX,
   GOLD_TEX, GEM_TEX, XP_TEX, HERODOLL_BASE_TEX,
 } from "../src/data/assetKeys.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
@@ -20,6 +21,11 @@ describe("assetKeys derivation", () => {
     expect(skillTex("fireball")).toBe("skill__fireball");
     expect(menuTex("shop")).toBe("menu__shop");
     expect(fxTex("burst")).toBe("fx__burst");
+  });
+  it("derives the structure namespace key + castle state constants", () => {
+    expect(structureTex("castle")).toBe("structure__castle");
+    expect(CASTLE_TEX).toBe("structure__castle");
+    expect(CASTLE_DAMAGED_TEX).toBe("structure__castle__damaged");
   });
   it("exposes fixed currency / singleton keys as named constants", () => {
     expect(GOLD_TEX).toBe("icon__gold");

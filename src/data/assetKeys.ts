@@ -24,9 +24,13 @@ export const skillTex = (id: string): string => `skill__${id}`;
 export const menuTex = (id: string): string => `menu__${id}`;
 /** Additive-blend VFX texture. */
 export const fxTex = (id: string): string => `fx__${id}`;
+/** Battle-world structure sprite (castle, …). */
+export const structureTex = (id: string): string => `structure__${id}`;
 
 /** Fixed singleton currency / UI keys (named so they are never magic strings). */
 export const GOLD_TEX = "icon__gold";
 export const GEM_TEX = "icon__gem";
 export const XP_TEX = "icon__xp";
 export const HERODOLL_BASE_TEX = "herodoll__base";
+export const CASTLE_TEX = structureTex("castle");
+export const CASTLE_DAMAGED_TEX = structureTex("castle__damaged");
