@@ -128,8 +128,43 @@ describe("200-item homage expansion", () => {
       const mythic = ITEM_CATALOG_MAP.get(`mythic-${line}`)!;
       expect(mythic.archetype, line).toBeDefined();
       expect(mythic.lore, line).toBeTruthy();
-      // Name is the rarity-prefixed homage base, never a raw "Mythic <lineId>".
+      // Name is the bare homage base (no rarity prefix), never a raw lineId.
       expect(mythic.name, line).not.toContain(line);
+    }
+  });
+});
+
+describe("lean item names (no rarity-prefix adjective)", () => {
+  const RARITY_WORDS = ["Worn", "Fine", "Masterwork", "Heroic", "Mythic"];
+  const LINE_IDS = [
+    "kingsworn-brand", "galewind-longbow", "mithrilweave-shirt",
+    "warblade", "longbow", "platemail",
+  ];
+
+  it("a generated line shows the same bare base name across all five tiers", () => {
+    for (const line of LINE_IDS) {
+      const names = ["worn", "fine", "masterwork", "heroic", "mythic"].map(
+        (p) => ITEM_CATALOG_MAP.get(`${p}-${line}`)!.name,
+      );
+      // identical across tiers
+      expect(new Set(names).size, `${line} names: ${names.join(" | ")}`).toBe(1);
+      // and free of any rarity-prefix word
+      for (const n of names) {
+        for (const w of RARITY_WORDS) {
+          expect(n.startsWith(w + " "), `${line} -> "${n}"`).toBe(false);
+        }
+      }
+    }
+  });
+
+  it("no generated-line catalog item name starts with a rarity-prefix word", () => {
+    for (const def of ITEM_CATALOG) {
+      const dash = def.id.indexOf("-");
+      const idPrefix = dash > 0 ? def.id.slice(0, dash) : "";
+      if (!["worn", "fine", "masterwork", "heroic", "mythic"].includes(idPrefix)) continue;
+      for (const w of RARITY_WORDS) {
+        expect(def.name.startsWith(w + " "), `${def.id} -> "${def.name}"`).toBe(false);
+      }
     }
   });
 });

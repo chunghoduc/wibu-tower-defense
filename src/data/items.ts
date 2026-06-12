@@ -273,7 +273,7 @@ for (const line of ITEM_LINES) {
     const primMult = CRIT_KEYS.has(line.primary) ? critDamp(tier.primMult) : tier.primMult;
     generatedItems.push(i({
       id: `${tier.prefix.toLowerCase()}-${line.id}`,
-      name: `${tier.prefix} ${line.base}`,
+      name: line.base,
       slot: line.slot,
       ...(line.weaponType ? { weaponType: line.weaponType } : {}),
       rarity: tier.rarity,
@@ -293,15 +293,13 @@ ITEM_CATALOG.push(...generatedItems);
 // save-key / PNG-filename anchors; only the display NAME is overridden, and the
 // appearance/homage/specialty/lore fields are attached. Generated tiers inherit
 // their line's homage (name = "<Rarity prefix> <homage base>").
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 for (const def of ITEM_CATALOG) {
   const lore = loreFor(def.id);
   if (!lore) continue;
   if (lore.name) {
     def.name = lore.name;
   } else if (lore.base) {
-    const prefix = def.id.slice(0, def.id.indexOf("-"));
-    def.name = `${cap(prefix)} ${lore.base}`;
+    def.name = lore.base;
   }
   def.appearance = lore.appearance;
   def.homage = lore.homage;

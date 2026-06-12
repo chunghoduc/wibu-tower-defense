@@ -12,9 +12,11 @@
  * Keyed by item id. Two shapes share one record:
  *   - BASE / signature items keyed by their item id carry `name` (display name).
  *   - Generated LINES keyed by their line id carry `base` (the homage base name;
- *     the catalog renders `${rarityPrefix} ${base}`, e.g. "Mythic Hollowmoon
- *     Cleaver"). Tiers inherit appearance/specialty/lore unchanged — rarity is a
- *     rim-glow layer applied in the art pipeline, never a body re-tint.
+ *     the catalog displays it bare — e.g. "Hollowmoon Cleaver" — identical across
+ *     all five rarity tiers. Rarity is conveyed by color/level/stats, NOT a name
+ *     prefix; only the item `id` keeps the tier prefix (`mythic-...`). Tiers
+ *     inherit appearance/specialty/lore unchanged — rarity is a rim-glow layer
+ *     applied in the art pipeline, never a body re-tint.
  */
 import type { ItemAppearance } from "./schema.ts";
 import { ITEM_LORE_BASE } from "./itemLoreBase.ts";
