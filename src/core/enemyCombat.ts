@@ -5,7 +5,7 @@
  *   - ordinary ground enemies get a short melee swipe in passing,
  *   - dedicated tower-killers keep their tuned `attacksTowers` range and stop to
  *     demolish,
- *   - every boss reaches as far as its weapon and never halts (it steamrolls),
+ *   - a ground boss halts to siege the nearest tower (flyers strike in passing),
  *   - plain flyers beeline the castle and ignore towers entirely.
  *
  * Only the weapon's RANGE is used here; an enemy's damage type stays whatever it
@@ -29,9 +29,11 @@ export interface TowerAttackProfile {
 /** The tower-attack profile for an enemy, or null if it never attacks towers. */
 export function enemyTowerAttack(def: EnemyDef): TowerAttackProfile | null {
   if (def.boss) {
-    // Bosses attack towers in range based on their weapon, marching all the while.
+    // Bosses siege towers based on their weapon's reach. Ground bosses HALT to
+    // demolish the tower (a tank tower can wall them for a while); flying bosses
+    // (none today, future-proofed) strike in passing like flyer tower-killers.
     const range = def.weapon ? weaponBaseRange(def.weapon) : BOSS_DEFAULT_TOWER_RANGE;
-    return { range, whileMoving: true };
+    return { range, whileMoving: def.flying === true };
   }
   const authored = def.special?.attacksTowers;
   if (authored) {

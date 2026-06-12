@@ -61,7 +61,7 @@ describe("enemyTowerAttack profile", () => {
     expect(p.whileMoving).toBe(false);
   });
 
-  it("derives a boss's reach from its weapon and never halts it", () => {
+  it("derives a ground boss's reach from its weapon and HALTS it to siege the tower", () => {
     const boss = mkEnemy({
       archetype: "Boss",
       weapon: { family: "thrown", display: "magma fists" },
@@ -69,6 +69,17 @@ describe("enemyTowerAttack profile", () => {
     });
     const p = enemyTowerAttack(boss)!;
     expect(p.range).toBe(weaponBaseRange({ family: "thrown", display: "" }));
+    expect(p.whileMoving).toBe(false); // ground boss stops to siege
+  });
+
+  it("lets a FLYING boss strike towers in passing (never halts mid-air)", () => {
+    const boss = mkEnemy({
+      archetype: "Boss",
+      flying: true,
+      weapon: { family: "thrown", display: "storm bolts" },
+      boss: { enrage: { belowHpPct: 0.4, atkMult: 1.5, speedMult: 1.5 } },
+    });
+    const p = enemyTowerAttack(boss)!;
     expect(p.whileMoving).toBe(true);
   });
 });
