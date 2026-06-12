@@ -15,28 +15,20 @@
  * - Status effects (slow, stun, DoT) with tenacity, and omnivamp sustain.
  *
  * The class is large, so its simulation methods are split by concern into
- * sibling modules (battleWaves / battleEnemies / battleTowers / battleDamage)
+ * sibling modules (battleWaves / battleEnemies / battleTowers / battleDamage /
+ * battleHero / battlePlacement)
  * and merged onto the prototype below via declaration merging. Shared mutable
  * state stays on this class; the merged methods read it through `this`. Fields
  * those modules touch are public-but-internal — not part of the external API.
  */
 import { type CharacterDef, type Difficulty, type StageDef, type Vec2 } from "../data/schema.ts";
-import { dist, lerp, pathLength } from "./path.ts";
+import { pathLength } from "./path.ts";
 import { Rng } from "./rng.ts";
-import { addHeroShare, towerStatPipeline } from "./stats.ts";
 import { resolveHeroBattleStats } from "./heroStats.ts";
-import { heroActiveBurst, awardSkillUseXp } from "./hero.ts";
-import { effectiveBehavior, battleLevelAtkMul } from "./towerUpgrade.ts";
-import { heroAttackStyle } from "../data/attackStyle.ts";
-import { selectTarget } from "./targeting.ts";
-import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
+import { heroActiveBurst } from "./hero.ts";
 import { ELITE_BATTLE_CHANCE } from "./elite.ts";
 import type { HeroSave } from "./save.ts";
 import type { BattleLoot } from "../data/rewardTiles.ts";
-import { isTowerOwned, getTowerStars } from "./collection.ts";
-import { incrementQuestKey } from "./questTracker.ts";
-import { getMasteryLevel, masteryStatMul } from "./mastery.ts";
-import { getAwakening, awakeningStatMul } from "./awakening.ts";
 import { squadSynergyMul } from "../data/synergies.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
 import {
@@ -49,22 +41,16 @@ import {
   type BattleOptions,
   type ScheduledSpawn,
   type SpawnRequest,
-  segDist,
-  HERO_FILTER,
   INTER_WAVE_DELAY,
   COMBO_MAX_MULT,
   COMBO_KILLS_FOR_MAX,
-  LANE_CLEARANCE,
-  MIN_TOWER_DIST,
-  PLACE_MARGIN,
-  MAX_TOWER_UPGRADES,
-  TOWER_SELL_REFUND,
-  MANA_MAX,
 } from "./battleTypes.ts";
 import { waveMethods, type WaveMethods } from "./battleWaves.ts";
 import { enemyMethods, type EnemyMethods } from "./battleEnemies.ts";
 import { towerMethods, type TowerMethods } from "./battleTowers.ts";
 import { damageMethods, type DamageMethods } from "./battleDamage.ts";
+import { heroMethods, type HeroMethods } from "./battleHero.ts";
+import { placementMethods, type PlacementMethods } from "./battlePlacement.ts";
 
 // Re-export the shared vocabulary so existing `import { ... } from "./battle.ts"`
 // callsites (EnemyRuntime, TowerRuntime, FxEvent, BattleOptions, the tuning
@@ -72,7 +58,8 @@ import { damageMethods, type DamageMethods } from "./battleDamage.ts";
 export * from "./battleTypes.ts";
 
 /** The simulation methods split into sibling modules are merged in below. */
-export interface BattleState extends WaveMethods, EnemyMethods, TowerMethods, DamageMethods {}
+export interface BattleState
+  extends WaveMethods, EnemyMethods, TowerMethods, DamageMethods, HeroMethods, PlacementMethods {}
 
 export class BattleState {
   readonly stage: StageDef;
@@ -101,8 +88,10 @@ export class BattleState {
   /** @internal */ readonly rng: Rng;
   /** @internal */ readonly totalPathLen: number;
 
-  private petGoldPerSec = 0;
-  private petGoldCarry = 0;
+  /** @internal Pet passive-gold rate (gold/sec), set from BattleOptions. */
+  petGoldPerSec = 0;
+  /** @internal Fractional gold accumulator for the pet trickle. */
+  petGoldCarry = 0;
   /** @internal */ _heroSave: HeroSave | undefined;
   /** @internal True if THIS battle is fated to contain exactly one elite (rolled once at start). */
   readonly eliteThisBattle: boolean;
@@ -127,8 +116,8 @@ export class BattleState {
   pending: SpawnRequest[] = [];
   /** @internal F6: distinct tower defIds fielded this battle — each earns mastery XP per kill. */
   readonly deployedTowerIds = new Set<string>();
-  /** F8: team stat multipliers from the chosen squad's active synergies. */
-  private synergyMul: { atkMul: number; hpMul: number; attackSpeedMul: number } = {
+  /** @internal F8: team stat multipliers from the chosen squad's active synergies. */
+  synergyMul: { atkMul: number; hpMul: number; attackSpeedMul: number } = {
     atkMul: 1,
     hpMul: 1,
     attackSpeedMul: 1,
@@ -234,207 +223,6 @@ export class BattleState {
     return this.synergyMul;
   }
 
-  // ---- Input -------------------------------------------------------------
-
-  commandHero(target: Vec2): void {
-    this.hero.moveTarget = { ...target };
-  }
-
-  /** Effective placement cost for a character (F5 challenge discount applies). */
-  towerCost(def: CharacterDef): number {
-    return Math.max(0, Math.round(def.cost * (this.challenge.towerCostMul ?? 1)));
-  }
-
-  placeTower(characterId: string, slotIndex: number): boolean {
-    if (this.outcome !== "ongoing") return false;
-    const def = this.cat.characters.get(characterId);
-    if (!def) return false;
-    if (slotIndex < 0 || slotIndex >= this.stage.towerSlots.length) return false;
-    if (this.towers.some((t) => t.slotIndex === slotIndex && t.alive)) return false;
-    if (this.gold < this.towerCost(def)) return false;
-    // With heroSave: only allow placement of owned towers
-    if (this._heroSave && !isTowerOwned(this._heroSave, characterId)) return false;
-
-    this.spawnTower(characterId, def, { ...this.stage.towerSlots[slotIndex] }, slotIndex);
-    return true;
-  }
-
-  /** Whether a free-placement position is buildable (bounds, lane, obstacles, spacing). */
-  canPlaceAt(pos: Vec2): boolean {
-    if (
-      pos.x < PLACE_MARGIN ||
-      pos.y < PLACE_MARGIN ||
-      pos.x > WORLD_WIDTH - PLACE_MARGIN ||
-      pos.y > WORLD_HEIGHT - PLACE_MARGIN
-    )
-      return false;
-    // Block placement on ANY road: the single campaign lane, or every arena corridor.
-    const roads = this.stage.arena ? this.stage.arena.routes : [this.stage.path];
-    for (const road of roads) {
-      for (let i = 1; i < road.length; i++) {
-        if (segDist(pos, road[i - 1], road[i]) < LANE_CLEARANCE) return false;
-      }
-    }
-    for (const f of this.stage.terrain ?? []) {
-      if (f.blocks && dist(pos, f) < f.r) return false;
-    }
-    for (const t of this.towers) {
-      if (t.alive && dist(pos, t.pos) < MIN_TOWER_DIST) return false;
-    }
-    return true;
-  }
-
-  /** Place a tower at a free position (T14). Validates ownership, gold, and the spot. */
-  placeTowerAt(characterId: string, pos: Vec2): boolean {
-    if (this.outcome !== "ongoing") return false;
-    const def = this.cat.characters.get(characterId);
-    if (!def) return false;
-    if (this.gold < this.towerCost(def)) return false;
-    if (this._heroSave && !isTowerOwned(this._heroSave, characterId)) return false;
-    if (!this.canPlaceAt(pos)) return false;
-    this.spawnTower(characterId, def, { x: pos.x, y: pos.y }, -1);
-    return true;
-  }
-
-  private spawnTower(characterId: string, def: CharacterDef, pos: Vec2, slotIndex: number): void {
-    const cost = this.towerCost(def);
-    this.gold -= cost;
-    const towerLevel = this._heroSave?.hero.level ?? 1;
-    const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
-    // The hero commands their towers: 60% of the hero's resolved stats flow onto
-    // each one, so leveling/gearing the hero strengthens the whole squad.
-    const resolvedStats = addHeroShare(
-      towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0),
-      this.hero.stats,
-    );
-    // F6 mastery × F7 awakening (per-tower permanent growth) × F8 squad synergy.
-    const mMul = this._heroSave
-      ? masteryStatMul(getMasteryLevel(this._heroSave, characterId)) *
-        awakeningStatMul(getAwakening(this._heroSave, characterId))
-      : 1;
-    resolvedStats.atk *= mMul * this.synergyMul.atkMul;
-    resolvedStats.maxHp *= mMul * this.synergyMul.hpMul;
-    resolvedStats.attackSpeed *= this.synergyMul.attackSpeedMul;
-    if (this._heroSave) this.deployedTowerIds.add(characterId);
-    this.towers.push({
-      uid: this.nextUid++,
-      def,
-      stats: resolvedStats,
-      slotIndex,
-      pos,
-      hp: resolvedStats.maxHp,
-      mana: 0,
-      attackCd: 0,
-      alive: true,
-      buffAtkPct: 0,
-      buffAsPct: 0,
-      disabledTimer: 0,
-      behavior: effectiveBehavior(def, 0),
-      baseLevel: towerLevel,
-      stars: towerStars,
-      battleLevel: 0,
-      goldSpent: cost,
-    });
-    if (this._heroSave) {
-      this._heroSave.progress.totalTowersPlaced += 1;
-      incrementQuestKey(this._heroSave, "place_towers", 1, new Date().toISOString().slice(0, 10));
-    }
-  }
-
-  /** Gold cost to upgrade a tower one battle level (escalates), or 0 if maxed/missing. */
-  upgradeCost(uid: number): number {
-    const t = this.towers.find((x) => x.uid === uid && x.alive);
-    if (!t || t.battleLevel >= MAX_TOWER_UPGRADES) return 0;
-    // A star-up is a premium: it always costs MORE than buying a fresh tower of
-    // this type (≥1.25× its placement cost), and escalates with each star. You
-    // pay extra to concentrate ~+60% power onto one defended slot instead of
-    // spreading it across a new unit that needs its own spot and protection.
-    return Math.round(this.towerCost(t.def) * 1.25 * (t.battleLevel + 1));
-  }
-
-  /**
-   * The attack range this tower WOULD have after one more upgrade — used to
-   * preview coverage on the upgrade button. Non-mutating; returns null if the
-   * tower is missing or already maxed. Mirrors upgradeTower's stat resolution
-   * (towerStatPipeline at battleLevel+1, plus the hero share).
-   */
-  previewUpgradeRange(uid: number): number | null {
-    const t = this.towers.find((x) => x.uid === uid && x.alive);
-    if (!t || t.battleLevel >= MAX_TOWER_UPGRADES) return null;
-    const upgraded = addHeroShare(
-      towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel + 1),
-      this.hero.stats,
-    );
-    return upgraded.range;
-  }
-
-  /**
-   * The attack range a tower of `characterId` WOULD have the instant it's placed
-   * (★1 / battleLevel 0), used to draw an accurate placement coverage ring. Mirrors
-   * spawnTower's range resolution: base reach scaled by the unit's collection-star
-   * tier. The hero share no longer touches range (towers are static), so this is the
-   * true reach — drawing def.baseStats.range alone under-reports starred towers.
-   */
-  previewPlaceRange(characterId: string): number {
-    const def = this.cat.characters.get(characterId);
-    if (!def) return 0;
-    const towerLevel = this._heroSave?.hero.level ?? 1;
-    const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
-    return towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0).range;
-  }
-
-  /** Gold refunded when selling a tower (fraction of total invested). */
-  sellValue(uid: number): number {
-    const t = this.towers.find((x) => x.uid === uid && x.alive);
-    return t ? Math.round(t.goldSpent * TOWER_SELL_REFUND) : 0;
-  }
-
-  /** Upgrade a placed tower one battle level; recompute stats, keep HP/mana fractions. */
-  upgradeTower(uid: number): boolean {
-    if (this.outcome !== "ongoing") return false;
-    const t = this.towers.find((x) => x.uid === uid && x.alive);
-    if (!t || t.battleLevel >= MAX_TOWER_UPGRADES) return false;
-    const cost = this.upgradeCost(uid);
-    if (this.gold < cost) return false;
-
-    this.gold -= cost;
-    t.goldSpent += cost;
-    t.battleLevel += 1;
-    const hpFrac = t.stats.maxHp > 0 ? t.hp / t.stats.maxHp : 1;
-    t.stats = addHeroShare(
-      towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel),
-      this.hero.stats,
-    );
-    // Re-apply F6 mastery + F7 awakening + F8 synergy so upgrading never drops it.
-    const mMul = this._heroSave
-      ? masteryStatMul(getMasteryLevel(this._heroSave, t.def.id)) *
-        awakeningStatMul(getAwakening(this._heroSave, t.def.id))
-      : 1;
-    t.stats.atk *= mMul * this.synergyMul.atkMul;
-    t.stats.maxHp *= mMul * this.synergyMul.hpMul;
-    t.stats.attackSpeed *= this.synergyMul.attackSpeedMul;
-    // The headline of a star-up: ~+60% attack per star, applied to the final
-    // resolved atk so the hero share can't dilute it (see battleLevelAtkMul).
-    t.stats.atk *= battleLevelAtkMul(t.battleLevel);
-    t.behavior = effectiveBehavior(t.def, t.battleLevel);
-    t.hp = t.stats.maxHp * hpFrac;
-    // mana is a fixed 0..100 bar now — it carries over untouched across upgrades.
-    if (this._heroSave) {
-      incrementQuestKey(this._heroSave, "upgrade_towers", 1, new Date().toISOString().slice(0, 10));
-    }
-    return true;
-  }
-
-  /** Sell a placed tower, refund gold, remove it. Returns the refund (0 if missing). */
-  sellTower(uid: number): number {
-    const i = this.towers.findIndex((x) => x.uid === uid && x.alive);
-    if (i < 0) return 0;
-    const refund = this.sellValue(uid);
-    this.gold += refund;
-    this.towers.splice(i, 1);
-    return refund;
-  }
-
   // ---- Simulation --------------------------------------------------------
 
   tick(dt: number): void {
@@ -478,77 +266,6 @@ export class BattleState {
     return this.outcome === "won" && !this.anyLeak;
   }
 
-  // ---- Hero --------------------------------------------------------------
-
-  private updateHero(dt: number): void {
-    if (this.petGoldPerSec > 0) {
-      this.petGoldCarry += this.petGoldPerSec * dt * (1 + this.hero.stats.goldFind);
-      while (this.petGoldCarry >= 1) {
-        this.gold += 1;
-        this.petGoldCarry -= 1;
-      }
-    }
-
-    const h = this.hero;
-    if (!h.alive) return;
-
-    if (h.stats.hpRegen > 0) h.hp = Math.min(h.stats.maxHp, h.hp + h.stats.hpRegen * dt);
-
-    const toTarget = dist(h.pos, h.moveTarget);
-    if (toTarget > 1) {
-      const step = Math.min(toTarget, h.stats.moveSpeed * dt);
-      h.pos = lerp(h.pos, h.moveTarget, step / toTarget);
-    }
-
-    h.attackCd -= dt;
-    if (h.attackCd > 0 || h.stats.attackSpeed <= 0) return;
-
-    const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
-    if (!target) return;
-
-    this.performAttack(
-      h,
-      h.pos,
-      h.stats.atk,
-      h.damageType,
-      target,
-      "hero",
-      "hero",
-      -1,
-      heroAttackStyle(h.weaponType, h.damageType, h.stats.range),
-    );
-    if (h.mana >= MANA_MAX) {
-      // The equipped active drives both the burst size (its levelled power) and
-      // the damage type — a True/Magic skill casts True/Magic even on a Physical
-      // weapon. Falls back to the legacy ×2 / weapon type when nothing is equipped.
-      this.castActive(
-        h.stats,
-        h.stats.atk,
-        h.activeDamageType ?? h.damageType,
-        target.pos,
-        h.pos,
-        "hero",
-        -1,
-        h.equippedSkillId,
-        undefined,
-        h.activeMult ?? 2,
-      );
-      h.mana = 0;
-      // Skill leveling (spec: +1 use-XP per cast, capped at the hero's level).
-      // Written straight into the live save like kill XP; the scene flushes after
-      // the battle. Without this the equipped skill never levels and its Power —
-      // which drives the burst size — is frozen at the level it dropped/started at.
-      if (this._heroSave && h.equippedSkillId) {
-        awardSkillUseXp(this._heroSave, h.equippedSkillId);
-        // A level-up earned mid-battle must hit harder on the NEXT cast THIS
-        // battle, not only next battle — re-resolve the frozen burst multiplier
-        // from the live save so the leveling actually couples to the damage.
-        h.activeMult = heroActiveBurst(this._heroSave).mult;
-      }
-    }
-    h.attackCd = 1 / h.stats.attackSpeed;
-  }
-
   // ---- Lifecycle ---------------------------------------------------------
 
   private cleanupDead(): void {
@@ -574,4 +291,12 @@ export class BattleState {
 // Merge the per-concern simulation methods onto the prototype. Their `this` is
 // typed as BattleState (see each module); the interface declaration above makes
 // them visible to TypeScript on the class.
-Object.assign(BattleState.prototype, waveMethods, enemyMethods, towerMethods, damageMethods);
+Object.assign(
+  BattleState.prototype,
+  waveMethods,
+  enemyMethods,
+  towerMethods,
+  damageMethods,
+  heroMethods,
+  placementMethods,
+);
