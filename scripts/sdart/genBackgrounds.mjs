@@ -16,18 +16,19 @@ const GW = 1024,
 const OUT = "public/assets/bg";
 
 const PROMPT =
-  "epic grand cathedral throne hall interior, deep symmetrical one-point " +
-  "perspective, a raised empty stone dais at the centre with NO throne chair, " +
+  "epic grand cathedral throne room interior, deep symmetrical one-point " +
+  "perspective, a single ornate golden royal throne on a wide raised stone dais " +
+  "with broad steps at the centre, the throne empty, seat around mid height, " +
   "towering stained-glass windows casting dramatic volumetric god-ray light " +
   "shafts, rows of lit golden braziers along both walls, tall stone pillars, " +
   "long red royal banners, marble floor with subtle reflections, warm amber " +
-  "key light and deep cool shadows, cinematic, atmospheric, moody, fantasy " +
-  "anime game background art, highly detailed, painterly";
+  "key light and deep cool shadows, cinematic, atmospheric, fantasy anime game " +
+  "background art, highly detailed, painterly";
 const NEG =
-  "throne chair, seat, king on throne, character, person, people, hero, " +
-  "knight, anime girl, anime boy, face, crowd, user interface, UI, hud, text, " +
-  "words, watermark, logo, signature, frame, border, blurry, lowres, jpeg " +
-  "artifacts, deformed, tiling seams";
+  "two thrones, multiple thrones, king on throne, character sitting, person, " +
+  "people, hero, knight, anime girl, anime boy, face, crowd, user interface, " +
+  "UI, hud, text, words, watermark, logo, signature, frame, border, blurry, " +
+  "lowres, jpeg artifacts, deformed, tiling seams";
 
 const arg = (n, d) => {
   const i = process.argv.indexOf(`--${n}`);
