@@ -77,6 +77,21 @@ async function main() {
       fire('pointerup', x1, y1); await new Promise(r=>setTimeout(r,40));
     };
     window.__tap = async (x,y)=>{ fire('pointermove', x, y); await new Promise(r=>setTimeout(r,30)); fire('pointerdown',x,y); await new Promise(r=>setTimeout(r,30)); fire('pointerup',x,y); await new Promise(r=>setTimeout(r,40)); };
+    window.__pinch = async (cx, cy, gap0, gap1, mvx=0, mvy=0, steps=8)=>{
+      // Two fingers symmetric about (cx,cy), gap0 -> gap1 apart, midpoint sliding
+      // by (mvx,mvy). pointerId 1 and 2.
+      const fire2 = (type, id, gx, gy)=>{
+        const p = pt(gx,gy);
+        cv.dispatchEvent(new PointerEvent(type, {pointerId:id, pointerType:'touch', isPrimary:id===1, button:0, buttons: type==='pointerup'?0:1, clientX:p.clientX, clientY:p.clientY, bubbles:true, cancelable:true}));
+      };
+      fire2('pointerdown',1, cx-gap0/2, cy); fire2('pointerdown',2, cx+gap0/2, cy);
+      await new Promise(r=>setTimeout(r,40));
+      for(let i=1;i<=steps;i++){ const f=i/steps; const g=gap0+(gap1-gap0)*f; const ox=cx+mvx*f, oy=cy+mvy*f;
+        fire2('pointermove',1, ox-g/2, oy); fire2('pointermove',2, ox+g/2, oy);
+        await new Promise(r=>setTimeout(r,25)); }
+      fire2('pointerup',1, cx+mvx-gap1/2, cy+mvy); fire2('pointerup',2, cx+mvx+gap1/2, cy+mvy);
+      await new Promise(r=>setTimeout(r,40));
+    };
     return 'helpers-ready canvas='+Math.round(r.width)+'x'+Math.round(r.height);
   `).then((v) => console.log("setup:", v));
 
@@ -148,6 +163,25 @@ async function main() {
     await evalJs(`const bs=window.__game.scene.getScene('BattleScene'); bs.camCtl.reset(); const z0=bs.cameras.main.zoom;
     await window.__tap(480,300); await new Promise(r=>setTimeout(r,90)); await window.__tap(480,300);
     return JSON.stringify({z0:+z0.toFixed(3), z1:+bs.cameras.main.zoom.toFixed(3), zoomedIn:bs.camCtl.isZoomedIn});`),
+  );
+
+  // TEST 8: two-finger pinch zooms AND pans by the midpoint. Synthetic CDP
+  // PointerEvents do NOT populate Phaser's pointer1/pointer2 `isDown` (the
+  // documented multi-touch harness limitation — see the avatar-tap note above),
+  // so we drive the real handler the way the scene does: set both scene pointers'
+  // down-state + position and emit scene `pointermove` (seed frame, then spread +
+  // slide). This exercises battleCamera.handleMove -> pinchUpdate end to end.
+  // The touch-action/page-scroll assertions come straight from the live canvas.
+  console.log(
+    "T8 pinch-pan:",
+    await evalJs(`const bs=window.__game.scene.getScene('BattleScene'); bs.camCtl.reset();
+    const inp=bs.input, c=bs.cameras.main, p1=inp.pointer1, p2=inp.pointer2;
+    const z0=c.zoom, sx0=c.scrollX;
+    const set=(p,x,y)=>{p.x=x;p.y=y;p.isDown=true;};
+    set(p1,450,300); set(p2,510,300); inp.emit('pointermove', p1);        // seed baseline (60px apart)
+    set(p1,520,300); set(p2,680,300); inp.emit('pointermove', p1);        // spread to 160px, midpoint +80x
+    const cv=document.querySelector('#game canvas')||document.querySelector('canvas');
+    return JSON.stringify({dZoom:+(c.zoom-z0).toFixed(3), dScroll:+(c.scrollX-sx0).toFixed(2), pageScroll:window.scrollY, touchAction:getComputedStyle(cv).touchAction});`),
   );
 
   const png = await rpc("Page.captureScreenshot", { format: "png" });
