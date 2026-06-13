@@ -50,7 +50,7 @@ const PAD = 16;
 /** Centered modal: machine (with material sockets) on top, readout, then tray. */
 export function wingMachineLayout(W: number, H: number): MachineLayout {
   const bw = 600;
-  const bh = 460;
+  const bh = 480;
   const bx = (W - bw) / 2;
   const by = (H - bh) / 2;
   const panel: Rect = { x: bx, y: by, w: bw, h: bh };
@@ -58,7 +58,7 @@ export function wingMachineLayout(W: number, H: number): MachineLayout {
   const innerX = bx + PAD;
   const innerW = bw - PAD * 2;
 
-  const machine: Rect = { x: innerX, y: by + 44, w: innerW, h: 150 };
+  const machine: Rect = { x: innerX, y: by + 44, w: innerW, h: 140 };
 
   // Material sockets hug the machine's right edge (top: jewel, below: feather).
   const sock = 44;
@@ -75,8 +75,8 @@ export function wingMachineLayout(W: number, H: number): MachineLayout {
     h: sock,
   };
 
-  const readout: Rect = { x: innerX, y: machine.y + machine.h + 10, w: innerW, h: 64 };
-  const oddsBar: Rect = { x: readout.x + 8, y: readout.y + 34, w: readout.w - 16, h: 18 };
+  const readout: Rect = { x: innerX, y: machine.y + machine.h + 10, w: innerW, h: 90 };
+  const oddsBar: Rect = { x: readout.x + 8, y: readout.y + 62, w: readout.w - 16, h: 20 };
 
   const craftBtn: Rect = { x: innerX, y: by + bh - 50, w: innerW - 96, h: 38 };
 

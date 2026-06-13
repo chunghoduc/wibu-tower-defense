@@ -132,12 +132,18 @@ export function openWingCraftDialog(
     fontSize: "13px",
     color: "#e9d5ff",
   });
-  const successText = crispText(scene, L.readout.x, L.readout.y + 16, "", {
+  const successText = crispText(scene, L.readout.x, L.readout.y + 30, "", {
     fontSize: "15px",
     color: "#ffe6a0",
     fontStyle: "bold",
   });
   c.add([statusText, successText]);
+  c.add(
+    crispText(scene, L.readout.x + L.readout.w, L.readout.y + 44, "Wing odds:", {
+      fontSize: "11px",
+      color: "#9fb0c4",
+    }).setOrigin(1, 0),
+  );
   const oddsGfx = scene.add.graphics();
   const oddsLabels = scene.add.container(0, 0);
   c.add([oddsGfx, oddsLabels]);
