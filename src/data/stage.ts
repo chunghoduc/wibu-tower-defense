@@ -19,6 +19,7 @@ import { Rng } from "../core/rng.ts";
 import { stageThemeForStage } from "./chapters.ts";
 import { EXPANSION_LAYOUTS, BOSS_EXPANSION } from "./stagesExpansion.ts";
 import { buildChapter1Waves } from "./chapter1Waves.ts";
+import { CH1_LAYOUTS } from "./chapter1Layouts.ts";
 
 export const GAME_WIDTH = 960;
 export const GAME_HEIGHT = 540;
@@ -32,261 +33,7 @@ export interface Layout {
   slots: Vec2[];
 }
 
-const LAYOUTS: Layout[] = [
-  {
-    name: "Greywood Trailhead",
-    path: [
-      { x: -20, y: 120 },
-      { x: 300, y: 120 },
-      { x: 300, y: 420 },
-      { x: 660, y: 420 },
-      { x: 660, y: 210 },
-      { x: 900, y: 210 },
-    ],
-    air: [
-      { x: -20, y: 480 },
-      { x: -20, y: 60 },
-    ],
-    slots: [
-      { x: 200, y: 60 },
-      { x: 360, y: 230 },
-      { x: 360, y: 340 },
-      { x: 520, y: 480 },
-      { x: 600, y: 340 },
-      { x: 740, y: 150 },
-      { x: 820, y: 300 },
-      { x: 480, y: 200 },
-    ],
-  },
-  {
-    name: "Switchback Gully",
-    path: [
-      { x: -20, y: 80 },
-      { x: 760, y: 80 },
-      { x: 760, y: 260 },
-      { x: 160, y: 260 },
-      { x: 160, y: 440 },
-      { x: 900, y: 440 },
-    ],
-    air: [
-      { x: -20, y: 260 },
-      { x: -20, y: 500 },
-    ],
-    slots: [
-      { x: 300, y: 150 },
-      { x: 560, y: 150 },
-      { x: 680, y: 190 },
-      { x: 400, y: 200 },
-      { x: 260, y: 340 },
-      { x: 540, y: 360 },
-      { x: 760, y: 360 },
-      { x: 100, y: 360 },
-    ],
-  },
-  {
-    name: "Twin Fords",
-    path: [
-      { x: -20, y: 270 },
-      { x: 240, y: 270 },
-      { x: 240, y: 90 },
-      { x: 520, y: 90 },
-      { x: 520, y: 450 },
-      { x: 900, y: 450 },
-    ],
-    air: [
-      { x: -20, y: 90 },
-      { x: -20, y: 450 },
-    ],
-    slots: [
-      { x: 140, y: 200 },
-      { x: 340, y: 160 },
-      { x: 420, y: 220 },
-      { x: 620, y: 200 },
-      { x: 440, y: 360 },
-      { x: 620, y: 380 },
-      { x: 760, y: 380 },
-      { x: 760, y: 510 },
-    ],
-  },
-  {
-    name: "Hollow Stair",
-    path: [
-      { x: -20, y: 60 },
-      { x: 200, y: 60 },
-      { x: 200, y: 200 },
-      { x: 440, y: 200 },
-      { x: 440, y: 340 },
-      { x: 680, y: 340 },
-      { x: 680, y: 480 },
-      { x: 900, y: 480 },
-    ],
-    air: [
-      { x: -20, y: 480 },
-      { x: -20, y: 270 },
-    ],
-    slots: [
-      { x: 120, y: 150 },
-      { x: 320, y: 140 },
-      { x: 360, y: 280 },
-      { x: 560, y: 280 },
-      { x: 600, y: 420 },
-      { x: 800, y: 420 },
-      { x: 280, y: 420 },
-      { x: 520, y: 120 },
-    ],
-  },
-  {
-    name: "Serpent Bend",
-    path: [
-      { x: -20, y: 470 },
-      { x: 700, y: 470 },
-      { x: 700, y: 300 },
-      { x: 120, y: 300 },
-      { x: 120, y: 120 },
-      { x: 900, y: 120 },
-    ],
-    air: [
-      { x: -20, y: 120 },
-      { x: -20, y: 300 },
-    ],
-    slots: [
-      { x: 300, y: 400 },
-      { x: 560, y: 400 },
-      { x: 620, y: 380 },
-      { x: 360, y: 230 },
-      { x: 540, y: 230 },
-      { x: 220, y: 210 },
-      { x: 500, y: 190 },
-      { x: 760, y: 190 },
-    ],
-  },
-  {
-    name: "Quarry Descent",
-    path: [
-      { x: -20, y: 150 },
-      { x: 380, y: 150 },
-      { x: 380, y: 470 },
-      { x: 900, y: 470 },
-    ],
-    air: [
-      { x: -20, y: 470 },
-      { x: -20, y: 300 },
-    ],
-    slots: [
-      { x: 200, y: 80 },
-      { x: 200, y: 230 },
-      { x: 460, y: 300 },
-      { x: 460, y: 400 },
-      { x: 600, y: 400 },
-      { x: 740, y: 400 },
-      { x: 600, y: 530 },
-      { x: 320, y: 230 },
-    ],
-  },
-  {
-    name: "Cinder Crossroads",
-    path: [
-      { x: -20, y: 270 },
-      { x: 300, y: 270 },
-      { x: 300, y: 110 },
-      { x: 620, y: 110 },
-      { x: 620, y: 430 },
-      { x: 900, y: 430 },
-    ],
-    air: [
-      { x: -20, y: 110 },
-      { x: -20, y: 430 },
-    ],
-    slots: [
-      { x: 160, y: 200 },
-      { x: 380, y: 190 },
-      { x: 460, y: 180 },
-      { x: 540, y: 200 },
-      { x: 540, y: 340 },
-      { x: 700, y: 360 },
-      { x: 700, y: 510 },
-      { x: 220, y: 350 },
-    ],
-  },
-  {
-    name: "Mistgrove Loop",
-    path: [
-      { x: -20, y: 90 },
-      { x: 820, y: 90 },
-      { x: 820, y: 470 },
-      { x: 200, y: 470 },
-      { x: 200, y: 280 },
-      { x: 900, y: 280 },
-    ],
-    air: [
-      { x: -20, y: 280 },
-      { x: -20, y: 470 },
-    ],
-    slots: [
-      { x: 360, y: 160 },
-      { x: 640, y: 160 },
-      { x: 740, y: 200 },
-      { x: 760, y: 390 },
-      { x: 480, y: 400 },
-      { x: 300, y: 380 },
-      { x: 380, y: 350 },
-      { x: 600, y: 340 },
-    ],
-  },
-  {
-    name: "Broken Aqueduct",
-    path: [
-      { x: -20, y: 200 },
-      { x: 180, y: 200 },
-      { x: 180, y: 60 },
-      { x: 480, y: 60 },
-      { x: 480, y: 300 },
-      { x: 720, y: 300 },
-      { x: 720, y: 470 },
-      { x: 900, y: 470 },
-    ],
-    air: [
-      { x: -20, y: 470 },
-      { x: -20, y: 60 },
-    ],
-    slots: [
-      { x: 100, y: 290 },
-      { x: 320, y: 130 },
-      { x: 400, y: 200 },
-      { x: 560, y: 220 },
-      { x: 600, y: 360 },
-      { x: 820, y: 380 },
-      { x: 360, y: 380 },
-      { x: 240, y: 130 },
-    ],
-  },
-  {
-    name: "Wardens' Gate",
-    path: [
-      { x: -20, y: 270 },
-      { x: 220, y: 270 },
-      { x: 220, y: 100 },
-      { x: 700, y: 100 },
-      { x: 700, y: 440 },
-      { x: 360, y: 440 },
-      { x: 360, y: 540 },
-    ],
-    air: [
-      { x: -20, y: 100 },
-      { x: -20, y: 440 },
-    ],
-    slots: [
-      { x: 120, y: 190 },
-      { x: 340, y: 180 },
-      { x: 500, y: 180 },
-      { x: 640, y: 200 },
-      { x: 600, y: 360 },
-      { x: 460, y: 360 },
-      { x: 760, y: 320 },
-      { x: 280, y: 360 },
-    ],
-  },
-];
+const LAYOUTS: Layout[] = CH1_LAYOUTS;
 
 /**
  * Final boss for each stage (1-indexed), escalating in difficulty. Chapter 1's
@@ -528,7 +275,7 @@ function nearPath(p: Vec2, path: Vec2[], clearance: number): boolean {
  * matches its backdrop (lava on the lava field, ice on the frozen reach, …).
  */
 function generateTerrain(
-  path: Vec2[],
+  lanes: Vec2[][],
   seed: number,
   block: TerrainType[],
   decor: TerrainType[],
@@ -541,7 +288,8 @@ function generateTerrain(
     const x = 50 + rng.next() * (WORLD_WIDTH - 100);
     const y = 50 + rng.next() * (WORLD_HEIGHT - 100);
     const r = 26 + rng.next() * 36;
-    if (nearPath({ x, y }, path, r + 30)) continue; // keep the lane walkable + buildable beside it
+    // keep every lane walkable + buildable beside it
+    if (lanes.some((lane) => nearPath({ x, y }, lane, r + 30))) continue;
     if (feats.some((f) => Math.hypot(f.x - x, f.y - y) < f.r + r + 12)) continue;
     const blocks = rng.next() < 0.6;
     const pool = blocks ? block : decor;
@@ -553,17 +301,22 @@ function generateTerrain(
 
 export const STAGES: StageDef[] = ALL_LAYOUTS.map((l, i) => {
   const id = stageIdFor(i + 1);
-  const path = l.path.map(scaleV);
+  // Scale authored lanes (if any) to world units; `path` mirrors lanes[0] so the
+  // keep (last point) and castlePos stay correct. Single-lane stages keep `path`
+  // and omit `lanes`.
+  const lanes = l.lanes?.map((lane) => lane.map(scaleV));
+  const path = lanes ? lanes[0] : l.path.map(scaleV);
   const theme = stageThemeForStage(id);
   return {
     id,
     name: l.name,
     path,
+    lanes,
     airSpawns: l.air.map(scaleV),
     castleHp: 15,
     startingGold: 170 + i * 10,
     towerSlots: l.slots.map(scaleV),
-    terrain: generateTerrain(path, i + 1, theme.block, theme.decor),
+    terrain: generateTerrain(lanes ?? [path], i + 1, theme.block, theme.decor),
     // Chapter 1 (stages 1–10) uses the hand-tuned per-stage arc; chapters 2–5
     // keep the procedural builder.
     waves:
