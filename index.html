@@ -16,6 +16,10 @@
         overflow: hidden;
         height: 100%;
         font-family: system-ui, sans-serif;
+        /* The game canvas owns all touch gestures — no native scroll/pinch/
+           double-tap-zoom or pull-to-refresh bounce underneath it. */
+        touch-action: none;
+        overscroll-behavior: none;
       }
       #game {
         width: 100vw;
@@ -23,6 +27,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+      #game,
+      #game canvas {
+        touch-action: none;
+        overscroll-behavior: none;
       }
       /* DOM splash — visible before Phaser canvas exists */
       #loading-splash {

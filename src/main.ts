@@ -22,6 +22,7 @@ import { installLogger, log } from "./debug/logger.ts";
 import { setCombatLogSink } from "./core/combatLog.ts";
 import { setAudioVolume, setAudioMuted } from "./scenes/audio.ts";
 import { installMobileLandscape } from "./mobileLandscape.ts";
+import { hardenTouchInput } from "./core/touchInput.ts";
 
 installLogger();
 
@@ -71,6 +72,13 @@ game.registry.set("saveManager", saveManager);
 
 // Mobile web: fullscreen + landscape on first gesture, rotate-prompt otherwise.
 installMobileLandscape(game);
+
+// Mobile web: the canvas owns every touch gesture. Phaser creates the canvas
+// during boot, so harden it once it exists (CSS in index.html is the static
+// belt; this is the braces for however the canvas was created).
+game.events.once(Phaser.Core.Events.READY, () => {
+  if (game.canvas) hardenTouchInput(game.canvas);
+});
 
 // Breadcrumb every scene create/shutdown — the trail that makes a later crash
 // diagnosable (e.g. the scene-re-entry class of bug). Scenes are instantiated by
