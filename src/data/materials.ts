@@ -14,6 +14,12 @@ export const CHAOS_JEWEL = "chaos-jewel";
 /** F7 Awakening — the top-end sink material. Earned from streak/bounty/endless,
  *  not stage drops, so it stays an aspirational late-game currency. */
 export const AWAKENING_CRYSTAL = "awakening-crystal";
+/** Wing-craft material (Forge → Craft Wings). Each one raises the craft's
+ *  success chance; mandatory minimum 1, up to 4. NOTE: distinct id from the
+ *  Jewel of Entropy (`chaos-jewel`) — do not conflate the two. */
+export const JEWEL_OF_CHAOS = "jewel-of-chaos";
+/** Wing-craft seed — exactly one is consumed per wing-craft attempt. */
+export const FEATHER = "feather";
 
 export type MaterialKind = "jewel" | "box" | "scroll" | "consumable";
 
@@ -76,6 +82,22 @@ export const MATERIALS: MaterialDef[] = [
     icon: "awaken",
     description:
       "A radiant crystal of pure potential. Spend it in the Collection to Awaken a 5★ tower beyond its limits.",
+  },
+  {
+    id: JEWEL_OF_CHAOS,
+    name: "Jewel of Chaos",
+    kind: "jewel",
+    icon: "jewel-of-chaos",
+    description:
+      "A volatile gem of raw chaos. Spend it in the Forge to craft Wings — each Jewel added raises the craft's success chance (up to four).",
+  },
+  {
+    id: FEATHER,
+    name: "Feather",
+    kind: "consumable",
+    icon: "feather",
+    description:
+      "A single luminous flight-feather — the seed of a pair of Wings. One is consumed by every wing-craft attempt.",
   },
 ];
 
