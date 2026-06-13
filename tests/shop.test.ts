@@ -13,7 +13,7 @@ import {
 } from "../src/core/shop.ts";
 import { SINGLE_PULL_COST } from "../src/core/gacha.ts";
 import { createFreshSave } from "../src/core/save.ts";
-import { rollItem, ITEM_CATALOG } from "../src/data/items.ts";
+import { rollItem, ITEM_CATALOG, ITEM_CATALOG_MAP } from "../src/data/items.ts";
 import { toItemInstanceSave } from "../src/core/itemDrop.ts";
 import { SUMMON_SCROLL } from "../src/data/materials.ts";
 import { Rng } from "../src/core/rng.ts";
@@ -75,6 +75,40 @@ describe("shop stock", () => {
 
   it("scrolls have a low (<5%) chance per slot", () => {
     expect(SCROLL_SLOT_CHANCE).toBeLessThan(0.05);
+  });
+
+  // Wings never drop as loot, so the shop is the only reliable way to buy them
+  // (craft is the gamble path). Random rolling left them effectively unbuyable,
+  // so a Wing slot is guaranteed every shop / refresh.
+  const wingSlots = (stock: ReturnType<typeof generateShopStock>) =>
+    stock.filter(
+      (s) => s.kind === "item" && s.item && ITEM_CATALOG_MAP.get(s.item.defId)?.slot === "Wing",
+    );
+
+  it("always offers at least one purchasable Wing slot, across seeds", () => {
+    const save = createFreshSave();
+    for (let seed = 0; seed < 25; seed++) {
+      const stock = generateShopStock(save, new Rng(seed));
+      const wings = wingSlots(stock);
+      expect(wings.length).toBeGreaterThanOrEqual(1);
+      for (const w of wings) expect(w.cost).toBeGreaterThan(0);
+    }
+  });
+
+  it("a fresh (low-level) shop offers a level-appropriate Wing the player can equip", () => {
+    const save = createFreshSave(); // hero level 1
+    const stock = generateShopStock(save, new Rng(99));
+    const [wing] = wingSlots(stock);
+    expect(wing).toBeDefined();
+    const def = ITEM_CATALOG_MAP.get(wing!.item!.defId)!;
+    expect(def.requiredLevel).toBeLessThanOrEqual(save.hero.level + 5);
+  });
+
+  it("keeps the guaranteed Wing slot after a refresh", () => {
+    const save = createFreshSave();
+    ensureShopStock(save, new Rng(3));
+    refreshShop(save, new Rng(4), "2026-06-13");
+    expect(wingSlots(save.shop.stock).length).toBeGreaterThanOrEqual(1);
   });
 });
 

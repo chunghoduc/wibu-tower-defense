@@ -45,12 +45,28 @@ function shopItemLevel(save: HeroSave): number {
   return Math.max(1, save.hero.level);
 }
 
+/** Every Wing in the catalog — wings never drop as loot, so the shop is their
+ *  only reliable source (the Forge craft is the gamble path). */
+const WING_DEFS = ITEM_CATALOG.filter((d) => d.slot === "Wing");
+
+/** Roll a concrete shop slot for a level-appropriate Wing (falls back to the
+ *  full wing set if none meet the level gate, so a Wing is always on offer). */
+function rollWingSlot(lvl: number, rng: Rng): ShopStockEntry {
+  const eligible = WING_DEFS.filter((d) => d.requiredLevel <= lvl + 5);
+  const pool = eligible.length ? eligible : WING_DEFS;
+  const def = pool[Math.floor(rng.next() * pool.length)];
+  const inst = toItemInstanceSave(rollItem(def, lvl, Math.floor(rng.next() * 999983)));
+  return { slotId: newSlotId(), kind: "item", cost: itemValue(def), item: inst };
+}
+
 export function generateShopStock(save: HeroSave, rng: Rng): ShopStockEntry[] {
   const lvl = shopItemLevel(save);
   const eligible = ITEM_CATALOG.filter((d) => d.requiredLevel <= lvl + 5);
   const pool = eligible.length ? eligible : ITEM_CATALOG;
-  const stock: ShopStockEntry[] = [];
-  for (let i = 0; i < SHOP_SIZE; i++) {
+  // Slot 0 is a guaranteed Wing so wings are always purchasable; the rest are
+  // the usual random gear (with the occasional Summoning Scroll).
+  const stock: ShopStockEntry[] = [rollWingSlot(lvl, rng)];
+  for (let i = 1; i < SHOP_SIZE; i++) {
     if (rng.next() < SCROLL_SLOT_CHANCE) {
       stock.push({ slotId: newSlotId(), kind: "scroll", cost: SCROLL_SHOP_COST });
       continue;
