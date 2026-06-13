@@ -161,8 +161,11 @@ export const inputMethods = {
     );
   },
 
-  /** ＋ / − zoom buttons on the left edge (HUD camera; fixed while the view pans). */
+  /** ＋ / − zoom buttons on the left edge (HUD camera; fixed while the view pans).
+   *  Each gets a ≥44×44px hit area (Apple/Material touch-target minimum) and the
+   *  two are spaced so their hit rects don't overlap. */
   addZoomButtons(this: BattleScene): void {
+    const HIT = 44; // px — touch-target minimum
     const mk = (y: number, label: string, onTap: () => void) => {
       const b = crispText(this, 14, y, label, {
         fontSize: "22px",
@@ -172,12 +175,22 @@ export const inputMethods = {
       })
         .setOrigin(0, 0.5)
         .setPadding(9, 3, 9, 5)
-        .setDepth(50)
-        .setInteractive({ useHandCursor: true });
+        .setDepth(50);
+      // Explicit hit rect at least 44×44, grown symmetrically around the text's
+      // local box (input hit areas are in texture-local space with (0,0) at the
+      // top-left, independent of the display origin).
+      const w = Math.max(HIT, b.width);
+      const h = Math.max(HIT, b.height);
+      b.setInteractive(
+        new Phaser.Geom.Rectangle(-(w - b.width) / 2, -(h - b.height) / 2, w, h),
+        Phaser.Geom.Rectangle.Contains,
+      );
+      if (b.input) b.input.cursor = "pointer";
       b.on("pointerdown", onTap);
       this.ui.add(b);
     };
-    mk(this.scale.height - 150, "+", () => this.camCtl?.zoomStep(true));
+    // 54px apart so two 44px hit rects never overlap.
+    mk(this.scale.height - 164, "+", () => this.camCtl?.zoomStep(true));
     mk(this.scale.height - 110, "−", () => this.camCtl?.zoomStep(false));
   },
 
