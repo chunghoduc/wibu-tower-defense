@@ -89,6 +89,9 @@ export class PreloadScene extends Phaser.Scene {
       "shop",
       "skills",
       "settings",
+      "quests",
+      "activities",
+      "forge",
     ]) {
       this.load.image(menuTex(id), versioned(`assets/ui/menu/${id}.png`));
     }
