@@ -402,7 +402,7 @@ export class StageSelectScene extends Phaser.Scene {
     if (!isDifficultyUnlocked(mgr.getSave(), stage.id, this.selectedDifficulty)) return;
     this.registry.set("selectedStage", stage);
     this.registry.set("selectedDifficulty", this.selectedDifficulty);
-    this.scene.start("BattleScene");
+    fadeToScene(this, "BattleScene");
   }
 
   /**

@@ -34,6 +34,7 @@ import type { EndlessBackdropFx } from "./endlessBackdropFx.ts";
 import type { CharacterDef, Difficulty, StageDef } from "../data/schema.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { crispText } from "./ui.ts";
+import { fadeIn, DUR } from "./uiKit.ts";
 import { BattleInfoPanel } from "./battleInfoPanel.ts";
 import { FxLayer } from "./fx.ts";
 import { Sfx } from "./audio.ts";
@@ -349,6 +350,12 @@ export class BattleScene extends Phaser.Scene {
     this.addZoomButtons();
 
     this.panel.showHero(this.heroVM()); // build hero content (panel starts collapsed)
+
+    // Crossfade the whole screen in on entry — both the world camera and the
+    // separate 1:1 HUD camera, so battle entry matches the menu transitions.
+    fadeIn(this);
+    uiCam.fadeIn(DUR.fade, 6, 9, 15);
+
     const KC = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard?.addKeys({
       up: KC.UP,

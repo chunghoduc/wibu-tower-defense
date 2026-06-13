@@ -17,6 +17,7 @@ import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { stageThemeForStage } from "../data/chapters.ts";
 import { stageBgKey } from "../data/uiManifest.ts";
 import { crispText } from "./ui.ts";
+import { fadeToScene } from "./uiKit.ts";
 import {
   ROLE_COLOR,
   KIND_COLOR,
@@ -114,7 +115,7 @@ export const renderMethods = {
         .setInteractive({ useHandCursor: true })
         .setDepth(30);
       this.ui.add(this._menuBtn);
-      this._menuBtn.on("pointerdown", () => this.scene.start("MainMenuScene"));
+      this._menuBtn.on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
     }
   },
 
