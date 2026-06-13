@@ -484,6 +484,7 @@ export class BattleScene extends Phaser.Scene {
     const steps = this.stepper.advance(frame);
     this.pendingFx.length = 0;
     for (let i = 0; i < steps; i++) {
+      if (this.battle.outcome !== "ongoing") break; // finished — don't replay stale fx
       snapshotPositions(this.battle.enemies, this.prevEnemyPos);
       const h = this.battle.hero;
       this.prevHeroPos = { x: h.pos.x, y: h.pos.y };

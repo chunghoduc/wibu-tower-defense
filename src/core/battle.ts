@@ -226,8 +226,13 @@ export class BattleState {
   // ---- Simulation --------------------------------------------------------
 
   tick(dt: number): void {
+    // Clear visual events FIRST, even on a no-op tick. A finished battle (or a
+    // paused dt<=0) must leave fx empty — otherwise the killing blow's
+    // killReward/loot events linger here and the render loop, still advancing
+    // its fixed-step accumulator, re-pushes them every frame (the non-stop
+    // +XP/gold gain shower on the victory screen).
+    this.fx.length = 0;
     if (this.outcome !== "ongoing" || dt <= 0) return;
-    this.fx.length = 0; // fresh visual events for this tick
     this.time += dt;
 
     // F13: decay the kill streak; a lull resets the combo multiplier.

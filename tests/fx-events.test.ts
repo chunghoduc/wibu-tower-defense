@@ -47,6 +47,18 @@ describe("FX events", () => {
     expect(maxLen).toBeLessThan(500);
   });
 
+  it("clears stale fx once the battle is over (no replayed gain effects)", () => {
+    // Regression: tick() used to early-return on a finished battle BEFORE clearing
+    // fx, so the final kill's killReward/loot events lingered in battle.fx. The
+    // render loop kept re-pushing them every frame → a non-stop +XP/gold gain
+    // shower on the victory screen. A no-op tick must leave fx empty.
+    const b = freshBattle();
+    b.outcome = "won";
+    b.fx.push({ type: "loot", at: { x: 0, y: 0 }, to: { x: 0, y: 0 }, gold: 99 });
+    b.tick(0.05);
+    expect(b.fx.length).toBe(0);
+  });
+
   it("emits a death event (and loot) when an enemy dies", () => {
     const b = freshBattle();
     b.placeTower("zoran-thricedraw", 0);
