@@ -75,3 +75,21 @@ export function isDoubleTap(prev: TapPoint | null, cur: TapPoint): boolean {
   if (dt < 0 || dt > DOUBLE_TAP_GAP_MS) return false;
   return Math.hypot(cur.x - prev.x, cur.y - prev.y) <= DOUBLE_TAP_DIST_PX;
 }
+
+/** A two-finger pinch sample: finger distance + midpoint (screen px). */
+export interface PinchSample {
+  dist: number;
+  cx: number;
+  cy: number;
+}
+
+/** Per-frame pinch delta: multiplicative zoom factor + midpoint translation
+ *  (screen px). zoomFactor is 1 when prev.dist is 0/invalid (the first frame of
+ *  a pinch — establish the baseline, don't jump). */
+export function pinchUpdate(
+  prev: PinchSample,
+  cur: PinchSample,
+): { zoomFactor: number; panDx: number; panDy: number } {
+  const zoomFactor = prev.dist > 0 ? cur.dist / prev.dist : 1;
+  return { zoomFactor, panDx: cur.cx - prev.cx, panDy: cur.cy - prev.cy };
+}

@@ -10,6 +10,7 @@ import {
   isDoubleTap,
   DOUBLE_TAP_GAP_MS,
   DOUBLE_TAP_DIST_PX,
+  pinchUpdate,
   type FlickSample,
 } from "../src/core/gesture.ts";
 
@@ -115,5 +116,31 @@ describe("isDoubleTap", () => {
   });
   it("is false for a negative time delta", () => {
     expect(isDoubleTap({ t: 100, x: 0, y: 0 }, { t: 50, x: 0, y: 0 })).toBe(false);
+  });
+});
+
+describe("pinchUpdate", () => {
+  it("zoom factor is the ratio of finger distances", () => {
+    const r = pinchUpdate({ dist: 100, cx: 0, cy: 0 }, { dist: 150, cx: 0, cy: 0 });
+    expect(r.zoomFactor).toBeCloseTo(1.5, 5);
+  });
+
+  it("zoom factor is 1 on the first frame (prev.dist <= 0)", () => {
+    const r = pinchUpdate({ dist: 0, cx: 10, cy: 10 }, { dist: 120, cx: 10, cy: 10 });
+    expect(r.zoomFactor).toBe(1);
+  });
+
+  it("pan delta is the midpoint translation", () => {
+    const r = pinchUpdate({ dist: 100, cx: 200, cy: 300 }, { dist: 100, cx: 230, cy: 280 });
+    expect(r.panDx).toBe(30);
+    expect(r.panDy).toBe(-20);
+  });
+
+  it("identical samples produce no zoom and no pan", () => {
+    const s = { dist: 90, cx: 50, cy: 60 };
+    const r = pinchUpdate(s, { ...s });
+    expect(r.zoomFactor).toBe(1);
+    expect(r.panDx).toBe(0);
+    expect(r.panDy).toBe(0);
   });
 });
