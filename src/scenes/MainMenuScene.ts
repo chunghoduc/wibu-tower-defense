@@ -13,34 +13,34 @@ import { bgKey } from "../data/bgManifest.ts";
 import { buildMenuAtmosphere } from "./menuAtmosphere.ts";
 import { MenuBackdropFx } from "./menuBackdropFx.ts";
 import { crispText } from "./ui.ts";
+import { dockLayout } from "./menuLayout.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { claimableQuestCount } from "../core/questTracker.ts";
 import { towerTex, itemTex, menuTex } from "../data/assetKeys.ts";
 
-/** A menu destination: an icon-glyph button placed on the left/right/bottom edge. */
+/** A menu destination: a painted icon button in the bottom navigation dock. */
 interface MenuItem {
-  key: string; // glyph id (see drawMenuGlyph)
+  key: string; // painted icon id (+ drawMenuGlyph fallback id)
   label: string;
   scene: string;
-  side: "left" | "right" | "bottom";
 }
 
+// Row-major dock order: row 1 = core loop, row 2 = meta (see menuLayout 6x2 grid).
 const MENU_ITEMS: MenuItem[] = [
-  { key: "battle", label: "Battle", scene: "StageSelectScene", side: "left" },
-  { key: "summon", label: "Summon", scene: "GachaScene", side: "left" },
-  { key: "collection", label: "Codex", scene: "CollectionScene", side: "left" },
-  { key: "quests", label: "Quests", scene: "QuestScene", side: "left" },
-  { key: "activities", label: "Activities", scene: "ActivitiesScene", side: "left" },
-  { key: "inventory", label: "Inventory", scene: "HeroScene", side: "right" },
-  { key: "squad", label: "Squad", scene: "SquadScene", side: "right" },
-  { key: "passive", label: "Passives", scene: "PassiveGridScene", side: "right" },
-  { key: "shop", label: "Shop", scene: "ShopScene", side: "bottom" },
-  { key: "skills", label: "Skills", scene: "SkillsScene", side: "bottom" },
-  { key: "forge", label: "Forge", scene: "ForgeScene", side: "bottom" },
-  { key: "settings", label: "Settings", scene: "SettingsScene", side: "bottom" },
+  { key: "battle", label: "Battle", scene: "StageSelectScene" },
+  { key: "summon", label: "Summon", scene: "GachaScene" },
+  { key: "squad", label: "Squad", scene: "SquadScene" },
+  { key: "inventory", label: "Inventory", scene: "HeroScene" },
+  { key: "forge", label: "Forge", scene: "ForgeScene" },
+  { key: "shop", label: "Shop", scene: "ShopScene" },
+  { key: "quests", label: "Quests", scene: "QuestScene" },
+  { key: "activities", label: "Activities", scene: "ActivitiesScene" },
+  { key: "skills", label: "Skills", scene: "SkillsScene" },
+  { key: "passive", label: "Passives", scene: "PassiveGridScene" },
+  { key: "collection", label: "Codex", scene: "CollectionScene" },
+  { key: "settings", label: "Settings", scene: "SettingsScene" },
 ];
 
-const BTN = 58; // icon button size
 const ATMOSPHERE_SEED = 4242; // stable look every time the menu is entered
 
 export class MainMenuScene extends Phaser.Scene {
@@ -71,7 +71,6 @@ export class MainMenuScene extends Phaser.Scene {
     if (set.musicEnabled && !set.muted) this.input.once("pointerdown", () => music.start());
 
     this.drawBackdrop(W, H);
-    this.drawThrone(W, H);
     this.drawHero(W, H);
     this.drawHangers(save, W, H);
     this.drawSquad(save, W, H);
@@ -106,29 +105,6 @@ export class MainMenuScene extends Phaser.Scene {
     this.backdropFx = new MenuBackdropFx(this, buildMenuAtmosphere(W, H, ATMOSPHERE_SEED));
   }
 
-  // ── procedural king's chair + dais ("the stage") ─────────────────────────────
-  private drawThrone(W: number, H: number): void {
-    const cx = W / 2,
-      seatY = H * 0.5;
-    const g = this.add.graphics().setDepth(1);
-    // dais slab (the stage the squad stands on)
-    g.fillStyle(0x2a2030, 1).fillRoundedRect(cx - 150, H * 0.7, 300, 30, 8);
-    g.fillStyle(0x3a2c44, 1).fillRoundedRect(cx - 130, H * 0.685, 260, 16, 6);
-    // chair back
-    g.fillStyle(0x6a4a1c, 1).fillRoundedRect(cx - 46, seatY - 132, 92, 150, 10);
-    g.fillStyle(0x8a6526, 1).fillRoundedRect(cx - 38, seatY - 124, 76, 134, 8);
-    g.fillStyle(0x7a1f2a, 1).fillRoundedRect(cx - 30, seatY - 116, 60, 118, 6); // cushion
-    // crown finials
-    g.fillStyle(0xe8c44c, 1);
-    for (const ox of [-46, 0, 46])
-      g.fillTriangle(cx + ox - 9, seatY - 132, cx + ox + 9, seatY - 132, cx + ox, seatY - 156);
-    // seat + arms
-    g.fillStyle(0x8a6526, 1).fillRoundedRect(cx - 52, seatY - 8, 104, 22, 6);
-    g.fillStyle(0x6a4a1c, 1)
-      .fillRoundedRect(cx - 56, seatY - 30, 12, 44, 4)
-      .fillRoundedRect(cx + 44, seatY - 30, 12, 44, 4);
-  }
-
   private drawHero(W: number, H: number): void {
     if (!this.textures.exists("hero__hero")) return;
     const HERO_H = 104,
@@ -147,19 +123,23 @@ export class MainMenuScene extends Phaser.Scene {
     const cells = hangerLayout(W, H);
     const items = equippedHangers(save.inventory);
     cells.forEach((cell, i) => {
-      const g = this.add.graphics().setDepth(3);
-      g.fillStyle(0x4a3a2a, 1).fillRoundedRect(cell.x - 16, cell.y - 6, 32, 6, 3); // wall bar
-      g.fillStyle(0x6a5238, 1).fillCircle(cell.x, cell.y - 3, 3); // hook
       const it = items[i];
       if (!it || !this.textures.exists(it.iconKey)) return; // empty peg
-      g.lineStyle(2, 0x9a8a6a, 1).lineBetween(cell.x, cell.y, cell.x, cell.y + 14); // rope
+      // Soft drop shadow under the floating gear (no procedural bar/rope).
+      const shadow = this.add
+        .image(cell.x, cell.y + 16, it.iconKey)
+        .setOrigin(0.5, 0)
+        .setDepth(3)
+        .setTint(0x000000)
+        .setAlpha(0.3);
+      shadow.setScale(Math.min(34 / shadow.width, 34 / shadow.height));
       const img = this.add
         .image(cell.x, cell.y + 14, it.iconKey)
         .setOrigin(0.5, 0)
         .setDepth(4);
       img.setScale(Math.min(34 / img.width, 34 / img.height));
       this.tweens.add({
-        targets: img,
+        targets: [img, shadow],
         angle: { from: -4, to: 4 },
         duration: 1600 + i * 90,
         yoyo: true,
@@ -276,23 +256,20 @@ export class MainMenuScene extends Phaser.Scene {
     void crystals;
   }
 
-  // ── icon-button menu on the left / right / bottom edges ──────────────────────
+  // ── painted icon dock along the bottom edge (6×2 grid) ───────────────────────
   private drawMenu(W: number, H: number): void {
-    const left = MENU_ITEMS.filter((m) => m.side === "left");
-    const right = MENU_ITEMS.filter((m) => m.side === "right");
-    const bottom = MENU_ITEMS.filter((m) => m.side === "bottom");
-
-    const colY = (count: number, i: number): number => {
-      const gap = 86,
-        total = (count - 1) * gap;
-      return H * 0.46 - total / 2 + i * gap;
-    };
-    left.forEach((m, i) => this.iconButton(m, 46, colY(left.length, i)));
-    right.forEach((m, i) => this.iconButton(m, W - 46, colY(right.length, i)));
-    bottom.forEach((m, i) => {
-      const gap = 120,
-        total = (bottom.length - 1) * gap;
-      this.iconButton(m, W / 2 - total / 2 + i * gap, H - 50);
+    const lay = dockLayout(MENU_ITEMS.length, W, H);
+    const p = lay.panel;
+    this.add
+      .graphics()
+      .setDepth(7)
+      .fillStyle(0x0c1120, 0.82)
+      .fillRoundedRect(p.x, p.y, p.w, p.h, 16)
+      .lineStyle(2, 0x3a567f, 0.9)
+      .strokeRoundedRect(p.x, p.y, p.w, p.h, 16);
+    MENU_ITEMS.forEach((m, i) => {
+      const c = lay.cells[i];
+      this.iconButton(m, c.x, c.y);
     });
   }
 
@@ -301,19 +278,19 @@ export class MainMenuScene extends Phaser.Scene {
     const iconKey = menuTex(item.key);
     if (this.textures.exists(iconKey)) {
       // Painted SDXL icon (carries its own ornate frame).
-      const img = this.add.image(0, -3, iconKey).setOrigin(0.5);
-      img.setScale(Math.min(56 / img.width, 56 / img.height));
+      const img = this.add.image(0, -8, iconKey).setOrigin(0.5);
+      img.setScale(Math.min(44 / img.width, 44 / img.height));
       c.add(img);
     } else {
       const g = this.add.graphics();
-      g.fillStyle(0x101826, 0.92).fillRoundedRect(-BTN / 2, -BTN / 2, BTN, BTN, 12);
-      g.lineStyle(2, 0x3a567f, 1).strokeRoundedRect(-BTN / 2, -BTN / 2, BTN, BTN, 12);
-      drawMenuGlyph(g, item.key, 0, -4, 15);
+      g.fillStyle(0x101826, 0.92).fillRoundedRect(-22, -30, 44, 44, 10);
+      g.lineStyle(2, 0x3a567f, 1).strokeRoundedRect(-22, -30, 44, 44, 10);
+      drawMenuGlyph(g, item.key, 0, -8, 13);
       c.add(g);
     }
     c.add(
-      crispText(this, 0, BTN / 2 - 6, item.label, {
-        fontSize: "10px",
+      crispText(this, 0, 18, item.label, {
+        fontSize: "12px",
         color: "#ffe9c0",
         fontStyle: "bold",
         stroke: "#1a1206",
@@ -324,22 +301,22 @@ export class MainMenuScene extends Phaser.Scene {
     // Red notification badge (e.g. claimable quest count) on the top-right corner.
     const badge = this.badges[item.key] ?? 0;
     if (badge > 0) {
-      const bx = BTN / 2 - 8,
-        by = -BTN / 2 + 8;
+      const bx = 20,
+        by = -28;
       const bg = this.add.graphics();
-      bg.fillStyle(0xe6312b, 1).fillCircle(bx, by, 10);
-      bg.lineStyle(1.5, 0xffd9c0, 0.9).strokeCircle(bx, by, 10);
+      bg.fillStyle(0xe6312b, 1).fillCircle(bx, by, 9);
+      bg.lineStyle(1.5, 0xffd9c0, 0.9).strokeCircle(bx, by, 9);
       c.add(bg);
       c.add(
         crispText(this, bx, by, `${badge}`, {
-          fontSize: "11px",
+          fontSize: "10px",
           color: "#ffffff",
           fontStyle: "bold",
         }).setOrigin(0.5),
       );
     }
 
-    const z = this.add.zone(0, 0, BTN, BTN).setInteractive({ useHandCursor: true });
+    const z = this.add.zone(0, -4, 120, 56).setInteractive({ useHandCursor: true });
     c.add(z);
     z.on("pointerover", () =>
       this.tweens.add({ targets: c, scale: 1.12, duration: 130, ease: "Back.easeOut" }),
