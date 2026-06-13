@@ -36,6 +36,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   preload(): void {
+    this._setupLoadingBar();
     this.load.on("loaderror", (file: Phaser.Loader.File) => void file);
     for (const e of SPRITE_MANIFEST) {
       this.load.spritesheet(e.key, versioned(e.path), {
@@ -118,6 +119,57 @@ export class PreloadScene extends Phaser.Scene {
         frameHeight: 96,
       });
     }
+  }
+
+  private _setupLoadingBar(): void {
+    const { width, height } = this.scale;
+    const cx = width / 2;
+    const cy = height / 2;
+    const barW = 360;
+    const barH = 10;
+
+    const track = this.add.graphics();
+    track.fillStyle(0x1e2030, 1);
+    track.fillRoundedRect(cx - barW / 2, cy - barH / 2, barW, barH, 5);
+
+    const bar = this.add.graphics();
+
+    const label = this.add
+      .text(cx, cy + 28, "Loading…", { fontSize: "12px", color: "#6a6880" })
+      .setOrigin(0.5);
+
+    const title = this.add
+      .text(cx, cy - 36, "Wibu Tower Defense", {
+        fontSize: "22px",
+        color: "#f0c060",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5);
+
+    let lastProgress = 0;
+
+    this.load.on("progress", (value: number) => {
+      // progress can temporarily decrease when files are queued mid-load
+      lastProgress = Math.max(lastProgress, value);
+      bar.clear();
+      bar.fillStyle(0xf0c060, 1);
+      bar.fillRoundedRect(cx - barW / 2, cy - barH / 2, barW * lastProgress, barH, 5);
+
+      // Mirror into the DOM bar (visible before canvas is ready)
+      const pct = Math.round(lastProgress * 100);
+      const domFill = document.getElementById("loading-bar-fill");
+      if (domFill) domFill.style.width = `${pct}%`;
+      const domLabel = document.getElementById("loading-label");
+      if (domLabel) domLabel.textContent = `Loading… ${pct}%`;
+    });
+
+    this.load.on("complete", () => {
+      bar.destroy();
+      track.destroy();
+      label.destroy();
+      title.destroy();
+      document.getElementById("loading-splash")?.remove();
+    });
   }
 
   create(): void {
