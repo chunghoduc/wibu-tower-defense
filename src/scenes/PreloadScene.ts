@@ -15,6 +15,7 @@ import { FX_IDS } from "../data/fxManifest.ts";
 import { ITEM_CATALOG } from "../data/items.ts";
 import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
 import { bakeBossWalks } from "./bossWalkBake.ts";
+import { createLoadingBackdrop } from "./loadingBackdropFx.ts";
 import {
   skillTex,
   jewelTex,
@@ -131,6 +132,15 @@ export class PreloadScene extends Phaser.Scene {
     const barW = 360;
     const barH = 10;
 
+    // Procedural painted backdrop behind the bar. Drawn before the track so it
+    // renders underneath; pure Graphics (no textures — none are loaded yet).
+    const backdrop = createLoadingBackdrop(this);
+    const tick = this.time.addEvent({
+      delay: 16,
+      loop: true,
+      callback: () => backdrop.update(this.time.now / 1000),
+    });
+
     const track = this.add.graphics();
     track.fillStyle(0x1e2030, 1);
     track.fillRoundedRect(cx - barW / 2, cy - barH / 2, barW, barH, 5);
@@ -167,6 +177,8 @@ export class PreloadScene extends Phaser.Scene {
     });
 
     this.load.on("complete", () => {
+      tick.remove();
+      backdrop.destroy();
       bar.destroy();
       track.destroy();
       label.destroy();
