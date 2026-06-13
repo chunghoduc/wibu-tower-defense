@@ -3,6 +3,7 @@ import { SaveManager, RESPEC_DIAMOND_COST } from "../src/core/saveManager.ts";
 import { LocalSaveProvider, CURRENT_SAVE_VERSION } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
 import { OBLIVION_ORB } from "../src/data/materials.ts";
+import { STARTER_SKILL_IDS, MAX_ACTIVE_SKILLS } from "../src/data/skills.ts";
 
 const store: Record<string, string> = {};
 const mockStorage = {
@@ -27,6 +28,23 @@ describe("SaveManager", () => {
     const save = manager.getSave();
     expect(save.hero.level).toBe(1);
     expect(save.version).toBe(CURRENT_SAVE_VERSION);
+  });
+
+  describe("fresh-save starter skills", () => {
+    it("equips exactly one active skill at the beginning", () => {
+      const save = manager.getSave();
+      expect(save.hero.equippedSkillIds).toHaveLength(1);
+      expect(save.hero.equippedSkillIds.length).toBeLessThanOrEqual(MAX_ACTIVE_SKILLS);
+    });
+
+    it("equips the first starter skill", () => {
+      expect(manager.getSave().hero.equippedSkillIds[0]).toBe(STARTER_SKILL_IDS[0]);
+    });
+
+    it("still owns both weapon-free starter skills", () => {
+      const owned = manager.getSave().hero.obtainedSkills.map((s) => s.skillId);
+      for (const id of STARTER_SKILL_IDS) expect(owned).toContain(id);
+    });
   });
 
   it("afterBattle awards crystals and persists", () => {

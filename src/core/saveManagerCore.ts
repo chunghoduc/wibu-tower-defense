@@ -74,10 +74,12 @@ export class SaveManagerCore {
     save.currency.gold = STARTER_GOLD;
     save.currency.diamonds = STARTER_DIAMONDS;
     for (const id of STARTER_SQUAD) addTowerToCollection(save, id);
-    // Every hero starts with two weapon-free active skills (one Physical, one Magic).
+    // A hero owns both weapon-free starter actives (one Physical, one Magic) but
+    // equips only one at the beginning — MAX_ACTIVE_SKILLS is 1, and this matches
+    // the save-migration path which seeds a single equipped slot.
     for (const id of STARTER_SKILL_IDS)
       save.hero.obtainedSkills.push({ skillId: id, level: 1, useXp: 0 });
-    save.hero.equippedSkillIds = [...STARTER_SKILL_IDS];
+    save.hero.equippedSkillIds = [STARTER_SKILL_IDS[0]];
     return save;
   }
 
