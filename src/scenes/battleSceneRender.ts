@@ -26,6 +26,7 @@ import {
   starPoints,
 } from "./battleSceneHelpers.ts";
 import { auraRadiusOf, auraPulse, AURA_RING_COLOR } from "../core/auraIndicator.ts";
+import { groundLanes } from "../core/path.ts";
 import { roleBadgeTex } from "./roleBadge.ts";
 import { CASTLE_TEX } from "../data/assetKeys.ts";
 import { castleArtState, castleTexForState } from "./castleArt.ts";
@@ -507,8 +508,8 @@ export const renderMethods = {
         );
       }
     }
-    // roads: the single campaign lane, or every corridor of the maze arena.
-    const roads = this.stage.arena ? this.stage.arena.routes : [this.stage.path];
+    // roads: every authored lane / arena corridor (or the single legacy path).
+    const roads = groundLanes(this.stage);
     g.lineStyle(36, 0x3a4458, 1);
     for (const road of roads) {
       if (road.length < 2) continue;
