@@ -18,6 +18,7 @@ import { TOWER_ROLES, type Rarity, type TowerRole } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 import { renderCharInfo, renderHeroInfo } from "./squadInfoPanel.ts";
 import { makeCharTile, makeSlotTile, RARITY_HEX } from "./squadTiles.ts";
+import { TAP_SLOP_PX } from "../core/gesture.ts";
 
 const RARITY_ORDER: Record<Rarity, number> = {
   Common: 0,
@@ -84,7 +85,7 @@ export class SquadScene extends Phaser.Scene {
     this.selectedId = HERO_SEL;
     this.filterTabs = [];
     this.slotZones = [];
-    this.input.dragDistanceThreshold = 8;
+    this.input.dragDistanceThreshold = TAP_SLOP_PX;
     const W = this.scale.width;
 
     this.add

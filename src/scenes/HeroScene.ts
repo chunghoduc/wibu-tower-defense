@@ -13,6 +13,7 @@ import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type ItemDef } from "../data/
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
 import { renderHeroStats } from "./heroStatsPanel.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
+import { TAP_SLOP_PX } from "../core/gesture.ts";
 import { MATERIALS, type MaterialKind } from "../data/materials.ts";
 import { renderEnhanceDialog } from "./itemEnhanceDialog.ts";
 import { crispText } from "./ui.ts";
@@ -86,7 +87,7 @@ export class HeroScene extends Phaser.Scene {
     this.invOffset = 0;
     this.itemCategory = "all";
     this.boxOverlay = undefined; // stale across scene re-entry (Phaser reuses instances)
-    this.input.dragDistanceThreshold = 8; // small moves = click (enhance), not drag
+    this.input.dragDistanceThreshold = TAP_SLOP_PX; // small moves = click (enhance), not drag
     const W = this.scale.width;
 
     this.add

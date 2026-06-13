@@ -9,6 +9,7 @@ import { dimBackdrop } from "./uiKit.ts";
 import type { Vec2 } from "../data/schema.ts";
 import { type TowerRuntime, MANA_MAX } from "../core/battle.ts";
 import { dist } from "../core/path.ts";
+import { TAP_SLOP_PX } from "../core/gesture.ts";
 import { Rng } from "../core/rng.ts";
 import { crispText } from "./ui.ts";
 import { showBattleLootPanel } from "./rewardPanel.ts";
@@ -179,7 +180,7 @@ export const inputMethods = {
       (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
         if (this.battle.outcome !== "ongoing") return;
         if (this.camCtl?.consumedGesture) return; // pan / pinch / zoom gesture
-        if (Math.hypot(pointer.x - this.tapX, pointer.y - this.tapY) > 8) return; // a drag, not a tap
+        if (Math.hypot(pointer.x - this.tapX, pointer.y - this.tapY) > TAP_SLOP_PX) return; // a drag, not a tap
         // A tap on any interactive HUD/UI widget (speed & mute buttons, zoom
         // buttons, build-bar avatars, tower panel) must NOT command the hero.
         // Towers aren't interactive objects (tapped via towerAt), so tapping a
