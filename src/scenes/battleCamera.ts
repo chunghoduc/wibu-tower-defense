@@ -1,6 +1,6 @@
 // src/scenes/battleCamera.ts
 import Phaser from "phaser";
-import { TAP_SLOP_PX } from "../core/gesture.ts";
+import { TAP_SLOP_PX, isDoubleTap, type TapPoint } from "../core/gesture.ts";
 
 /**
  * Pan & zoom controller for the battle camera.
@@ -35,6 +35,7 @@ export class BattleCameraController {
   private lastX = 0;
   private lastY = 0;
   private pinchDist = 0;
+  private lastTap: TapPoint | null = null;
 
   private readonly onWheel: (p: Phaser.Input.Pointer, o: unknown, dx: number, dy: number) => void;
   private readonly onDown: (p: Phaser.Input.Pointer) => void;
@@ -49,9 +50,19 @@ export class BattleCameraController {
     scene.input.addPointer(1); // allow a 2nd touch pointer for pinch
 
     this.onWheel = (p, _o, _dx, dy) => this.zoomToward(dy < 0 ? 1.12 : 1 / 1.12, p.x, p.y);
-    this.onDown = () => {
+    this.onDown = (p) => {
       this.consumedGesture = false;
       this.panning = false;
+      // A quick second tap near the first zooms toward it — a discoverable way
+      // to get closer, which makes drag-to-pan meaningful. zoomToward marks the
+      // gesture consumed so the scene's tap handler won't also walk the hero.
+      const cur: TapPoint = { t: this.scene.time.now, x: p?.x ?? 0, y: p?.y ?? 0 };
+      if (p && isDoubleTap(this.lastTap, cur)) {
+        this.zoomToward(1.3, p.x, p.y);
+        this.lastTap = null; // consume so a third tap doesn't re-fire
+      } else {
+        this.lastTap = cur;
+      }
     };
     this.onMove = (p) => this.handleMove(p);
     this.onUp = () => {
