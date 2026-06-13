@@ -47,6 +47,8 @@ import { spritesMethods, type SpritesMethods } from "./battleSceneSprites.ts";
 import { inputMethods, type InputMethods } from "./battleSceneInput.ts";
 import { towerTex } from "../data/assetKeys.ts";
 import { type CastleState } from "./castleArt.ts";
+import { TAP_SLOP_PX } from "../core/gesture.ts";
+import { emptyPlacement, type PlacementState } from "../core/placementMode.ts";
 
 /** A special battle mode launched from the Activities hub (else a normal stage). */
 export interface BattleMode {
@@ -83,6 +85,8 @@ export class BattleScene extends Phaser.Scene {
   castleArtStateNow: CastleState = "intact";
   endlessBackdropFx: EndlessBackdropFx | null = null;
   placeGhost: Phaser.GameObjects.Container | null = null;
+  /** Tap-to-place: which build-bar card (if any) is armed for a field tap. */
+  placement: PlacementState = emptyPlacement();
   gameSpeed = 1;
   /** Fixed-timestep driver — the sim only ever ticks in SIM_STEP increments. */
   stepper = new FixedStepper();
@@ -164,6 +168,7 @@ export class BattleScene extends Phaser.Scene {
     this.endlessBackdropFx?.destroy();
     this.endlessBackdropFx = null;
     this.placeGhost = null;
+    this.placement = emptyPlacement();
     this.stepper.reset();
     this.pendingFx = [];
     this.prevEnemyPos.clear();
@@ -453,6 +458,17 @@ export class BattleScene extends Phaser.Scene {
       c.add(badge);
       c.setData("towerId", def.id);
       c.setInteractive({ useHandCursor: true, draggable: true });
+      // Tap (not drag) a card to ARM it for tap-to-place; drag still works.
+      c.on("pointerdown", (p: Phaser.Input.Pointer) => {
+        c.setData("tapDownX", p.x);
+        c.setData("tapDownY", p.y);
+      });
+      c.on("pointerup", (p: Phaser.Input.Pointer) => {
+        const dx = p.x - ((c.getData("tapDownX") as number) ?? p.x);
+        const dy = p.y - ((c.getData("tapDownY") as number) ?? p.y);
+        if (Math.hypot(dx, dy) > TAP_SLOP_PX) return; // that was a drag-place, not a tap
+        this.toggleArm(def.id);
+      });
       this.ui.add(c);
       this.avatarTiles.push(c);
     });

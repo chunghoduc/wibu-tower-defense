@@ -10,6 +10,12 @@ import type { Vec2 } from "../data/schema.ts";
 import { type TowerRuntime, MANA_MAX } from "../core/battle.ts";
 import { dist } from "../core/path.ts";
 import { TAP_SLOP_PX } from "../core/gesture.ts";
+import {
+  armPlacement,
+  disarmPlacement,
+  isArmed,
+  resolveFieldTap,
+} from "../core/placementMode.ts";
 import { Rng } from "../core/rng.ts";
 import { crispText } from "./ui.ts";
 import { showBattleLootPanel } from "./rewardPanel.ts";
@@ -106,6 +112,7 @@ export const inputMethods = {
   setupPlacementDrag(this: BattleScene): void {
     this.input.on("dragstart", (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) => {
       if (!obj.getData || !obj.getData("towerId")) return;
+      this.placement = disarmPlacement(this.placement); // a drag-place supersedes tap-to-place
       this.makeGhost(obj.getData("towerId"));
     });
     this.input.on(
@@ -168,10 +175,35 @@ export const inputMethods = {
     this.placeGhost = null;
   },
 
+  /** Toggle a build-bar card armed for tap-to-place; shows/clears its ghost. */
+  toggleArm(this: BattleScene, id: string): void {
+    if (this.battle.outcome !== "ongoing") return;
+    this.placement = armPlacement(this.placement, id);
+    if (isArmed(this.placement)) {
+      this.makeGhost(id);
+      const p = this.input.activePointer;
+      if (p) this.updateGhost(id, p);
+    } else {
+      this.clearGhost();
+    }
+  },
+
+  /** Drop any armed tap-to-place state and its ghost. */
+  cancelPlacement(this: BattleScene): void {
+    this.placement = disarmPlacement(this.placement);
+    this.clearGhost();
+  },
+
   bindInput(this: BattleScene): void {
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       this.tapX = pointer.x;
       this.tapY = pointer.y;
+    });
+    // While a card is armed for tap-to-place, the ghost tracks the pointer.
+    this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+      if (isArmed(this.placement) && this.placement.armedId) {
+        this.updateGhost(this.placement.armedId, pointer);
+      }
     });
     // Command on RELEASE, and only for a genuine tap — so a drag-to-pan, a pinch,
     // a wheel-zoom or a tower-placement drag never also walks the hero.
@@ -190,6 +222,22 @@ export const inputMethods = {
         if (pointer.y >= 500) return; // bottom build-bar strip
         const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
         const world: Vec2 = { x: wp.x, y: wp.y };
+
+        // Tap-to-place: if a card is armed, a field tap drops the tower (or is
+        // blocked on an invalid/unaffordable spot) and never walks the hero.
+        if (isArmed(this.placement) && this.placement.armedId) {
+          const id = this.placement.armedId;
+          const def = this.buildOrder.find((d) => d.id === id);
+          const decision = resolveFieldTap(this.placement, {
+            canPlace: this.battle.canPlaceAt(world),
+            affordable: !!def && this.battle.gold >= def.cost,
+          });
+          if (decision === "place") {
+            if (this.battle.placeTowerAt(id, world)) this.sfx.place();
+            this.cancelPlacement();
+          }
+          return; // armed: never select a tower or walk the hero
+        }
 
         // Tap a tower → show it in the panel + on-map quick actions. Tap empty
         // ground → revert the panel to the hero view and walk the hero there.
