@@ -105,7 +105,7 @@ export function openAutoRecycleDialog(
       ch.label.setColor(on ? "#101010" : "#cdd6e4").setFontStyle(on ? "bold" : "normal");
     }
     const p = opts.preview([...selected]);
-    previewText.setText(`Smelt ${p.count} item${p.count === 1 ? "" : "s"}  →  ❖ ${p.chaos} Chaos`);
+    previewText.setText(`Smelt ${p.count} item${p.count === 1 ? "" : "s"}  →  ❖ ${p.chaos} Entropy`);
     const enabled = p.count > 0;
     smeltBtn
       .setColor(enabled ? "#fff" : "#7a8494")

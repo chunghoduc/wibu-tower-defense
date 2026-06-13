@@ -341,7 +341,7 @@ export class SaveManagerCore {
     return r;
   }
 
-  /** Smelt an inventory item into Jewels of Chaos (rarity-scaled). */
+  /** Smelt an inventory item into Jewels of Entropy (rarity-scaled). */
   smeltItem(instanceId: string): SmeltResult {
     const r = smeltItem(this.save, instanceId);
     if (r.ok) this.persist();
@@ -355,7 +355,7 @@ export class SaveManagerCore {
     return r;
   }
 
-  /** Re-roll a Rare+ item's affixes, spending gold + Jewels of Chaos. */
+  /** Re-roll a Rare+ item's affixes, spending gold + Jewels of Entropy. */
   reforgeItem(instanceId: string, rng: Rng = new Rng((Math.random() * 1e9) | 0)): ReforgeResult {
     const r = reforgeItem(this.save, instanceId, rng);
     if (r.ok) this.persist();

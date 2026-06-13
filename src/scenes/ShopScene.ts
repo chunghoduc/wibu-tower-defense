@@ -1,6 +1,6 @@
 /**
  * ShopScene — buy rolled gear (and the occasional Summoning Scroll), or recycle
- * unwanted gear. Recycling has two paths: Smelt (destroy → Jewels of Chaos, the
+ * unwanted gear. Recycling has two paths: Smelt (destroy → Jewels of Entropy, the
  * only source of that material) and Reforge (Rare+ only: re-roll all affixes for
  * gold + chaos). Items show as icon + value (name on hover); a crystal-paid
  * Refresh rerolls the buy stock. Smelt asks for confirmation (irreversible); the
@@ -30,7 +30,7 @@ import { itemTex } from "../data/assetKeys.ts";
 import { RARITY_INT } from "../data/rarityColors.ts";
 
 const SCROLL_GOLD = 0xffcf4a;
-const CHAOS_COL = 0xe0457a; // crimson-magenta — matches the Jewel of Chaos icon
+const CHAOS_COL = 0xe0457a; // crimson-magenta — matches the Jewel of Entropy icon
 
 export class ShopScene extends Phaser.Scene {
   private mgr!: SaveManager;
@@ -424,7 +424,7 @@ export class ShopScene extends Phaser.Scene {
         const r = this.mgr.bulkSmeltItems(rarities);
         this.closeConfirm();
         this.flash(
-          r.count > 0 ? `Recycled ${r.count} items → ❖ ${r.chaos} Chaos` : "Nothing to recycle",
+          r.count > 0 ? `Recycled ${r.count} items → ❖ ${r.chaos} Entropy` : "Nothing to recycle",
           r.count > 0,
         );
         this.redraw();
@@ -477,7 +477,7 @@ export class ShopScene extends Phaser.Scene {
     );
 
     // Smelt — destroys the item for chaos.
-    const smelt = crispText(this, W / 2, by + 66, `🔨 Smelt  →  ❖ ${chaos} Chaos`, {
+    const smelt = crispText(this, W / 2, by + 66, `🔨 Smelt  →  ❖ ${chaos} Entropy`, {
       fontSize: "13px",
       color: "#fff",
       backgroundColor: "#7a3a5a",
@@ -490,7 +490,7 @@ export class ShopScene extends Phaser.Scene {
     smelt.on("pointerup", () => {
       this.closeConfirm();
       const r = this.mgr.smeltItem(inst.id);
-      this.flash(r.ok ? `Smelted → ❖ ${r.chaos} Chaos` : "Couldn't smelt", r.ok);
+      this.flash(r.ok ? `Smelted → ❖ ${r.chaos} Entropy` : "Couldn't smelt", r.ok);
       this.redraw();
     });
     c.add(smelt);
@@ -517,7 +517,7 @@ export class ShopScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true });
       reforge.on("pointerup", () => {
         if (!have) {
-          this.flash("Not enough gold or chaos", false);
+          this.flash("Not enough gold or entropy", false);
           return;
         }
         const r = this.mgr.reforgeItem(inst.id);

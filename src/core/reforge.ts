@@ -1,5 +1,5 @@
 /**
- * Reforge — re-roll a Rare+ item's affixes for gold + Jewel of Chaos.
+ * Reforge — re-roll a Rare+ item's affixes for gold + Jewel of Entropy.
  *
  * The affix re-roll uses the exact same logic as a fresh drop (items.rollAffixes),
  * so a reforged item is statistically identical to a freshly-rolled one of the same
