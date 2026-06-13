@@ -463,6 +463,13 @@ export interface StageDef {
   name: string;
   /** Lane waypoints; the last point is the castle. */
   path: Vec2[];
+  /**
+   * Optional multi-lane / branching ground paths. When present, enemies are
+   * distributed across these complete polylines (each edge→keep) instead of the
+   * single `path`. `path` is kept equal to `lanes[0]` so the keep (last point)
+   * and `castlePos` stay correct. Undefined for single-lane and arena stages.
+   */
+  lanes?: Vec2[][];
   /** Where flying enemies spawn (they beeline the castle from here). */
   airSpawns: Vec2[];
   castleHp: number;

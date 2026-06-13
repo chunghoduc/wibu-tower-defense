@@ -26,6 +26,8 @@ export const GAME_HEIGHT = 540;
 export interface Layout {
   name: string;
   path: Vec2[];
+  /** Optional extra ground lanes (each authored edge→keep). `path` mirrors lanes[0]. */
+  lanes?: Vec2[][];
   air: Vec2[];
   slots: Vec2[];
 }
