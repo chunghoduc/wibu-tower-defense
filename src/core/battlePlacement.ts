@@ -5,7 +5,7 @@
  * merged onto the BattleState prototype in `battle.ts`.
  */
 import type { CharacterDef, Vec2 } from "../data/schema.ts";
-import { dist } from "./path.ts";
+import { dist, groundLanes } from "./path.ts";
 import { addHeroShare, towerStatPipeline } from "./stats.ts";
 import { effectiveBehavior, battleLevelAtkMul } from "./towerUpgrade.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT } from "../data/stage.ts";
@@ -56,8 +56,9 @@ export const placementMethods = {
       pos.y > WORLD_HEIGHT - PLACE_MARGIN
     )
       return false;
-    // Block placement on ANY road: the single campaign lane, or every arena corridor.
-    const roads = this.stage.arena ? this.stage.arena.routes : [this.stage.path];
+    // Block placement on ANY road: every authored lane / arena corridor (or the
+    // single legacy path). One source of truth shared with routing + rendering.
+    const roads = groundLanes(this.stage);
     for (const road of roads) {
       for (let i = 1; i < road.length; i++) {
         if (segDist(pos, road[i - 1], road[i]) < LANE_CLEARANCE) return false;

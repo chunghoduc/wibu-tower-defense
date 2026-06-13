@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BattleState } from "../src/core/battle.ts";
 import { loadCatalog } from "../src/data/catalog.ts";
 import { STAGE_1, defaultHeroStats, WORLD_WIDTH, WORLD_HEIGHT } from "../src/data/stage.ts";
+import { groundLanes } from "../src/core/path.ts";
 
 function battle() {
   return new BattleState(STAGE_1, loadCatalog(), {
@@ -62,5 +63,40 @@ describe("free tower placement", () => {
     const b = battle();
     expect(b.canPlaceAt({ x: -10, y: 100 })).toBe(false);
     expect(b.canPlaceAt({ x: WORLD_WIDTH + 10, y: 100 })).toBe(false);
+  });
+});
+
+describe("placement blocks all campaign lanes", () => {
+  it("rejects a spot sitting on the second lane", () => {
+    const laneA = [
+      { x: 0, y: 100 },
+      { x: 600, y: 100 },
+      { x: 600, y: 360 },
+    ];
+    const laneB = [
+      { x: 0, y: 620 },
+      { x: 600, y: 620 },
+      { x: 600, y: 360 },
+    ];
+    const stage = {
+      id: "ch1-s3",
+      name: "TwoLane",
+      path: laneA,
+      lanes: [laneA, laneB],
+      airSpawns: [{ x: 0, y: 360 }],
+      castleHp: 1000,
+      startingGold: 999,
+      towerSlots: [],
+      terrain: [],
+      waves: [{ spawns: [] }],
+    } as unknown as import("../src/data/schema.ts").StageDef;
+    const b = new BattleState(stage, loadCatalog(), {
+      seed: 1,
+      hero: { stats: defaultHeroStats(), startPos: { x: -500, y: -500 }, damageType: "Physical" },
+    });
+    expect(groundLanes(stage).length).toBe(2);
+    // A point dead on lane B (y=620) must be blocked; a point clear of both is allowed.
+    expect(b.canPlaceAt({ x: 300, y: 620 })).toBe(false);
+    expect(b.canPlaceAt({ x: 300, y: 360 })).toBe(true);
   });
 });
