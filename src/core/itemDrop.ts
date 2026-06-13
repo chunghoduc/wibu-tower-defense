@@ -1,4 +1,4 @@
-import { ITEM_CATALOG, rollItem, MAX_ITEM_REQ_LEVEL } from "../data/items.ts";
+import { LOOTABLE_CATALOG, rollItem, MAX_ITEM_REQ_LEVEL } from "../data/items.ts";
 import { chapterIndexForStage } from "../data/chapters.ts";
 import type { Rarity } from "../data/schema.ts";
 import type { Rng } from "./rng.ts";
@@ -86,7 +86,7 @@ export function rollItemDrop(
   // the rolled required level then lands inside the band. Otherwise fall back to
   // the legacy stage item-level gate.
   const cap = band ? band[1] : itemLevel;
-  const eligible = ITEM_CATALOG.filter(
+  const eligible = LOOTABLE_CATALOG.filter(
     (d) => d.requiredLevel <= cap && (fromBoss || !BOSS_ONLY_RARITIES.has(d.rarity)),
   );
   if (eligible.length === 0) return null;

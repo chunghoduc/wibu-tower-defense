@@ -32,6 +32,21 @@ describe("T15 — boss loot boxes", () => {
     expect(save.materials[boxId]).toBe(1);
   });
 
+  it("box gear rolls never yield a Wing", () => {
+    for (let tier = 1; tier <= 5; tier++) {
+      const save = createFreshSave();
+      save.hero.level = 80;
+      const boxId = boxIdForTier(tier);
+      const rng = new Rng(1000 + tier);
+      for (let i = 0; i < 200; i++) {
+        save.materials[boxId] = 1;
+        for (const it of openBox(save, boxId, rng).items) {
+          expect(ITEM_CATALOG_MAP.get(it.defId)!.slot, "a Wing dropped from a box").not.toBe("Wing");
+        }
+      }
+    }
+  });
+
   it("opening a box consumes it and grants crystals + bless jewels", () => {
     const save = createFreshSave();
     const boxId = boxIdForTier(3);

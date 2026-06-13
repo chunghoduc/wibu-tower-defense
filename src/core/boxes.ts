@@ -13,7 +13,7 @@
  */
 import type { HeroSave, ItemInstanceSave } from "./save.ts";
 import type { Rng } from "./rng.ts";
-import { ITEM_CATALOG, rollItem, MAX_ITEM_REQ_LEVEL } from "../data/items.ts";
+import { LOOTABLE_CATALOG, rollItem, MAX_ITEM_REQ_LEVEL } from "../data/items.ts";
 import { type Rarity, RARITIES } from "../data/schema.ts";
 import { toItemInstanceSave } from "./itemDrop.ts";
 import {
@@ -250,7 +250,7 @@ function rollBoxItem(save: HeroSave, tier: number, rng: Rng): ItemInstanceSave |
     Math.min(MAX_ITEM_REQ_LEVEL, Math.round(heroLevel * (0.85 + rng.next() * 0.3))),
   );
   const rarity = pickBoxRarity(tier, rng);
-  const pool = ITEM_CATALOG.filter((d) => d.rarity === rarity);
+  const pool = LOOTABLE_CATALOG.filter((d) => d.rarity === rarity);
   if (pool.length === 0) return null;
   const def = pool[Math.floor(rng.next() * pool.length)];
   const inst = rollItem(def, heroLevel, Math.floor(rng.next() * 999983), reqLevel, {

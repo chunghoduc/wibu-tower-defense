@@ -433,6 +433,15 @@ for (const def of ITEM_CATALOG) {
 
 export const ITEM_CATALOG_MAP = new Map<string, ItemDef>(ITEM_CATALOG.map((i) => [i.id, i]));
 
+/**
+ * The pool eligible to DROP as loot — every item except Wings. Wings are no
+ * longer lootable from battle kills, stage clears, or boss boxes; they remain a
+ * real equip slot (and shop stock), just never roll as a random drop. All loot
+ * rollers (per-kill drops, stage-clear rewards, box opens) filter through this
+ * instead of ITEM_CATALOG so the exclusion lives in exactly one place.
+ */
+export const LOOTABLE_CATALOG: ItemDef[] = ITEM_CATALOG.filter((d) => d.slot !== "Wing");
+
 /** Hard cap on an item's rolled required level. Items at the cap are Apex. */
 export const MAX_ITEM_REQ_LEVEL = 90;
 export const APEX_REQ_LEVEL = 90;

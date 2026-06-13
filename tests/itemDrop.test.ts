@@ -38,4 +38,12 @@ describe("item drop rarity gating (enemy vs boss)", () => {
       if (inst) expect(ITEM_CATALOG_MAP.get(inst.defId)!.requiredLevel).toBeLessThanOrEqual(1);
     }
   });
+
+  it("Wings never drop as loot (battle, stage clear, or boss)", () => {
+    const rng = new Rng(99);
+    for (let i = 0; i < 4000; i++) {
+      const inst = rollItemDrop(createFreshSave(), 100, rng, i % 2 === 0); // mix enemy + boss
+      if (inst) expect(ITEM_CATALOG_MAP.get(inst.defId)!.slot, "a Wing dropped").not.toBe("Wing");
+    }
+  });
 });
