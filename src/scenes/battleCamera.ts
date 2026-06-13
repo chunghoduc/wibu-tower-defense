@@ -1,6 +1,6 @@
 // src/scenes/battleCamera.ts
 import Phaser from "phaser";
-import { TAP_SLOP_PX, isDoubleTap, type TapPoint } from "../core/gesture.ts";
+import { TAP_SLOP_PX, isDoubleTap, pinchUpdate, type TapPoint } from "../core/gesture.ts";
 
 /**
  * Pan & zoom controller for the battle camera.
@@ -35,6 +35,8 @@ export class BattleCameraController {
   private lastX = 0;
   private lastY = 0;
   private pinchDist = 0;
+  private pinchMx = 0;
+  private pinchMy = 0;
   private lastTap: TapPoint | null = null;
 
   private readonly onWheel: (p: Phaser.Input.Pointer, o: unknown, dx: number, dy: number) => void;
@@ -69,6 +71,8 @@ export class BattleCameraController {
       this.panning = false;
       this.pinching = false;
       this.pinchDist = 0;
+      this.pinchMx = 0;
+      this.pinchMy = 0;
     };
 
     scene.input.on("wheel", this.onWheel);
@@ -113,19 +117,38 @@ export class BattleCameraController {
     const p1 = this.scene.input.pointer1;
     const p2 = this.scene.input.pointer2;
 
-    // Two fingers down → pinch zoom around their midpoint.
+    // Two fingers down → pinch to zoom around the midpoint AND pan by the
+    // midpoint translation (grab-and-move-the-battlefield, the natural mobile
+    // navigation gesture). The first frame just seeds the baseline.
     if (p1?.isDown && p2?.isDown) {
       const dist = Phaser.Math.Distance.Between(p1.x, p1.y, p2.x, p2.y);
       const mx = (p1.x + p2.x) / 2,
         my = (p1.y + p2.y) / 2;
-      if (this.pinching && this.pinchDist > 0) this.zoomToward(dist / this.pinchDist, mx, my);
+      if (this.pinching && this.pinchDist > 0) {
+        const { zoomFactor, panDx, panDy } = pinchUpdate(
+          { dist: this.pinchDist, cx: this.pinchMx, cy: this.pinchMy },
+          { dist, cx: mx, cy: my },
+        );
+        this.zoomToward(zoomFactor, mx, my);
+        if (panDx !== 0 || panDy !== 0) {
+          this.cam.setScroll(
+            this.cam.scrollX - panDx / this.cam.zoom,
+            this.cam.scrollY - panDy / this.cam.zoom,
+          );
+          this.consumedGesture = true;
+        }
+      }
       this.pinchDist = dist;
+      this.pinchMx = mx;
+      this.pinchMy = my;
       this.pinching = true;
       this.panning = false;
       return;
     }
     this.pinching = false;
     this.pinchDist = 0;
+    this.pinchMx = 0;
+    this.pinchMy = 0;
 
     // One finger / mouse drag → pan, but only when zoomed in past the fit view.
     if (!p.isDown || !this.isZoomedIn || this.opts.blockAt(p)) {
