@@ -12,6 +12,7 @@ import {
 } from "./shop.ts";
 import { smeltItem, bulkSmelt, type SmeltResult, type BulkSmeltResult } from "./smelt.ts";
 import { reforgeItem, type ReforgeResult } from "./reforge.ts";
+import { craftWings, type CraftWingsResult } from "./wingCraft.ts";
 import { SUMMON_SCROLL, OBLIVION_ORB } from "../data/materials.ts";
 import type { ShopStockEntry } from "./save.ts";
 import { attemptEnhance, type EnhanceResult } from "./enhance.ts";
@@ -358,6 +359,18 @@ export class SaveManagerCore {
   /** Re-roll a Rare+ item's affixes, spending gold + Jewels of Entropy. */
   reforgeItem(instanceId: string, rng: Rng = new Rng((Math.random() * 1e9) | 0)): ReforgeResult {
     const r = reforgeItem(this.save, instanceId, rng);
+    if (r.ok) this.persist();
+    return r;
+  }
+
+  /** Craft Wings: burn ≥5 items + 1..4 Jewels of Chaos + 1 Feather for a chance
+   *  at a random-rarity pair of Wings. Persists on any valid attempt. */
+  craftWings(
+    itemIds: string[],
+    jewels: number,
+    rng: Rng = new Rng((Math.random() * 1e9) | 0),
+  ): CraftWingsResult {
+    const r = craftWings(this.save, { itemIds, jewels }, rng);
     if (r.ok) this.persist();
     return r;
   }
