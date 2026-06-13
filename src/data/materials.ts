@@ -63,7 +63,7 @@ export const MATERIALS: MaterialDef[] = [
   },
   {
     id: CHAOS_JEWEL,
-    name: "Jewel of Chaos",
+    name: "Jewel of Entropy",
     kind: "jewel",
     icon: "chaos",
     description:
