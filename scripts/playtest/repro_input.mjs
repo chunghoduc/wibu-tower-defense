@@ -76,7 +76,7 @@ async function main() {
       for(let i=1;i<=steps;i++){ const f=i/steps; fire('pointermove', x0+(x1-x0)*f, y0+(y1-y0)*f); await new Promise(r=>setTimeout(r,25)); }
       fire('pointerup', x1, y1); await new Promise(r=>setTimeout(r,40));
     };
-    window.__tap = async (x,y)=>{ fire('pointerdown',x,y); await new Promise(r=>setTimeout(r,30)); fire('pointerup',x,y); await new Promise(r=>setTimeout(r,30)); };
+    window.__tap = async (x,y)=>{ fire('pointermove', x, y); await new Promise(r=>setTimeout(r,30)); fire('pointerdown',x,y); await new Promise(r=>setTimeout(r,30)); fire('pointerup',x,y); await new Promise(r=>setTimeout(r,40)); };
     return 'helpers-ready canvas='+Math.round(r.width)+'x'+Math.round(r.height);
   `).then((v) => console.log("setup:", v));
 
@@ -116,6 +116,38 @@ async function main() {
     const c=bs.cameras.main; const sx0=c.scrollX, sy0=c.scrollY;
     await window.__drag(700,300, 300,300, 10);
     return JSON.stringify({zoom:+c.zoom.toFixed(3), zoomedIn:bs.camCtl.isZoomedIn, dScroll:+(Math.abs(c.scrollX-sx0)+Math.abs(c.scrollY-sy0)).toFixed(2)});`),
+  );
+
+  // Reset to base zoom for clean placement coords.
+  await evalJs(`const bs=window.__game.scene.getScene('BattleScene'); bs.camCtl.reset(); return 'reset';`);
+
+  // TEST 5: ARM card 0 (via the exact method the avatar tap invokes — Phaser's
+  // gameobject-level pointerup does NOT fire under synthetic CDP events, so the
+  // avatar->toggleArm binding is covered by unit tests + the listener's presence;
+  // here we drive the field-tap->place wiring, which IS a real scene pointer up).
+  const t0 = await evalJs(`const bs=window.__game.scene.getScene('BattleScene'); return bs.battle.towers.length;`);
+  await evalJs(`const bs=window.__game.scene.getScene('BattleScene'); bs.toggleArm(bs.buildOrder[0].id); return bs.placement.armedId;`);
+  await evalJs(`return window.__tap(470,300);`); // real scene field tap → place
+  console.log(
+    "T5 tap-place:",
+    await evalJs(`const bs=window.__game.scene.getScene('BattleScene'); return JSON.stringify({before:${t0}, after:bs.battle.towers.length, armed:bs.placement.armedId, ghost:!!bs.placeGhost});`),
+  );
+
+  // TEST 6: toggle the same card off via the state machine + cancelPlacement.
+  console.log(
+    "T6 arm-then-toggle:",
+    await evalJs(`const bs=window.__game.scene.getScene('BattleScene');
+    bs.toggleArm(bs.buildOrder[1].id); const a1=bs.placement.armedId;
+    bs.toggleArm(bs.buildOrder[1].id); const a2=bs.placement.armedId;
+    return JSON.stringify({armed:a1, toggledOff:a2, ghost:!!bs.placeGhost});`),
+  );
+
+  // TEST 7: double-tap the field zooms in.
+  console.log(
+    "T7 double-tap-zoom:",
+    await evalJs(`const bs=window.__game.scene.getScene('BattleScene'); bs.camCtl.reset(); const z0=bs.cameras.main.zoom;
+    await window.__tap(480,300); await new Promise(r=>setTimeout(r,90)); await window.__tap(480,300);
+    return JSON.stringify({z0:+z0.toFixed(3), z1:+bs.cameras.main.zoom.toFixed(3), zoomedIn:bs.camCtl.isZoomedIn});`),
   );
 
   const png = await rpc("Page.captureScreenshot", { format: "png" });

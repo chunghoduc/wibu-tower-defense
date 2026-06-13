@@ -45,6 +45,7 @@ import { RARITY_INT, buildSquad } from "./battleSceneHelpers.ts";
 import { renderMethods, type RenderMethods } from "./battleSceneRender.ts";
 import { spritesMethods, type SpritesMethods } from "./battleSceneSprites.ts";
 import { inputMethods, type InputMethods } from "./battleSceneInput.ts";
+import { placementMethods, type PlacementMethods } from "./battleScenePlacement.ts";
 import { towerTex } from "../data/assetKeys.ts";
 import { type CastleState } from "./castleArt.ts";
 import { TAP_SLOP_PX } from "../core/gesture.ts";
@@ -58,7 +59,11 @@ export interface BattleMode {
 }
 
 /** The per-concern scene methods split into sibling modules are merged in below. */
-export interface BattleScene extends RenderMethods, SpritesMethods, InputMethods {}
+export interface BattleScene
+  extends RenderMethods,
+    SpritesMethods,
+    InputMethods,
+    PlacementMethods {}
 
 export class BattleScene extends Phaser.Scene {
   catalog!: Catalog;
@@ -517,4 +522,4 @@ export class BattleScene extends Phaser.Scene {
 // Merge the per-concern scene methods onto the prototype. Their `this` is typed
 // as BattleScene (see each module); the interface declaration above makes them
 // visible to TypeScript on the class.
-Object.assign(BattleScene.prototype, renderMethods, spritesMethods, inputMethods);
+Object.assign(BattleScene.prototype, renderMethods, spritesMethods, inputMethods, placementMethods);
