@@ -15,6 +15,11 @@ import { MAX_AWAKENING, awakeningCost } from "../core/awakening.ts";
 import { ALCHEMY_RECIPES, COPIES_PER_CRYSTAL } from "../data/alchemy.ts";
 import { featuredForWeek, SPARK_PITY } from "../core/banner.ts";
 import { isoWeekKey } from "../core/meta.ts";
+import { openWingCraftDialog, type WingCraftItem } from "./wingCraftDialog.ts";
+import { JEWEL_OF_CHAOS, FEATHER } from "../data/materials.ts";
+import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { wingSuccessChance, wingOutcomeOdds, MIN_ITEMS } from "../core/wingCraft.ts";
+import type { Rarity } from "../data/schema.ts";
 
 const W = 960,
   PX = 24,
@@ -71,6 +76,7 @@ export class ForgeScene extends Phaser.Scene {
     let y = 44;
     y = this.drawCurrency(y);
     y = this.drawSpark(y);
+    y = this.drawWings(y);
     y = this.drawAwakening(y);
     y = this.drawAlchemy(y);
     this.contentH = y + 20;
@@ -157,6 +163,86 @@ export class ForgeScene extends Phaser.Scene {
       },
     );
     return y + h + 12;
+  }
+
+  private drawWings(y: number): number {
+    const jewels = this.mgr.getMaterial(JEWEL_OF_CHAOS);
+    const feathers = this.mgr.getMaterial(FEATHER);
+    const ready = jewels >= 1 && feathers >= 1;
+    this.layer.add(
+      crispText(this, PX + 4, y, "Craft Wings", {
+        fontSize: "15px",
+        color: "#e9b8ff",
+        fontStyle: "bold",
+      }),
+    );
+    y += 24;
+    const h = 52;
+    this.panel(y, h, 0x3a2a55, ready);
+    this.layer.add(
+      crispText(
+        this,
+        PX + 14,
+        y + 8,
+        "Burn 5+ items + Jewel of Chaos + Feather for a chance at random Wings.",
+        { fontSize: "12px", color: "#cdb8e6" },
+      ),
+    );
+    this.layer.add(
+      crispText(this, PX + 14, y + 28, `Jewel of Chaos: ${jewels}   ·   Feather: ${feathers}`, {
+        fontSize: "12px",
+        color: "#9fb0c4",
+      }),
+    );
+    this.button(PX + PW - 14, y + h / 2, "Craft Wings…", "#7a3aa8", ready, () =>
+      this.openWingCraft(),
+    );
+    return y + h + 12;
+  }
+
+  private openWingCraft(): void {
+    const save = this.mgr.getSave();
+    const equipped = new Set(Object.values(save.inventory.equipped).filter(Boolean) as string[]);
+    const items: WingCraftItem[] = save.inventory.items
+      .filter((it) => !equipped.has(it.id))
+      .map((it) => {
+        const def = ITEM_CATALOG_MAP.get(it.defId);
+        return {
+          id: it.id,
+          defId: it.defId,
+          name: def?.name ?? it.defId,
+          rarity: (def?.rarity ?? "Common") as Rarity,
+        };
+      });
+    const raritiesOf = (ids: string[]): Rarity[] =>
+      ids.map((id) => items.find((i) => i.id === id)?.rarity).filter((r): r is Rarity => !!r);
+    const dialog = openWingCraftDialog(this, {
+      items,
+      jewelsOwned: this.mgr.getMaterial(JEWEL_OF_CHAOS),
+      feathersOwned: this.mgr.getMaterial(FEATHER),
+      preview: (selectedIds, j) => {
+        const rs = raritiesOf(selectedIds);
+        return {
+          success: rs.length >= MIN_ITEMS ? wingSuccessChance(rs, j) : 0,
+          odds: wingOutcomeOdds(rs.length ? rs : (["Common"] as Rarity[])),
+        };
+      },
+      confirm: (selectedIds, j) => {
+        const r = this.mgr.craftWings(selectedIds, j);
+        if (!r.ok) {
+          this.showToast("Craft failed — check materials.");
+          return;
+        }
+        if (r.success && r.item) {
+          this.showToast(`✦ Forged ${ITEM_CATALOG_MAP.get(r.item.defId)?.name ?? "Wings"}!`);
+        } else {
+          this.showToast("The wings dissolved into chaos…");
+        }
+        dialog.destroy();
+        this.redraw();
+      },
+      onClose: () => dialog.destroy(),
+    });
   }
 
   private drawAwakening(y: number): number {
