@@ -54,3 +54,24 @@ export function decayVelocity(vel: number, dtMs: number): number {
 export function isFlick(vel: number): boolean {
   return Math.abs(vel) >= MIN_FLICK_VEL;
 }
+
+/** Max ms between the two taps of a double-tap. */
+export const DOUBLE_TAP_GAP_MS = 280;
+/** Max px between the two tap points of a double-tap. */
+export const DOUBLE_TAP_DIST_PX = 24;
+
+/** A timestamped tap location (screen px + ms clock). */
+export interface TapPoint {
+  t: number;
+  x: number;
+  y: number;
+}
+
+/** True when `cur` lands soon enough after, and close enough to, `prev` to be a
+ *  double-tap. `prev` is null when there is no prior tap to pair with. */
+export function isDoubleTap(prev: TapPoint | null, cur: TapPoint): boolean {
+  if (!prev) return false;
+  const dt = cur.t - prev.t;
+  if (dt < 0 || dt > DOUBLE_TAP_GAP_MS) return false;
+  return Math.hypot(cur.x - prev.x, cur.y - prev.y) <= DOUBLE_TAP_DIST_PX;
+}

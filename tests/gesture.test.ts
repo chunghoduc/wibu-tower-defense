@@ -7,6 +7,9 @@ import {
   flickVelocity,
   decayVelocity,
   isFlick,
+  isDoubleTap,
+  DOUBLE_TAP_GAP_MS,
+  DOUBLE_TAP_DIST_PX,
   type FlickSample,
 } from "../src/core/gesture.ts";
 
@@ -88,5 +91,29 @@ describe("isFlick", () => {
     expect(isFlick(-MIN_FLICK_VEL * 2)).toBe(true); // sign-agnostic
     expect(isFlick(MIN_FLICK_VEL * 0.5)).toBe(false);
     expect(isFlick(0)).toBe(false);
+  });
+});
+
+describe("isDoubleTap", () => {
+  it("is false with no previous tap", () => {
+    expect(isDoubleTap(null, { t: 100, x: 0, y: 0 })).toBe(false);
+  });
+  it("is true for a quick, nearby second tap", () => {
+    expect(isDoubleTap({ t: 0, x: 10, y: 10 }, { t: DOUBLE_TAP_GAP_MS - 1, x: 12, y: 12 })).toBe(
+      true,
+    );
+  });
+  it("is false when the gap is too long", () => {
+    expect(isDoubleTap({ t: 0, x: 10, y: 10 }, { t: DOUBLE_TAP_GAP_MS + 1, x: 10, y: 10 })).toBe(
+      false,
+    );
+  });
+  it("is false when the taps are too far apart", () => {
+    expect(isDoubleTap({ t: 0, x: 0, y: 0 }, { t: 50, x: DOUBLE_TAP_DIST_PX + 1, y: 0 })).toBe(
+      false,
+    );
+  });
+  it("is false for a negative time delta", () => {
+    expect(isDoubleTap({ t: 100, x: 0, y: 0 }, { t: 50, x: 0, y: 0 })).toBe(false);
   });
 });
