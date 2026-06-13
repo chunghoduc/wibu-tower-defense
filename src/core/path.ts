@@ -37,3 +37,18 @@ export function pointAtDistance(path: Vec2[], distance: number): Vec2 {
   }
   return { ...path[path.length - 1] };
 }
+
+/**
+ * The ground lane(s) a stage's enemies walk and towers must avoid. Precedence:
+ * the maze arena's corridors, else authored multi-lanes, else the single legacy
+ * `path`. Pure — the three runtime seams (route pick, placement, render) share it.
+ */
+export function groundLanes(stage: {
+  path: Vec2[];
+  lanes?: Vec2[][];
+  arena?: { routes: Vec2[][] } | undefined;
+}): Vec2[][] {
+  if (stage.arena) return stage.arena.routes;
+  if (stage.lanes && stage.lanes.length > 0) return stage.lanes;
+  return [stage.path];
+}
