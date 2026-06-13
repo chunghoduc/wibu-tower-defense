@@ -7,7 +7,7 @@
  * recycle grid hides equipped items — unequip first.
  */
 import Phaser from "phaser";
-import { fadeIn, fadeToScene, dimBackdrop } from "./uiKit.ts";
+import { fadeIn, fadeToScene, dimBackdrop, closeModal, fadeShow } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import type { ShopStockEntry, ItemInstanceSave } from "../core/save.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
@@ -431,6 +431,7 @@ export class ShopScene extends Phaser.Scene {
       },
       onClose: () => this.closeConfirm(),
     });
+    fadeShow(this, this.confirmDialog);
   }
 
   /**
@@ -538,11 +539,13 @@ export class ShopScene extends Phaser.Scene {
     c.add(no);
 
     this.confirmDialog = c;
+    fadeShow(this, c);
   }
 
   private closeConfirm(): void {
-    this.confirmDialog?.destroy(true);
+    const c = this.confirmDialog;
     this.confirmDialog = null;
+    if (c) closeModal(this, c); // fade out, then destroy
   }
 
   private flash(msg: string, ok: boolean): void {

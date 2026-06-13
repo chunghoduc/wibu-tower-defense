@@ -145,8 +145,10 @@ export function popOut(
 }
 
 /**
- * Standard modal close: animate the container out, then destroy it (idempotent —
- * a second call while closing is ignored). Runs onDone after destroy.
+ * Standard modal close: fade the container out, then destroy it (idempotent — a
+ * second call while closing is ignored). An ALPHA fade (not a scale) because our
+ * modal containers sit at (0,0) holding a full-screen scrim — scaling them would
+ * distort the layout from the top-left. Runs onDone after destroy.
  */
 export function closeModal(
   scene: Phaser.Scene,
@@ -156,9 +158,46 @@ export function closeModal(
   const c = container as Phaser.GameObjects.Container & { _closing?: boolean };
   if (c._closing) return;
   c._closing = true;
-  popOut(scene, container, () => {
-    container.destroy();
-    onDone?.();
+  scene.tweens.killTweensOf(container);
+  scene.tweens.add({
+    targets: container,
+    alpha: 0,
+    duration: MOTION.popOut,
+    ease: "Quad.easeIn",
+    onComplete: () => {
+      container.destroy();
+      onDone?.();
+    },
+  });
+}
+
+/** Fade a (reused) container IN on open: alpha 0 → 1. Layout-neutral. */
+export function fadeShow(scene: Phaser.Scene, container: Phaser.GameObjects.Container): void {
+  scene.tweens.killTweensOf(container);
+  container.setAlpha(0).setVisible(true);
+  scene.tweens.add({ targets: container, alpha: 1, duration: DUR.btn, ease: "Quad.easeOut" });
+}
+
+/**
+ * Fade a REUSED container out then hide it (vs closeModal, which destroys). Resets
+ * alpha to 1 after hiding so the next fadeShow/show starts clean. Idempotent.
+ */
+export function fadeHide(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  onDone?: () => void,
+): void {
+  if (!container.visible) return;
+  scene.tweens.killTweensOf(container);
+  scene.tweens.add({
+    targets: container,
+    alpha: 0,
+    duration: DUR.btn,
+    ease: "Quad.easeIn",
+    onComplete: () => {
+      container.setVisible(false).setAlpha(1);
+      onDone?.();
+    },
   });
 }
 

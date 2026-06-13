@@ -4,7 +4,7 @@
  * drag an equipped item back to the bag to unequip. Hover shows a stat tooltip.
  */
 import Phaser from "phaser";
-import { fadeIn, fadeToScene } from "./uiKit.ts";
+import { fadeIn, fadeToScene, fadeShow, fadeHide } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
@@ -485,7 +485,7 @@ export class HeroScene extends Phaser.Scene {
       {
         onReplace: () => {
           if (this.mgr.equipItem(bagInst.id, slot)) {
-            this.dialog.setVisible(false);
+            fadeHide(this, this.dialog);
             this.showToast(`Equipped ${bagDef.name}`);
             this.refresh();
           } else {
@@ -496,9 +496,10 @@ export class HeroScene extends Phaser.Scene {
           this.dialog.setVisible(false);
           this.openEnhance(bagInst.id);
         },
-        onClose: () => this.dialog.setVisible(false),
+        onClose: () => fadeHide(this, this.dialog),
       },
     );
+    fadeShow(this, this.dialog);
   }
 
   /**
@@ -515,12 +516,12 @@ export class HeroScene extends Phaser.Scene {
     renderEnhanceDialog(this, this.dialog, this.mgr, instanceId, {
       onChange: () => this.refresh(),
       onToast: (m) => this.showToast(m),
-      onClose: () => this.dialog.setVisible(false),
+      onClose: () => fadeHide(this, this.dialog),
       onEquip: equipSlot
         ? () => {
             const inst = this.mgr.getSave().inventory.items.find((it) => it.id === instanceId);
             if (this.mgr.equipItem(instanceId, equipSlot)) {
-              this.dialog.setVisible(false);
+              fadeHide(this, this.dialog);
               this.showToast(`Equipped ${def?.name ?? "item"}`);
               this.refresh();
             } else {
@@ -529,6 +530,7 @@ export class HeroScene extends Phaser.Scene {
           }
         : undefined,
     });
+    fadeShow(this, this.dialog);
   }
 
   private showTextTooltip(title: string, desc: string, x: number, y: number): void {

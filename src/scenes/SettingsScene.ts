@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type { SaveManager } from "../core/saveManager.ts";
 import { crispText } from "./ui.ts";
 import { setAudioVolume, setAudioMuted, music } from "./audio.ts";
-import { fadeIn, fadeToScene } from "./uiKit.ts";
+import { fadeIn, fadeToScene, staggerIn, interactive } from "./uiKit.ts";
 
 /**
  * SettingsScene — audio config (music on/off, master volume, mute) plus a
@@ -32,6 +32,17 @@ export class SettingsScene extends Phaser.Scene {
       .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
 
     this.render();
+    // Entrance stagger — once, on scene entry only (later render() calls during
+    // toggling rebuild the controls instantly, so they don't re-animate).
+    staggerIn(
+      this,
+      this.children.list.filter((o) =>
+        (o as Phaser.GameObjects.GameObject).getData?.("ctl"),
+      ) as (Phaser.GameObjects.GameObject &
+        Phaser.GameObjects.Components.Transform &
+        Phaser.GameObjects.Components.Alpha)[],
+      { step: 50 },
+    );
   }
 
   private render(): void {
@@ -153,7 +164,7 @@ export class SettingsScene extends Phaser.Scene {
       .setPadding(10, 4, 10, 4)
       .setInteractive({ useHandCursor: true });
     t.setData("ctl", true);
-    t.on("pointerdown", cb);
+    interactive(this, t, cb);
   }
 
   private button(
@@ -175,6 +186,6 @@ export class SettingsScene extends Phaser.Scene {
       .setPadding(0, 10, 0, 10)
       .setInteractive({ useHandCursor: true });
     t.setData("ctl", true);
-    t.on("pointerdown", cb);
+    interactive(this, t, cb);
   }
 }
