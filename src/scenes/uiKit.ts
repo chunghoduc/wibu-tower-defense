@@ -6,6 +6,7 @@
  */
 import Phaser from "phaser";
 import { crispText } from "./ui.ts";
+import { MOTION, staggerDelays, type StaggerOpts } from "./uiMotion.ts";
 
 export const COLORS = {
   gold: "#ffe9a8",
@@ -40,6 +41,40 @@ export interface ButtonOpts {
   color?: string;
 }
 
+export interface InteractiveOpts {
+  hoverScale?: number;
+  pressScale?: number;
+}
+
+/**
+ * Attach the standard 5-pointer-event feedback (hover-pop, press-dip, click on
+ * release) to any transform-bearing object — the single source of UI button
+ * feel. The object must already be setInteractive()-d by the caller. Returns it.
+ */
+export function interactive<
+  T extends Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform,
+>(scene: Phaser.Scene, obj: T, onClick: () => void, opts: InteractiveOpts = {}): T {
+  const base = obj.scaleX || 1;
+  const hover = base * (opts.hoverScale ?? 1.06);
+  const press = base * (opts.pressScale ?? 0.94);
+  obj.on("pointerover", () =>
+    scene.tweens.add({ targets: obj, scale: hover, duration: DUR.btn, ease: "Back.easeOut" }),
+  );
+  obj.on("pointerout", () =>
+    scene.tweens.add({ targets: obj, scale: base, duration: DUR.btn, ease: "Sine.easeOut" }),
+  );
+  obj.on("pointerdown", () =>
+    scene.tweens.add({
+      targets: obj,
+      scale: press,
+      duration: 70,
+      yoyo: true,
+      onComplete: () => onClick(),
+    }),
+  );
+  return obj;
+}
+
 /**
  * A text button with hover-scale and press-dip feedback. Returns the Text object
  * (already interactive); pass onClick for the action.
@@ -62,23 +97,7 @@ export function button(
     .setOrigin(0.5)
     .setPadding(0, 11, 0, 11)
     .setInteractive({ useHandCursor: true });
-
-  t.on("pointerover", () =>
-    scene.tweens.add({ targets: t, scale: 1.06, duration: DUR.btn, ease: "Back.easeOut" }),
-  );
-  t.on("pointerout", () =>
-    scene.tweens.add({ targets: t, scale: 1, duration: DUR.btn, ease: "Sine.easeOut" }),
-  );
-  t.on("pointerdown", () =>
-    scene.tweens.add({
-      targets: t,
-      scale: 0.94,
-      duration: 70,
-      yoyo: true,
-      onComplete: () => onClick(),
-    }),
-  );
-  return t;
+  return interactive(scene, t, onClick);
 }
 
 /** Animate a numeric label from its current value to `to` over ~350ms. */
@@ -107,6 +126,69 @@ export function popIn(
 ): void {
   obj.setScale(0.86).setAlpha(0);
   scene.tweens.add({ targets: obj, scale: 1, alpha: 1, duration: DUR.pop, ease: "Back.easeOut" });
+}
+
+/** Pop a container/image OUT (reverse of popIn), then run onDone (e.g. destroy). */
+export function popOut(
+  scene: Phaser.Scene,
+  obj: Phaser.GameObjects.Container | Phaser.GameObjects.Image,
+  onDone?: () => void,
+): void {
+  scene.tweens.add({
+    targets: obj,
+    scale: (obj.scaleX || 1) * 0.9,
+    alpha: 0,
+    duration: MOTION.popOut,
+    ease: "Quad.easeIn",
+    onComplete: () => onDone?.(),
+  });
+}
+
+/**
+ * Standard modal close: animate the container out, then destroy it (idempotent —
+ * a second call while closing is ignored). Runs onDone after destroy.
+ */
+export function closeModal(
+  scene: Phaser.Scene,
+  container: Phaser.GameObjects.Container,
+  onDone?: () => void,
+): void {
+  const c = container as Phaser.GameObjects.Container & { _closing?: boolean };
+  if (c._closing) return;
+  c._closing = true;
+  popOut(scene, container, () => {
+    container.destroy();
+    onDone?.();
+  });
+}
+
+/**
+ * Entrance-stagger a set of already-placed objects: each slides up 8px + fades
+ * in on a clamped schedule (see uiMotion.staggerDelays), so a list/grid
+ * assembles smoothly without a long trickle. Objects keep their final y/alpha.
+ */
+export function staggerIn(
+  scene: Phaser.Scene,
+  objects: (Phaser.GameObjects.GameObject &
+    Phaser.GameObjects.Components.Transform &
+    Phaser.GameObjects.Components.Alpha)[],
+  opts: StaggerOpts = {},
+): void {
+  const delays = staggerDelays(objects.length, opts);
+  objects.forEach((o, i) => {
+    const finalY = o.y;
+    const finalA = o.alpha;
+    o.y = finalY + 8;
+    o.alpha = 0;
+    scene.tweens.add({
+      targets: o,
+      y: finalY,
+      alpha: finalA,
+      delay: delays[i],
+      duration: 220,
+      ease: "Quad.easeOut",
+    });
+  });
 }
 
 /**
