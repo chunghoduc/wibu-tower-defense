@@ -56,6 +56,30 @@ function arenaStage(waves: WaveDef[]): StageDef {
     arena,
   };
 }
+function twoLaneStage(waves: WaveDef[]): StageDef {
+  const laneA = [
+    { x: 0, y: 100 },
+    { x: 600, y: 100 },
+    { x: 600, y: 360 },
+  ];
+  const laneB = [
+    { x: 0, y: 620 },
+    { x: 600, y: 620 },
+    { x: 600, y: 360 },
+  ];
+  return {
+    id: "ch1-s3",
+    name: "TwoLane",
+    path: laneA,
+    lanes: [laneA, laneB],
+    airSpawns: [{ x: 0, y: 360 }],
+    castleHp: 1000,
+    startingGold: 0,
+    towerSlots: [],
+    terrain: [],
+    waves,
+  };
+}
 const inertHero = {
   stats: makeStats({ maxHp: 1e9, attackSpeed: 0, range: 0, moveSpeed: 0 }),
   startPos: { x: -500, y: -500 },
@@ -107,5 +131,21 @@ describe("maze-arena battle", () => {
     const b = new BattleState(stage, cat(enemy(), turret()), { hero: inertHero });
     const onRoad = stage.arena!.routes[0][1]; // a corridor cell center
     expect(b.canPlaceAt({ x: onRoad.x, y: onRoad.y })).toBe(false);
+  });
+});
+
+describe("campaign multi-lane routing", () => {
+  it("spreads ground enemies across both authored lanes", () => {
+    const stage = twoLaneStage([
+      { spawns: [{ enemyId: "grunt", count: 40, interval: 0.05, delay: 0 }] },
+    ]);
+    const b = new BattleState(stage, cat(enemy(), turret()), { hero: inertHero, seed: 7 });
+    for (let i = 0; i < 160; i++) b.tick(0.05);
+    const starts = new Set(b.enemies.map((e) => `${e.route[0].x},${e.route[0].y}`));
+    expect(starts.size).toBe(2); // both lane entrances used
+    for (const e of b.enemies) {
+      const end = e.route[e.route.length - 1];
+      expect(end).toEqual({ x: 600, y: 360 }); // every lane ends at the shared keep
+    }
   });
 });

@@ -4,7 +4,7 @@
  */
 import { DIFFICULTY_SCALING, type Immunity, type StageDef, type Stats } from "../data/schema.ts";
 import { stageNumber } from "../data/stage.ts";
-import { lerp, pathLength, pointAtDistance } from "./path.ts";
+import { groundLanes, lerp, pathLength, pointAtDistance } from "./path.ts";
 import { applyEliteBoost, rollEliteImmunity } from "./elite.ts";
 import { waveScaling } from "./waveScaling.ts";
 import { progressionScaling } from "./progressionScaling.ts";
@@ -278,11 +278,14 @@ export const waveMethods = {
     }
     const flying = def.flying;
     const arena = this.stage.arena;
-    // Arena: ground enemies pick a random precomputed corridor; flyers beeline the
-    // center from a random gate. Campaign: the single shared lane / round-robin air.
+    // Ground enemies pick a lane: a maze corridor, an authored campaign lane, or
+    // the single legacy path. Only draw from the RNG when there's a real choice,
+    // so single-lane stages stay byte-for-byte deterministic. Flyers beeline the
+    // keep from a random gate (arena) or round-robin air spawn (campaign).
+    const lanes = groundLanes(this.stage);
     const route =
       req.route ??
-      (arena ? arena.routes[Math.floor(this.rng.next() * arena.routes.length)] : this.stage.path);
+      (lanes.length > 1 ? lanes[Math.floor(this.rng.next() * lanes.length)] : lanes[0]);
     const airStart =
       req.airStart ??
       (arena
