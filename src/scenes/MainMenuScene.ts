@@ -26,21 +26,26 @@ interface MenuItem {
   scene: string;
 }
 
-// Battle is the hero call-to-action — promoted out of the grid into a wide
-// primary button. The rest are the secondary destinations (row 1 = core loop,
-// row 2 = meta) laid out by homeNavLayout.
+// BATTLE is the hero call-to-action — a wide primary button in the bottom dock.
+// The rest frame the diorama: a loadout rail on the left, an economy rail on the
+// right, and a daily/system row across the bottom. Order within each list is the
+// render order (rails top→bottom, bottom row left→right).
 const PRIMARY_ITEM: MenuItem = { key: "battle", label: "BATTLE", scene: "StageSelectScene" };
-const SECONDARY_ITEMS: MenuItem[] = [
-  { key: "summon", label: "Summon", scene: "GachaScene" },
+const LEFT_ITEMS: MenuItem[] = [
   { key: "squad", label: "Squad", scene: "SquadScene" },
   { key: "inventory", label: "Inventory", scene: "HeroScene" },
-  { key: "forge", label: "Forge", scene: "ForgeScene" },
-  { key: "shop", label: "Shop", scene: "ShopScene" },
-  { key: "quests", label: "Quests", scene: "QuestScene" },
-  { key: "activities", label: "Activities", scene: "ActivitiesScene" },
   { key: "skills", label: "Skills", scene: "SkillsScene" },
   { key: "passive", label: "Passives", scene: "PassiveGridScene" },
+];
+const RIGHT_ITEMS: MenuItem[] = [
+  { key: "summon", label: "Summon", scene: "GachaScene" },
+  { key: "shop", label: "Shop", scene: "ShopScene" },
+  { key: "forge", label: "Forge", scene: "ForgeScene" },
   { key: "collection", label: "Codex", scene: "CollectionScene" },
+];
+const BOTTOM_ITEMS: MenuItem[] = [
+  { key: "quests", label: "Quests", scene: "QuestScene" },
+  { key: "activities", label: "Activities", scene: "ActivitiesScene" },
   { key: "settings", label: "Settings", scene: "SettingsScene" },
 ];
 
@@ -260,9 +265,13 @@ export class MainMenuScene extends Phaser.Scene {
     }
   }
 
-  // ── bottom dock: primary BATTLE CTA + painted secondary icon grid ────────────
+  // ── nav: side rails framing the diorama + bottom dock (primary + system row) ──
   private drawMenu(W: number, H: number): void {
-    const lay = homeNavLayout(SECONDARY_ITEMS.length, W, H);
+    const lay = homeNavLayout(
+      { left: LEFT_ITEMS.length, right: RIGHT_ITEMS.length, bottom: BOTTOM_ITEMS.length },
+      W,
+      H,
+    );
     const p = lay.panel;
     this.add
       .graphics()
@@ -271,18 +280,10 @@ export class MainMenuScene extends Phaser.Scene {
       .fillRoundedRect(p.x, p.y, p.w, p.h, 16)
       .lineStyle(2, 0x3a567f, 0.9)
       .strokeRoundedRect(p.x, p.y, p.w, p.h, 16);
-    if (lay.rowDivider !== undefined) {
-      this.add
-        .graphics()
-        .setDepth(7)
-        .lineStyle(1, 0x33507a, 0.5)
-        .lineBetween(p.x + 20, lay.rowDivider, p.x + p.w - 20, lay.rowDivider);
-    }
     drawPrimaryButton(this, PRIMARY_ITEM.label, PRIMARY_ITEM.scene, lay.primary);
-    SECONDARY_ITEMS.forEach((m, i) => {
-      const c = lay.cells[i];
-      this.iconButton(m, c.x, c.y);
-    });
+    LEFT_ITEMS.forEach((m, i) => this.iconButton(m, lay.left[i].x, lay.left[i].y));
+    RIGHT_ITEMS.forEach((m, i) => this.iconButton(m, lay.right[i].x, lay.right[i].y));
+    BOTTOM_ITEMS.forEach((m, i) => this.iconButton(m, lay.bottom[i].x, lay.bottom[i].y));
   }
 
   private iconButton(item: MenuItem, x: number, y: number): void {
