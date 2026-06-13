@@ -9,12 +9,19 @@ import Phaser from "phaser";
 import type { Vec2 } from "../data/schema.ts";
 import { arcControl, bezierPoint } from "./lootFlyArc.ts";
 import { iconFitScale } from "./itemIcon.ts";
+import { makeCrisp } from "./ui.ts";
 
 export interface LootFlyOpts {
   iconKey?: string; // when set + loaded, fly the real art (item__/box__)
   fallbackColor?: number; // circle colour when no icon/texture
   delay?: number; // stagger multiple coins
   iconFit?: number; // longest-edge px for an icon (default 22)
+  // ── Emphasis (gear drops): a rarity-themed celebration so a real item drop
+  // never reads like just another gold coin. ──
+  emphasis?: boolean; // bigger pop + a hold beat before the icon flies away
+  ringColor?: number; // rarity-coloured burst ring drawn at the drop spot
+  label?: string; // item name, shown rising from the drop spot
+  labelColor?: string; // CSS hex for that label (rarity colour)
 }
 
 type FlyObject = Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject;
@@ -30,20 +37,71 @@ export class LootFlyFx {
   fly(from: Vec2, to: Vec2, kind: "coin" | "icon", opts: LootFlyOpts = {}): void {
     const obj = this.makeObject(from, kind, opts);
     const delay = opts.delay ?? 0;
+    const emph = opts.emphasis === true;
+    if (emph) this.emphasisIntro(from, opts);
 
-    // 1) Eject: scatter to a small offset and pop slightly larger.
+    // 1) Eject: scatter to a small offset and pop. Gear pops bigger + higher and
+    //    holds a beat (hold) before flying, so the player actually registers it.
     const ex = from.x + Phaser.Math.Between(-14, 14);
-    const ey = from.y - Phaser.Math.Between(10, 24);
+    const ey = from.y - (emph ? Phaser.Math.Between(20, 34) : Phaser.Math.Between(10, 24));
     const baseScale = obj.scale;
+    const hold = emph ? 320 : 0;
     this.scene.tweens.add({
       targets: obj,
       x: ex,
       y: ey,
-      scale: baseScale * 1.15,
-      duration: 160,
+      scale: baseScale * (emph ? 1.55 : 1.15),
+      duration: emph ? 240 : 160,
       delay,
+      ease: emph ? "Back.easeOut" : "Quad.easeOut",
+      onComplete: () => {
+        if (hold)
+          this.scene.time.delayedCall(hold, () =>
+            this.flyToHero({ x: ex, y: ey }, to, obj, baseScale),
+          );
+        else this.flyToHero({ x: ex, y: ey }, to, obj, baseScale);
+      },
+    });
+  }
+
+  /** Gear-drop flourish: a rarity-coloured burst ring + a rising item name. */
+  private emphasisIntro(from: Vec2, opts: LootFlyOpts): void {
+    const color = opts.ringColor ?? opts.fallbackColor ?? 0xffe07a;
+    const ring = this.fac
+      .circle(from.x, from.y, 6)
+      .setStrokeStyle(3, color, 0.95)
+      .setDepth(this.depth + 1);
+    ring.setFillStyle(color, 0.14);
+    this.scene.tweens.add({
+      targets: ring,
+      scale: 7,
+      alpha: 0,
+      duration: 460,
+      ease: "Cubic.easeOut",
+      onComplete: () => ring.destroy(),
+    });
+    if (!opts.label) return;
+    const name = makeCrisp(
+      this.fac
+        .text(from.x, from.y - 16, opts.label, {
+          fontFamily: '"Trebuchet MS", system-ui, sans-serif',
+          fontSize: "12px",
+          color: opts.labelColor ?? "#ffe07a",
+          fontStyle: "bold",
+          stroke: "#0a0f18",
+          strokeThickness: 4,
+        })
+        .setOrigin(0.5)
+        .setDepth(this.depth + 6),
+    );
+    this.scene.tweens.add({
+      targets: name,
+      y: from.y - 52,
+      alpha: 0,
+      duration: 1200,
+      delay: 220,
       ease: "Quad.easeOut",
-      onComplete: () => this.flyToHero({ x: ex, y: ey }, to, obj, baseScale),
+      onComplete: () => name.destroy(),
     });
   }
 

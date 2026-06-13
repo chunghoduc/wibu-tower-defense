@@ -18,6 +18,8 @@ import { tierOfBox } from "../core/boxes.ts";
 import { LootFlyFx } from "./lootFlyFx.ts";
 import { BossSkillFx } from "./bossSkillSignatures.ts";
 import { itemTex, boxTex } from "../data/assetKeys.ts";
+import { ITEM_CATALOG_MAP } from "../data/items.ts";
+import { RARITY_INT, RARITY_HEX } from "../data/rarityColors.ts";
 
 const DMG_COLOR: Record<DamageType, number> = {
   Physical: 0xe9eef7,
@@ -102,12 +104,10 @@ export class FxLayer {
         this.coinPop(e.at, e.to, e.gold);
         break;
       case "killReward":
-        this.xpPop(e.at, e.xp, e.item, e.box);
-        if (e.itemDefId)
-          this.lootFly.fly(e.at, e.to, "icon", {
-            iconKey: itemTex(e.itemDefId),
-            fallbackColor: 0xffe07a,
-          });
+        // Gear shows its own rarity-coloured name via the emphasised fly, so the
+        // generic "★ Loot!" tag is suppressed (pass item=false) to avoid doubling.
+        this.xpPop(e.at, e.xp, false, e.box);
+        if (e.itemDefId) this.itemDrop(e.at, e.to, e.itemDefId);
         if (e.box)
           this.lootFly.fly(e.at, e.to, "icon", {
             iconKey: boxTex(e.box),
@@ -122,6 +122,22 @@ export class FxLayer {
         this.bossCast(e.at, e.skill, e.radius, e.name, e.element);
         break;
     }
+  }
+
+  /** A gear drop: a rarity-themed burst + the item's name + the icon flying to
+   *  the hero. Far louder than a coin so a real drop never goes unnoticed. */
+  private itemDrop(at: Vec2, to: Vec2, defId: string): void {
+    const def = ITEM_CATALOG_MAP.get(defId);
+    const rarity = def?.rarity ?? "Common";
+    this.lootFly.fly(at, to, "icon", {
+      iconKey: itemTex(defId),
+      fallbackColor: RARITY_INT[rarity],
+      iconFit: 34,
+      emphasis: true,
+      ringColor: RARITY_INT[rarity],
+      label: def?.name ?? "Loot",
+      labelColor: RARITY_HEX[rarity],
+    });
   }
 
   /** Floating "+N XP" on a kill, plus a gold "Loot!" tag and an elite box tag. */
