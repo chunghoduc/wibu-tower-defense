@@ -21,6 +21,8 @@ import {
   SOUL_JEWEL,
   SUMMON_SCROLL,
   OBLIVION_ORB,
+  JEWEL_OF_CHAOS,
+  FEATHER,
   MATERIALS_MAP,
 } from "../data/materials.ts";
 
@@ -48,6 +50,10 @@ interface TierConfig {
 const soul = (chance: number): BonusMaterial => ({ id: SOUL_JEWEL, chance });
 const scroll = (chance: number): BonusMaterial => ({ id: SUMMON_SCROLL, chance });
 const orb = (chance: number): BonusMaterial => ({ id: OBLIVION_ORB, chance });
+// Wing-craft materials: Feather is a frequent faucet (you spend 1 per attempt
+// plus gear to burn); Jewel of Chaos is rarer and gates how often you can craft.
+const feather = (chance: number): BonusMaterial => ({ id: FEATHER, chance });
+const chaos = (chance: number): BonusMaterial => ({ id: JEWEL_OF_CHAOS, chance });
 
 // Higher tiers drop MORE gear: each entry is an independent roll (its own
 // rarity + level), so a Unique chest can hand you up to three pieces at once.
@@ -57,35 +63,35 @@ const TIERS: Record<number, TierConfig> = {
     crystals: 30,
     diamonds: 2,
     bless: 1,
-    bonusMaterials: [soul(0.05), orb(0.04)],
+    bonusMaterials: [soul(0.05), orb(0.04), feather(0.25), chaos(0.06)],
     itemChances: [0.6],
   },
   2: {
     crystals: 55,
     diamonds: 3,
     bless: 1,
-    bonusMaterials: [soul(0.12), scroll(0.03), orb(0.06)],
+    bonusMaterials: [soul(0.12), scroll(0.03), orb(0.06), feather(0.35), chaos(0.1)],
     itemChances: [0.8, 0.4],
   },
   3: {
     crystals: 85,
     diamonds: 5,
     bless: 2,
-    bonusMaterials: [soul(0.2), scroll(0.06), orb(0.09)],
+    bonusMaterials: [soul(0.2), scroll(0.06), orb(0.09), feather(0.45), chaos(0.16)],
     itemChances: [1, 0.5, 0.1],
   },
   4: {
     crystals: 130,
     diamonds: 8,
     bless: 2,
-    bonusMaterials: [soul(0.32), scroll(0.1), orb(0.13)],
+    bonusMaterials: [soul(0.32), scroll(0.1), orb(0.13), feather(0.55), chaos(0.24)],
     itemChances: [1, 0.6, 0.4],
   },
   5: {
     crystals: 200,
     diamonds: 12,
     bless: 3,
-    bonusMaterials: [soul(0.5), scroll(0.16), orb(0.18)],
+    bonusMaterials: [soul(0.5), scroll(0.16), orb(0.18), feather(0.7), chaos(0.35)],
     itemChances: [1, 0.8, 0.6],
   },
 };
