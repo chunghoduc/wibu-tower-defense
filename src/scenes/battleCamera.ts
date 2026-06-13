@@ -1,5 +1,6 @@
 // src/scenes/battleCamera.ts
 import Phaser from "phaser";
+import { TAP_SLOP_PX } from "../core/gesture.ts";
 
 /**
  * Pan & zoom controller for the battle camera.
@@ -24,8 +25,6 @@ export interface BattleCameraOpts {
   /** True while another drag owns the pointer (e.g. placing a tower). */
   isBusy: () => boolean;
 }
-
-const PAN_THRESHOLD = 6; // px before a press becomes a pan
 
 export class BattleCameraController {
   /** True if the just-finished (or in-progress) gesture moved the view. */
@@ -65,6 +64,7 @@ export class BattleCameraController {
     scene.input.on("pointerdown", this.onDown);
     scene.input.on("pointermove", this.onMove);
     scene.input.on("pointerup", this.onUp);
+    scene.input.on("pointercancel", this.onUp);
   }
 
   get isZoomedIn(): boolean {
@@ -126,7 +126,7 @@ export class BattleCameraController {
       dy = p.y - this.lastY;
     this.lastX = p.x;
     this.lastY = p.y;
-    if (!this.panning && Math.hypot(p.x - p.downX, p.y - p.downY) < PAN_THRESHOLD) return;
+    if (!this.panning && Math.hypot(p.x - p.downX, p.y - p.downY) < TAP_SLOP_PX) return;
     this.panning = true;
     this.consumedGesture = true;
     this.cam.setScroll(
@@ -140,5 +140,6 @@ export class BattleCameraController {
     this.scene.input.off("pointerdown", this.onDown);
     this.scene.input.off("pointermove", this.onMove);
     this.scene.input.off("pointerup", this.onUp);
+    this.scene.input.off("pointercancel", this.onUp);
   }
 }
