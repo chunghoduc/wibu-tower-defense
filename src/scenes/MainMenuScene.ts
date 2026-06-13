@@ -13,7 +13,8 @@ import { bgKey } from "../data/bgManifest.ts";
 import { buildMenuAtmosphere } from "./menuAtmosphere.ts";
 import { MenuBackdropFx } from "./menuBackdropFx.ts";
 import { crispText } from "./ui.ts";
-import { dockLayout } from "./menuLayout.ts";
+import { homeTopBar, homeNavLayout } from "./homeLayout.ts";
+import { drawPill, drawPrimaryButton } from "./homeBarFx.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { claimableQuestCount } from "../core/questTracker.ts";
 import { towerTex, itemTex, menuTex } from "../data/assetKeys.ts";
@@ -25,9 +26,11 @@ interface MenuItem {
   scene: string;
 }
 
-// Row-major dock order: row 1 = core loop, row 2 = meta (see menuLayout 6x2 grid).
-const MENU_ITEMS: MenuItem[] = [
-  { key: "battle", label: "Battle", scene: "StageSelectScene" },
+// Battle is the hero call-to-action — promoted out of the grid into a wide
+// primary button. The rest are the secondary destinations (row 1 = core loop,
+// row 2 = meta) laid out by homeNavLayout.
+const PRIMARY_ITEM: MenuItem = { key: "battle", label: "BATTLE", scene: "StageSelectScene" };
+const SECONDARY_ITEMS: MenuItem[] = [
   { key: "summon", label: "Summon", scene: "GachaScene" },
   { key: "squad", label: "Squad", scene: "SquadScene" },
   { key: "inventory", label: "Inventory", scene: "HeroScene" },
@@ -75,7 +78,7 @@ export class MainMenuScene extends Phaser.Scene {
     this.drawHangers(save, W, H);
     this.drawSquad(save, W, H);
     this.drawPet(save, W, H);
-    this.drawHeader(mgr, save, W);
+    this.drawTopBar(mgr, save, W, H);
     this.drawMenu(W, H);
   }
 
@@ -153,7 +156,9 @@ export class MainMenuScene extends Phaser.Scene {
   private drawSquad(save: ReturnType<SaveManager["getSave"]>, W: number, H: number): void {
     const stand = squadStand(save);
     if (stand.showSetSquad) {
-      const c = this.add.container(W / 2, H * 0.74).setDepth(6);
+      // Sit on the empty squad stage (the band where members would stand),
+      // clear of the bottom dock and the hero above.
+      const c = this.add.container(W / 2, H * 0.58).setDepth(6);
       const g = this.add.graphics();
       g.fillStyle(0x1c2740, 0.95).fillRoundedRect(-92, -22, 184, 44, 10);
       g.lineStyle(2, 0x4f7bd6, 1).strokeRoundedRect(-92, -22, 184, 44, 10);
@@ -204,61 +209,60 @@ export class MainMenuScene extends Phaser.Scene {
     this.pet.setScale(Math.min(40 / this.pet.width, 40 / this.pet.height));
   }
 
-  // ── title + crystals ────────────────────────────────────────────────────────
-  private drawHeader(mgr: SaveManager, save: ReturnType<SaveManager["getSave"]>, W: number): void {
+  // ── top resource bar (compact brand + framed gold/diamond pills) ─────────────
+  private drawTopBar(
+    mgr: SaveManager,
+    save: ReturnType<SaveManager["getSave"]>,
+    W: number,
+    H: number,
+  ): void {
     const today = new Date().toISOString().slice(0, 10);
     const granted = mgr.grantDailyLogin(today);
+    const bar = homeTopBar(W, H);
 
-    // Design-team crest emblem above the title (falls back to text-only).
-    let titleY = 12;
+    // Compact brand crest at top-left (falls back to a small wordmark).
     if (this.textures.exists("ui__logo")) {
-      const logo = this.add
-        .image(W / 2, 6, "ui__logo")
-        .setOrigin(0.5, 0)
-        .setDepth(5);
-      logo.setScale(58 / logo.height);
-      titleY = 62;
-    }
-    crispText(this, W / 2, titleY, "WIBU TOWER DEFENSE", {
-      fontSize: "26px",
-      color: "#ffe9a8",
-      fontStyle: "bold",
-      stroke: "#2a1c05",
-      strokeThickness: 5,
-    })
-      .setOrigin(0.5, 0)
-      .setDepth(5);
-
-    const crystals = crispText(this, W / 2, titleY + 34, `🪙 ${save.currency.gold}`, {
-      fontSize: "18px",
-      color: "#bfe4ff",
-      stroke: "#0a1420",
-      strokeThickness: 4,
-    })
-      .setOrigin(0.5, 0)
-      .setDepth(5);
-    if (granted > 0) {
-      const bonus = crispText(this, W / 2, 80, `+${granted} daily bonus!`, {
-        fontSize: "13px",
-        color: "#a5f0b0",
+      const logo = this.add.image(bar.brand.x, bar.brand.y, "ui__logo").setOrigin(0, 0).setDepth(5);
+      logo.setScale(40 / logo.height);
+    } else {
+      crispText(this, bar.brand.x, bar.brand.y, "WIBU TD", {
+        fontSize: "18px",
+        color: "#ffe9a8",
+        fontStyle: "bold",
+        stroke: "#2a1c05",
+        strokeThickness: 4,
       })
-        .setOrigin(0.5, 0)
+        .setOrigin(0, 0)
         .setDepth(5);
+    }
+
+    drawPill(this, bar.diamonds, "💎", `${save.currency.diamonds}`, "#bfe0ff");
+    drawPill(this, bar.gold, "🪙", `${save.currency.gold}`, "#ffe6a8");
+
+    if (granted > 0) {
+      const bonus = crispText(
+        this,
+        bar.gold.x + bar.gold.w / 2,
+        bar.gold.y + bar.gold.h + 6,
+        `+${granted} daily bonus!`,
+        { fontSize: "13px", color: "#a5f0b0" },
+      )
+        .setOrigin(0.5, 0)
+        .setDepth(6);
       this.tweens.add({
         targets: bonus,
-        y: 72,
+        y: bonus.y - 8,
         alpha: 0,
         delay: 1400,
         duration: 900,
         onComplete: () => bonus.destroy(),
       });
     }
-    void crystals;
   }
 
-  // ── painted icon dock along the bottom edge (6×2 grid) ───────────────────────
+  // ── bottom dock: primary BATTLE CTA + painted secondary icon grid ────────────
   private drawMenu(W: number, H: number): void {
-    const lay = dockLayout(MENU_ITEMS.length, W, H);
+    const lay = homeNavLayout(SECONDARY_ITEMS.length, W, H);
     const p = lay.panel;
     this.add
       .graphics()
@@ -267,7 +271,15 @@ export class MainMenuScene extends Phaser.Scene {
       .fillRoundedRect(p.x, p.y, p.w, p.h, 16)
       .lineStyle(2, 0x3a567f, 0.9)
       .strokeRoundedRect(p.x, p.y, p.w, p.h, 16);
-    MENU_ITEMS.forEach((m, i) => {
+    if (lay.rowDivider !== undefined) {
+      this.add
+        .graphics()
+        .setDepth(7)
+        .lineStyle(1, 0x33507a, 0.5)
+        .lineBetween(p.x + 20, lay.rowDivider, p.x + p.w - 20, lay.rowDivider);
+    }
+    drawPrimaryButton(this, PRIMARY_ITEM.label, PRIMARY_ITEM.scene, lay.primary);
+    SECONDARY_ITEMS.forEach((m, i) => {
       const c = lay.cells[i];
       this.iconButton(m, c.x, c.y);
     });

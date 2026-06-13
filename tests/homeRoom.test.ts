@@ -75,7 +75,7 @@ describe("homeRoom squad", () => {
       for (const p of pts) {
         expect(p.x).toBeGreaterThan(0);
         expect(p.x).toBeLessThan(W);
-        expect(p.y).toBeGreaterThan(H * 0.6); // on the lower stage
+        expect(p.y).toBeGreaterThan(H * 0.5); // mid/lower stage, above the bottom dock
         expect(p.y).toBeLessThan(H);
       }
     }

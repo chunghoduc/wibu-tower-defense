@@ -21,7 +21,7 @@ export interface TopBar {
 }
 
 const PILL_H = 28;
-const PILL_W = 116; // reserved width; presenter may render content narrower
+const PILL_W = 130; // wide enough for "💎 99999" with a right-aligned value
 const TOP_MARGIN = 12;
 const PILL_GAP = 10;
 
@@ -48,12 +48,12 @@ export interface NavLayout {
 }
 
 const COLS = 6;
-const MARGIN = 14;
+const MARGIN = 12;
 const CELL_W = 140;
-const CELL_H = 50;
-const ROW_GAP = 12;
-const PRIMARY_H = 46;
-const PRIMARY_GAP = 12;
+const CELL_H = 46;
+const ROW_GAP = 8;
+const PRIMARY_H = 42;
+const PRIMARY_GAP = 10;
 
 /**
  * Bottom navigation: a framed dock panel holding a wide primary BATTLE CTA above

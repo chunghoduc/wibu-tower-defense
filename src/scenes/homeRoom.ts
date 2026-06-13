@@ -84,7 +84,7 @@ export function squadStandPoints(n: number, W: number, H: number): StandPoint[] 
   const out: StandPoint[] = [];
   for (let i = 0; i < n; i++) {
     const tt = n > 1 ? i / (n - 1) : 0.5;
-    out.push({ x: W * 0.16 + tt * W * 0.68, y: H * 0.74 + Math.sin(tt * Math.PI) * -10 });
+    out.push({ x: W * 0.16 + tt * W * 0.68, y: H * 0.58 + Math.sin(tt * Math.PI) * -10 });
   }
   return out;
 }
