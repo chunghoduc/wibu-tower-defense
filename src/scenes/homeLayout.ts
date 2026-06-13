@@ -1,7 +1,8 @@
 /**
  * homeLayout — pure, Phaser-free geometry for the main-menu home screen:
- * a top resource bar (brand + gold/diamond pills) and the bottom navigation
- * (framed panel + primary BATTLE CTA + secondary destination grid).
+ * a top resource bar (brand + gold/diamond pills) and the navigation:
+ * left/right icon rails framing the diorama plus a bottom dock with the
+ * primary BATTLE CTA and a centered system row.
  * Deterministic and unit-tested (tests/homeLayout.test.ts). MainMenuScene
  * is the presenter. See
  * docs/superpowers/specs/2026-06-13-home-screen-ux-redesign-design.md.
@@ -43,33 +44,51 @@ export interface NavCell {
 export interface NavLayout {
   panel: Rect;
   primary: Rect;
-  cells: NavCell[];
-  rowDivider?: number;
+  left: NavCell[];
+  right: NavCell[];
+  bottom: NavCell[];
 }
 
-const COLS = 6;
 const MARGIN = 12;
-const CELL_W = 140;
-const CELL_H = 46;
-const ROW_GAP = 8;
+const RAIL_W = 60;
+const RAIL_H = 52;
+const RAIL_GAP = 14;
+const RAIL_CENTER_Y = 0.46; // fraction of H — vertical midpoint of each rail stack
+const BOTTOM_CELL_W = 132;
+const BOTTOM_CELL_H = 46;
 const PRIMARY_H = 42;
 const PRIMARY_GAP = 10;
 
+/** A vertically centered rail of `n` cells at a fixed x. */
+function rail(n: number, x: number, H: number): NavCell[] {
+  const step = RAIL_H + RAIL_GAP;
+  const cy = H * RAIL_CENTER_Y;
+  const cells: NavCell[] = [];
+  for (let i = 0; i < n; i++) {
+    cells.push({ x, y: Math.round(cy + (i - (n - 1) / 2) * step), w: RAIL_W, h: RAIL_H });
+  }
+  return cells;
+}
+
 /**
- * Bottom navigation: a framed dock panel holding a wide primary BATTLE CTA above
- * a centred, row-major grid of `secondaryCount` destination cells.
+ * Home navigation framed around the diorama: a left rail + right rail of icon
+ * buttons at the screen edges, and a bottom dock holding the wide primary
+ * BATTLE CTA above a single centered row of `counts.bottom` cells.
  */
-export function homeNavLayout(secondaryCount: number, W: number, H: number): NavLayout {
-  const rows = Math.max(1, Math.ceil(secondaryCount / COLS));
-  const cols = Math.min(COLS, secondaryCount);
-  const gridW = cols * CELL_W;
-  const gridH = rows * CELL_H + (rows - 1) * ROW_GAP;
-  const innerW = gridW;
-  const panelH = PRIMARY_H + PRIMARY_GAP + gridH + MARGIN * 2;
+export function homeNavLayout(
+  counts: { left: number; right: number; bottom: number },
+  W: number,
+  H: number,
+): NavLayout {
+  const left = rail(counts.left, MARGIN + RAIL_W / 2, H);
+  const right = rail(counts.right, W - MARGIN - RAIL_W / 2, H);
+
+  const rowW = counts.bottom * BOTTOM_CELL_W;
+  const panelH = PRIMARY_H + PRIMARY_GAP + BOTTOM_CELL_H + MARGIN * 2;
   const panel: Rect = {
-    x: Math.round(W / 2 - innerW / 2 - MARGIN),
+    x: Math.round(W / 2 - rowW / 2 - MARGIN),
     y: Math.round(H - panelH - 8),
-    w: innerW + MARGIN * 2,
+    w: rowW + MARGIN * 2,
     h: panelH,
   };
   const primary: Rect = {
@@ -78,21 +97,16 @@ export function homeNavLayout(secondaryCount: number, W: number, H: number): Nav
     w: panel.w - MARGIN * 2,
     h: PRIMARY_H,
   };
-  const x0 = W / 2 - gridW / 2 + CELL_W / 2;
-  const y0 = primary.y + PRIMARY_H + PRIMARY_GAP + CELL_H / 2;
-  const cells: NavCell[] = [];
-  for (let i = 0; i < secondaryCount; i++) {
-    const r = Math.floor(i / COLS);
-    const c = i % COLS;
-    const inRow = Math.min(COLS, secondaryCount - r * COLS);
-    const rowOffset = ((COLS - inRow) * CELL_W) / 2;
-    cells.push({
-      x: Math.round(x0 + c * CELL_W + rowOffset),
-      y: Math.round(y0 + r * (CELL_H + ROW_GAP)),
-      w: CELL_W,
-      h: CELL_H,
+  const y0 = primary.y + PRIMARY_H + PRIMARY_GAP + BOTTOM_CELL_H / 2;
+  const x0 = W / 2 - rowW / 2 + BOTTOM_CELL_W / 2;
+  const bottom: NavCell[] = [];
+  for (let i = 0; i < counts.bottom; i++) {
+    bottom.push({
+      x: Math.round(x0 + i * BOTTOM_CELL_W),
+      y: Math.round(y0),
+      w: BOTTOM_CELL_W,
+      h: BOTTOM_CELL_H,
     });
   }
-  const rowDivider = rows > 1 ? Math.round(y0 + CELL_H / 2 + ROW_GAP / 2) : undefined;
-  return { panel, primary, cells, rowDivider };
+  return { panel, primary, left, right, bottom };
 }

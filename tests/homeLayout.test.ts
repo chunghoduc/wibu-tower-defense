@@ -29,43 +29,66 @@ describe("homeTopBar", () => {
   });
 });
 
-describe("homeNavLayout", () => {
-  const lay = () => homeNavLayout(11, W, H);
+describe("homeNavLayout (rails + bottom row)", () => {
+  const lay = () => homeNavLayout({ left: 4, right: 4, bottom: 3 }, W, H);
 
-  it("produces exactly `secondaryCount` cells", () => {
-    expect(lay().cells).toHaveLength(11);
+  it("produces exactly the requested per-region counts", () => {
+    const l = lay();
+    expect(l.left).toHaveLength(4);
+    expect(l.right).toHaveLength(4);
+    expect(l.bottom).toHaveLength(3);
   });
-  it("primary CTA sits above every secondary cell and inside the panel", () => {
+
+  it("left rail hugs the left edge, right rail hugs the right edge", () => {
+    const l = lay();
+    for (const c of l.left) expect(c.x).toBeLessThan(W * 0.15);
+    for (const c of l.right) expect(c.x).toBeGreaterThan(W * 0.85);
+  });
+
+  it("each rail has a constant x and ascends in y (top to bottom)", () => {
+    const l = lay();
+    for (const rail of [l.left, l.right]) {
+      const xs = new Set(rail.map((c) => c.x));
+      expect(xs.size).toBe(1);
+      for (let i = 1; i < rail.length; i++) expect(rail[i].y).toBeGreaterThan(rail[i - 1].y);
+    }
+  });
+
+  it("rails are vertically centered and clear of the top band and the dock", () => {
+    const l = lay();
+    for (const rail of [l.left, l.right]) {
+      const ys = rail.map((c) => c.y);
+      const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
+      expect(Math.abs(mid - H * 0.46)).toBeLessThan(2);
+      for (const c of rail) {
+        expect(c.y - c.h / 2).toBeGreaterThan(H * 0.18);
+        expect(c.y + c.h / 2).toBeLessThan(l.panel.y);
+      }
+    }
+  });
+
+  it("primary CTA sits above every bottom cell and inside the panel", () => {
     const l = lay();
     expect(l.primary.x).toBeGreaterThanOrEqual(l.panel.x);
     expect(l.primary.x + l.primary.w).toBeLessThanOrEqual(l.panel.x + l.panel.w);
-    for (const c of l.cells) expect(c.y).toBeGreaterThan(l.primary.y);
+    for (const c of l.bottom) expect(c.y).toBeGreaterThan(l.primary.y);
   });
-  it("every cell sits inside the dock panel", () => {
+
+  it("bottom row sits inside the dock, ascends in x, centered on W/2", () => {
     const l = lay();
-    for (const c of l.cells) {
+    for (const c of l.bottom) {
       expect(c.x).toBeGreaterThanOrEqual(l.panel.x);
       expect(c.x).toBeLessThanOrEqual(l.panel.x + l.panel.w);
       expect(c.y).toBeGreaterThanOrEqual(l.panel.y);
       expect(c.y).toBeLessThanOrEqual(l.panel.y + l.panel.h);
     }
-  });
-  it("rows are monotonic: row 2 below row 1, x ascends within a row", () => {
-    const l = lay();
-    const r0 = l.cells.slice(0, 6);
-    const r1 = l.cells.slice(6);
-    expect(new Set(r0.map((c) => c.y)).size).toBe(1);
-    expect(r1[0].y).toBeGreaterThan(r0[0].y);
-    const xs = r0.map((c) => c.x);
+    const xs = l.bottom.map((c) => c.x);
     for (let i = 1; i < xs.length; i++) expect(xs[i]).toBeGreaterThan(xs[i - 1]);
-  });
-  it("the grid is horizontally centred on the screen", () => {
-    const l = lay();
-    const xs = l.cells.map((c) => c.x);
     const mid = (Math.min(...xs) + Math.max(...xs)) / 2;
     expect(Math.abs(mid - W / 2)).toBeLessThan(2);
   });
-  it("the whole dock stays in the lower half of the screen", () => {
+
+  it("the whole dock stays in the lower half and on-screen", () => {
     const l = lay();
     expect(l.panel.y).toBeGreaterThan(H * 0.5);
     expect(l.panel.y + l.panel.h).toBeLessThanOrEqual(H);
