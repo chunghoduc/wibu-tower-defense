@@ -9,7 +9,8 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
 import { TOOLTIP_DEPTH } from "./tooltipLayer.ts";
-import { renderCompareDialog } from "./itemCompareDialog.ts";
+import { renderCompareDialog, type CompareTarget } from "./itemCompareDialog.ts";
+import { equipRoute } from "../data/equipRoute.ts";
 import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type ItemDef } from "../data/schema.ts";
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
 import { renderHeroStats } from "./heroStatsPanel.ts";
@@ -460,55 +461,58 @@ export class HeroScene extends Phaser.Scene {
     const def = ITEM_CATALOG_MAP.get(inst.defId);
     if (!def) return;
     if (!fromSlot) {
-      const candidates = equipSlotsFor(def.slot);
-      const freeSlot = candidates.find((s) => !save.inventory.equipped[s]);
-      if (freeSlot === undefined) {
-        // Every fitting slot is full → compare against the item we'd displace.
-        const targetSlot = candidates[0]; // equipItem replaces the first slot too
-        const eqInst = save.inventory.items.find(
-          (it) => it.id === save.inventory.equipped[targetSlot],
-        );
-        const eqDef = eqInst ? ITEM_CATALOG_MAP.get(eqInst.defId) : undefined;
-        if (eqInst && eqDef && eqInst.id !== inst.id) {
-          this.openCompare(inst, def, eqInst, eqDef, targetSlot);
-          return;
-        }
-      } else {
-        // A slot is open → enhance dialog with an Equip button that fills it.
-        this.openEnhance(inst.id, freeSlot);
+      const route = equipRoute(def.slot, save.inventory.equipped);
+      if (route.kind === "equip") {
+        this.openEnhance(inst.id, route.slot); // a slot is open → enhance + Equip
+        return;
+      }
+      // Every fitting slot is full → compare against each occupied slot (so both
+      // rings each get their own Replace button).
+      const targets = route.slots
+        .map((slot) => {
+          const eqInst = save.inventory.items.find(
+            (it) => it.id === save.inventory.equipped[slot],
+          );
+          const eqDef = eqInst ? ITEM_CATALOG_MAP.get(eqInst.defId) : undefined;
+          return eqInst && eqDef && eqInst.id !== inst.id ? { slot, eqInst, eqDef } : null;
+        })
+        .filter((t): t is { slot: ItemSlot; eqInst: ItemInstanceSave; eqDef: ItemDef } => t !== null);
+      if (targets.length) {
+        this.openCompare(inst, def, targets);
         return;
       }
     }
     this.openEnhance(inst.id);
   }
 
-  /** Side-by-side compare of a bag item against the equipped item it would replace. */
+  /** Side-by-side compare of a bag item against every equipped item it could replace. */
   private openCompare(
     bagInst: ItemInstanceSave,
     bagDef: ItemDef,
-    eqInst: ItemInstanceSave,
-    eqDef: ItemDef,
-    slot: ItemSlot,
+    targets: { slot: ItemSlot; eqInst: ItemInstanceSave; eqDef: ItemDef }[],
   ): void {
     this.hideTooltip();
     this.dialog.removeAll(true);
+    const compareTargets: CompareTarget[] = targets.map((t) => ({
+      ref: { inst: t.eqInst, def: t.eqDef },
+      slot: t.slot,
+      onReplace: () => {
+        if (this.mgr.equipItem(bagInst.id, t.slot)) {
+          fadeHide(this, this.dialog);
+          this.showToast(`Equipped ${bagDef.name}`);
+          this.refresh();
+        } else {
+          this.showToast(`Requires level ${bagInst.requiredLevel ?? bagDef.requiredLevel}`);
+        }
+      },
+    }));
     renderCompareDialog(
       this,
       this.dialog,
       { inst: bagInst, def: bagDef },
-      { inst: eqInst, def: eqDef },
-      slot,
+      compareTargets,
       this.mgr.getSave().hero.level,
       {
-        onReplace: () => {
-          if (this.mgr.equipItem(bagInst.id, slot)) {
-            fadeHide(this, this.dialog);
-            this.showToast(`Equipped ${bagDef.name}`);
-            this.refresh();
-          } else {
-            this.showToast(`Requires level ${bagInst.requiredLevel ?? bagDef.requiredLevel}`);
-          }
-        },
         onEnhance: () => {
           this.dialog.setVisible(false);
           this.openEnhance(bagInst.id);
