@@ -100,7 +100,7 @@ export const placementMethods = {
     // The hero commands their towers: 60% of the hero's resolved stats flow onto
     // each one, so leveling/gearing the hero strengthens the whole squad.
     const resolvedStats = addHeroShare(
-      towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0),
+      towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0, def.rarity),
       this.hero.stats,
     );
     // F6 mastery × F7 awakening (per-tower permanent growth) × F8 squad synergy.
@@ -158,7 +158,14 @@ export const placementMethods = {
     const t = this.towers.find((x) => x.uid === uid && x.alive);
     if (!t || t.battleLevel >= MAX_TOWER_UPGRADES) return null;
     const upgraded = addHeroShare(
-      towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel + 1),
+      towerStatPipeline(
+        t.def.baseStats,
+        t.baseLevel,
+        t.stars,
+        t.def.role,
+        t.battleLevel + 1,
+        t.def.rarity,
+      ),
       this.hero.stats,
     );
     return upgraded.range;
@@ -176,7 +183,7 @@ export const placementMethods = {
     if (!def) return 0;
     const towerLevel = this._heroSave?.hero.level ?? 1;
     const towerStars = this._heroSave ? getTowerStars(this._heroSave, characterId) : 1;
-    return towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0).range;
+    return towerStatPipeline(def.baseStats, towerLevel, towerStars, def.role, 0, def.rarity).range;
   },
 
   /** Gold refunded when selling a tower (fraction of total invested). */
@@ -198,7 +205,14 @@ export const placementMethods = {
     t.battleLevel += 1;
     const hpFrac = t.stats.maxHp > 0 ? t.hp / t.stats.maxHp : 1;
     t.stats = addHeroShare(
-      towerStatPipeline(t.def.baseStats, t.baseLevel, t.stars, t.def.role, t.battleLevel),
+      towerStatPipeline(
+        t.def.baseStats,
+        t.baseLevel,
+        t.stars,
+        t.def.role,
+        t.battleLevel,
+        t.def.rarity,
+      ),
       this.hero.stats,
     );
     // Re-apply F6 mastery + F7 awakening + F8 synergy so upgrading never drops it.

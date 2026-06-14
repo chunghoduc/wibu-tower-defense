@@ -10,7 +10,7 @@ import { ITEM_SLOTS } from "../data/schema.ts";
 import type { HeroSave } from "../core/save.ts";
 import { towerActiveInfo, passiveInfo } from "../data/passiveSkills.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
-import { towerStatPipeline, starUpStepPct } from "../core/stats.ts";
+import { towerStatPipeline, starUpStepPct, starUpStepFlat } from "../core/stats.ts";
 import { starUpCost, MAX_STARS } from "../core/collection.ts";
 import { towerTex } from "../data/assetKeys.ts";
 import { RARITY_HEX } from "../data/rarityColors.ts";
@@ -116,7 +116,7 @@ export function renderCharInfo(
     );
 
   // Stats at the current star tier (so an ascension visibly raises them).
-  const cur = towerStatPipeline(def.baseStats, 1, stars, def.role, 0);
+  const cur = towerStatPipeline(def.baseStats, 1, stars, def.role, 0, def.rarity);
   let sy = section(scene, c, x, y + 60, w, "Stats");
   const rows = STAT_ROWS.filter(([k]) => (def.baseStats[k] ?? 0) !== 0);
   const colW = w / 2;
@@ -195,13 +195,18 @@ function renderAscension(
     }).setOrigin(1, 0),
   );
   sy += 14;
-  // Higher stars grant a bigger stat jump — show what the next ★ adds.
+  // Higher stars grant a bigger stat jump — show the flat + % the next ★ adds.
+  const stepPct = Math.round(starUpStepPct(stars) * 100);
+  const stepFlat = starUpStepFlat(stars, rarity);
   add(
     c,
-    crispText(scene, x, sy, `Next ★ → +${Math.round(starUpStepPct(stars) * 100)}% all stats`, {
-      fontSize: "9px",
-      color: "#ffd86a",
-    }),
+    crispText(
+      scene,
+      x,
+      sy,
+      `Next ★ → +${stepPct}% all · +${stepFlat.atk} atk · +${stepFlat.hp} hp`,
+      { fontSize: "9px", color: "#ffd86a" },
+    ),
   );
   sy += 14;
 
