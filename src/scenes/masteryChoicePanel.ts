@@ -35,11 +35,15 @@ export class MasteryChoicePanel {
     return this.pendingId;
   }
 
-  /** Hide the picker (non-choice node or no selection). */
+  /** Hide the picker (non-choice node or no selection); forgets the pending pick. */
   clear(): void {
+    this.destroyChips();
+    this.pendingId = null;
+  }
+
+  private destroyChips(): void {
     for (const c of this.chips) c.destroy();
     this.chips = [];
-    this.pendingId = null;
   }
 
   /**
@@ -48,14 +52,23 @@ export class MasteryChoicePanel {
    * should then hide the plain stat text).
    */
   render(node: PassiveNodeDef, isUnlocked: boolean): boolean {
-    this.clear();
-    if (!node.choices || node.choices.length === 0) return false;
+    this.destroyChips();
+    if (!node.choices || node.choices.length === 0) {
+      this.pendingId = null;
+      return false;
+    }
 
     const activeId = isUnlocked
       ? (this.mgr.getSave().hero.nodeChoices[node.id] ?? node.choices[0].id)
       : null;
-    // Default the pending pick to the first option so Unlock always has a value.
-    if (!isUnlocked) this.pendingId = node.choices[0].id;
+    // Preserve a still-valid pending pick across re-renders; otherwise default to
+    // the first option so the Unlock button always has a value.
+    if (!isUnlocked) {
+      const valid = this.pendingId && node.choices.some((c) => c.id === this.pendingId);
+      if (!valid) this.pendingId = node.choices[0].id;
+    } else {
+      this.pendingId = null;
+    }
 
     node.choices.forEach((opt, i) => {
       const y = CHIP_TOP + i * (CHIP_H + CHIP_GAP);
