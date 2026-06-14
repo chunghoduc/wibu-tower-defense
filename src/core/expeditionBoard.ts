@@ -23,6 +23,9 @@ export const BOARD_SIZE = 5;
 /** Free board rerolls a player gets each UTC day. */
 export const REROLL_PER_DAY = 5;
 
+/** Max quest dispatches a player can start each UTC day. */
+export const DISPATCH_PER_DAY = 5;
+
 export type QuestState = "available" | "running" | "ready";
 
 /** ISO yyyy-mm-dd for a given epoch ms (UTC — matches the rest of the meta loop). */
@@ -35,6 +38,14 @@ function resetDailyRerolls(board: HeroSave["meta"]["expedition"], today: string)
   if (board.rerollDay !== today) {
     board.freeRerollsLeft = REROLL_PER_DAY;
     board.rerollDay = today;
+  }
+}
+
+/** Refill the dispatch counter when the UTC day rolls over. Pure, idempotent. */
+function resetDailyDispatches(board: HeroSave["meta"]["expedition"], today: string): void {
+  if (board.dispatchDay !== today) {
+    board.dispatchesLeft = DISPATCH_PER_DAY;
+    board.dispatchDay = today;
   }
 }
 
@@ -71,6 +82,7 @@ export function ensureBoard(save: HeroSave, nowMs: number, rng: Rng): void {
   const board = save.meta.expedition;
   const today = dayKey(nowMs);
   resetDailyRerolls(board, today);
+  resetDailyDispatches(board, today);
   if (board.lastRerollDay !== today) {
     board.quests = board.quests.filter((q) => q.startedAt > 0); // keep Running, drop Available
     board.lastRerollDay = today;
@@ -152,11 +164,16 @@ export function startQuest(
   towerIds: string[],
   nowMs: number,
 ): boolean {
-  const q = save.meta.expedition.quests.find((x) => x.id === questId);
+  const board = save.meta.expedition;
+  const q = board.quests.find((x) => x.id === questId);
   if (!q || q.startedAt > 0) return false;
   if (!assignmentMeetsSlots(save, q, towerIds)) return false;
+  // Daily dispatch cap is the LAST gate so an invalid assignment never burns one.
+  resetDailyDispatches(board, dayKey(nowMs));
+  if (board.dispatchesLeft <= 0) return false;
   q.assigned = [...towerIds];
   q.startedAt = nowMs;
+  board.dispatchesLeft--;
   return true;
 }
 
