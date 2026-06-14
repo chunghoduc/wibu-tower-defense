@@ -16,6 +16,7 @@
  */
 import { bgKey } from "./bgManifest.ts";
 import type { TerrainType } from "./schema.ts";
+import type { MapTilePalette } from "../core/mapTiles.ts";
 
 export interface ChapterTheme {
   id: string;
@@ -28,6 +29,8 @@ export interface ChapterTheme {
   terrainTint: number;
   /** Subtle dark veil over the backdrop for unit contrast. */
   groundOverlay: number;
+  /** Colour palette for the top-down map tiles (ground + road) of this biome. */
+  tiles: MapTilePalette;
   /** Obstacle terrain pool (blocks tower placement). Duplicates bias the weighting. */
   block: TerrainType[];
   /** Decorative terrain pool (walkable). */
@@ -41,6 +44,15 @@ export const CHAPTER_THEMES: ChapterTheme[] = [
     bgKey: bgKey("chapter-greenwood"),
     terrainTint: 0xffffff,
     groundOverlay: 0x16201a,
+    tiles: {
+      grass: 0x4a7a3a,
+      grassAlt: 0x568a44,
+      grassDab: 0x3c6630,
+      dirt: 0x9a7748,
+      dirtAlt: 0x8a6a3e,
+      dirtEdge: 0x6e5230,
+      rut: 0x5e4628,
+    },
     block: ["jungle", "stone", "water", "jungle"],
     decor: ["grass", "grass"],
   },
@@ -50,6 +62,15 @@ export const CHAPTER_THEMES: ChapterTheme[] = [
     bgKey: bgKey("chapter-frost"),
     terrainTint: 0xffffff,
     groundOverlay: 0x18222e,
+    tiles: {
+      grass: 0xcfe0ea,
+      grassAlt: 0xdcebf3,
+      grassDab: 0xb8cedd,
+      dirt: 0x8fa8bc,
+      dirtAlt: 0x7e98ae,
+      dirtEdge: 0x60788c,
+      rut: 0x52677a,
+    },
     block: ["ice", "snow", "mountain", "ice"],
     decor: ["snow", "stone"],
   },
@@ -59,6 +80,15 @@ export const CHAPTER_THEMES: ChapterTheme[] = [
     bgKey: bgKey("chapter-desert"),
     terrainTint: 0xffe0b0,
     groundOverlay: 0x241d12,
+    tiles: {
+      grass: 0xc9a566,
+      grassAlt: 0xd6b675,
+      grassDab: 0xb89154,
+      dirt: 0xa89072,
+      dirtAlt: 0x988064,
+      dirtEdge: 0x766048,
+      rut: 0x66523c,
+    },
     block: ["stone", "mountain", "sand"],
     decor: ["sand", "sand"],
   },
@@ -68,6 +98,15 @@ export const CHAPTER_THEMES: ChapterTheme[] = [
     bgKey: bgKey("chapter-volcanic"),
     terrainTint: 0xffffff,
     groundOverlay: 0x2a1410,
+    tiles: {
+      grass: 0x453c3a,
+      grassAlt: 0x514645,
+      grassDab: 0x352e2d,
+      dirt: 0x5e4036,
+      dirtAlt: 0x4e342c,
+      dirtEdge: 0x36211c,
+      rut: 0x7a2a14,
+    },
     block: ["lava", "stone", "mountain", "lava"],
     decor: ["sand"],
   },
@@ -77,6 +116,15 @@ export const CHAPTER_THEMES: ChapterTheme[] = [
     bgKey: bgKey("chapter-swamp"),
     terrainTint: 0xcfe0a0,
     groundOverlay: 0x18220f,
+    tiles: {
+      grass: 0x44583a,
+      grassAlt: 0x506544,
+      grassDab: 0x374a30,
+      dirt: 0x7a6440,
+      dirtAlt: 0x6a5638,
+      dirtEdge: 0x4e3e28,
+      rut: 0x3e3220,
+    },
     block: ["water", "jungle", "water"],
     decor: ["grass", "sand"],
   },
@@ -86,6 +134,15 @@ export const CHAPTER_THEMES: ChapterTheme[] = [
     bgKey: bgKey("chapter-corrupted"),
     terrainTint: 0xffffff,
     groundOverlay: 0x1d1430,
+    tiles: {
+      grass: 0x3a2e4e,
+      grassAlt: 0x453858,
+      grassDab: 0x2e2440,
+      dirt: 0x6a6478,
+      dirtAlt: 0x585268,
+      dirtEdge: 0x423e52,
+      rut: 0x7a3a6a,
+    },
     block: ["crystal", "stone", "crystal", "mountain"],
     decor: ["crystal", "stone"],
   },
@@ -95,6 +152,7 @@ export const CHAPTER_THEMES: ChapterTheme[] = [
 interface StageBiome {
   terrainTint: number;
   groundOverlay: number;
+  tiles?: MapTilePalette;
   block: TerrainType[];
   decor: TerrainType[];
 }
@@ -117,6 +175,15 @@ const STAGE_BIOMES: Record<number, StageBiome> = {
   6: {
     terrainTint: 0xd7dbe2,
     groundOverlay: 0x1b1e24,
+    tiles: {
+      grass: 0x6a6e74,
+      grassAlt: 0x767a80,
+      grassDab: 0x5a5e64,
+      dirt: 0x8a8c90,
+      dirtAlt: 0x7a7c80,
+      dirtEdge: 0x5e6064,
+      rut: 0x4e5054,
+    },
     block: ["stone", "mountain", "stone"],
     decor: ["stone", "sand"],
   },
@@ -124,6 +191,15 @@ const STAGE_BIOMES: Record<number, StageBiome> = {
   7: {
     terrainTint: 0xffffff,
     groundOverlay: 0x2a1410,
+    tiles: {
+      grass: 0x3a302c,
+      grassAlt: 0x463934,
+      grassDab: 0x2c2422,
+      dirt: 0x5e3a2a,
+      dirtAlt: 0x4e2e20,
+      dirtEdge: 0x331e16,
+      rut: 0xd24a16,
+    },
     block: ["lava", "stone", "mountain", "lava"],
     decor: ["sand"],
   },
