@@ -16,6 +16,7 @@ import { lerpV } from "./renderLerp.ts";
 import type { BattleScene } from "./BattleScene.ts";
 import { towerTex } from "../data/assetKeys.ts";
 import { roleBadgeTex, ROLE_BADGE } from "./roleBadge.ts";
+import { DEPTH } from "./battleDepths.ts";
 
 /** Duration (ms) of a tower's procedural strike-recoil punch. */
 const TOWER_STRIKE_MS = 200;
@@ -240,7 +241,7 @@ export const spritesMethods = {
     if (!hasSprite(this, key)) return null;
     let s = map.get(uid);
     if (!s) {
-      s = this.add.sprite(x, y, key).setOrigin(0.5, 0.78).setDepth(2);
+      s = this.add.sprite(x, y, key).setOrigin(0.5, 0.78).setDepth(DEPTH.ENEMY);
       const baseScale = displayH / s.height;
       s.setScale(baseScale).setData("baseScale", baseScale);
       this.world.add(s);
@@ -266,7 +267,9 @@ export const spritesMethods = {
   ): Phaser.GameObjects.Ellipse {
     let sh = this.enemyShadows.get(uid);
     if (!sh) {
-      sh = this.add.ellipse(x, y, displayH * 0.6, displayH * 0.24, 0x000000, 0.34).setDepth(1);
+      sh = this.add
+        .ellipse(x, y, displayH * 0.6, displayH * 0.24, 0x000000, 0.34)
+        .setDepth(DEPTH.ENEMY_SHADOW);
       this.world.add(sh);
       this.enemyShadows.set(uid, sh);
     }
@@ -465,7 +468,7 @@ export const spritesMethods = {
         if (!b) {
           // No tint: the SDXL emblem already carries its role color, and it sits
           // on the role-colored disc drawn by drawTypeBadge (depth 5, under it).
-          b = this.add.image(0, 0, badgeKey).setDepth(6);
+          b = this.add.image(0, 0, badgeKey).setDepth(DEPTH.ROLE_BADGE);
           if (b.height) b.setScale(ROLE_BADGE.diameter / b.height);
           this.world.add(b);
           this.roleBadges.set(t.uid, b);
@@ -519,7 +522,7 @@ export const spritesMethods = {
     if (h.alive && hasSprite(this, "hero__hero")) {
       if (!this.heroSprite) {
         const hs = new HeroLayeredSprite(this, h.pos.x, h.pos.y);
-        hs.scaleToHeight(54).setDepth(3);
+        hs.scaleToHeight(54).setDepth(DEPTH.HERO);
         hs.addToWorld(this.world);
         if (this.anims.exists("hero__hero_idle")) hs.play("hero__hero_idle");
         if (this.saveManager) hs.syncEquipment(this.saveManager.getSave().inventory);

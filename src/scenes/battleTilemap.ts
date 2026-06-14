@@ -19,10 +19,11 @@ import {
   terrainVariant,
   cellKey,
 } from "../core/mapTiles.ts";
+import { DEPTH } from "./battleDepths.ts";
 
 /** Ground + road tilemap layers sit just below the static graphics (depth -10). */
-const GROUND_DEPTH = -12;
-const ROAD_DEPTH = -11;
+const GROUND_DEPTH = DEPTH.GROUND;
+const ROAD_DEPTH = DEPTH.ROAD;
 const ROAD_W = 28; // drawn dirt-track width (px) within a 40px tile
 
 /** A stable texture key for a palette so identical biomes reuse one tileset. */

@@ -14,6 +14,7 @@ import { buildEndlessBackdrop } from "../core/endlessBackdrop.ts";
 import { waveCounterLabel } from "../core/waveCounter.ts";
 import { EndlessBackdropFx } from "./endlessBackdropFx.ts";
 import { BattleTilemap } from "./battleTilemap.ts";
+import { DEPTH } from "./battleDepths.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { stageThemeForStage } from "../data/chapters.ts";
 import { crispText } from "./ui.ts";
@@ -480,7 +481,7 @@ export const renderMethods = {
         const img = this.add
           .image(f.x, f.y, key)
           .setDisplaySize(f.r * 2.6, f.r * 2.6)
-          .setDepth(1);
+          .setDepth(DEPTH.TERRAIN);
         if (theme.terrainTint !== 0xffffff) img.setTint(theme.terrainTint); // match the biome
         if (!f.blocks) img.setAlpha(0.92); // decor sits a hair lighter than obstacles
         this.world.add(img);
@@ -524,7 +525,9 @@ export const renderMethods = {
     this.castleSprite = undefined;
     if (this.textures.exists(CASTLE_TEX)) {
       this.castleArtStateNow = castleArtState(this.battle.castleHp, this.battle.castleMax);
-      const img = this.add.image(c.x, c.y, castleTexForState(this.castleArtStateNow)).setDepth(4);
+      const img = this.add
+        .image(c.x, c.y, castleTexForState(this.castleArtStateNow))
+        .setDepth(DEPTH.CASTLE);
       img.setScale(CASTLE_TARGET_W / img.width);
       this.world.add(img);
       this.castleSprite = img;
