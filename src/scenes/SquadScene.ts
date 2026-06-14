@@ -19,7 +19,15 @@ import { crispText } from "./ui.ts";
 import { renderCharInfo, renderHeroInfo } from "./squadInfoPanel.ts";
 import { makeCharTile, makeSlotTile, RARITY_HEX } from "./squadTiles.ts";
 import { createSquadDrag } from "./squadDrag.ts";
-import { squadRemove, squadPlaceAt } from "./squadEdit.ts";
+import {
+  squadAdd,
+  squadRemove,
+  squadPlaceAt,
+  autoFillSquad,
+  clearSquad,
+  charSquadScore,
+} from "./squadEdit.ts";
+import { renderActionButton, renderControlRow } from "./squadControls.ts";
 import { TAP_SLOP_PX } from "../core/gesture.ts";
 
 const RARITY_ORDER: Record<Rarity, number> = {
@@ -243,6 +251,45 @@ export class SquadScene extends Phaser.Scene {
     this.redraw();
   }
 
+  /** Tap-to-place: if a character (not the hero, not already squadded) is
+   *  selected, assign it to `slot`. No-op otherwise. */
+  private placeSelectedAt(slot: number): void {
+    const id = this.selectedId;
+    if (id === HERO_SEL || this.slots.includes(id)) return;
+    if (!TOWERS.some((t) => t.id === id)) return;
+    this.commit(squadPlaceAt(this.slots, id, slot));
+    this.redraw();
+  }
+
+  /** Owned, not-currently-squadded character ids, ranked best-first by score. */
+  private autoFillCandidates(save: ReturnType<SaveManager["getSave"]>): string[] {
+    return TOWERS.filter((t) => t.id in save.collection && !this.slots.includes(t.id))
+      .slice()
+      .sort(
+        (a, b) =>
+          charSquadScore(b.rarity, getTowerStars(save, b.id)) -
+            charSquadScore(a.rarity, getTowerStars(save, a.id)) || a.name.localeCompare(b.name),
+      )
+      .map((t) => t.id);
+  }
+
+  private doAutoFill(): void {
+    const r = autoFillSquad(this.slots, this.autoFillCandidates(this.mgr.getSave()));
+    this.commit(r);
+    this.flashMsg(
+      r.filled ? `Filled ${r.filled} slot${r.filled > 1 ? "s" : ""}` : "Squad already set",
+      r.changed,
+    );
+    this.redraw();
+  }
+
+  private doClear(): void {
+    const r = clearSquad(this.slots);
+    this.commit(r);
+    this.flashMsg(r.changed ? "Squad cleared" : "Squad already empty", r.changed);
+    this.redraw();
+  }
+
   private _feedback?: Phaser.GameObjects.Text;
   /** Transient toast for ascension results (survives the redraw that follows). */
   private flashMsg(msg: string, ok: boolean): void {
@@ -312,6 +359,11 @@ export class SquadScene extends Phaser.Scene {
             color: "#4c5a70",
           }).setOrigin(0.5),
         );
+        const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true });
+        z.on("pointerup", () => {
+          if (!this.didDrag) this.placeSelectedAt(i);
+        });
+        this.slotLayer.add(z);
       }
     }
     this.slotLayer.add(
@@ -320,6 +372,14 @@ export class SquadScene extends Phaser.Scene {
         color: "#cfe0f5",
       }),
     );
+    renderControlRow(this, this.slotLayer, {
+      onAuto: () => {
+        if (!this.didDrag) this.doAutoFill();
+      },
+      onClear: () => {
+        if (!this.didDrag) this.doClear();
+      },
+    });
   }
 
   private drawGrid(save: ReturnType<SaveManager["getSave"]>): void {
@@ -470,7 +530,26 @@ export class SquadScene extends Phaser.Scene {
             this.redraw();
           },
         );
+        this.drawActionButton(def);
       }
     }
+  }
+
+  /** Full-width Add/Remove action button at the bottom of the info panel. Only
+   *  shown for a selected character (not the hero). Reflects live squad state. */
+  private drawActionButton(def: { id: string }): void {
+    const inSquad = this.slots.includes(def.id);
+    renderActionButton(this, this.panel, {
+      x: PANEL_X + PANEL_W / 2,
+      y: PANEL_Y + PANEL_H - 30,
+      w: PANEL_W - 24,
+      inSquad,
+      full: !inSquad && this.slots.every(Boolean),
+      onTap: () => {
+        if (this.didDrag) return;
+        this.commit(inSquad ? squadRemove(this.slots, def.id) : squadAdd(this.slots, def.id));
+        this.redraw();
+      },
+    });
   }
 }
