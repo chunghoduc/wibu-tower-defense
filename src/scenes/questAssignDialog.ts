@@ -6,7 +6,7 @@
  * callback with the chosen tower ids. Owns its own container; close() tears it
  * down. Kept separate so ExpeditionScene stays under the 500-line cap.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { addNamePlate } from "./namePlate.ts";
 import { dimBackdrop } from "./uiKit.ts";
