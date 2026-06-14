@@ -439,6 +439,9 @@ export class HeroScene extends Phaser.Scene {
 
   private openBoxAction(boxId: string): void {
     if (this.boxOverlay?.isOpen()) return; // an open sequence is already playing
+    // The overlay covers the tile, so its pointerout never fires — clear the
+    // hover tooltip ourselves or it lingers (matches openCompare/openEnhance).
+    this.hideTooltip();
     const reward = this.mgr.openBox(boxId);
     if (!reward.opened) return;
     // Anime-style reveal: the chest bursts open and shows its loot. Inventory
