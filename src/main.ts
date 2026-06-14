@@ -14,6 +14,7 @@ import { QuestScene } from "./scenes/QuestScene.ts";
 import { ActivitiesScene } from "./scenes/ActivitiesScene.ts";
 import { ExpeditionScene } from "./scenes/ExpeditionScene.ts";
 import { ForgeScene } from "./scenes/ForgeScene.ts";
+import { AchievementScene } from "./scenes/AchievementScene.ts";
 import { PreloadScene } from "./scenes/PreloadScene.ts";
 import { GAME_HEIGHT, GAME_WIDTH, STAGES } from "./data/stage.ts";
 import { SaveManager } from "./core/saveManager.ts";
@@ -66,6 +67,7 @@ const game = new Phaser.Game({
     ActivitiesScene,
     ExpeditionScene,
     ForgeScene,
+    AchievementScene,
   ],
 });
 

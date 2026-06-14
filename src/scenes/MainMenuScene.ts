@@ -46,6 +46,7 @@ const RIGHT_ITEMS: MenuItem[] = [
 const BOTTOM_ITEMS: MenuItem[] = [
   { key: "quests", label: "Quests", scene: "QuestScene" },
   { key: "activities", label: "Activities", scene: "ActivitiesScene" },
+  { key: "achievements", label: "Achievements", scene: "AchievementScene" },
   { key: "settings", label: "Settings", scene: "SettingsScene" },
 ];
 
@@ -460,6 +461,18 @@ function drawMenuGlyph(
       g.fillStyle(0x6a7079, 1).fillRect(x - s * 0.3, y + s * 0.55, s * 0.6, s * 0.35);
       g.fillStyle(W, 1).fillPoints(star4(x + s * 0.3, y - s * 0.4, s * 0.4, s * 0.16), true);
       break;
+    case "achievements": { // trophy cup
+      g.fillStyle(W, 1).fillRoundedRect(x - s * 0.55, y - s * 0.7, s * 1.1, s * 0.8, 3);
+      g.lineStyle(2, W, 1).beginPath();
+      g.arc(x - s * 0.75, y - s * 0.35, s * 0.32, Math.PI * 0.5, Math.PI * 1.5);
+      g.strokePath();
+      g.beginPath();
+      g.arc(x + s * 0.75, y - s * 0.35, s * 0.32, Math.PI * 1.5, Math.PI * 0.5);
+      g.strokePath();
+      g.fillStyle(0xd6dded, 1).fillRect(x - s * 0.18, y + s * 0.1, s * 0.36, s * 0.5);
+      g.fillStyle(W, 1).fillRect(x - s * 0.5, y + s * 0.6, s * 1.0, s * 0.22);
+      break;
+    }
     case "settings": // gear
       g.lineStyle(3.4, 0xd6dded, 1).strokeCircle(x, y, s * 0.55);
       for (let i = 0; i < 8; i++) {
