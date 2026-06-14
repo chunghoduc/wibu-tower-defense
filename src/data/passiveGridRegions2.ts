@@ -50,12 +50,16 @@ export const PASSIVE_NODES_REGIONS_2: PassiveNodeDef[] = [
     type: "mastery",
     region: "tactician",
     name: "Tactician Mastery",
-    description: "Choose: +20% goldFind, or tower ATK aura, or -10% tower cost.",
+    description: "Choose one path to greater command.",
     gridX: 18,
     gridY: 13,
     neighbors: ["tactician-notable-1", "tactician-jewel-1"],
     effectId: "tactician-mastery",
-    increased: { goldFind: 0.2 },
+    choices: [
+      { id: "prosperity", label: "Prosperity  +20% Gold Find", increased: { goldFind: 0.2 } },
+      { id: "momentum", label: "Momentum  +10% Atk Speed", increased: { attackSpeed: 0.1 } },
+      { id: "reservoir", label: "Reservoir  +12 Mana/Kill", flat: { manaOnKill: 12 } },
+    ],
   }),
   n({
     id: "tactician-jewel-1",

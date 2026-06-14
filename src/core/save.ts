@@ -2,7 +2,7 @@ import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { type MetaSave, defaultMeta, backfillMeta } from "./meta.ts";
 
-export const CURRENT_SAVE_VERSION = 11;
+export const CURRENT_SAVE_VERSION = 12;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -74,6 +74,8 @@ export interface HeroProgressSave {
   totalXp: number;
   skillPoints: number;
   unlockedNodes: string[];
+  /** nodeId → chosen PassiveChoiceOption.id, for unlocked "choose" nodes. */
+  nodeChoices: Record<string, string>;
   obtainedSkills: HeroSkillEntry[];
   /** Active skills currently equipped (up to MAX_ACTIVE_SKILLS). */
   equippedSkillIds: string[];
@@ -164,6 +166,7 @@ export function createFreshSave(): HeroSave {
       totalXp: 0,
       skillPoints: 0,
       unlockedNodes: [],
+      nodeChoices: {},
       obtainedSkills: [],
       equippedSkillIds: [],
       jewels: [],
@@ -281,6 +284,11 @@ export function loadAndMigrate(raw: unknown): HeroSave {
       version: 11,
     };
   }
+  if ((save.version ?? 0) < 12) {
+    // Mastery choice-pick: choose-nodes now persist which option is active.
+    save = { ...save, version: 12 };
+    if (save.hero) save.hero.nodeChoices ??= {};
+  }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the
   // versioned hops above and would crash on first access. Ensure every required
@@ -320,6 +328,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     save.hero.obtainedSkills ??= [];
     save.hero.jewels ??= [];
     save.hero.socketedJewels ??= {};
+    save.hero.nodeChoices ??= {};
     const legacy = (save.hero as { equippedSkillId?: string | null }).equippedSkillId;
     save.hero.equippedSkillIds ??= legacy ? [legacy] : [];
     for (const id of STARTER_SKILL_IDS) {

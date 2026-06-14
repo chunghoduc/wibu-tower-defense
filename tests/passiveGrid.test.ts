@@ -105,3 +105,39 @@ describe("canForgetNode", () => {
     expect(canForgetNode(chain, "brawler-notable-1")).toBe(false);
   });
 });
+
+describe("mastery choice nodes", () => {
+  const choiceNodes = PASSIVE_NODES.filter((n) => n.choices && n.choices.length > 0);
+
+  it("has the four expected choose-nodes", () => {
+    expect(choiceNodes.map((n) => n.id).sort()).toEqual(
+      ["arcane-mastery-1", "brawler-mastery-1", "tactician-mastery-1", "warden-mastery-1"].sort(),
+    );
+  });
+
+  it("each choice node has >=2 options with unique ids and at least one stat", () => {
+    for (const node of choiceNodes) {
+      const opts = node.choices!;
+      expect(opts.length).toBeGreaterThanOrEqual(2);
+      const ids = opts.map((o) => o.id);
+      expect(new Set(ids).size).toBe(ids.length);
+      for (const o of opts) {
+        expect(!!(o.flat || o.increased || o.more)).toBe(true);
+      }
+    }
+  });
+
+  it("choice nodes carry no node-level stat bags (stats live in options)", () => {
+    for (const node of choiceNodes) {
+      expect(node.flat).toBeUndefined();
+      expect(node.increased).toBeUndefined();
+      expect(node.more).toBeUndefined();
+    }
+  });
+
+  it("choice node descriptions do not enumerate stale 'Choose: X, or Y' values", () => {
+    for (const node of choiceNodes) {
+      expect(node.description).not.toMatch(/, or /i);
+    }
+  });
+});
