@@ -62,13 +62,38 @@ export function openWingCraftDialog(
 
   const c = scene.add.container(0, 0).setDepth(320);
 
+  // Tap-out guard: when you drag a tray tile and let go, Phaser fires `dragend`
+  // and then routes the release `pointerup` to the top-most object under the
+  // pointer — on touch that is the full-screen dim zone, so an un-guarded tap-out
+  // reads the drop as "tapped outside → close" and tears the machine down
+  // mid-craft. Track drag state (true for the whole drag, cleared one tick after
+  // dragend so it still covers the same-frame release pointerup) and ignore the
+  // tap-out while it is set. A fresh pointerdown resets it as a safety net.
+  let dragging = false;
+  const onDragStart = (): void => {
+    dragging = true;
+  };
+  const onDragEnd = (): void => {
+    scene.time.delayedCall(0, () => {
+      dragging = false;
+    });
+  };
+  const onPointerDown = (): void => {
+    dragging = false;
+  };
+  scene.input.on("dragstart", onDragStart);
+  scene.input.on("dragend", onDragEnd);
+  scene.input.on("pointerdown", onPointerDown);
+
   // Dim + tap-out.
   const dim = scene.add.graphics();
   dim.fillStyle(0x000000, 0.78).fillRect(0, 0, W, H);
   const dimZone = scene.add
     .zone(W / 2, H / 2, W, H)
     .setInteractive()
-    .on("pointerup", () => opts.onClose());
+    .on("pointerup", () => {
+      if (!dragging) opts.onClose();
+    });
   c.add([dim, dimZone]);
 
   // Panel.
@@ -351,7 +376,17 @@ export function openWingCraftDialog(
   }
 
   // Brighten the machine while a drag hovers it.
-  scene.input.on("drag", () => drawMachine(machineZoneHit(scene)));
+  const onSceneDrag = (): void => drawMachine(machineZoneHit(scene));
+  scene.input.on("drag", onSceneDrag);
+
+  // Drop every scene-level input listener when the dialog goes away, so
+  // re-opening the machine doesn't stack duplicate handlers.
+  c.once("destroy", () => {
+    scene.input.off("drag", onSceneDrag);
+    scene.input.off("dragstart", onDragStart);
+    scene.input.off("dragend", onDragEnd);
+    scene.input.off("pointerdown", onPointerDown);
+  });
 
   render();
   return c;
