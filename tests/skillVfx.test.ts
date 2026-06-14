@@ -97,6 +97,16 @@ describe("skill VFX metadata", () => {
     }
   });
 
+  it("gives every active skill a literal projectile motif", () => {
+    const kinds = ["arrow", "bolt", "bullet", "orb", "blade", "none"];
+    for (const s of ACTIVE_SKILLS) {
+      const { motif } = SKILL_VFX[s.id];
+      expect(motif, `missing motif for "${s.id}"`).toBeTruthy();
+      expect(kinds, `${s.id}.motif.kind`).toContain(motif.kind);
+      expect(typeof motif.count, `${s.id}.motif.count`).toBe("number");
+    }
+  });
+
   it("gives every skill a full 3-colour palette", () => {
     for (const s of ACTIVE_SKILLS) {
       const { palette } = SKILL_VFX[s.id];
