@@ -248,16 +248,16 @@ export function structureStyle(visual, state) {
 // character STYLE/NEGATIVE ban "icon/symbol/flat" and demand a full-body figure.
 // One emblem per TowerRole; tinted to the role color at render time.
 export const ROLE_VISUAL = {
-  damage: "a sharp target reticle crosshair pierced by a single arrowhead, sky-blue",
-  splash: "a bold radiating explosion starburst blast, coral orange",
-  chain: "a forked lightning bolt arcing between two small nodes, violet purple",
-  dot: "a single dripping venom droplet with a faint rising bubble, toxic green",
-  support: "three upward chevrons rising inside a soft radiant halo ring, warm gold",
-  debuff: "a downward arrow over a cracked hourglass, teal cyan",
-  tanker: "a sturdy heater knight shield with a central round boss, steel grey",
+  damage: "one bold solid upright sword blade, sky-blue",
+  splash: "one bold solid eight-point explosion burst star, coral orange",
+  chain: "one bold solid jagged zigzag lightning bolt, violet purple",
+  dot: "one bold solid venom teardrop droplet, toxic green",
+  support: "one bold solid upward double-chevron up-arrow, warm gold",
+  debuff: "one bold solid downward arrow above a short minus bar, teal cyan",
+  tanker: "one bold solid heater knight shield with a small center stud, steel grey",
 };
 const ROLEICON_STYLE =
-  "a single flat vector game UI emblem icon of {V}, bold thick clean outline, high contrast, minimal flat cel-shaded, centered, simple iconography, crisp and readable at small size, isolated on a pure plain flat white background, empty background, no text";
+  "a single bold flat vector game UI emblem icon of {V}, ONE simple solid shape, very thick uniform clean outline, high contrast, flat cel-shaded, centered, no fine interior detail, instantly readable at 16 pixels, isolated on a pure plain flat white background, empty background, no text";
 const ROLEICON_NEG =
   "character, person, creature, hero, knight figure, full body, anime girl, realistic, 3d render, photo, complex scene, landscape, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, signature, frame, border";
 export const ROLEICON_NEGATIVE = ROLEICON_NEG;
