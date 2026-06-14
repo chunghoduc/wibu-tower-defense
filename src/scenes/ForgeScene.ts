@@ -23,6 +23,8 @@ import { ALCHEMY_RECIPES } from "../data/alchemy.ts";
 import { featuredForWeek, SPARK_PITY } from "../core/banner.ts";
 import { isoWeekKey } from "../core/meta.ts";
 import { openWingCraftDialog, type WingCraftItem } from "./wingCraftDialog.ts";
+import { openWingCraftResultOverlay } from "./wingCraftResultOverlay.ts";
+import { wingCraftResultView } from "../core/wingCraftResultView.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { wingSuccessChance, wingOutcomeOdds, MIN_ITEMS } from "../core/wingCraft.ts";
 import {
@@ -270,13 +272,8 @@ export class ForgeScene extends Phaser.Scene {
           return;
         }
         playForgeFx(this, W / 2, this.scale.height / 2, forgeFxSpec("wings", !!r.success));
-        if (r.success && r.item) {
-          this.showToast(`✦ Forged ${ITEM_CATALOG_MAP.get(r.item.defId)?.name ?? "Wings"}!`);
-        } else {
-          this.showToast("The wings dissolved into chaos…");
-        }
         dialog.destroy();
-        this.rebuild();
+        openWingCraftResultOverlay(this, wingCraftResultView(r), () => this.rebuild());
       },
       onClose: () => dialog.destroy(),
     });

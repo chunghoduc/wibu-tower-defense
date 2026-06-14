@@ -39,7 +39,7 @@ export function openWingCraftResultOverlay(
     closed = true;
     closeModal(scene, root, onDone);
   };
-  dimBackdrop(scene, root, finish);
+  dimBackdrop(scene, root, finish, 0.72);
 
   const accent = vm.kind === "success" ? vm.color : FAIL_ACCENT;
 
@@ -47,20 +47,20 @@ export function openWingCraftResultOverlay(
 
   // Card height scales with how many stat rows we show (success only).
   const rowCount = vm.kind === "success" ? Math.min(vm.statRows.length, MAX_ROWS) : 0;
-  const cardH = vm.kind === "success" ? 200 + rowCount * 22 : 200;
+  const cardH = vm.kind === "success" ? 276 + rowCount * 26 : 252;
   const cardTop = cy - cardH / 2;
   root.add(accentPanel(scene, cx - CARD_W / 2, cardTop, CARD_W, cardH, accent));
 
   if (vm.kind === "success") {
     buildSuccess(scene, root, vm, cx, cardTop);
-    openBurst(scene, root, cx, cardTop + 70, accent);
+    openBurst(scene, root, cx, cardTop + 78, accent);
   } else {
     buildFailure(scene, root, cx, cardTop);
   }
 
-  const btn = button(scene, cx, cardTop + cardH - 26, vm.kind === "success" ? "Claim" : "Close", finish, {
+  const btn = button(scene, cx, cardTop + cardH - 30, vm.kind === "success" ? "Claim" : "Close", finish, {
     color: vm.kind === "success" ? COLORS.gold : COLORS.sub,
-    width: 160,
+    width: 170,
   });
   btn.setAlpha(0);
   root.add(btn);
@@ -144,38 +144,43 @@ function buildSuccess(
   cx: number,
   cardTop: number,
 ): void {
-  const icon = makeFitIcon(scene, cx, cardTop + 70, vm.iconKey, 96, vm.emoji);
+  const icon = makeFitIcon(scene, cx, cardTop + 78, vm.iconKey, 92, vm.emoji);
   root.add(icon);
   pop(scene, icon as unknown as Obj);
 
-  const plate = scene.add.container(0, 0);
+  // Name plate centers on its container's local x=0 → place the container at cx.
+  const plate = scene.add.container(cx, 0);
   root.add(plate);
   addNamePlate(scene, plate, vm.name, {
-    width: CARD_W - 40,
-    topY: cardTop + 122,
-    height: 26,
+    width: CARD_W - 36,
+    topY: cardTop + 132,
+    height: 30,
     radius: 8,
     accent: vm.color,
     color: COLORS.text,
+    basePx: 16,
+    minPx: 11,
   });
 
   root.add(
-    crispText(scene, cx, cardTop + 158, vm.rarity, {
-      fontSize: "13px",
+    crispText(scene, cx, cardTop + 184, vm.rarity.toUpperCase(), {
+      fontSize: "12px",
       color: hex(vm.color),
+      fontStyle: "bold",
     }).setOrigin(0.5),
   );
 
-  let y = cardTop + 182;
+  let y = cardTop + 216;
   for (const r of vm.statRows.slice(0, MAX_ROWS)) {
-    const line = `${r.before}${r.value}${r.after}${r.bonus ? " " + r.bonus : ""}`;
+    const sep = r.before && !/\s$/.test(r.before) ? " " : "";
+    const line = `${r.before}${sep}${r.value}${r.after}${r.bonus ? " " + r.bonus : ""}`;
     root.add(
-      crispText(scene, cx - (CARD_W - 50) / 2, y, line, {
-        fontSize: "12px",
+      crispText(scene, cx - (CARD_W - 56) / 2, y, line, {
+        fontSize: "13px",
         color: SOURCE_COLOR[r.source],
       }).setOrigin(0, 0.5),
     );
-    y += 22;
+    y += 26;
   }
 }
 
@@ -185,20 +190,20 @@ function buildFailure(
   cx: number,
   cardTop: number,
 ): void {
-  const glyph = crispText(scene, cx, cardTop + 64, "💔", { fontSize: "56px" }).setOrigin(0.5);
+  const glyph = crispText(scene, cx, cardTop + 64, "💔", { fontSize: "52px" }).setOrigin(0.5);
   root.add(glyph);
   pop(scene, glyph as unknown as Obj);
 
   root.add(
-    crispText(scene, cx, cardTop + 128, "The wings dissolved into chaos…", {
-      fontSize: "15px",
-      color: hex(0xb0464b),
+    crispText(scene, cx, cardTop + 134, "The wings dissolved into chaos…", {
+      fontSize: "14px",
+      color: hex(0xd06a6f),
       align: "center",
-      wordWrap: { width: CARD_W - 40 },
+      fontStyle: "bold",
     }).setOrigin(0.5),
   );
   root.add(
-    crispText(scene, cx, cardTop + 164, "Your materials were consumed.", {
+    crispText(scene, cx, cardTop + 168, "Your materials were consumed.", {
       fontSize: "12px",
       color: COLORS.sub,
       align: "center",
