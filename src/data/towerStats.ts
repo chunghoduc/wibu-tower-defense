@@ -43,6 +43,15 @@ const round5 = (n: number) => Math.round(n / 5) * 5;
  */
 const RARITY_POWER = [1.0, 1.35, 1.8, 2.45, 3.3]; // by tier (Common…Unique)
 
+/**
+ * Towers SHARE 60% of the commanding hero's resolved stats, so as the hero grows
+ * the share dominates and a tower's intrinsic numbers matter most early. We cut
+ * the raw power stats (atk/maxHp) to 70% and push that budget into the collection-
+ * star scaling (see core/stats.ts) — a fresh ★1 tower is weak, an ascended one is
+ * strong. Cost and cadence are deliberately untouched.
+ */
+const BASE_POWER_SCALE = 0.7;
+
 // NOTE: `range` is deliberately NOT budgeted here — it's an identity stat (a
 // melee brawler has short reach, an archer long), kept per-tower so the roster
 // still reads as melee vs ranged and the attack-style picker stays correct.
@@ -75,9 +84,9 @@ export function towerBaseline(
   const b = ROLE_BASE[role];
   const isSupport = role === "support";
   const core: Partial<Stats> = {
-    atk: Math.round(b.atk * p),
+    atk: Math.round(b.atk * p * BASE_POWER_SCALE),
     attackSpeed: r2(b.aspd * (1 + 0.04 * tier)),
-    maxHp: Math.round(b.hp * (0.5 + 0.5 * p)),
+    maxHp: Math.round(b.hp * (0.5 + 0.5 * p) * BASE_POWER_SCALE),
     // Mana is a fixed 0..100 bar (see MANA_MAX). Supports are aura-only and never
     // cast, so they gain no on-hit mana; everyone else fills faster by tier (capped
     // at the +15 on-hit ceiling): Common 7 → Unique 15.
