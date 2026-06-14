@@ -331,6 +331,20 @@ export function achievementIconStyle(visual) {
   return ACHIEVEMENT_STYLE.replace("{V}", visual);
 }
 
+// ---- BATTLE CTA EMBLEM (home-screen hero call-to-action) ----
+// One bold combat sigil rendered on the BATTLE button. Full-colour, NOT tinted.
+export const BATTLE_EMBLEM_VISUAL =
+  "two crossed steel longswords over a small round war shield, a single upright orange flame rising behind the blades";
+const BATTLE_EMBLEM_STYLE =
+  "a single bold flat vector game UI emblem icon of {V}, ONE compact heraldic crest, very thick uniform clean gold outline, fiery crimson and ember orange with steel accents, high contrast, flat cel-shaded, centered, instantly readable at 24 pixels, isolated on a pure plain flat white background, empty background, no text";
+const BATTLE_EMBLEM_NEG =
+  "character, person, creature, hero, knight figure, full body, anime girl, realistic, 3d render, photo, complex scene, landscape, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, signature, frame, border";
+export const BATTLE_EMBLEM_NEGATIVE = BATTLE_EMBLEM_NEG;
+/** Combat-emblem prompt from a visual description. */
+export function battleEmblemStyle(visual) {
+  return BATTLE_EMBLEM_STYLE.replace("{V}", visual);
+}
+
 // ---- ITEMS (icon style) ----
 const ITEM_STYLE =
   "a single game item icon, {V}, clean cel-shaded anime game asset, centered, isolated on a plain solid light grey background, no shadow, soft rim light";
