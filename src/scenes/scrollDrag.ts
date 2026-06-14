@@ -67,6 +67,13 @@ export interface DragScrollConfig {
 export interface DragScrollHandle {
   /** True once the in-flight (or just-ended) gesture moved the list — use to suppress tap actions. */
   didScroll: () => boolean;
+  /**
+   * Remove every scene listener this scroll registered. Call when a transient
+   * grid/dialog is torn down (e.g. the Craft Wings tray) so handlers don't stack
+   * across reopens — stale ones would otherwise fight over the offset / draw into
+   * a destroyed container. Scene-lifetime grids can ignore this.
+   */
+  destroy: () => void;
 }
 
 /** Wire pointer-drag scrolling into `scene` for one grid. Coexists with wheel handlers. */
@@ -109,7 +116,7 @@ export function attachDragScroll(scene: Phaser.Scene, cfg: DragScrollConfig): Dr
     scene.events.off("update", onFlingStep);
   }
 
-  scene.input.on("pointerdown", (p: Phaser.Input.Pointer) => {
+  const onPointerDown = (p: Phaser.Input.Pointer): void => {
     stopFling(); // touching the list halts momentum, like native scroll
     scrolled = false;
     if (cfg.enabled && !cfg.enabled()) return;
@@ -119,9 +126,9 @@ export function attachDragScroll(scene: Phaser.Scene, cfg: DragScrollConfig): Dr
     startY = p.y;
     startOffset = cfg.getOffset();
     samples = [{ pos: p.y, t: scene.time.now }];
-  });
+  };
 
-  scene.input.on("pointermove", (p: Phaser.Input.Pointer) => {
+  const onPointerMove = (p: Phaser.Input.Pointer): void => {
     if (!tracking || !p.isDown) return;
     if (cfg.blocked && cfg.blocked()) {
       tracking = false;
@@ -137,7 +144,7 @@ export function attachDragScroll(scene: Phaser.Scene, cfg: DragScrollConfig): Dr
       cfg.setOffset(next);
       cfg.onChange();
     }
-  });
+  };
 
   const endGesture = (): void => {
     if (!tracking) return;
@@ -152,15 +159,29 @@ export function attachDragScroll(scene: Phaser.Scene, cfg: DragScrollConfig): Dr
     scene.events.on("update", onFlingStep);
   };
 
-  scene.input.on("pointerup", endGesture);
-  scene.input.on("pointercancel", () => {
+  const onPointerCancel = (): void => {
     tracking = false;
     samples = [];
     stopFling();
-  });
+  };
+
+  scene.input.on("pointerdown", onPointerDown);
+  scene.input.on("pointermove", onPointerMove);
+  scene.input.on("pointerup", endGesture);
+  scene.input.on("pointercancel", onPointerCancel);
   // Defensive: tear down the fling loop when the scene shuts down / restarts.
   scene.events.once("shutdown", stopFling);
   scene.events.once("destroy", stopFling);
 
-  return { didScroll: () => scrolled };
+  const destroy = (): void => {
+    stopFling();
+    scene.input.off("pointerdown", onPointerDown);
+    scene.input.off("pointermove", onPointerMove);
+    scene.input.off("pointerup", endGesture);
+    scene.input.off("pointercancel", onPointerCancel);
+    scene.events.off("shutdown", stopFling);
+    scene.events.off("destroy", stopFling);
+  };
+
+  return { didScroll: () => scrolled, destroy };
 }
