@@ -14,7 +14,7 @@ import { buildMenuAtmosphere } from "./menuAtmosphere.ts";
 import { MenuBackdropFx } from "./menuBackdropFx.ts";
 import { crispText } from "./ui.ts";
 import { homeTopBar, homeNavLayout } from "./homeLayout.ts";
-import { drawPill, drawPrimaryButton } from "./homeBarFx.ts";
+import { drawPill, drawBattleCta } from "./homeBarFx.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { claimableQuestCount } from "../core/questTracker.ts";
 import { towerTex, itemTex, menuTex } from "../data/assetKeys.ts";
@@ -283,7 +283,7 @@ export class MainMenuScene extends Phaser.Scene {
       .fillRoundedRect(p.x, p.y, p.w, p.h, 16)
       .lineStyle(2, 0x3a567f, 0.9)
       .strokeRoundedRect(p.x, p.y, p.w, p.h, 16);
-    drawPrimaryButton(this, PRIMARY_ITEM.label, PRIMARY_ITEM.scene, lay.primary);
+    drawBattleCta(this, PRIMARY_ITEM.label, PRIMARY_ITEM.scene, lay.primary);
     LEFT_ITEMS.forEach((m, i) => this.iconButton(m, lay.left[i].x, lay.left[i].y));
     RIGHT_ITEMS.forEach((m, i) => this.iconButton(m, lay.right[i].x, lay.right[i].y));
     BOTTOM_ITEMS.forEach((m, i) => this.iconButton(m, lay.bottom[i].x, lay.bottom[i].y));

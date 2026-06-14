@@ -9,6 +9,8 @@ import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { fadeToScene } from "./uiKit.ts";
 import type { Rect } from "./homeLayout.ts";
+import { battleCtaPlan } from "./battleCta.ts";
+import { battleEmblemTex } from "../data/assetKeys.ts";
 
 /** A framed resource pill: dark translucent plate + gold stroke + icon + value. */
 export function drawPill(
@@ -41,8 +43,9 @@ export function drawPill(
     .setDepth(6);
 }
 
-/** The wide, gold-accented hero call-to-action that launches `targetScene`. */
-export function drawPrimaryButton(
+/** The wide crimson-ember war CTA: layered forged-metal button + combat emblem
+ *  + sheen sweep that launches `targetScene`. Geometry from battleCtaPlan. */
+export function drawBattleCta(
   scene: Phaser.Scene,
   label: string,
   targetScene: string,
@@ -50,23 +53,76 @@ export function drawPrimaryButton(
 ): void {
   const cx = r.x + r.w / 2,
     cy = r.y + r.h / 2;
+  const p = battleCtaPlan(r);
   const c = scene.add.container(cx, cy).setDepth(9);
+  // Plan coords are absolute; the container is centered, so place children
+  // relative to the center.
+  const lx = (x: number) => x - cx;
+  const ly = (y: number) => y - cy;
+
   const g = scene.add.graphics();
-  g.fillStyle(0x7a4b12, 1).fillRoundedRect(-r.w / 2, -r.h / 2, r.w, r.h, 12);
-  g.fillStyle(0xe8a93a, 1).fillRoundedRect(-r.w / 2, -r.h / 2, r.w, r.h - 4, 12);
-  g.lineStyle(2, 0xffe9a8, 1).strokeRoundedRect(-r.w / 2, -r.h / 2, r.w, r.h, 12);
+  // Drop shadow.
+  g.fillStyle(0x000000, 0.35).fillRoundedRect(lx(r.x) + 2, ly(r.y) + 4, r.w, r.h, 12);
+  // Forged-gold bevel frame.
+  g.fillStyle(0x7a4b12, 1).fillRoundedRect(lx(r.x), ly(r.y), r.w, r.h, 12);
+  g.lineStyle(2, 0xffe9a8, 1).strokeRoundedRect(lx(r.x), ly(r.y), r.w, r.h, 12);
+  // Crimson→ember body (two stacked tones read as a vertical gradient).
+  g.fillStyle(0x7a1410, 1).fillRoundedRect(lx(p.body.x), ly(p.body.y), p.body.w, p.body.h, 9);
+  g.fillStyle(0xe0461f, 1).fillRoundedRect(lx(p.body.x), ly(p.body.y), p.body.w, p.body.h - 5, 9);
+  // Top gloss band.
+  g.fillStyle(0xffffff, 0.16).fillRoundedRect(lx(p.gloss.x), ly(p.gloss.y), p.gloss.w, p.gloss.h, 8);
+  // Corner rivets.
+  for (const rv of p.rivets) {
+    g.fillStyle(0xffe9a8, 1).fillCircle(lx(rv.x), ly(rv.y), 2.4);
+    g.fillStyle(0x7a4b12, 1).fillCircle(lx(rv.x), ly(rv.y), 1.1);
+  }
   c.add(g);
+
+  // SDXL combat emblem (left), gated so a missing PNG degrades gracefully.
+  const ek = battleEmblemTex();
+  if (scene.textures.exists(ek)) {
+    const img = scene.add
+      .image(lx(p.emblem.x), ly(p.emblem.y), ek)
+      .setDisplaySize(p.emblem.size, p.emblem.size);
+    c.add(img);
+  }
+
   c.add(
-    crispText(scene, 0, 0, `▶  ${label}`, {
-      fontSize: "22px",
-      color: "#2a1804",
+    crispText(scene, lx(p.label.x), ly(p.label.y), label, {
+      fontSize: "24px",
+      color: "#fff4e0",
       fontStyle: "bold",
+      stroke: "#3a0a06",
+      strokeThickness: 4,
     }).setOrigin(0.5),
   );
+
+  // Sheen sweep: a thin bright diagonal band travelling across the body, clipped
+  // to the body rect via a geometry mask.
+  const sheen = scene.add.graphics().setDepth(10);
+  sheen.fillStyle(0xffffff, 0.22);
+  sheen.fillRect(-p.sheen.w / 2, -r.h, p.sheen.w, r.h * 2);
+  sheen.setRotation(-0.5);
+  c.add(sheen);
+  const maskG = scene.make
+    .graphics({ x: 0, y: 0 })
+    .fillStyle(0xffffff)
+    .fillRoundedRect(p.body.x, p.body.y, p.body.w, p.body.h, 9);
+  sheen.setMask(maskG.createGeometryMask());
+  sheen.x = lx(p.sheen.x0);
+  scene.tweens.add({
+    targets: sheen,
+    x: lx(p.sheen.x1),
+    duration: 900,
+    ease: "Sine.easeInOut",
+    repeat: -1,
+    repeatDelay: 1600,
+  });
+
   const z = scene.add.zone(0, 0, r.w, r.h).setInteractive({ useHandCursor: true });
   c.add(z);
   z.on("pointerover", () =>
-    scene.tweens.add({ targets: c, scale: 1.04, duration: 130, ease: "Back.easeOut" }),
+    scene.tweens.add({ targets: c, scale: 1.05, duration: 130, ease: "Back.easeOut" }),
   );
   z.on("pointerout", () =>
     scene.tweens.add({ targets: c, scale: 1, duration: 130, ease: "Sine.easeOut" }),
@@ -74,19 +130,10 @@ export function drawPrimaryButton(
   z.on("pointerdown", () =>
     scene.tweens.add({
       targets: c,
-      scale: 0.96,
+      scale: 0.95,
       duration: 80,
       yoyo: true,
       onComplete: () => fadeToScene(scene, targetScene),
     }),
   );
-  // Subtle idle pulse so the CTA reads as the hero action.
-  scene.tweens.add({
-    targets: g,
-    alpha: { from: 1, to: 0.86 },
-    duration: 1100,
-    yoyo: true,
-    repeat: -1,
-    ease: "Sine.easeInOut",
-  });
 }
