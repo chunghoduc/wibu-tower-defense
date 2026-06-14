@@ -11,6 +11,7 @@ import { totalXpForLevel } from "../core/hero.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT, stageNumber } from "../data/stage.ts";
 import { buildEndlessBackdrop } from "../core/endlessBackdrop.ts";
+import { waveCounterLabel } from "../core/waveCounter.ts";
 import { EndlessBackdropFx } from "./endlessBackdropFx.ts";
 import { BattleTilemap } from "./battleTilemap.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
@@ -78,11 +79,18 @@ export const renderMethods = {
 
     this.refreshBuildBar();
     const b = this.battle;
+    const endless = this.battleMode.kind === "endless";
+    const best = endless ? this.saveManager.bestEndlessWave(this.stage.id) : 0;
     this.hud.setText(
       `${this.stage.name} [${b.difficulty}]   Gold ${b.gold}   ` +
         `Castle ${Math.max(0, Math.ceil(b.castleHp))}   ` +
         `Hero ${Math.max(0, Math.ceil(b.hero.hp))}/${b.hero.stats.maxHp}   ` +
-        `Wave ${Math.max(0, b.waveIndex + 1)}/${this.stage.waves.length}`,
+        waveCounterLabel({
+          endless,
+          current: Math.max(0, b.waveIndex + 1),
+          total: this.stage.waves.length,
+          best,
+        }),
     );
     this.refreshCallWaveBtn();
 
