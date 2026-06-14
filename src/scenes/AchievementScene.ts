@@ -7,6 +7,7 @@
 import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { crispText } from "./ui.ts";
+import { achievementTex } from "../data/assetKeys.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import {
   buildAchievementView,
@@ -22,6 +23,8 @@ const X0 = 20;
 const GAP_X = 16;
 const GAP_Y = 10;
 const VIEW_H = 460; // visible content height below the header
+const ICON = 64; // medallion diameter
+const TX = 14 + ICON + 10; // left edge of the card's text column
 
 export class AchievementScene extends Phaser.Scene {
   private mgr!: SaveManager;
@@ -107,8 +110,18 @@ export class AchievementScene extends Phaser.Scene {
     g.lineStyle(2, card.unlocked ? 0xffc94d : 0x2c3a4f, 1).strokeRoundedRect(x, y, CW, CH, 10);
     this.layer.add(g);
 
+    // SDXL trophy medallion (left). Missing texture → no icon (graceful).
+    const iconKey = achievementTex(card.id);
+    if (this.textures.exists(iconKey)) {
+      const img = this.add
+        .image(x + 14 + ICON / 2, y + CH / 2, iconKey)
+        .setDisplaySize(ICON, ICON);
+      if (!card.unlocked) img.setAlpha(0.45); // dim locked badges
+      this.layer.add(img);
+    }
+
     this.layer.add(
-      crispText(this, x + 14, y + 10, card.name, {
+      crispText(this, x + TX, y + 10, card.name, {
         fontSize: "16px",
         color: card.unlocked ? "#ffe9b0" : "#cdd6e6",
         fontStyle: "bold",
@@ -121,17 +134,17 @@ export class AchievementScene extends Phaser.Scene {
       }).setOrigin(1, 0),
     );
     this.layer.add(
-      crispText(this, x + 14, y + 32, card.description, {
+      crispText(this, x + TX, y + 32, card.description, {
         fontSize: "11px",
         color: "#aab8cc",
-        wordWrap: { width: CW - 140 },
+        wordWrap: { width: CW - TX - 126 },
       }),
     );
 
     // Progress bar.
-    const bx = x + 14;
+    const bx = x + TX;
     const by = y + CH - 22;
-    const bw = CW - 150;
+    const bw = CW - TX - 136;
     const bar = this.add.graphics();
     bar.fillStyle(0x000000, 0.5).fillRoundedRect(bx, by, bw, 12, 4);
     bar

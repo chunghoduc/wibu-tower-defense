@@ -18,6 +18,10 @@ export function structureStyle(visual: string, state: string): string;
 export const ROLE_VISUAL: Record<string, string>;
 export const ROLEICON_NEGATIVE: string;
 export function roleIconStyle(visual: string): string;
+/** One trophy-medallion emblem description per achievement id. */
+export const ACHIEVEMENT_VISUAL: Record<string, string>;
+export const ACHIEVEMENT_NEGATIVE: string;
+export function achievementIconStyle(visual: string): string;
 export function itemStyle(v: string): string;
 export function itemStyleFor(look: string, rarity: string): string;
 export function skillStyleFor(look: string, rarity: string): string;

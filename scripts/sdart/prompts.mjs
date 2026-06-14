@@ -269,6 +269,68 @@ export function roleIconStyle(visual) {
   return ROLEICON_STYLE.replace("{V}", visual);
 }
 
+// ---- ACHIEVEMENT MEDALLIONS (the per-achievement board badge) ----
+// One ornate trophy-medallion per achievement id (must mirror ACHIEVEMENTS in
+// src/data/achievements.ts — guarded by tests/achievementIconPrompts.test.ts).
+// Tier metal (bronze → silver → gold) signals prestige; baked full-colour so the
+// renderer does NOT tint (unlike role icons). Keyed by achievement id.
+export const ACHIEVEMENT_VISUAL = {
+  // Campaign
+  "clear-stage-3":
+    "a bronze medal embossed with a single blood-dripping dagger crossing a small round shield, crimson accents",
+  "clear-stage-10":
+    "a silver medal embossed with a closed ornate tome bound by a ribbon clasp, sky-blue accents",
+  "clear-stage-20":
+    "a fiery gold medal embossed with a volcanic stone gateway spewing rising embers, orange and red accents",
+  "win-nightmare":
+    "a dark obsidian medal embossed with a horned demon skull, ominous violet-purple accents",
+  // Hero
+  "hero-level-10":
+    "a bronze medal embossed with a single upward chevron rank stripe above a small star, warm bronze accents",
+  "hero-level-25":
+    "a silver medal embossed with triple stacked upward chevron rank stripes above a star, steel-blue accents",
+  "hero-level-50":
+    "a radiant gold medal embossed with a brilliant five-pointed star bursting with light rays, golden accents",
+  // Combat
+  "kills-1000":
+    "a bronze medal embossed with a single notched battle axe head, dull blood-red accents",
+  "kills-10000":
+    "a silver medal embossed with a cresting ocean wave breaking over a row of tiny skulls, teal accents",
+  "kills-100000":
+    "a gold medal embossed with a blazing meteor streaking over a small skull, fiery orange accents",
+  "endless-wave-10":
+    "a bronze medal embossed with a round buckler shield bearing a single upright flame, amber accents",
+  "endless-wave-25":
+    "a silver medal embossed with a broken sword planted point-down in the ground, grey-blue accents",
+  "endless-wave-50":
+    "a gold medal embossed with an unbroken stone pillar crowned by a faceted diamond, cyan accents",
+  // Collection
+  "own-10-towers":
+    "a bronze medal embossed with three small raised banner flags in a row, green accents",
+  "own-25-towers":
+    "a silver medal embossed with a horned war helm over two crossed banners, crimson accents",
+  "codex-50":
+    "a silver medal embossed with a half-open glowing spellbook, indigo accents",
+  "codex-100":
+    "a gold medal embossed with a fully open radiant spellbook marked with a check, violet accents",
+  // Engineering
+  "place-50-towers":
+    "a bronze medal embossed with a mason's trowel laid over a single brick, earthy brown accents",
+  "place-500-towers":
+    "a silver medal embossed with a crossed builder's hammer and gear cog, slate-grey accents",
+  "place-5000-towers":
+    "a gold medal embossed with a drafting compass over a rolled tower blueprint, gold and blue accents",
+};
+const ACHIEVEMENT_STYLE =
+  "a single ornate circular achievement trophy medal badge, {V}, thick beveled polished metal rim with a small ribbon tab at the top, raised embossed central emblem, soft inner glow, flat cel-shaded game UI icon, bold clean outline, high contrast, centered, instantly readable at small size, isolated on a pure plain flat white background, empty background, no text, no numbers";
+const ACHIEVEMENT_NEG =
+  "character, person, creature, hero, knight figure, full body, anime girl, realistic, 3d render, photo, complex scene, landscape, multiple medals, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, numbers, signature, frame, border";
+export const ACHIEVEMENT_NEGATIVE = ACHIEVEMENT_NEG;
+/** Trophy-medallion prompt from a visual description. */
+export function achievementIconStyle(visual) {
+  return ACHIEVEMENT_STYLE.replace("{V}", visual);
+}
+
 // ---- ITEMS (icon style) ----
 const ITEM_STYLE =
   "a single game item icon, {V}, clean cel-shaded anime game asset, centered, isolated on a plain solid light grey background, no shadow, soft rim light";

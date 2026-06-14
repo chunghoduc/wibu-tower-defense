@@ -28,6 +28,8 @@ export const fxTex = (id: string): string => `fx__${id}`;
 export const structureTex = (id: string): string => `structure__${id}`;
 /** Per-role tower badge emblem (damage, splash, chain, …). */
 export const roleTex = (role: string): string => `roleicon__${role}`;
+/** Achievement medallion emblem icon (one per achievement id). */
+export const achievementTex = (id: string): string => `achievement__${id}`;
 
 /** Fixed singleton currency / UI keys (named so they are never magic strings). */
 export const GOLD_TEX = "icon__gold";

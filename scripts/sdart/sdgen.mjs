@@ -21,6 +21,9 @@ import {
   ROLE_VISUAL,
   roleIconStyle,
   ROLEICON_NEGATIVE,
+  ACHIEVEMENT_VISUAL,
+  achievementIconStyle,
+  ACHIEVEMENT_NEGATIVE,
 } from "./prompts.mjs";
 
 // Item icons are catalog-driven: `npm run gen:item-visual` dumps every item's
@@ -202,6 +205,21 @@ function buildJobs() {
       h: 768,
       size: 64,
       neg: ROLEICON_NEGATIVE,
+    });
+  }
+  // achievement medallions — one full-colour trophy badge per achievement,
+  // transparent-cut to 128px (rendered ~64px on the board card, no tint).
+  for (const [id, v] of Object.entries(ACHIEVEMENT_VISUAL)) {
+    jobs.push({
+      kind: "achievement",
+      id,
+      file: `${id}.png`,
+      prompt: achievementIconStyle(v),
+      seed: seedOf(id),
+      w: 768,
+      h: 768,
+      size: 128,
+      neg: ACHIEVEMENT_NEGATIVE,
     });
   }
   const items = existsSync(ITEM_VISUAL_PATH)

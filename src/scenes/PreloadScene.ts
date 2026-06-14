@@ -27,8 +27,10 @@ import {
   CASTLE_TEX,
   CASTLE_DAMAGED_TEX,
   roleTex,
+  achievementTex,
 } from "../data/assetKeys.ts";
 import { TOWER_ROLES } from "../data/schemaEnums.ts";
+import { ACHIEVEMENTS } from "../data/achievements.ts";
 import { versioned } from "../data/assetVersion.ts";
 
 export class PreloadScene extends Phaser.Scene {
@@ -106,6 +108,11 @@ export class PreloadScene extends Phaser.Scene {
     // legacy sword/arrow glyph drawn by BattleScene (no crash).
     for (const r of TOWER_ROLES) {
       this.load.image(roleTex(r), versioned(`assets/sprites/roleicon/${r}.png`));
+    }
+    // Per-achievement trophy medallions (SDXL). A missing file degrades to no
+    // icon (AchievementScene gates on textures.exists) — never a __MISSING box.
+    for (const a of ACHIEVEMENTS) {
+      this.load.image(achievementTex(a.id), versioned(`assets/sprites/achievement/${a.id}.png`));
     }
     // Additive-blend VFX textures (box-open burst/glow/sparkle).
     for (const id of FX_IDS) this.load.image(fxTex(id), versioned(`assets/sprites/fx/${id}.png`));
