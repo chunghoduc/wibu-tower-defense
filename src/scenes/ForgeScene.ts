@@ -13,6 +13,8 @@ import { crispText } from "./ui.ts";
 import { makeFitIcon } from "./itemIcon.ts";
 import { buildStationCard } from "./forgeStationCard.ts";
 import { openForgeDialog, type ForgeDialogHandle } from "./forgeRecipeDialog.ts";
+import { playForgeFx } from "./forgeFxPlayer.ts";
+import { forgeFxSpec } from "../core/forgeFx.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { TOWERS } from "../data/towers.ts";
 import { AWAKENING_CRYSTAL, JEWEL_OF_CHAOS, FEATHER } from "../data/materials.ts";
@@ -216,6 +218,8 @@ export class ForgeScene extends Phaser.Scene {
       this.showToast("Cannot forge — check materials.");
       return;
     }
+    const anchor = this.dialog?.outputAnchor() ?? { x: W / 2, y: 270 };
+    playForgeFx(this, anchor.x, anchor.y, forgeFxSpec(stationId, true));
     this.showToast(msg);
     this.rebuild();
     // Re-derive the same station so the open dialog reflects the new state.
@@ -265,6 +269,7 @@ export class ForgeScene extends Phaser.Scene {
           this.showToast("Craft failed — check materials.");
           return;
         }
+        playForgeFx(this, W / 2, this.scale.height / 2, forgeFxSpec("wings", !!r.success));
         if (r.success && r.item) {
           this.showToast(`✦ Forged ${ITEM_CATALOG_MAP.get(r.item.defId)?.name ?? "Wings"}!`);
         } else {
