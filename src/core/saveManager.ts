@@ -11,6 +11,7 @@ import {
   claimQuest,
   claimableQuestCount,
   eligibleTowersForSlot,
+  rerollBoard,
 } from "./expeditionBoard.ts";
 import {
   bestEndlessWave,
@@ -176,6 +177,16 @@ export class SaveManager extends SaveManagerCore {
   /** Count of Ready quests (drives the Activities badge). */
   expeditionClaimable(nowMs = Date.now()): number {
     return claimableQuestCount(this.save, nowMs);
+  }
+  /** Reroll the Available quests (free, capped per day). Returns false if none left. */
+  rerollExpeditionBoard(nowMs = Date.now()): boolean {
+    const ok = rerollBoard(this.save, nowMs, new Rng((Math.random() * 1e9) | 0));
+    if (ok) this.persist();
+    return ok;
+  }
+  /** Free rerolls remaining today (day-reset aware via ensureExpeditionBoard). */
+  expeditionRerollsLeft(): number {
+    return this.save.meta.expedition.freeRerollsLeft;
   }
 
   // ── F11 Endless survival ────────────────────────────────────────────────────
