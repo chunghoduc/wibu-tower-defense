@@ -41,6 +41,7 @@ import { drawDamageBadge } from "./damageBadgeFx.ts";
 import { fadeIn, DUR } from "./uiKit.ts";
 import { BattleInfoPanel } from "./battleInfoPanel.ts";
 import { FxLayer } from "./fx.ts";
+import { DEPTH } from "./battleDepths.ts";
 import { Sfx } from "./audio.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
 import { type HeroLayeredSprite } from "./HeroLayeredSprite.ts";
@@ -234,7 +235,7 @@ export class BattleScene extends Phaser.Scene {
     this.staticGfx = this.add.graphics();
     this.dynGfx = this.add.graphics().setDepth(5); // bars/rings above sprites (depth 2)
     this.world.add([this.staticGfx, this.dynGfx]);
-    this.fx = new FxLayer(this, 6, this.world);
+    this.fx = new FxLayer(this, DEPTH.FX, this.world, DEPTH.SKILL_FX_UNDER);
     this.drawStatic();
 
     // The panel OVERLAYS the battlefield (does not resize it). battleW = full width.

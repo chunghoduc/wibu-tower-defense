@@ -20,6 +20,7 @@ import { BossSkillFx } from "./bossSkillSignatures.ts";
 import { itemTex, boxTex } from "../data/assetKeys.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { RARITY_INT, RARITY_HEX } from "../data/rarityColors.ts";
+import { DEPTH } from "./battleDepths.ts";
 
 const DMG_COLOR: Record<DamageType, number> = {
   Physical: 0xe9eef7,
@@ -53,8 +54,11 @@ export class FxLayer {
 
   constructor(
     private readonly scene: Phaser.Scene,
-    private readonly depth = 6,
+    private readonly depth = DEPTH.FX,
     layer?: Phaser.GameObjects.Layer,
+    /** Base depth for skill-cast VFX (SkillVfx + BossSkillFx) — kept BELOW the unit
+     *  sprites so a cast never hides the enemy/boss it lands on. */
+    private readonly skillDepth = DEPTH.SKILL_FX_UNDER,
   ) {
     this.fac = layer
       ? (new Proxy(scene.add, {
@@ -71,12 +75,12 @@ export class FxLayer {
         }) as Phaser.GameObjects.GameObjectFactory)
       : scene.add;
     this.pool = new FxPool(this.fac);
-    this.skillVfx = new SkillVfx(scene, this.fac, this.depth, this.pool);
+    this.skillVfx = new SkillVfx(scene, this.fac, this.skillDepth, this.pool);
     this.melee = new MeleeFx(scene, this.fac, this.depth);
     this.impact = new ImpactFx(scene, this.fac, this.depth);
     this.proj = new ProjectileFx(scene, this.fac, this.depth, this.impact, this.pool);
     this.lootFly = new LootFlyFx(scene, this.fac, this.depth);
-    this.bossFx = new BossSkillFx(scene, this.fac, this.depth);
+    this.bossFx = new BossSkillFx(scene, this.fac, this.skillDepth);
   }
 
   play(e: FxEvent): void {
