@@ -2,7 +2,7 @@ import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { type MetaSave, defaultMeta, backfillMeta } from "./meta.ts";
 
-export const CURRENT_SAVE_VERSION = 12;
+export const CURRENT_SAVE_VERSION = 13;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -288,6 +288,14 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     // Mastery choice-pick: choose-nodes now persist which option is active.
     save = { ...save, version: 12 };
     if (save.hero) save.hero.nodeChoices ??= {};
+  }
+  if ((save.version ?? 0) < 13) {
+    // Expedition free rerolls: existing boards start the day with a full 5.
+    save = { ...save, version: 13 };
+    if (save.meta?.expedition) {
+      save.meta.expedition.freeRerollsLeft ??= 5;
+      save.meta.expedition.rerollDay ??= "";
+    }
   }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the

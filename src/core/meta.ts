@@ -27,6 +27,10 @@ export interface ExpeditionSave {
   lastRerollDay: string;
   /** Monotonic counter that sources unique quest ids. */
   nextQuestSeq: number;
+  /** Free board rerolls remaining today (0..REROLL_PER_DAY). */
+  freeRerollsLeft: number;
+  /** UTC yyyy-mm-dd the reroll counter was last reset. "" = never. */
+  rerollDay: string;
 }
 
 /** F3 — Weekly bounty board. */
@@ -116,7 +120,13 @@ export interface MetaSave {
 export function defaultMeta(): MetaSave {
   return {
     streak: { count: 0, lastClaimDate: "", best: 0 },
-    expedition: { quests: [], lastRerollDay: "", nextQuestSeq: 0 },
+    expedition: {
+      quests: [],
+      lastRerollDay: "",
+      nextQuestSeq: 0,
+      freeRerollsLeft: 5,
+      rerollDay: "",
+    },
     bounties: { weekKey: "", progress: {}, claimed: [] },
     spin: { lastSpinDate: "", pityCount: 0 },
     challenge: { dayKey: "", modifierId: "", cleared: false },
@@ -145,6 +155,8 @@ export function backfillMeta(meta: Partial<MetaSave> | undefined): MetaSave {
       quests: meta.expedition?.quests ?? [],
       lastRerollDay: meta.expedition?.lastRerollDay ?? "",
       nextQuestSeq: meta.expedition?.nextQuestSeq ?? 0,
+      freeRerollsLeft: meta.expedition?.freeRerollsLeft ?? 5,
+      rerollDay: meta.expedition?.rerollDay ?? "",
     },
     bounties: {
       ...d.bounties,
