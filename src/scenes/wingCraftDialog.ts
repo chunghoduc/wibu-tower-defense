@@ -1,25 +1,26 @@
 /**
- * Craft Wings — a drag-and-drop craft machine. Drag inventory items and the two
- * materials (Jewel of Chaos, Feather) from the tray INTO the central machine; the
- * Forge button unlocks only when the gate passes (≥5 items + a jewel + the
- * feather). A live readout shows the success rate and a colored bar of the outcome
- * rarity odds. The caller owns inventory access, the preview math and the actual
- * craft (confirm); this module owns the machine UI only. Geometry + gating come
- * from the pure wingCraftMachine module.
+ * Craft Wings — load gear + materials into the machine, then Forge. The tray (gear
+ * picker) is a scrollable, rarity-filterable, tap-to-load grid (wingCraftTray). Gear
+ * loads by tapping a tray tile; the two materials load by tapping their machine
+ * socket (jewel cycles 0..cap, feather toggles). Auto fills the cheapest valid craft;
+ * Clear empties the machine. A live readout shows success % + outcome odds. The
+ * caller owns inventory access, the preview math and the craft (confirm).
  */
 import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
-import { itemTex, materialTex } from "../data/assetKeys.ts";
+import { materialTex } from "../data/assetKeys.ts";
 import { RARITY_INT } from "../data/rarityColors.ts";
 import { JEWEL_OF_CHAOS, FEATHER } from "../data/materials.ts";
-import { MAX_JEWELS } from "../core/wingCraft.ts";
+import { MAX_JEWELS, MIN_ITEMS } from "../core/wingCraft.ts";
 import {
   wingCraftGate,
   wingMachineLayout,
   loadedSlotLayout,
   oddsBarSegments,
 } from "../core/wingCraftMachine.ts";
-import { makeDraggable, drawSocket, machineZoneHit } from "./wingCraftDrag.ts";
+import { autoWingSelection } from "../core/wingTray.ts";
+import { drawSocket } from "./wingCraftDrag.ts";
+import { createWingTray, type WingTrayHandle } from "./wingCraftTray.ts";
 import type { Rarity } from "../data/schema.ts";
 
 export interface WingCraftItem {
@@ -44,7 +45,6 @@ export interface WingCraftOpts {
 }
 
 const ACCENT = 0x9a59d6; // chaos violet
-const CELL = 46;
 
 export function openWingCraftDialog(
   scene: Phaser.Scene,
@@ -62,38 +62,13 @@ export function openWingCraftDialog(
 
   const c = scene.add.container(0, 0).setDepth(320);
 
-  // Tap-out guard: when you drag a tray tile and let go, Phaser fires `dragend`
-  // and then routes the release `pointerup` to the top-most object under the
-  // pointer — on touch that is the full-screen dim zone, so an un-guarded tap-out
-  // reads the drop as "tapped outside → close" and tears the machine down
-  // mid-craft. Track drag state (true for the whole drag, cleared one tick after
-  // dragend so it still covers the same-frame release pointerup) and ignore the
-  // tap-out while it is set. A fresh pointerdown resets it as a safety net.
-  let dragging = false;
-  const onDragStart = (): void => {
-    dragging = true;
-  };
-  const onDragEnd = (): void => {
-    scene.time.delayedCall(0, () => {
-      dragging = false;
-    });
-  };
-  const onPointerDown = (): void => {
-    dragging = false;
-  };
-  scene.input.on("dragstart", onDragStart);
-  scene.input.on("dragend", onDragEnd);
-  scene.input.on("pointerdown", onPointerDown);
-
-  // Dim + tap-out.
+  // Dim + tap-out (no drag any more, so a plain tap-out close is safe).
   const dim = scene.add.graphics();
   dim.fillStyle(0x000000, 0.78).fillRect(0, 0, W, H);
   const dimZone = scene.add
     .zone(W / 2, H / 2, W, H)
     .setInteractive()
-    .on("pointerup", () => {
-      if (!dragging) opts.onClose();
-    });
+    .on("pointerup", () => opts.onClose());
   c.add([dim, dimZone]);
 
   // Panel.
@@ -106,41 +81,36 @@ export function openWingCraftDialog(
   c.add([panel, panelZone]);
 
   c.add(
-    crispText(scene, W / 2, L.panel.y + 14, "Craft Wings", {
+    crispText(scene, W / 2, L.panel.y + 12, "Craft Wings", {
       fontSize: "18px",
       color: "#e9d5ff",
       fontStyle: "bold",
     }).setOrigin(0.5, 0),
   );
 
-  // ---- machine drop zone (border redrawn by render/hover) --------------------
+  // ---- machine ---------------------------------------------------------------
   const machineGfx = scene.add.graphics();
   c.add(machineGfx);
-  const drawMachine = (hot: boolean): void => {
+  const drawMachine = (): void => {
     machineGfx.clear();
     machineGfx
       .fillStyle(0x1d1430, 0.95)
       .fillRoundedRect(L.machine.x, L.machine.y, L.machine.w, L.machine.h, 10);
     machineGfx
-      .lineStyle(hot ? 3 : 2, hot ? 0xffffff : ACCENT, hot ? 1 : 0.7)
+      .lineStyle(2, ACCENT, 0.7)
       .strokeRoundedRect(L.machine.x, L.machine.y, L.machine.w, L.machine.h, 10);
   };
-  const machineZone = scene.add
-    .zone(L.machine.x + L.machine.w / 2, L.machine.y + L.machine.h / 2, L.machine.w, L.machine.h)
-    .setRectangleDropZone(L.machine.w, L.machine.h);
-  c.add(machineZone);
   c.add(
-    crispText(scene, L.machine.x + 12, L.machine.y + 8, "Drag items + materials here", {
+    crispText(scene, L.machine.x + 12, L.machine.y + 8, "Tap gear below + the sockets →", {
       fontSize: "11px",
       color: "#8a7aa6",
     }),
   );
 
-  // Layer that holds the loaded-item icons (re-rendered each change).
   const loadedLayer = scene.add.container(0, 0);
   c.add(loadedLayer);
 
-  // ---- material sockets (jewel + feather) ------------------------------------
+  // ---- material sockets (tap to load) ----------------------------------------
   const socketGfx = scene.add.graphics();
   c.add(socketGfx);
   const jewelCountText = crispText(scene, 0, 0, "", { fontSize: "12px", color: "#fff" }).setOrigin(
@@ -151,20 +121,61 @@ export function openWingCraftDialog(
     color: "#fff",
   }).setOrigin(0.5);
   c.add([jewelCountText, featherCountText]);
+  // Optional material icons behind the count glyphs (if textures exist).
+  for (const [key, sock] of [
+    [materialTex(JEWEL_OF_CHAOS), L.jewelSocket],
+    [materialTex(FEATHER), L.featherSocket],
+  ] as const) {
+    if (scene.textures.exists(key)) {
+      c.add(
+        scene.add
+          .image(sock.x + sock.w / 2, sock.y + sock.h / 2, key)
+          .setDisplaySize(30, 30)
+          .setAlpha(0.5),
+      );
+    }
+  }
+  const jewelZone = scene.add
+    .zone(
+      L.jewelSocket.x + L.jewelSocket.w / 2,
+      L.jewelSocket.y + L.jewelSocket.h / 2,
+      L.jewelSocket.w,
+      L.jewelSocket.h,
+    )
+    .setInteractive({ useHandCursor: true })
+    .on("pointerup", () => {
+      if (jewelCap <= 0) return;
+      jewels = jewels >= jewelCap ? 0 : jewels + 1; // cycle 0..cap
+      render();
+    });
+  const featherZone = scene.add
+    .zone(
+      L.featherSocket.x + L.featherSocket.w / 2,
+      L.featherSocket.y + L.featherSocket.h / 2,
+      L.featherSocket.w,
+      L.featherSocket.h,
+    )
+    .setInteractive({ useHandCursor: true })
+    .on("pointerup", () => {
+      if (opts.feathersOwned < 1) return;
+      feather = !feather;
+      render();
+    });
+  c.add([jewelZone, featherZone]);
 
   // ---- readout ----------------------------------------------------------------
   const statusText = crispText(scene, L.readout.x, L.readout.y, "", {
     fontSize: "13px",
     color: "#e9d5ff",
   });
-  const successText = crispText(scene, L.readout.x, L.readout.y + 30, "", {
+  const successText = crispText(scene, L.readout.x, L.readout.y + 26, "", {
     fontSize: "15px",
     color: "#ffe6a0",
     fontStyle: "bold",
   });
   c.add([statusText, successText]);
   c.add(
-    crispText(scene, L.readout.x + L.readout.w, L.readout.y + 44, "Wing odds:", {
+    crispText(scene, L.readout.x + L.readout.w, L.readout.y + 40, "Wing odds:", {
       fontSize: "11px",
       color: "#9fb0c4",
     }).setOrigin(1, 0),
@@ -172,6 +183,46 @@ export function openWingCraftDialog(
   const oddsGfx = scene.add.graphics();
   const oddsLabels = scene.add.container(0, 0);
   c.add([oddsGfx, oddsLabels]);
+
+  // ---- Auto / Clear -----------------------------------------------------------
+  const mkBtn = (
+    rect: { x: number; y: number; w: number; h: number },
+    label: string,
+    fill: number,
+    onTap: () => void,
+  ): void => {
+    const g = scene.add.graphics();
+    g.fillStyle(fill, 0.9).fillRoundedRect(rect.x, rect.y, rect.w, rect.h, 6);
+    g.lineStyle(1, 0xffffff, 0.25).strokeRoundedRect(rect.x, rect.y, rect.w, rect.h, 6);
+    const t = crispText(scene, rect.x + rect.w / 2, rect.y + rect.h / 2, label, {
+      fontSize: "12px",
+      color: "#fff",
+      fontStyle: "bold",
+    }).setOrigin(0.5);
+    const z = scene.add
+      .zone(rect.x + rect.w / 2, rect.y + rect.h / 2, rect.w, rect.h)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerup", onTap);
+    c.add([g, t, z]);
+  };
+  mkBtn(L.autoBtn, "Auto", 0x2f7a4a, () => {
+    const sel = autoWingSelection(opts.items, {
+      need: Math.max(0, MIN_ITEMS - selected.size),
+      jewelCap,
+      feathersOwned: opts.feathersOwned,
+      selected,
+    });
+    for (const id of sel.ids) selected.add(id);
+    if (jewels === 0) jewels = sel.jewels;
+    feather = feather || sel.feather;
+    render();
+  });
+  mkBtn(L.clearBtn, "Clear", 0x6a2f2f, () => {
+    selected.clear();
+    jewels = 0;
+    feather = false;
+    render();
+  });
 
   // ---- craft + close ----------------------------------------------------------
   const craftBtn = crispText(scene, L.craftBtn.x, L.craftBtn.y, "", {
@@ -181,7 +232,7 @@ export function openWingCraftDialog(
     align: "center",
   })
     .setOrigin(0, 0)
-    .setPadding(0, 9, 0, 9)
+    .setPadding(0, 8, 0, 8)
     .setInteractive({ useHandCursor: true });
   craftBtn.on("pointerup", () => {
     if (!wingCraftGate(gateInput()).canCraft) return;
@@ -189,7 +240,7 @@ export function openWingCraftDialog(
   });
   c.add(craftBtn);
 
-  const close = crispText(scene, L.panel.x + L.panel.w - 60, L.craftBtn.y + 8, "Close", {
+  const close = crispText(scene, L.panel.x + L.panel.w - 56, L.craftBtn.y + 6, "Close", {
     fontSize: "13px",
     color: "#cdb8e6",
   })
@@ -199,59 +250,18 @@ export function openWingCraftDialog(
   close.on("pointerup", () => opts.onClose());
   c.add(close);
 
-  // ---- tray (draggable item + material tiles) --------------------------------
-  // Returns true if the source was consumed (so the tray tile dims).
-  const tryLoad = (kind: "item" | "jewel" | "feather", id?: string): boolean => {
-    if (kind === "item" && id && !selected.has(id) && opts.items.some((i) => i.id === id)) {
+  // ---- tray (delegated) -------------------------------------------------------
+  const tray: WingTrayHandle = createWingTray({
+    scene,
+    parent: c,
+    layout: L,
+    items: opts.items,
+    isLoaded: (id) => selected.has(id),
+    onLoad: (id) => {
       selected.add(id);
-      return true;
-    }
-    if (kind === "jewel" && jewels < jewelCap) {
-      jewels++;
-      return true;
-    }
-    if (kind === "feather" && !feather && opts.feathersOwned >= 1) {
-      feather = true;
-      return true;
-    }
-    return false;
-  };
-
-  const tileRefs: {
-    kind: "item" | "jewel" | "feather";
-    id?: string;
-    img: Phaser.GameObjects.Image | null;
-    ring: Phaser.GameObjects.Graphics;
-    x: number;
-    y: number;
-  }[] = [];
-
-  const trayCols = Math.max(1, Math.floor(L.tray.w / CELL));
-  let slot = 0;
-  const placeTile = (kind: "item" | "jewel" | "feather", texKey: string, id?: string): void => {
-    const cx = L.tray.x + (slot % trayCols) * CELL;
-    const cy = L.tray.y + Math.floor(slot / trayCols) * CELL;
-    slot++;
-    const ring = scene.add.graphics();
-    c.add(ring);
-    let img: Phaser.GameObjects.Image | null = null;
-    if (scene.textures.exists(texKey)) {
-      img = scene.add.image(cx + 22, cy + 22, texKey).setDisplaySize(40, 40);
-      c.add(img);
-      makeDraggable(scene, img, cx + 22, cy + 22, () => {
-        if (machineZoneHit(scene) && tryLoad(kind, id)) render();
-      });
-      img.on("pointerup", () => {
-        if (tryLoad(kind, id)) render(); // tap-to-load fallback
-      });
-    }
-    tileRefs.push({ kind, id, img, ring, x: cx, y: cy });
-  };
-
-  // Material tiles first (always visible), then items.
-  placeTile("jewel", materialTex(JEWEL_OF_CHAOS));
-  placeTile("feather", materialTex(FEATHER));
-  for (const it of opts.items) placeTile("item", itemTex(it.defId), it.id);
+      render();
+    },
+  });
 
   // ---- render -----------------------------------------------------------------
   function gateInput(): {
@@ -272,17 +282,27 @@ export function openWingCraftDialog(
 
   function renderLoaded(): void {
     loadedLayer.removeAll(true);
-    const pts = loadedSlotLayout(selected.size, L.machine, 34);
+    const pts = loadedSlotLayout(selected.size, L.machine, 30);
     [...selected].forEach((id, i) => {
       const it = opts.items.find((x) => x.id === id);
       const p = pts[i];
-      if (!it || !p || !scene.textures.exists(itemTex(it.defId))) return;
-      const im = scene.add.image(p.x, p.y, itemTex(it.defId)).setDisplaySize(30, 30);
-      im.setInteractive({ useHandCursor: true }).on("pointerup", () => {
-        selected.delete(id); // tap a loaded icon to unload it
-        render();
-      });
-      loadedLayer.add(im);
+      if (!it || !p) return;
+      const col = RARITY_INT[it.rarity];
+      const g = scene.add.graphics();
+      g.fillStyle(col, 0.85).fillRoundedRect(p.x - 13, p.y - 13, 26, 26, 5);
+      const t = crispText(scene, p.x, p.y, (it.name[0] ?? "?").toUpperCase(), {
+        fontSize: "13px",
+        color: "#10121a",
+        fontStyle: "bold",
+      }).setOrigin(0.5);
+      const z = scene.add
+        .zone(p.x, p.y, 28, 28)
+        .setInteractive({ useHandCursor: true })
+        .on("pointerup", () => {
+          selected.delete(id); // tap a loaded chip to unload it
+          render();
+        });
+      loadedLayer.add([g, t, z]);
     });
   }
 
@@ -292,41 +312,18 @@ export function openWingCraftDialog(
     drawSocket(socketGfx, L.featherSocket, feather);
     jewelCountText
       .setText(`◈${jewels}`)
-      .setPosition(L.jewelSocket.x + L.jewelSocket.w / 2, L.jewelSocket.y + L.jewelSocket.h / 2)
+      .setPosition(L.jewelSocket.x + L.jewelSocket.w / 2, L.jewelSocket.y + L.jewelSocket.h - 9)
       .setColor(jewels > 0 ? "#e9d5ff" : "#6a5a86");
     featherCountText
       .setText(feather ? "✦" : "·")
-      .setPosition(
-        L.featherSocket.x + L.featherSocket.w / 2,
-        L.featherSocket.y + L.featherSocket.h / 2,
-      )
+      .setPosition(L.featherSocket.x + L.featherSocket.w / 2, L.featherSocket.y + L.featherSocket.h - 9)
       .setColor(feather ? "#fff6c0" : "#6a5a86");
-  }
-
-  function renderTray(): void {
-    for (const t of tileRefs) {
-      const isLoaded =
-        (t.kind === "item" && t.id && selected.has(t.id)) ||
-        (t.kind === "jewel" && jewels >= jewelCap) ||
-        (t.kind === "feather" && feather);
-      const owned =
-        t.kind === "item" ? true : t.kind === "jewel" ? jewelCap > 0 : opts.feathersOwned >= 1;
-      if (t.img) t.img.setAlpha(isLoaded || !owned ? 0.35 : 1);
-      const col =
-        t.kind === "item"
-          ? RARITY_INT[opts.items.find((i) => i.id === t.id)?.rarity ?? "Common"]
-          : ACCENT;
-      t.ring.clear();
-      t.ring
-        .lineStyle(1, col, owned ? 0.6 : 0.25)
-        .strokeRoundedRect(t.x, t.y, CELL - 2, CELL - 2, 6);
-    }
   }
 
   function renderReadout(): void {
     const gate = wingCraftGate(gateInput());
     statusText.setText(
-      `Items ${selected.size}/5   ·   Jewels ${jewels}/${MAX_JEWELS}   ·   Feather ${feather ? "✓" : "✗"}`,
+      `Items ${selected.size}/${MIN_ITEMS}   ·   Jewels ${jewels}/${jewelCap}   ·   Feather ${feather ? "✓" : "✗"}`,
     );
     const p = opts.preview([...selected], jewels);
     successText.setText(gate.canCraft ? `Success ${Math.round(p.success * 100)}%` : "Success —");
@@ -357,9 +354,9 @@ export function openWingCraftDialog(
     const hint = gate.needItems
       ? `Load ${gate.needItems} more item(s)`
       : !gate.hasJewel
-        ? "Add a Jewel of Chaos"
+        ? "Tap the ◈ socket"
         : !gate.hasFeather
-          ? "Add a Feather"
+          ? "Tap the ✦ socket"
           : "🔨 Forge Wings";
     craftBtn
       .setText(hint)
@@ -368,25 +365,14 @@ export function openWingCraftDialog(
   }
 
   function render(): void {
-    drawMachine(false);
+    drawMachine();
     renderLoaded();
     renderSockets();
-    renderTray();
     renderReadout();
+    tray.render();
   }
 
-  // Brighten the machine while a drag hovers it.
-  const onSceneDrag = (): void => drawMachine(machineZoneHit(scene));
-  scene.input.on("drag", onSceneDrag);
-
-  // Drop every scene-level input listener when the dialog goes away, so
-  // re-opening the machine doesn't stack duplicate handlers.
-  c.once("destroy", () => {
-    scene.input.off("drag", onSceneDrag);
-    scene.input.off("dragstart", onDragStart);
-    scene.input.off("dragend", onDragEnd);
-    scene.input.off("pointerdown", onPointerDown);
-  });
+  c.once("destroy", () => tray.destroy());
 
   render();
   return c;
