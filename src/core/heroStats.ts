@@ -19,6 +19,7 @@ import { collectPassiveMore, heroStatPipeline } from "./stats.ts";
 import { buildAffixStats } from "./affixStats.ts";
 import { socketedJewelBags } from "./jewelStats.ts";
 import { scaleStatsByEnhance } from "./enhance.ts";
+import { effectiveNode } from "./passiveChoice.ts";
 
 export interface ResolvedHeroStats {
   stats: Stats;
@@ -31,7 +32,8 @@ export interface ResolvedHeroStats {
 export function resolveHeroBattleStats(save: HeroSave, base: Stats): ResolvedHeroStats {
   const unlockedNodes = save.hero.unlockedNodes
     .map((id) => PASSIVE_NODES_MAP.get(id))
-    .filter((n): n is PassiveNodeDef => n !== undefined);
+    .filter((n): n is PassiveNodeDef => n !== undefined)
+    .map((n) => effectiveNode(n, save.hero.nodeChoices ?? {}));
 
   // Item base stats (each scaled by its enhance level) add flat.
   const itemStats: Partial<Stats>[] = [];
