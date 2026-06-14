@@ -322,9 +322,9 @@ export const ACHIEVEMENT_VISUAL = {
     "a gold medal embossed with a drafting compass over a rolled tower blueprint, gold and blue accents",
 };
 const ACHIEVEMENT_STYLE =
-  "a single ornate circular achievement trophy medal badge, {V}, thick beveled polished metal rim with a small ribbon tab at the top, raised embossed central emblem, soft inner glow, flat cel-shaded game UI icon, bold clean outline, high contrast, centered, instantly readable at small size, isolated on a pure plain flat white background, empty background, no text, no numbers";
+  "a single ornate cel-shaded anime game trophy medallion award icon, {V}, sculpted metallic relief with real depth, glossy highlights and soft rim light, clean cel-shaded anime game asset, bold clean outline, centered, isolated on a plain solid light grey background, no shadow, no text, no numbers";
 const ACHIEVEMENT_NEG =
-  "character, person, creature, hero, knight figure, full body, anime girl, realistic, 3d render, photo, complex scene, landscape, multiple medals, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, numbers, signature, frame, border";
+  "flat sticker, flat clipart, flat vector icon, 2d sticker, ribbon tab, lanyard, character, person, creature, hero, knight figure, full body, anime girl, realistic, photo, complex scene, landscape, multiple medals, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, numbers, signature, frame, border";
 export const ACHIEVEMENT_NEGATIVE = ACHIEVEMENT_NEG;
 /** Trophy-medallion prompt from a visual description. */
 export function achievementIconStyle(visual) {
