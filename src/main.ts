@@ -23,6 +23,7 @@ import { setCombatLogSink } from "./core/combatLog.ts";
 import { setAudioVolume, setAudioMuted } from "./scenes/audio.ts";
 import { installMobileLandscape } from "./mobileLandscape.ts";
 import { hardenTouchInput } from "./core/touchInput.ts";
+import { installViewportFit } from "./core/viewportFit.ts";
 
 installLogger();
 
@@ -72,6 +73,12 @@ game.registry.set("saveManager", saveManager);
 
 // Mobile web: fullscreen + landscape on first gesture, rotate-prompt otherwise.
 installMobileLandscape(game);
+
+// Keep the canvas fit to the VISIBLE viewport. The host is sized in dynamic
+// viewport units (index.html), but iOS does not reliably fire window `resize`
+// when the toolbar shows/hides — `visualViewport` does. Without this, the bottom
+// BATTLE CTA / battle build bar can hide behind browser chrome (untappable).
+installViewportFit(game);
 
 // Mobile web: the canvas owns every touch gesture. Phaser creates the canvas
 // during boot, so harden it once it exists (CSS in index.html is the static

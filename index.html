@@ -14,7 +14,14 @@
         padding: 0;
         background: #0d0f14;
         overflow: hidden;
+        /* Size to the VISIBLE viewport. Static `vh` equals the LAYOUT viewport,
+           which on mobile is taller than the visual one while the toolbar shows,
+           so the bottom of the FIT-scaled canvas (BATTLE CTA / build bar) hides
+           behind browser chrome — untappable, and unscrollable under
+           `touch-action: none`. `dvh` tracks the visible area; `vh`/100% stay
+           first as the universal fallback. */
         height: 100%;
+        height: 100dvh;
         font-family: system-ui, sans-serif;
         /* The game canvas owns all touch gestures — no native scroll/pinch/
            double-tap-zoom or pull-to-refresh bounce underneath it. */
@@ -23,7 +30,9 @@
       }
       #game {
         width: 100vw;
+        width: 100dvw;
         height: 100vh;
+        height: 100dvh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -32,6 +41,15 @@
       #game canvas {
         touch-action: none;
         overscroll-behavior: none;
+      }
+      /* Pre-`dvh` iOS Safari (< 15.4): `-webkit-fill-available` approximates the
+         visible-viewport height the same way. */
+      @supports (-webkit-touch-callout: none) {
+        html,
+        body,
+        #game {
+          height: -webkit-fill-available;
+        }
       }
       /* DOM splash — visible before Phaser canvas exists */
       #loading-splash {
