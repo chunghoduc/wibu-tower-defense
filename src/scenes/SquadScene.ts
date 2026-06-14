@@ -19,6 +19,7 @@ import { crispText } from "./ui.ts";
 import { renderCharInfo, renderHeroInfo } from "./squadInfoPanel.ts";
 import { makeCharTile, makeSlotTile, RARITY_HEX } from "./squadTiles.ts";
 import { createSquadDrag } from "./squadDrag.ts";
+import { squadRemove, squadPlaceAt } from "./squadEdit.ts";
 import { TAP_SLOP_PX } from "../core/gesture.ts";
 
 const RARITY_ORDER: Record<Rarity, number> = {
@@ -189,13 +190,7 @@ export class SquadScene extends Phaser.Scene {
       slotOf: (zone) => (zone.getData("slot") as number | undefined) ?? null,
       fromSlot: (obj) => (obj.getData("fromSlot") as number | undefined) ?? null,
       assign: (id, slot) => this.assignToSlot(id, slot),
-      removeFromSquad: (id) => {
-        const idx = this.slots.indexOf(id);
-        if (idx >= 0) {
-          this.slots[idx] = null;
-          this.persist();
-        }
-      },
+      removeFromSquad: (id) => this.commit(squadRemove(this.slots, id)),
       refresh: () => this.redraw(),
       setDragging: (active) => {
         this.didDrag = active;
@@ -228,13 +223,18 @@ export class SquadScene extends Phaser.Scene {
     this.mgr.setSquad(this.slots.filter((s): s is string => Boolean(s)));
   }
 
+  /** Apply a pure squadEdit result to the working slots + persist. Never redraws
+   *  (callers decide when to redraw — critically, the drag path must NOT redraw
+   *  inside `drop`; see squadDrag.ts / the Phaser drop-destroy trap). */
+  private commit(result: { slots: (string | null)[] }): void {
+    this.slots = result.slots;
+    this.persist();
+  }
+
   /** Data mutation only — the dragend rebuild renders the result. Must NOT
    *  redraw here: that destroys the dragged tile and makes Phaser skip dragend. */
   private assignToSlot(id: string, slot: number): void {
-    const cur = this.slots.indexOf(id);
-    if (cur >= 0) this.slots[cur] = null; // move (no duplicates)
-    this.slots[slot] = id;
-    this.persist();
+    this.commit(squadPlaceAt(this.slots, id, slot));
     this.selectedId = id; // select without redraw; dragend's refresh shows it
   }
 
