@@ -51,17 +51,18 @@ scrollable list** using the existing `scrollDrag.ts` / `gesture.ts` momentum scr
   `project_squad_no_drag_editing`, `project_tap_to_place_mobile`).
 
 Tap a tray tile → load into the machine. Tap a loaded icon in the machine → unload
-(already supported). Materials (Jewel of Chaos, Feather) are tiles in the same tray
-and load by tap too.
+(already supported). **Materials load by tapping their machine socket** (not tray
+tiles): the jewel socket cycles `0 → 1 → … → cap → 0`, the feather socket toggles
+on/off (gated by ownership). This keeps the tray pure gear and removes the
+material-double-load path entirely.
 
 ### New features
 
 - **Rarity filter chips.** A chip row above the tray: `All` + one chip per rarity
   actually present in the unequipped inventory, in ladder order
   (Common→Magic→Rare→Legendary→Unique). Selecting a chip filters the item list and
-  resets the scroll offset. Materials always show regardless of filter (they sit in
-  their own fixed mini-row above the filtered item grid, so the filter only touches
-  gear).
+  resets the scroll offset. The tray holds only gear, so the filter is unambiguous;
+  materials live on the machine sockets and are unaffected.
 - **Auto button.** Fills the *cheapest valid craft*: the lowest-rarity
   `MIN_ITEMS` (5) unequipped items not already loaded, plus 1 Jewel of Chaos (if
   owned) and the Feather (if owned). Cheapest = burn junk, keep good gear. Idempotent
