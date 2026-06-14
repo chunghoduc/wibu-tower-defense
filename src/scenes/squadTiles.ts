@@ -9,6 +9,7 @@ import { starUpCost } from "../core/collection.ts";
 import type { CharacterDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 import { towerTex } from "../data/assetKeys.ts";
+import { roleBadgeTex } from "./roleBadge.ts";
 import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
 // Re-exported for SquadScene (historical import site); table lives in rarityColors.ts.
@@ -73,6 +74,14 @@ export function makeCharTile(
     const img = scene.add.image(0, -8, key).setOrigin(0.5);
     img.setScale(40 / img.height);
     c.add(img);
+  }
+  // Role emblem on the portrait's lower-right so the role reads in the roster
+  // grid, not just on the info panel. Guarded for headless/no-art runs.
+  const rbKey = roleBadgeTex(t.role);
+  if (scene.textures.exists(rbKey)) {
+    const emblem = scene.add.image(14, 6, rbKey);
+    emblem.setScale(15 / (emblem.height || 15));
+    c.add(emblem);
   }
   c.add(
     crispText(scene, 0, h / 2 - 16, t.name, {

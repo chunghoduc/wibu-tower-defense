@@ -13,6 +13,7 @@ import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { towerStatPipeline, starUpStepPct, starUpStepFlat } from "../core/stats.ts";
 import { starUpCost, MAX_STARS } from "../core/collection.ts";
 import { towerTex } from "../data/assetKeys.ts";
+import { roleBadgeTex } from "./roleBadge.ts";
 import { RARITY_HEX } from "../data/rarityColors.ts";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -22,6 +23,7 @@ const ROLE_LABEL: Record<string, string> = {
   dot: "DoT",
   debuff: "Debuff",
   support: "Support",
+  tanker: "Tank",
 };
 
 const n0 = (v: number) => `${Math.round(v)}`;
@@ -89,6 +91,14 @@ export function renderCharInfo(
     const img = scene.add.image(x + 28, y + 28, key, 0).setOrigin(0.5);
     img.setScale(Math.min(56 / img.width, 56 / img.height));
     add(c, img);
+  }
+  // Role emblem on the portrait's lower-right corner — makes the role pop, not
+  // just the text line below. Guarded so headless/no-art runs degrade to text.
+  const rbKey = roleBadgeTex(def.role);
+  if (scene.textures.exists(rbKey)) {
+    const emblem = scene.add.image(x + 48, y + 48, rbKey);
+    emblem.setScale(18 / (emblem.height || 18));
+    add(c, emblem);
   }
   add(
     c,
