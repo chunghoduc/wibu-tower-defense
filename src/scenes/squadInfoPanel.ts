@@ -14,6 +14,7 @@ import { towerStatPipeline, starUpStepPct, starUpStepFlat } from "../core/stats.
 import { starUpCost, MAX_STARS } from "../core/collection.ts";
 import { towerTex } from "../data/assetKeys.ts";
 import { roleBadgeTex } from "./roleBadge.ts";
+import { drawDamageBadge } from "./damageBadgeFx.ts";
 import { RARITY_HEX } from "../data/rarityColors.ts";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -100,6 +101,8 @@ export function renderCharInfo(
     emblem.setScale(18 / (emblem.height || 18));
     add(c, emblem);
   }
+  // Damage-type badge on the portrait's lower-left (role emblem is lower-right).
+  add(c, drawDamageBadge(scene, x + 8, y + 48, 16, def.damageType));
   add(
     c,
     crispText(scene, x + 62, y, def.name, {

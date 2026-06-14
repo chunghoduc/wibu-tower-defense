@@ -10,6 +10,7 @@ import type { CharacterDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 import { towerTex } from "../data/assetKeys.ts";
 import { roleBadgeTex } from "./roleBadge.ts";
+import { drawDamageBadge } from "./damageBadgeFx.ts";
 import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
 // Re-exported for SquadScene (historical import site); table lives in rarityColors.ts.
@@ -83,6 +84,8 @@ export function makeCharTile(
     emblem.setScale(15 / (emblem.height || 15));
     c.add(emblem);
   }
+  // Damage-type badge on the portrait's lower-left, mirroring the role emblem.
+  c.add(drawDamageBadge(scene, -14, 6, 15, t.damageType));
   c.add(
     crispText(scene, 0, h / 2 - 16, t.name, {
       fontSize: "8px",

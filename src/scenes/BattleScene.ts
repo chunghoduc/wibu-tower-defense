@@ -36,6 +36,8 @@ import type { CharacterDef, Difficulty, StageDef } from "../data/schema.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { crispText } from "./ui.ts";
 import { roleBadgeTex, roleBadgeOnCard } from "./roleBadge.ts";
+import { damageBadgeOnCard } from "./damageBadge.ts";
+import { drawDamageBadge } from "./damageBadgeFx.ts";
 import { fadeIn, DUR } from "./uiKit.ts";
 import { BattleInfoPanel } from "./battleInfoPanel.ts";
 import { FxLayer } from "./fx.ts";
@@ -478,6 +480,9 @@ export class BattleScene extends Phaser.Scene {
         if (emblem.height) emblem.setScale(geo.diameter / emblem.height);
         c.add(emblem);
       }
+      // Damage-type badge on the card's upper-LEFT (mirror of the role emblem).
+      const dg = damageBadgeOnCard(TW - 8);
+      c.add(drawDamageBadge(this, dg.x, dg.y, dg.diameter, def.damageType));
       c.setData("towerId", def.id);
       c.setInteractive({ useHandCursor: true, draggable: true });
       // Tap (not drag) a card to ARM it for tap-to-place; drag still works.
