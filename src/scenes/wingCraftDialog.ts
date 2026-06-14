@@ -8,7 +8,8 @@
  */
 import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
-import { materialTex } from "../data/assetKeys.ts";
+import { makeFitIcon } from "./itemIcon.ts";
+import { itemTex, materialTex } from "../data/assetKeys.ts";
 import { RARITY_INT } from "../data/rarityColors.ts";
 import { JEWEL_OF_CHAOS, FEATHER } from "../data/materials.ts";
 import { MAX_JEWELS, MIN_ITEMS } from "../core/wingCraft.ts";
@@ -113,6 +114,23 @@ export function openWingCraftDialog(
   // ---- material sockets (tap to load) ----------------------------------------
   const socketGfx = scene.add.graphics();
   c.add(socketGfx);
+  // Real material icons fill each socket; their alpha tracks the loaded state in
+  // renderSockets(). When a texture is missing we fall back to the ◈/✦ glyph in
+  // the count text below, so a socket is never blank.
+  const mkMatIcon = (
+    key: string,
+    sock: { x: number; y: number; w: number; h: number },
+  ): Phaser.GameObjects.Image | null => {
+    if (!scene.textures.exists(key)) return null;
+    const img = scene.add
+      .image(sock.x + sock.w / 2, sock.y + sock.h / 2 - 4, key)
+      .setDisplaySize(30, 30);
+    c.add(img);
+    return img;
+  };
+  const jewelIcon = mkMatIcon(materialTex(JEWEL_OF_CHAOS), L.jewelSocket);
+  const featherIcon = mkMatIcon(materialTex(FEATHER), L.featherSocket);
+  // Count / state badges sit on top of the icons (added after → drawn above).
   const jewelCountText = crispText(scene, 0, 0, "", { fontSize: "12px", color: "#fff" }).setOrigin(
     0.5,
   );
@@ -121,20 +139,6 @@ export function openWingCraftDialog(
     color: "#fff",
   }).setOrigin(0.5);
   c.add([jewelCountText, featherCountText]);
-  // Optional material icons behind the count glyphs (if textures exist).
-  for (const [key, sock] of [
-    [materialTex(JEWEL_OF_CHAOS), L.jewelSocket],
-    [materialTex(FEATHER), L.featherSocket],
-  ] as const) {
-    if (scene.textures.exists(key)) {
-      c.add(
-        scene.add
-          .image(sock.x + sock.w / 2, sock.y + sock.h / 2, key)
-          .setDisplaySize(30, 30)
-          .setAlpha(0.5),
-      );
-    }
-  }
   const jewelZone = scene.add
     .zone(
       L.jewelSocket.x + L.jewelSocket.w / 2,
@@ -288,13 +292,13 @@ export function openWingCraftDialog(
       const p = pts[i];
       if (!it || !p) return;
       const col = RARITY_INT[it.rarity];
+      // Rarity-tinted backing + ring so rarity reads even over the icon, then the
+      // real item icon (makeFitIcon falls back to the first letter when art is
+      // missing — same as before for art-less gear).
       const g = scene.add.graphics();
-      g.fillStyle(col, 0.85).fillRoundedRect(p.x - 13, p.y - 13, 26, 26, 5);
-      const t = crispText(scene, p.x, p.y, (it.name[0] ?? "?").toUpperCase(), {
-        fontSize: "13px",
-        color: "#10121a",
-        fontStyle: "bold",
-      }).setOrigin(0.5);
+      g.fillStyle(col, 0.32).fillRoundedRect(p.x - 14, p.y - 14, 28, 28, 5);
+      g.lineStyle(1.5, col, 0.95).strokeRoundedRect(p.x - 14, p.y - 14, 28, 28, 5);
+      const icon = makeFitIcon(scene, p.x, p.y, itemTex(it.defId), 24, (it.name[0] ?? "?").toUpperCase());
       const z = scene.add
         .zone(p.x, p.y, 28, 28)
         .setInteractive({ useHandCursor: true })
@@ -302,7 +306,7 @@ export function openWingCraftDialog(
           selected.delete(id); // tap a loaded chip to unload it
           render();
         });
-      loadedLayer.add([g, t, z]);
+      loadedLayer.add([g, icon, z]);
     });
   }
 
@@ -310,12 +314,15 @@ export function openWingCraftDialog(
     socketGfx.clear();
     drawSocket(socketGfx, L.jewelSocket, jewels > 0);
     drawSocket(socketGfx, L.featherSocket, feather);
+    jewelIcon?.setAlpha(jewels > 0 ? 1 : 0.4);
+    featherIcon?.setAlpha(feather ? 1 : 0.4);
     jewelCountText
-      .setText(`◈${jewels}`)
+      // icon shown → bare count; no icon → keep the ◈ glyph so it's not blank
+      .setText(jewelIcon ? `${jewels}` : `◈${jewels}`)
       .setPosition(L.jewelSocket.x + L.jewelSocket.w / 2, L.jewelSocket.y + L.jewelSocket.h - 9)
       .setColor(jewels > 0 ? "#e9d5ff" : "#6a5a86");
     featherCountText
-      .setText(feather ? "✦" : "·")
+      .setText(feather ? (featherIcon ? "✓" : "✦") : "·")
       .setPosition(L.featherSocket.x + L.featherSocket.w / 2, L.featherSocket.y + L.featherSocket.h - 9)
       .setColor(feather ? "#fff6c0" : "#6a5a86");
   }

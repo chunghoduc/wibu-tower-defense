@@ -179,6 +179,7 @@ export function createWingTray(opts: WingTrayOpts): WingTrayHandle {
   return {
     render,
     destroy: () => {
+      scroll.destroy(); // remove the global scroll listeners (no stacking on reopen)
       chipLayer.destroy();
       gridLayer.destroy();
     },
