@@ -16,6 +16,8 @@ import type { ForgeIngredient, ForgeRecipeVM, StationVM } from "../core/forgeSta
 export interface ForgeDialogHandle {
   refresh(station: StationVM): void;
   close(): void;
+  /** Center of the output lane (the result tile) — anchor for forging VFX. */
+  outputAnchor(): { x: number; y: number };
 }
 
 export interface ForgeDialogOpts {
@@ -105,6 +107,8 @@ export function openForgeDialog(scene: Phaser.Scene, opts: ForgeDialogOpts): For
 
   let station = opts.station;
   let sel = 0;
+  // Last-rendered output lane center, for the scene to anchor forging VFX on.
+  let lastAnchor = { x: px + PANEL_W - 70, y: py + 150 };
 
   function render(): void {
     content.removeAll(true);
@@ -179,6 +183,7 @@ export function openForgeDialog(scene: Phaser.Scene, opts: ForgeDialogOpts): For
     const outputs = recipe?.outputs ?? [];
     const inStartX = px + 70;
     const outStartX = px + PANEL_W - 70 - (outputs.length - 1) * 70;
+    lastAnchor = { x: outStartX + ((outputs.length - 1) * 70) / 2, y: laneY };
     inputs.forEach((ing, i) => content.add(slot(scene, inStartX + i * 70, laneY, ing, true)));
     outputs.forEach((ing, i) => content.add(slot(scene, outStartX + i * 70, laneY, ing, false)));
     content.add(
@@ -247,5 +252,6 @@ export function openForgeDialog(scene: Phaser.Scene, opts: ForgeDialogOpts): For
       render();
     },
     close,
+    outputAnchor: () => ({ ...lastAnchor }),
   };
 }
