@@ -7,8 +7,8 @@ import { incrementBountyEvent } from "./bounties.ts";
 import { isoWeekKey } from "./meta.ts";
 import { featuredDraw } from "./banner.ts";
 
-export const SINGLE_PULL_COST = 160;
-export const MULTI_PULL_COST = 1440;
+export const SINGLE_PULL_COST = 100;
+export const MULTI_PULL_COST = 900;
 /** A free single summon recharges 8 hours after the previous one is claimed. */
 export const FREE_SUMMON_INTERVAL_MS = 8 * 60 * 60 * 1000;
 export const HARD_PITY = 90;
