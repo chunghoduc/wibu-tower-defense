@@ -8,6 +8,7 @@ import {
   SUMMON_SCROLL,
   OBLIVION_ORB,
   AWAKENING_CRYSTAL,
+  JEWEL_OF_CHAOS,
 } from "../src/data/materials.ts";
 import { ITEM_CATALOG_MAP } from "../src/data/items.ts";
 import { processStageClear } from "../src/core/drops.ts";
@@ -144,6 +145,39 @@ describe("T15 — boss loot boxes", () => {
     }
   });
 
+  it("always offers a low-rate chance at a Jewel of Chaos (wing-craft faucet), every tier", () => {
+    // Regression guard: the Jewel of Chaos (wing-craft material) must keep a
+    // non-zero but deliberately LOW drop chance on every box tier — a future
+    // edit to the loot tables that silently dropped it would break wing
+    // progression with no test failing. Rates climb with tier but stay a
+    // minority outcome (never the common case).
+    const N = 600;
+    const rate = (tier: number) => {
+      let hits = 0;
+      for (let s = 1; s <= N; s++) {
+        const save = createFreshSave();
+        const id = boxIdForTier(tier);
+        save.materials[id] = 1;
+        const before = save.materials[JEWEL_OF_CHAOS] ?? 0;
+        const got = openBox(save, id, new Rng(s * 89 + tier * 11)).materials[JEWEL_OF_CHAOS] ?? 0;
+        // Reward report matches exactly what landed in the wallet.
+        expect(save.materials[JEWEL_OF_CHAOS] ?? 0).toBe(before + got);
+        if (got > 0) hits++;
+      }
+      return hits / N;
+    };
+
+    // A chance exists at every tier — "make sure there's a chance".
+    for (let tier = 1; tier <= 5; tier++) {
+      expect(rate(tier), `tier ${tier} never dropped a Jewel of Chaos`).toBeGreaterThan(0);
+      // ...and it stays low: a minority outcome, never guaranteed.
+      expect(rate(tier), `tier ${tier} Jewel of Chaos is too common`).toBeLessThan(0.45);
+    }
+    // Low-tier chests are genuinely rare; stronger bosses faucet it faster.
+    expect(rate(1)).toBeLessThan(0.12);
+    expect(rate(5)).toBeGreaterThan(rate(1));
+  });
+
   it("gear level tracks the hero's level, not the box tier", () => {
     // Same hero level, different tiers ⇒ same level band (tier no longer drives level).
     const band = (tier: number) => {
@@ -274,6 +308,7 @@ describe("T15 — boss loot boxes", () => {
     expect(text).toMatch(/\d+% Jewel of Soul/); // bonus materials listed by name
     expect(text).toMatch(/\d+% Summoning Scroll/);
     expect(text).toMatch(/\d+% Oblivion Orb/);
+    expect(text).toMatch(/\d+% Jewel of Chaos/); // wing-craft faucet shown so players see the chance
     expect(text).toMatch(/gear drops \(each scaled to your level\)/);
     expect(text).toMatch(/100% · 50% · 10% gear drops/); // tier-3 rolls 3 independent gears
     // Rarity odds shown so the tooltip matches what actually drops.
