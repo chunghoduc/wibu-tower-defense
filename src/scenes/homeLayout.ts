@@ -56,7 +56,7 @@ const RAIL_GAP = 14;
 const RAIL_CENTER_Y = 0.46; // fraction of H — vertical midpoint of each rail stack
 const BOTTOM_CELL_W = 132;
 const BOTTOM_CELL_H = 46;
-const PRIMARY_H = 42;
+const PRIMARY_H = 52;
 const PRIMARY_GAP = 10;
 
 /** A vertically centered rail of `n` cells at a fixed x. */

@@ -94,3 +94,19 @@ describe("homeNavLayout (rails + bottom row)", () => {
     expect(l.panel.y + l.panel.h).toBeLessThanOrEqual(H);
   });
 });
+
+describe("homeNavLayout primary CTA prominence", () => {
+  it("makes the primary CTA taller than the secondary bottom cells", () => {
+    const l = homeNavLayout({ left: 4, right: 4, bottom: 3 }, W, H);
+    const bottomH = l.bottom[0].h;
+    expect(l.primary.h).toBeGreaterThan(bottomH);
+    expect(l.primary.h).toBe(52);
+  });
+  it("grows the dock panel to fully contain the taller primary + the row", () => {
+    const l = homeNavLayout({ left: 4, right: 4, bottom: 3 }, W, H);
+    expect(l.primary.y).toBeGreaterThanOrEqual(l.panel.y);
+    const lastBottom = l.bottom[l.bottom.length - 1];
+    expect(lastBottom.y + lastBottom.h / 2).toBeLessThanOrEqual(l.panel.y + l.panel.h);
+    expect(l.panel.y + l.panel.h).toBeLessThanOrEqual(H);
+  });
+});
