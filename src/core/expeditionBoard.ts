@@ -20,11 +20,22 @@ import type { Rarity } from "../data/schemaEnums.ts";
 
 export const BOARD_SIZE = 5;
 
+/** Free board rerolls a player gets each UTC day. */
+export const REROLL_PER_DAY = 5;
+
 export type QuestState = "available" | "running" | "ready";
 
 /** ISO yyyy-mm-dd for a given epoch ms (UTC — matches the rest of the meta loop). */
 function dayKey(nowMs: number): string {
   return new Date(nowMs).toISOString().slice(0, 10);
+}
+
+/** Refill the free-reroll counter when the UTC day rolls over. Pure, idempotent. */
+function resetDailyRerolls(board: HeroSave["meta"]["expedition"], today: string): void {
+  if (board.rerollDay !== today) {
+    board.freeRerollsLeft = REROLL_PER_DAY;
+    board.rerollDay = today;
+  }
 }
 
 /** Mint the next unique quest id and bump the save's counter. */
@@ -59,11 +70,28 @@ export function questAssignedTowerIds(save: HeroSave): Set<string> {
 export function ensureBoard(save: HeroSave, nowMs: number, rng: Rng): void {
   const board = save.meta.expedition;
   const today = dayKey(nowMs);
+  resetDailyRerolls(board, today);
   if (board.lastRerollDay !== today) {
     board.quests = board.quests.filter((q) => q.startedAt > 0); // keep Running, drop Available
     board.lastRerollDay = today;
   }
   while (board.quests.length < BOARD_SIZE) board.quests.push(generateQuest(rng, nextId(save)));
+}
+
+/**
+ * Player-driven board reroll: refill the daily counter if the day changed, then —
+ * if a free reroll remains — drop every Available quest (Running ones survive),
+ * refill to BOARD_SIZE with fresh quests, and spend one reroll. Returns false
+ * (no-op) when none remain.
+ */
+export function rerollBoard(save: HeroSave, nowMs: number, rng: Rng): boolean {
+  const board = save.meta.expedition;
+  resetDailyRerolls(board, dayKey(nowMs));
+  if (board.freeRerollsLeft <= 0) return false;
+  board.quests = board.quests.filter((q) => q.startedAt > 0); // keep Running
+  while (board.quests.length < BOARD_SIZE) board.quests.push(generateQuest(rng, nextId(save)));
+  board.freeRerollsLeft--;
+  return true;
 }
 
 /**
