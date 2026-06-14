@@ -93,6 +93,8 @@ export class BattleScene extends Phaser.Scene {
   /** Top-down ground + auto-tiled road tilemap (replaces the painted backdrop). */
   battleTilemap: BattleTilemap | null = null;
   placeGhost: Phaser.GameObjects.Container | null = null;
+  /** Reused banner instructing the player to tap the map while a card is armed. */
+  armHint?: Phaser.GameObjects.Text;
   /** Tap-to-place: which build-bar card (if any) is armed for a field tap. */
   placement: PlacementState = emptyPlacement();
   gameSpeed = 1;
@@ -494,11 +496,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   refreshBuildBar(): void {
-    for (const c of this.avatarTiles) {
-      const id = c.getData("towerId") as string;
-      const def = this.buildOrder.find((d) => d.id === id);
-      c.setAlpha(def && this.battle.gold >= def.cost ? 1 : 0.45);
-    }
+    // All build-bar card visuals (affordability dim + armed-selection highlight +
+    // arm hint) live in the placement presenter so the highlight always matches
+    // placement state. See battleScenePlacement.refreshArmedBar.
+    this.refreshArmedBar();
   }
 
   update(time: number, deltaMs: number): void {

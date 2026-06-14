@@ -7,6 +7,9 @@
 import type Phaser from "phaser";
 import { towerTex } from "../data/assetKeys.ts";
 import { armPlacement, disarmPlacement, isArmed } from "../core/placementMode.ts";
+import { armedTileVisual, ghostAnchor, armHintText } from "../core/placementHud.ts";
+import { crispText } from "./ui.ts";
+import type { Vec2 } from "../data/schema.ts";
 import type { BattleScene } from "./BattleScene.ts";
 
 export const placementMethods = {
@@ -55,15 +58,21 @@ export const placementMethods = {
   },
 
   updateGhost(this: BattleScene, towerId: string, pointer: Phaser.Input.Pointer): void {
-    if (!this.placeGhost) return;
     const wp = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-    this.placeGhost.setPosition(wp.x, wp.y);
+    this.ghostAt(towerId, { x: wp.x, y: wp.y }, pointer.y);
+  },
+
+  /**
+   * Draw the placement ghost (coverage + footprint ring) at a world-point.
+   * `screenY` gates the bottom build-bar strip (default on-field) so a touch
+   * preview parked at the camera centre still reads as valid.
+   */
+  ghostAt(this: BattleScene, towerId: string, world: Vec2, screenY = 0): void {
+    if (!this.placeGhost) return;
+    this.placeGhost.setPosition(world.x, world.y);
     const def = this.buildOrder.find((d) => d.id === towerId);
     const ok =
-      pointer.y < 500 &&
-      this.battle.canPlaceAt({ x: wp.x, y: wp.y }) &&
-      !!def &&
-      this.battle.gold >= def.cost;
+      screenY < 500 && this.battle.canPlaceAt(world) && !!def && this.battle.gold >= def.cost;
     const range = def ? this.battle.previewPlaceRange(def.id) : 130;
     const ring = this.placeGhost.getData("ring") as Phaser.GameObjects.Graphics;
     ring.clear();
@@ -83,8 +92,19 @@ export const placementMethods = {
     this.placement = armPlacement(this.placement, id);
     if (isArmed(this.placement)) {
       this.makeGhost(id);
+      // On touch the active pointer is still on the just-tapped card (inside the
+      // build-bar strip); anchor the preview at the camera centre so the ghost
+      // shows on the FIELD instead of a red blob over the bar. Desktop hover
+      // (pointermove) keeps tracking the cursor afterwards.
       const p = this.input.activePointer;
-      if (p) this.updateGhost(id, p);
+      const view = this.cameras.main.worldView;
+      const camCenter = { x: view.centerX, y: view.centerY };
+      const anchor = ghostAnchor({
+        pointerScreenY: p ? p.y : this.scale.height,
+        pointerWorld: p ? this.cameras.main.getWorldPoint(p.x, p.y) : camCenter,
+        camCenter,
+      });
+      this.ghostAt(id, anchor, anchor === camCenter ? 0 : (p?.y ?? 0));
     } else {
       this.clearGhost();
     }
@@ -94,6 +114,64 @@ export const placementMethods = {
   cancelPlacement(this: BattleScene): void {
     this.placement = disarmPlacement(this.placement);
     this.clearGhost();
+  },
+
+  /**
+   * Per-frame: reflect the armed/affordable state on every build-bar card (lift
+   * + accent the armed one, dim the rest) and show/hide the arm hint. Called
+   * from refreshBuildBar so the highlight always matches placement state.
+   */
+  refreshArmedBar(this: BattleScene): void {
+    const armedId = this.placement.armedId;
+    for (const c of this.avatarTiles) {
+      const id = c.getData("towerId") as string;
+      const def = this.buildOrder.find((d) => d.id === id);
+      const v = armedTileVisual({
+        anyArmed: armedId !== null,
+        isArmedTile: id === armedId,
+        affordable: !!def && this.battle.gold >= def.cost,
+      });
+      c.setAlpha(v.alpha);
+      c.setScale(v.scale);
+      let hl = c.getData("selGlow") as Phaser.GameObjects.Graphics | undefined;
+      if (v.selected && !hl) {
+        hl = this.add.graphics();
+        hl.lineStyle(2.5, 0xffe27a, 1).strokeRoundedRect(-35, -22, 70, 56, 8);
+        c.addAt(hl, 0);
+        c.setData("selGlow", hl);
+      } else if (!v.selected && hl) {
+        hl.destroy();
+        c.setData("selGlow", undefined);
+      }
+    }
+    const name = armedId
+      ? (this.buildOrder.find((d) => d.id === armedId)?.name ?? null)
+      : null;
+    this.updateArmHint(armHintText(name));
+  },
+
+  /** Lazily build / show / hide the single reused arm-hint banner (tap = cancel). */
+  updateArmHint(this: BattleScene, text: string): void {
+    if (!text) {
+      this.armHint?.setVisible(false);
+      return;
+    }
+    if (!this.armHint) {
+      this.armHint = crispText(this, this.scale.width / 2, 478, "", {
+        fontSize: "13px",
+        color: "#ffe27a",
+        backgroundColor: "#1a2230cc",
+        fontStyle: "bold",
+        align: "center",
+      })
+        .setOrigin(0.5, 1)
+        .setPadding(8, 4, 8, 4)
+        .setDepth(46)
+        .setInteractive({ useHandCursor: true });
+      this.armHint.on("pointerup", () => this.cancelPlacement());
+      this.ui.add(this.armHint);
+    }
+    this.armHint.setText(text).setVisible(true);
   },
 };
 
