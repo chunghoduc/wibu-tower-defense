@@ -68,17 +68,35 @@ describe("homeRoom squad", () => {
     expect(filled.showSetSquad).toBe(false);
   });
 
-  it("places n stand points on the stage within screen bounds", () => {
-    for (const n of [1, 4, 7]) {
+  it("staggers n stand points clear of the hangers, each other, and the dock", () => {
+    const cells = hangerLayout(W, H);
+    const leftX = Math.min(...cells.map((c) => c.x));
+    const rightX = Math.max(...cells.map((c) => c.x));
+    const HALF = 27; // sprite half-width at the rendered 54px height
+    const HANGER_HALF = 17; // ~34px gear icon half-width
+    for (const n of [1, 2, 4, 7]) {
       const pts = squadStandPoints(n, W, H);
       expect(pts).toHaveLength(n);
+      // x order is left → right, members never overlap
+      for (let i = 1; i < n; i++) {
+        expect(pts[i].x - pts[i - 1].x).toBeGreaterThanOrEqual(54);
+      }
       for (const p of pts) {
-        expect(p.x).toBeGreaterThan(0);
-        expect(p.x).toBeLessThan(W);
-        expect(p.y).toBeGreaterThan(H * 0.5); // mid/lower stage, above the bottom dock
-        expect(p.y).toBeLessThan(H);
+        // clears both wall hanger columns
+        expect(p.x - HALF).toBeGreaterThan(leftX + HANGER_HALF);
+        expect(p.x + HALF).toBeLessThan(rightX - HANGER_HALF);
+        // mid/lower stage, above the bottom dock band
+        expect(p.y).toBeGreaterThan(H * 0.5);
+        expect(p.y).toBeLessThan(H * 0.62);
+        // perspective scale stays in the staged range
+        expect(p.scale).toBeGreaterThanOrEqual(0.85 - 1e-9);
+        expect(p.scale).toBeLessThanOrEqual(1 + 1e-9);
       }
     }
+    // odd squads: the centre member is the closest (largest) one
+    const odd = squadStandPoints(7, W, H);
+    expect(odd[3].scale).toBeCloseTo(1, 5);
+    expect(odd[3].scale).toBeGreaterThan(odd[0].scale);
   });
 });
 

@@ -77,14 +77,24 @@ export function squadStand(save: HeroSave): SquadStand {
 export interface StandPoint {
   x: number;
   y: number;
+  /** Perspective scale multiplier (centre/front = 1, flanks/back smaller). */
+  scale: number;
 }
 
-/** Up to n arced standing positions on the lower stage. */
+/** Up to n staged standing positions: a forward wedge clear of the wall hangers. */
 export function squadStandPoints(n: number, W: number, H: number): StandPoint[] {
+  const LEFT = 0.24,
+    RIGHT = 0.76; // span tightened to clear the W*0.13 / W*0.87 hanger columns
+  const FLANK_SCALE = 0.85; // edge members read as standing further back
   const out: StandPoint[] = [];
   for (let i = 0; i < n; i++) {
     const tt = n > 1 ? i / (n - 1) : 0.5;
-    out.push({ x: W * 0.16 + tt * W * 0.68, y: H * 0.58 + Math.sin(tt * Math.PI) * -10 });
+    const wedge = Math.sin(tt * Math.PI); // 0 at the flanks, 1 dead centre
+    out.push({
+      x: W * (LEFT + tt * (RIGHT - LEFT)),
+      y: H * 0.555 + wedge * 14, // centre sits lower (front); flanks higher (back)
+      scale: FLANK_SCALE + wedge * (1 - FLANK_SCALE),
+    });
   }
   return out;
 }
