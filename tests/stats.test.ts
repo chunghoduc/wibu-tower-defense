@@ -7,6 +7,9 @@ import {
   resolveAcc,
   heroStatPipeline,
   towerStatPipeline,
+  starFlat,
+  starUpStepFlat,
+  starIncreasedPct,
   heroBaseCritRate,
   collectPassiveMore,
   addHeroShare,
@@ -218,20 +221,52 @@ describe("addHeroShare", () => {
   });
 });
 
-describe("towerStatPipeline", () => {
-  it("star bonus grows per tier: ★3 on atk=100 → atk=122 (+8% then +14%)", () => {
+describe("towerStatPipeline — star-up: flat + percentage", () => {
+  it("percentage grows per tier (new STAR_STEP): atk=100 Common", () => {
     const base = makeStats({ atk: 100 });
-    // ★1 = 0%, ★2 = +8%, ★3 = +8%+14% = 22% → 122, ★5 = +68% → 168
-    expect(towerStatPipeline(base, 1, 1).atk).toBeCloseTo(100, 5);
-    expect(towerStatPipeline(base, 1, 2).atk).toBeCloseTo(108, 5);
-    expect(towerStatPipeline(base, 1, 3).atk).toBeCloseTo(122, 5);
-    expect(towerStatPipeline(base, 1, 5).atk).toBeCloseTo(168, 5);
+    // Common flat/step atk = 4; cumulative % = ★2 .10, ★3 .25, ★5 .70
+    expect(towerStatPipeline(base, 1, 1, undefined, 0, "Common").atk).toBeCloseTo(100, 5);
+    expect(towerStatPipeline(base, 1, 2, undefined, 0, "Common").atk).toBeCloseTo(114.4, 5); // (100+4)*1.10
+    expect(towerStatPipeline(base, 1, 3, undefined, 0, "Common").atk).toBeCloseTo(135, 5); //   (100+8)*1.25
+    expect(towerStatPipeline(base, 1, 5, undefined, 0, "Common").atk).toBeCloseTo(197.2, 5); // (100+16)*1.70
   });
 
-  it("tower level 20 scaling: atk=100 → atk=128.5 (1.5 flat/level × 19 levels)", () => {
+  it("rarity scales the flat: Unique flat/step atk = 12", () => {
     const base = makeStats({ atk: 100 });
-    const lvl20 = towerStatPipeline(base, 20, 0);
-    // flat += 1.5 * 19 = 28.5 → (100+28.5) * 1.0 = 128.5
-    expect(lvl20.atk).toBeCloseTo(128.5, 5);
+    expect(towerStatPipeline(base, 1, 3, undefined, 0, "Unique").atk).toBeCloseTo(155, 5); // (100+24)*1.25
+  });
+
+  it("flat lands on maxHp too, but NOT on other stats (percentage-only there)", () => {
+    const base = makeStats({ maxHp: 100, armor: 10 });
+    const t = towerStatPipeline(base, 1, 3, undefined, 0, "Common");
+    expect(t.maxHp).toBeCloseTo(170, 5); // (100 + 2*18) * 1.25
+    expect(t.armor).toBeCloseTo(12.5, 5); // 10 * 1.25 — percentage only, no flat
+  });
+
+  it("defaults to Common rarity and stars<=1 add nothing", () => {
+    const base = makeStats({ atk: 100 });
+    expect(towerStatPipeline(base, 1, 1).atk).toBeCloseTo(100, 5); // ★1, no rarity arg
+  });
+
+  it("tower level 20 scaling unchanged (stars 0): atk=100 → 128.5", () => {
+    const base = makeStats({ atk: 100 });
+    expect(towerStatPipeline(base, 20, 0).atk).toBeCloseTo(128.5, 5);
+  });
+
+  it("starIncreasedPct cumulative: ★3 = .25, ★5 = .70", () => {
+    expect(starIncreasedPct(3)).toBeCloseTo(0.25, 5);
+    expect(starIncreasedPct(5)).toBeCloseTo(0.7, 5);
+  });
+
+  it("starFlat: zero at ★1, rarity-scaled, capped at ★5, never mutates", () => {
+    expect(starFlat(1, "Common")).toEqual({ atk: 0, hp: 0 });
+    expect(starFlat(5, "Common")).toEqual({ atk: 16, hp: 72 }); // 4*4, 4*18
+    expect(starFlat(5, "Unique")).toEqual({ atk: 48, hp: 232 }); // 4*12, 4*58
+    expect(starFlat(99, "Common")).toEqual(starFlat(5, "Common")); // capped
+  });
+
+  it("starUpStepFlat: the flat the NEXT star adds (0 at max)", () => {
+    expect(starUpStepFlat(1, "Common")).toEqual({ atk: 4, hp: 18 });
+    expect(starUpStepFlat(5, "Common")).toEqual({ atk: 0, hp: 0 }); // already max
   });
 });

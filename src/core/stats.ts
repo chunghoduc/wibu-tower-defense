@@ -14,6 +14,7 @@ import {
   defaultStats,
   FRACTIONAL_STAT_KEYS,
   type PassiveNodeDef,
+  type Rarity,
   type Stats,
   type TowerRole,
 } from "../data/schema.ts";
@@ -202,11 +203,30 @@ const TOWER_LEVEL_FLAT_PER_LEVEL: Partial<Stats> = {
   maxHp: 10,
 };
 
-// Star ascension increased%. Each star-up grants a BIGGER bonus than the last —
-// +8% / +14% / +20% / +26% for reaching ★2..★5 — so the higher a tower's star,
-// the more stats each upgrade gives. STAR_STEP[s] = the bonus added by REACHING
-// star s. Cumulative by tier: ★1 0% · ★2 8% · ★3 22% · ★4 42% · ★5 68%.
-const STAR_STEP = [0, 0, 0.08, 0.14, 0.2, 0.26];
+// Star ascension scaling. Each collection star grants BOTH a flat atk/maxHp bump
+// AND an increased% to all stats — and each star gives more than the last, so the
+// higher a tower's star, the bigger the jump. The base was lowered (towerStats.ts
+// BASE_POWER_SCALE) and that budget moved here: a ★1 tower is weak, an ascended one
+// is strong. STAR_STEP[s] = the increased% added by REACHING star s.
+// Cumulative: ★1 0% · ★2 10% · ★3 25% · ★4 45% · ★5 70%.
+const STAR_STEP = [0, 0, 0.1, 0.15, 0.2, 0.25];
+const STAR_MAX = STAR_STEP.length - 1; // 5
+
+// Flat atk/maxHp granted PER STAR reached, scaled by rarity tier (Common 0 …
+// Unique 4). Absolute (not a fraction of base) so it stays a meaningful jump even
+// though the base was cut, and so it reads big early when the hero share is small.
+const STAR_FLAT_ATK_BASE = 4;
+const STAR_FLAT_ATK_TIER = 2; // per-step atk: Common 4 … Unique 12
+const STAR_FLAT_HP_BASE = 18;
+const STAR_FLAT_HP_TIER = 10; // per-step hp: Common 18 … Unique 58
+
+const STAR_RARITY_TIER: Record<Rarity, number> = {
+  Common: 0,
+  Magic: 1,
+  Rare: 2,
+  Legendary: 3,
+  Unique: 4,
+};
 
 /** Total star "increased%" a tower has at the given star tier. */
 export function starIncreasedPct(stars: number): number {
@@ -218,6 +238,24 @@ export function starIncreasedPct(stars: number): number {
 /** The increased% the NEXT star-up will add (0 if already maxed). */
 export function starUpStepPct(stars: number): number {
   return STAR_STEP[stars + 1] ?? 0;
+}
+
+/** Total flat atk/maxHp a tower has accrued at the given star tier (rarity-scaled). */
+export function starFlat(stars: number, rarity: Rarity): { atk: number; hp: number } {
+  const steps = Math.max(0, Math.min(stars, STAR_MAX) - 1);
+  const tier = STAR_RARITY_TIER[rarity];
+  return {
+    atk: steps * (STAR_FLAT_ATK_BASE + STAR_FLAT_ATK_TIER * tier),
+    hp: steps * (STAR_FLAT_HP_BASE + STAR_FLAT_HP_TIER * tier),
+  };
+}
+
+/** The flat atk/maxHp the NEXT star-up will add ({0,0} if already maxed). */
+export function starUpStepFlat(stars: number, rarity: Rarity): { atk: number; hp: number } {
+  if (stars >= STAR_MAX) return { atk: 0, hp: 0 };
+  const cur = starFlat(stars, rarity);
+  const next = starFlat(stars + 1, rarity);
+  return { atk: next.atk - cur.atk, hp: next.hp - cur.hp };
 }
 
 /**
@@ -232,6 +270,7 @@ export function towerStatPipeline(
   stars: number,
   role?: TowerRole,
   battleLevel = 0,
+  rarity: Rarity = "Common",
 ): Stats {
   let acc = makeAcc();
 
@@ -242,7 +281,10 @@ export function towerStatPipeline(
   }
   acc = addFlat(acc, levelFlat);
 
-  // Layer 2 — star bonus (increased%), with a per-star step that grows by tier
+  // Layer 2 — star bonus: a rarity-scaled FLAT (atk/maxHp) plus an increased% to
+  // all stats, each growing per star (see STAR_STEP / starFlat).
+  const sf = starFlat(stars, rarity);
+  if (sf.atk || sf.hp) acc = addFlat(acc, { atk: sf.atk, maxHp: sf.hp });
   const starPct = starIncreasedPct(stars);
   if (starPct > 0) {
     const starInc: Partial<Stats> = {};
