@@ -143,6 +143,16 @@ export class ExpeditionScene extends Phaser.Scene {
       });
     }
     this.layer.add(btn);
+
+    // Daily dispatch allowance (max 5 expeditions started per day).
+    const dleft = this.mgr.expeditionDispatchesLeft();
+    this.layer.add(
+      crispText(this, W - 24, 54, `🧭 Dispatches ${dleft}/5`, {
+        fontSize: "12px",
+        color: dleft > 0 ? "#bfe3ff" : "#ff9a9a",
+        fontStyle: "bold",
+      }).setOrigin(1, 0),
+    );
   }
 
   private drawCard(q: QuestInstance, y: number): void {
@@ -230,16 +240,29 @@ export class ExpeditionScene extends Phaser.Scene {
   }
 
   private drawAvailable(q: QuestInstance, y: number): void {
-    this.button(CARD_X + CARD_W - 16, y + CARD_H / 2, "Assign", "#3a6a9a", true, () => {
-      new QuestAssignDialog(this, this.mgr, q, (towerIds) => {
-        if (this.mgr.startExpeditionQuest(q.id, towerIds)) {
-          this.showToast(
-            `Dispatched ${towerIds.length} hero${towerIds.length === 1 ? "" : "es"}!`,
-          );
-          this.redraw();
+    const canDispatch = this.mgr.expeditionDispatchesLeft() > 0;
+    // Stays tappable even when capped so a tap explains why; colour reflects state.
+    this.button(
+      CARD_X + CARD_W - 16,
+      y + CARD_H / 2,
+      "Assign",
+      canDispatch ? "#3a6a9a" : "#444c5a",
+      true,
+      () => {
+        if (this.mgr.expeditionDispatchesLeft() <= 0) {
+          this.showToast("No expeditions left today (0/5)");
+          return;
         }
-      });
-    });
+        new QuestAssignDialog(this, this.mgr, q, (towerIds) => {
+          if (this.mgr.startExpeditionQuest(q.id, towerIds)) {
+            this.showToast(
+              `Dispatched ${towerIds.length} hero${towerIds.length === 1 ? "" : "es"}!`,
+            );
+            this.redraw();
+          }
+        });
+      },
+    );
   }
 
   private drawRunningOrReady(
