@@ -248,13 +248,16 @@ export function structureStyle(visual, state) {
 // character STYLE/NEGATIVE ban "icon/symbol/flat" and demand a full-body figure.
 // One emblem per TowerRole; tinted to the role color at render time.
 export const ROLE_VISUAL = {
-  damage: "one bold solid upright sword blade, sky-blue",
-  splash: "one bold solid eight-point explosion burst star, coral orange",
-  chain: "one bold solid jagged zigzag lightning bolt, violet purple",
-  dot: "one bold solid venom teardrop droplet, toxic green",
-  support: "one bold solid upward double-chevron up-arrow, warm gold",
-  debuff: "one bold solid downward arrow above a short minus bar, teal cyan",
-  tanker: "one bold solid heater knight shield with a small center stud, steel grey",
+  damage:
+    "one bold targeting crosshair scope reticle, a thick ring crossed by four short tick marks with a small solid center dot, sky-blue",
+  splash:
+    "one bold spiky explosion burst, a solid star-shaped blast with sharp radiating shards, coral orange",
+  chain: "one bold forked lightning bolt splitting into two jagged zigzag prongs, violet purple",
+  dot: "one bold venom poison droplet teardrop with a tiny rising bubble and a small drip below, toxic green",
+  support: "one bold thick solid upward pointing arrow rising, warm gold",
+  debuff: "one bold thick solid downward pointing arrow falling, teal cyan",
+  tanker:
+    "one bold sturdy knight heater shield with a small round center boss stud, steel grey",
 };
 const ROLEICON_STYLE =
   "a single bold flat vector game UI emblem icon of {V}, ONE simple solid shape, very thick uniform clean outline, high contrast, flat cel-shaded, centered, no fine interior detail, instantly readable at 16 pixels, isolated on a pure plain flat white background, empty background, no text";
