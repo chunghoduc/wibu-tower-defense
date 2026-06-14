@@ -41,16 +41,22 @@ export interface MachineLayout {
   featherSocket: Rect;
   readout: Rect;
   oddsBar: Rect;
+  filterRow: Rect; // rarity chip strip (left of the control row)
+  autoBtn: Rect; // Auto-fill button (control row)
+  clearBtn: Rect; // Clear button (control row)
   craftBtn: Rect;
-  tray: Rect;
+  tray: Rect; // scrollable gear grid viewport
+  cell: number; // tile pitch (px)
+  cols: number; // tiles per tray row
+  rowsVisible: number; // tray rows shown at once
 }
 
 const PAD = 16;
 
-/** Centered modal: machine (with material sockets) on top, readout, then tray. */
+/** Centered modal: machine (with material sockets) on top, readout, control row, tray. */
 export function wingMachineLayout(W: number, H: number): MachineLayout {
   const bw = 600;
-  const bh = 480;
+  const bh = 500;
   const bx = (W - bw) / 2;
   const by = (H - bh) / 2;
   const panel: Rect = { x: bx, y: by, w: bw, h: bh };
@@ -58,32 +64,54 @@ export function wingMachineLayout(W: number, H: number): MachineLayout {
   const innerX = bx + PAD;
   const innerW = bw - PAD * 2;
 
-  const machine: Rect = { x: innerX, y: by + 44, w: innerW, h: 140 };
+  const machine: Rect = { x: innerX, y: by + 40, w: innerW, h: 120 };
 
   // Material sockets hug the machine's right edge (top: jewel, below: feather).
   const sock = 44;
   const jewelSocket: Rect = {
     x: machine.x + machine.w - sock - 10,
-    y: machine.y + 12,
+    y: machine.y + 10,
     w: sock,
     h: sock,
   };
-  const featherSocket: Rect = {
-    x: jewelSocket.x,
-    y: jewelSocket.y + sock + 10,
-    w: sock,
-    h: sock,
+  const featherSocket: Rect = { x: jewelSocket.x, y: jewelSocket.y + sock + 8, w: sock, h: sock };
+
+  const readout: Rect = { x: innerX, y: machine.y + machine.h + 8, w: innerW, h: 80 };
+  const oddsBar: Rect = { x: readout.x + 8, y: readout.y + 56, w: readout.w - 16, h: 18 };
+
+  // Control row: filter chips on the left, Auto + Clear on the right.
+  const ctrlY = readout.y + readout.h + 6;
+  const ctrlH = 28;
+  const btnW = 58;
+  const clearBtn: Rect = { x: innerX + innerW - btnW, y: ctrlY, w: btnW, h: ctrlH };
+  const autoBtn: Rect = { x: clearBtn.x - 6 - btnW, y: ctrlY, w: btnW, h: ctrlH };
+  const filterRow: Rect = { x: innerX, y: ctrlY, w: autoBtn.x - 6 - innerX, h: ctrlH };
+
+  const craftBtn: Rect = { x: innerX, y: by + bh - 46, w: innerW - 96, h: 36 };
+
+  const trayY = ctrlY + ctrlH + 6;
+  const tray: Rect = { x: innerX, y: trayY, w: innerW, h: craftBtn.y - trayY - 8 };
+
+  const cell = 46;
+  const cols = Math.max(1, Math.floor(tray.w / cell));
+  const rowsVisible = Math.max(1, Math.floor(tray.h / cell));
+
+  return {
+    panel,
+    machine,
+    jewelSocket,
+    featherSocket,
+    readout,
+    oddsBar,
+    filterRow,
+    autoBtn,
+    clearBtn,
+    craftBtn,
+    tray,
+    cell,
+    cols,
+    rowsVisible,
   };
-
-  const readout: Rect = { x: innerX, y: machine.y + machine.h + 10, w: innerW, h: 90 };
-  const oddsBar: Rect = { x: readout.x + 8, y: readout.y + 62, w: readout.w - 16, h: 20 };
-
-  const craftBtn: Rect = { x: innerX, y: by + bh - 50, w: innerW - 96, h: 38 };
-
-  const trayY = readout.y + readout.h + 8;
-  const tray: Rect = { x: innerX, y: trayY, w: innerW, h: craftBtn.y - trayY - 10 };
-
-  return { panel, machine, jewelSocket, featherSocket, readout, oddsBar, craftBtn, tray };
 }
 
 /** Centered, wrapping grid of up to `count` loaded item icons inside `machine`. */

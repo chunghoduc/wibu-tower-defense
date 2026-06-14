@@ -77,6 +77,32 @@ describe("wingMachineLayout", () => {
   });
 });
 
+describe("wingMachineLayout — redesign additions", () => {
+  const L = wingMachineLayout(1280, 720);
+
+  it("exposes a filter row, auto + clear buttons inside the panel", () => {
+    expect(inside(L.filterRow, L.panel)).toBe(true);
+    expect(inside(L.autoBtn, L.panel)).toBe(true);
+    expect(inside(L.clearBtn, L.panel)).toBe(true);
+  });
+  it("control row sits below the readout and above the tray", () => {
+    expect(L.filterRow.y).toBeGreaterThanOrEqual(L.readout.y + L.readout.h);
+    expect(L.tray.y).toBeGreaterThanOrEqual(L.filterRow.y + L.filterRow.h);
+  });
+  it("auto + clear share the control row and don't overlap the filter area", () => {
+    expect(L.autoBtn.x).toBeGreaterThanOrEqual(L.filterRow.x + L.filterRow.w);
+    expect(L.clearBtn.x).toBeGreaterThanOrEqual(L.autoBtn.x + L.autoBtn.w);
+  });
+  it("exposes grid metrics with at least one visible row", () => {
+    expect(L.cols).toBeGreaterThanOrEqual(1);
+    expect(L.rowsVisible).toBeGreaterThanOrEqual(1);
+    expect(L.cell).toBeGreaterThan(0);
+  });
+  it("tray stays above the craft button", () => {
+    expect(L.tray.y + L.tray.h).toBeLessThanOrEqual(L.craftBtn.y);
+  });
+});
+
 describe("loadedSlotLayout", () => {
   const machine: Rect = { x: 100, y: 100, w: 400, h: 150 };
 
