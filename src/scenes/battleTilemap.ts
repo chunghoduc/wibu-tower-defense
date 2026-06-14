@@ -5,7 +5,7 @@
  * plus two TilemapLayers (ground + auto-tiled road) built from the stage lanes.
  * No art assets — the tileset is rendered once per palette and cached.
  */
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { Vec2 } from "../data/schema.ts";
 import {
   TILE,

@@ -10,12 +10,11 @@ import { ELITE_SIZE_MULT } from "../core/elite.ts";
 import { totalXpForLevel } from "../core/hero.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
 import { WORLD_WIDTH, WORLD_HEIGHT, stageNumber } from "../data/stage.ts";
-import { bgKey } from "../data/bgManifest.ts";
 import { buildEndlessBackdrop } from "../core/endlessBackdrop.ts";
 import { EndlessBackdropFx } from "./endlessBackdropFx.ts";
+import { BattleTilemap } from "./battleTilemap.ts";
 import { terrainKeyFor } from "../data/terrainManifest.ts";
 import { stageThemeForStage } from "../data/chapters.ts";
-import { stageBgKey } from "../data/uiManifest.ts";
 import { crispText } from "./ui.ts";
 import { fadeToScene } from "./uiKit.ts";
 import {
@@ -436,29 +435,19 @@ export const renderMethods = {
     // with a subtle dark veil over it for unit contrast. Falls back to a flat
     // ground tint if the image failed to load.
     const theme = stageThemeForStage(this.stage.id);
-    // Prefer the design team's hand-painted per-stage backdrop; fall back to the
-    // per-chapter SDXL backdrop, then a flat ground tint.
-    const stageBg = stageBgKey(this.stage.id);
-    const endlessBg = bgKey("endless-siege");
-    const bgKeyToUse =
-      this.stage.arena && this.textures.exists(endlessBg)
-        ? endlessBg
-        : this.textures.exists(stageBg)
-          ? stageBg
-          : this.textures.exists(theme.bgKey)
-            ? theme.bgKey
-            : null;
-    if (bgKeyToUse) {
-      const bg = this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, bgKeyToUse).setDepth(-10);
-      bg.setDisplaySize(WORLD_WIDTH, WORLD_HEIGHT);
-      this.world.add(bg);
-      this.terrainSprites.push(bg as unknown as Phaser.GameObjects.Image);
-      // Lighter veil for painted art; lighter still for endless (vignette darkens it).
-      const veil = bgKeyToUse === endlessBg ? 0.12 : bgKeyToUse === stageBg ? 0.22 : 0.4;
-      g.fillStyle(theme.groundOverlay, veil).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    } else {
-      g.fillStyle(0x202a22, 1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    }
+    // Top-down tiled map (replaces the painted backdrop): a ground terrain layer
+    // plus an auto-tiled dirt road following the enemy lanes. Rebuilt each
+    // drawStatic; the prior one is torn down first (re-entry safe).
+    this.battleTilemap?.destroy();
+    this.battleTilemap = new BattleTilemap(
+      this,
+      this.world,
+      theme.tiles,
+      groundLanes(this.stage),
+      stageNumber(this.stage.id) || 1,
+    );
+    // A very light veil over the tiles for unit contrast (tiles are already muted).
+    g.fillStyle(theme.groundOverlay, 0.1).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     // Endless: build the animated siege-atmosphere layer over the base, centered on
     // the arena castle (same stage-number seed as the maze). Rebuilt each drawStatic.
     this.endlessBackdropFx?.destroy();
@@ -507,16 +496,6 @@ export const renderMethods = {
           f.y + f.r * 0.2,
         );
       }
-    }
-    // roads: every authored lane / arena corridor (or the single legacy path).
-    const roads = groundLanes(this.stage);
-    g.lineStyle(36, 0x3a4458, 1);
-    for (const road of roads) {
-      if (road.length < 2) continue;
-      g.beginPath();
-      g.moveTo(road[0].x, road[0].y);
-      for (let i = 1; i < road.length; i++) g.lineTo(road[i].x, road[i].y);
-      g.strokePath();
     }
     // arena gates: red mouths where each siege column enters the map.
     if (this.stage.arena) {

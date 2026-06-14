@@ -31,6 +31,7 @@ import {
 } from "../data/stage.ts";
 import { endlessArenaStage } from "../core/endlessArena.ts";
 import type { EndlessBackdropFx } from "./endlessBackdropFx.ts";
+import type { BattleTilemap } from "./battleTilemap.ts";
 import type { CharacterDef, Difficulty, StageDef } from "../data/schema.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { crispText } from "./ui.ts";
@@ -89,6 +90,8 @@ export class BattleScene extends Phaser.Scene {
   castleSprite?: Phaser.GameObjects.Image;
   castleArtStateNow: CastleState = "intact";
   endlessBackdropFx: EndlessBackdropFx | null = null;
+  /** Top-down ground + auto-tiled road tilemap (replaces the painted backdrop). */
+  battleTilemap: BattleTilemap | null = null;
   placeGhost: Phaser.GameObjects.Container | null = null;
   /** Tap-to-place: which build-bar card (if any) is armed for a field tap. */
   placement: PlacementState = emptyPlacement();
@@ -172,6 +175,8 @@ export class BattleScene extends Phaser.Scene {
     this.terrainSprites = [];
     this.endlessBackdropFx?.destroy();
     this.endlessBackdropFx = null;
+    this.battleTilemap?.destroy();
+    this.battleTilemap = null;
     this.placeGhost = null;
     this.placement = emptyPlacement();
     this.stepper.reset();
