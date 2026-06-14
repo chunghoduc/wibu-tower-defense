@@ -8,7 +8,7 @@ import type Phaser from "phaser";
 import { crispText } from "./ui.ts";
 import { AUTO_SMELT_RARITIES, type BulkSmeltPreview } from "../core/smelt.ts";
 import type { Rarity } from "../data/schema.ts";
-import { RARITY_INT } from "../data/rarityColors.ts";
+import { RARITY_INT, idealTextColor } from "../data/rarityColors.ts";
 
 const CHAOS_COL = 0xe0457a;
 
@@ -102,7 +102,7 @@ export function openAutoRecycleDialog(
       ch.bg.clear();
       ch.bg.fillStyle(on ? col : 0x202a38, on ? 0.85 : 1).fillRoundedRect(0, 0, chipW, chipH, 6);
       ch.bg.lineStyle(2, col, 1).strokeRoundedRect(0, 0, chipW, chipH, 6);
-      ch.label.setColor(on ? "#101010" : "#cdd6e4").setFontStyle(on ? "bold" : "normal");
+      ch.label.setColor(on ? idealTextColor(col) : "#cdd6e4").setFontStyle(on ? "bold" : "normal");
     }
     const p = opts.preview([...selected]);
     previewText.setText(`Smelt ${p.count} item${p.count === 1 ? "" : "s"}  →  ❖ ${p.chaos} Entropy`);
