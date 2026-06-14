@@ -195,8 +195,10 @@ export class MainMenuScene extends Phaser.Scene {
       const key = towerTex(id);
       if (!this.textures.exists(key)) return;
       const p = pts[i];
-      const s = this.add.sprite(p.x, p.y, key).setOrigin(0.5, 0.85).setDepth(5);
-      s.setScale(54 / s.height);
+      // Depth by closeness (5.85..6.0) so front members occlude back members
+      // cleanly — still below the pet (7) and the bottom dock (7/8).
+      const s = this.add.sprite(p.x, p.y, key).setOrigin(0.5, 0.85).setDepth(5 + p.scale);
+      s.setScale((54 * p.scale) / s.height);
       if (this.anims.exists(`${key}_idle`)) s.play(`${key}_idle`);
     });
   }
