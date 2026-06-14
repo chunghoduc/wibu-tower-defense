@@ -134,6 +134,17 @@ export interface TowerCollectionEntry {
   copies: number;
 }
 
+/** One selectable option on a "choose" passive node. Its stat bags replace the node's own. */
+export interface PassiveChoiceOption {
+  /** Stable id, unique within the node (persisted in the save). */
+  id: string;
+  /** Short display label, e.g. "Precision  +20% Crit Dmg". */
+  label: string;
+  flat?: Partial<Stats>;
+  increased?: Partial<Stats>;
+  more?: Partial<Stats>;
+}
+
 /** A node in the hero's PoE-style passive skill grid. */
 export interface PassiveNodeDef {
   id: string;
@@ -153,6 +164,9 @@ export interface PassiveNodeDef {
   more?: Partial<Stats>;
   /** Keystone/mastery special effect identifier. */
   effectId?: string;
+  /** When present, the player picks ONE option; the chosen option's stats replace
+   *  the node's own flat/increased/more. */
+  choices?: PassiveChoiceOption[];
   /** Hero level required before this node's region unlocks. */
   unlockAtLevel?: number;
 }
