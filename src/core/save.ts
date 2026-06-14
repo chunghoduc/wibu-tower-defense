@@ -279,7 +279,13 @@ export function loadAndMigrate(raw: unknown): HeroSave {
       ...save,
       meta: {
         ...save.meta,
-        expedition: { quests: [], lastRerollDay: "", nextQuestSeq: 0 },
+        expedition: {
+          quests: [],
+          lastRerollDay: "",
+          nextQuestSeq: 0,
+          freeRerollsLeft: 5,
+          rerollDay: "",
+        },
       },
       version: 11,
     };
