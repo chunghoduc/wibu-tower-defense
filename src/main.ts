@@ -25,8 +25,20 @@ import { setAudioVolume, setAudioMuted } from "./scenes/audio.ts";
 import { installMobileLandscape } from "./mobileLandscape.ts";
 import { hardenTouchInput } from "./core/touchInput.ts";
 import { installViewportFit } from "./core/viewportFit.ts";
+import { loadingSplashBackground } from "./core/loadingSplash.ts";
+import { versioned } from "./data/assetVersion.ts";
 
 installLogger();
+
+// Paint the SDXL key-art behind the DOM loading splash the instant boot runs
+// (before Phaser mounts) so the first frame the player sees is the roster, not
+// a flat panel. Versioned so an art regen busts the immutable cache.
+{
+  const splash = document.getElementById("loading-splash");
+  if (splash) {
+    splash.style.background = loadingSplashBackground(versioned("assets/bg/loading.png"));
+  }
+}
 
 const provider = new LocalSaveProvider();
 const saveManager = new SaveManager(provider);
