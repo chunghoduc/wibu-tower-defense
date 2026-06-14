@@ -27,6 +27,9 @@ import {
   BATTLE_EMBLEM_VISUAL,
   battleEmblemStyle,
   BATTLE_EMBLEM_NEGATIVE,
+  RARITY_GEM_VISUAL,
+  rarityGemStyle,
+  RARITY_GEM_NEGATIVE,
 } from "./prompts.mjs";
 
 // Item icons are catalog-driven: `npm run gen:item-visual` dumps every item's
@@ -223,6 +226,20 @@ function buildJobs() {
       h: 768,
       size: 128,
       neg: ACHIEVEMENT_NEGATIVE,
+    });
+  }
+  // rarity gem emblems — one faceted gemstone per rarity, transparent-cut to 64px.
+  for (const [rarity, v] of Object.entries(RARITY_GEM_VISUAL)) {
+    jobs.push({
+      kind: "rarity",
+      id: rarity,
+      file: `${rarity}.png`,
+      prompt: rarityGemStyle(v),
+      seed: seedOf(`rarity-${rarity}`),
+      w: 768,
+      h: 768,
+      size: 64,
+      neg: RARITY_GEM_NEGATIVE,
     });
   }
   // battle CTA emblem — one bold combat crest, transparent-cut to 96px, in ui/.

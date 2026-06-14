@@ -29,8 +29,9 @@ import {
   roleTex,
   achievementTex,
   battleEmblemTex,
+  rarityTex,
 } from "../data/assetKeys.ts";
-import { TOWER_ROLES } from "../data/schemaEnums.ts";
+import { TOWER_ROLES, RARITIES } from "../data/schemaEnums.ts";
 import { ACHIEVEMENTS } from "../data/achievements.ts";
 import { versioned } from "../data/assetVersion.ts";
 
@@ -114,6 +115,11 @@ export class PreloadScene extends Phaser.Scene {
     // icon (AchievementScene gates on textures.exists) — never a __MISSING box.
     for (const a of ACHIEVEMENTS) {
       this.load.image(achievementTex(a.id), versioned(`assets/sprites/achievement/${a.id}.png`));
+    }
+    // Per-rarity gem emblems (SDXL). A missing file degrades to the procedural
+    // faceted gem drawn by ExpeditionScene (textures.exists gate) — never a box.
+    for (const r of RARITIES) {
+      this.load.image(rarityTex(r), versioned(`assets/sprites/rarity/${r}.png`));
     }
     // Combat emblem on the home BATTLE CTA (SDXL). Gated by textures.exists in
     // drawBattleCta — a missing file degrades to no emblem, never a __MISSING box.

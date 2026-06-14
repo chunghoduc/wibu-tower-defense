@@ -345,6 +345,27 @@ export function battleEmblemStyle(visual) {
   return BATTLE_EMBLEM_STYLE.replace("{V}", visual);
 }
 
+// ---- RARITY GEM EMBLEMS (expedition slot-requirement icons) ----
+// One faceted gemstone per rarity tier, tinted to its hue (Common grey →
+// Unique red). Full-colour baked; the renderer draws it untinted with a
+// procedural faceted-gem fallback. Keys mirror RARITIES in schemaEnums.ts.
+export const RARITY_GEM_VISUAL = {
+  Common: "a plain polished grey quartz gemstone, simple faceted cut, muted silver-grey",
+  Magic: "a brilliant sapphire-blue faceted gemstone, glowing azure core",
+  Rare: "a radiant amethyst-purple faceted gemstone, violet inner glow",
+  Legendary: "a blazing amber-orange faceted gemstone, fiery golden glow",
+  Unique: "a molten ruby-red faceted gemstone, intense crimson radiance",
+};
+const RARITY_GEM_STYLE =
+  "a single bold flat vector game UI emblem icon of {V}, ONE centered faceted gemstone, very thick uniform clean dark outline, flat cel shading, vivid saturated colors, crisp highlights, high contrast, instantly readable at 16 pixels, isolated on a pure plain flat white background, empty background, no text";
+const RARITY_GEM_NEG =
+  "text, words, letters, numbers, ring, jewelry setting, hand, finger, character, person, creature, realistic, 3d render, photo, complex scene, landscape, multiple gems, multiple objects, busy, gradient background, drop shadow, watermark, signature, frame, border";
+export const RARITY_GEM_NEGATIVE = RARITY_GEM_NEG;
+/** Faceted rarity-gem prompt from a visual description. */
+export function rarityGemStyle(visual) {
+  return RARITY_GEM_STYLE.replace("{V}", visual);
+}
+
 // ---- ITEMS (icon style) ----
 const ITEM_STYLE =
   "a single game item icon, {V}, clean cel-shaded anime game asset, centered, isolated on a plain solid light grey background, no shadow, soft rim light";
