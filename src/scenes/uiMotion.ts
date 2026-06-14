@@ -29,3 +29,44 @@ export function staggerDelays(count: number, opts: StaggerOpts = {}): number[] {
   const effStep = span <= maxTotal ? step : maxTotal / (count - 1);
   return Array.from({ length: count }, (_, i) => from + i * effStep);
 }
+
+/** Pixels each item rises from as it fades into place. */
+export const STAGGER_RISE = 8;
+
+export interface StaggerStep {
+  /** Index into the caller's object list this step animates. */
+  index: number;
+  fromY: number;
+  toY: number;
+  fromAlpha: number;
+  toAlpha: number;
+  delay: number;
+}
+
+/**
+ * Plan an entrance-stagger over `items`. Objects without a numeric `alpha` or
+ * `y` are SKIPPED — notably Phaser Zones, which lack the Alpha component, so
+ * `o.alpha` is undefined and tweening it crashes Phaser's tween builder
+ * (`undefined.hasOwnProperty`). Returns one step per animatable item, each
+ * rising STAGGER_RISE px while fading up from fully transparent to its final
+ * alpha. Skipped items leave a gap in the schedule (harmless).
+ */
+export function staggerPlan(
+  items: ReadonlyArray<{ y?: number; alpha?: number }>,
+  opts: StaggerOpts = {},
+): StaggerStep[] {
+  const delays = staggerDelays(items.length, opts);
+  const steps: StaggerStep[] = [];
+  items.forEach((o, i) => {
+    if (typeof o.y !== "number" || typeof o.alpha !== "number") return;
+    steps.push({
+      index: i,
+      fromY: o.y + STAGGER_RISE,
+      toY: o.y,
+      fromAlpha: 0,
+      toAlpha: o.alpha,
+      delay: delays[i],
+    });
+  });
+  return steps;
+}

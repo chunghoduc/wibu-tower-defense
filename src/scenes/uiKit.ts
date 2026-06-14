@@ -6,7 +6,7 @@
  */
 import Phaser from "phaser";
 import { crispText } from "./ui.ts";
-import { MOTION, staggerDelays, type StaggerOpts } from "./uiMotion.ts";
+import { MOTION, staggerPlan, type StaggerOpts } from "./uiMotion.ts";
 
 export const COLORS = {
   gold: "#ffe9a8",
@@ -213,21 +213,22 @@ export function staggerIn(
     Phaser.GameObjects.Components.Alpha)[],
   opts: StaggerOpts = {},
 ): void {
-  const delays = staggerDelays(objects.length, opts);
-  objects.forEach((o, i) => {
-    const finalY = o.y;
-    const finalA = o.alpha;
-    o.y = finalY + 8;
-    o.alpha = 0;
+  // staggerPlan skips objects with no numeric alpha (e.g. interaction-only
+  // Zones, which lack Phaser's Alpha component) — tweening their undefined
+  // alpha crashes the tween builder.
+  for (const step of staggerPlan(objects, opts)) {
+    const o = objects[step.index];
+    o.y = step.fromY;
+    o.alpha = step.fromAlpha;
     scene.tweens.add({
       targets: o,
-      y: finalY,
-      alpha: finalA,
-      delay: delays[i],
+      y: step.toY,
+      alpha: step.toAlpha,
+      delay: step.delay,
       duration: 220,
       ease: "Quad.easeOut",
     });
-  });
+  }
 }
 
 /**
