@@ -28,6 +28,7 @@ import {
   CASTLE_DAMAGED_TEX,
   roleTex,
   achievementTex,
+  battleEmblemTex,
 } from "../data/assetKeys.ts";
 import { TOWER_ROLES } from "../data/schemaEnums.ts";
 import { ACHIEVEMENTS } from "../data/achievements.ts";
@@ -114,6 +115,9 @@ export class PreloadScene extends Phaser.Scene {
     for (const a of ACHIEVEMENTS) {
       this.load.image(achievementTex(a.id), versioned(`assets/sprites/achievement/${a.id}.png`));
     }
+    // Combat emblem on the home BATTLE CTA (SDXL). Gated by textures.exists in
+    // drawBattleCta — a missing file degrades to no emblem, never a __MISSING box.
+    this.load.image(battleEmblemTex(), versioned(`assets/sprites/ui/battle-emblem.png`));
     // Additive-blend VFX textures (box-open burst/glow/sparkle).
     for (const id of FX_IDS) this.load.image(fxTex(id), versioned(`assets/sprites/fx/${id}.png`));
     // Crafting-material icons (enhance jewels + summon scroll).

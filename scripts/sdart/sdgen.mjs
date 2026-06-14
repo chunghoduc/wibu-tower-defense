@@ -24,6 +24,9 @@ import {
   ACHIEVEMENT_VISUAL,
   achievementIconStyle,
   ACHIEVEMENT_NEGATIVE,
+  BATTLE_EMBLEM_VISUAL,
+  battleEmblemStyle,
+  BATTLE_EMBLEM_NEGATIVE,
 } from "./prompts.mjs";
 
 // Item icons are catalog-driven: `npm run gen:item-visual` dumps every item's
@@ -222,6 +225,18 @@ function buildJobs() {
       neg: ACHIEVEMENT_NEGATIVE,
     });
   }
+  // battle CTA emblem — one bold combat crest, transparent-cut to 96px, in ui/.
+  jobs.push({
+    kind: "ui",
+    id: "battle-emblem",
+    file: `battle-emblem.png`,
+    prompt: battleEmblemStyle(BATTLE_EMBLEM_VISUAL),
+    seed: seedOf("battle-emblem"),
+    w: 768,
+    h: 768,
+    size: 96,
+    neg: BATTLE_EMBLEM_NEGATIVE,
+  });
   const items = existsSync(ITEM_VISUAL_PATH)
     ? JSON.parse(readFileSync(ITEM_VISUAL_PATH, "utf8"))
     : [];
