@@ -26,7 +26,7 @@ export interface ForgeDialogOpts {
   secondary?: { label: string; run(): void };
 }
 
-const PANEL_W = 600;
+const PANEL_W = 620;
 const PANEL_H = 340;
 const MAX_CHIPS = 8; // cap selector chips; surplus surfaced via a "+N more" note
 
@@ -133,20 +133,26 @@ export function openForgeDialog(scene: Phaser.Scene, opts: ForgeDialogOpts): For
       content.add(s);
     }
 
-    // Recipe selector chips (only when there's a choice).
-    let laneTop = py + 56;
+    // Recipe selector — a bounded 2-column chip grid (never overflows the panel).
+    let laneTop = py + 52;
     if (recipes.length > 1) {
       const shown = recipes.slice(0, MAX_CHIPS);
-      let cx = px + 18;
-      let cy = py + 52;
+      const cols = 2;
+      const chipW = (PANEL_W - 36 - 10) / cols;
+      const rowH = 26;
+      const top = py + 48;
       shown.forEach((r, i) => {
-        const label = r.label.length > 16 ? r.label.slice(0, 15) + "…" : r.label;
-        const chip = crispText(scene, cx, cy, `${r.canCraft ? "●" : "○"} ${label}`, {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const label = r.label.length > 22 ? r.label.slice(0, 21) + "…" : r.label;
+        const chip = crispText(scene, px + 18 + col * (chipW + 10), top + row * rowH, "", {
           fontSize: "12px",
           color: i === sel ? "#10131c" : r.canCraft ? "#dfe7f2" : "#8090a4",
           backgroundColor: i === sel ? "#ffd56a" : "#1b2436",
           fontStyle: "bold",
+          fixedWidth: chipW,
         })
+          .setText(`${r.canCraft ? "●" : "○"} ${label}`)
           .setPadding(8, 4, 8, 4)
           .setInteractive({ useHandCursor: true });
         chip.on("pointerup", () => {
@@ -154,21 +160,17 @@ export function openForgeDialog(scene: Phaser.Scene, opts: ForgeDialogOpts): For
           render();
         });
         content.add(chip);
-        cx += chip.width + 8;
-        if (cx > px + PANEL_W - 120) {
-          cx = px + 18;
-          cy += 28;
-        }
       });
+      const rows = Math.ceil(shown.length / cols);
       if (recipes.length > MAX_CHIPS) {
         content.add(
-          crispText(scene, px + 18, cy + 26, `+${recipes.length - MAX_CHIPS} more`, {
+          crispText(scene, px + 18, top + rows * rowH, `+${recipes.length - MAX_CHIPS} more`, {
             fontSize: "10px",
             color: "#7f93a8",
           }),
         );
       }
-      laneTop = cy + 40;
+      laneTop = top + rows * rowH + 14;
     }
 
     // Transformation lane: INPUTS  ⚒ ➜  OUTPUTS.

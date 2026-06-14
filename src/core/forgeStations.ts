@@ -205,9 +205,9 @@ export function stationFromRecipes(
 export function forgeGridLayout(count: number, width: number, top: number): Rect[] {
   const cols = 2;
   const pad = 24;
-  const gap = 16;
+  const gap = 14;
   const cardW = (width - pad * 2 - gap) / cols;
-  const cardH = 96;
+  const cardH = 88;
   const rects: Rect[] = [];
   for (let i = 0; i < count; i++) {
     const col = i % cols;

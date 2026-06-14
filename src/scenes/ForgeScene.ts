@@ -59,7 +59,7 @@ export class ForgeScene extends Phaser.Scene {
     this.mgr = this.registry.get("saveManager");
     this.mgr.ensureBanner(isoWeekKey(new Date()));
 
-    crispText(this, W / 2, 10, "⚒ Forge", { fontSize: "24px", color: "#ffd700", fontStyle: "bold" })
+    crispText(this, W / 2, 8, "⚒ Forge", { fontSize: "20px", color: "#ffd700", fontStyle: "bold" })
       .setOrigin(0.5, 0)
       .setDepth(50);
     crispText(this, 20, 12, "← Back", { fontSize: "15px", color: "#90caf9" })
@@ -143,7 +143,7 @@ export class ForgeScene extends Phaser.Scene {
   private rebuild(): void {
     this.drawBar();
     const stations = this.stations();
-    const rects = forgeGridLayout(stations.length, W, 78);
+    const rects = forgeGridLayout(stations.length, W, 88);
     this.grid.removeAll(true);
     const cards = stations.map((vm, i) =>
       buildStationCard(this, rects[i], vm, (s) => this.openStation(s)),
@@ -167,10 +167,10 @@ export class ForgeScene extends Phaser.Scene {
     ];
     const gap = 224;
     chips.forEach(([emoji, key, val], i) => {
-      const x = 40 + i * gap;
-      this.bar.add(makeFitIcon(this, x, 52, key, 22, emoji));
+      const x = 56 + i * gap;
+      this.bar.add(makeFitIcon(this, x, 46, key, 22, emoji));
       this.bar.add(
-        crispText(this, x + 18, 52, `${val}`, {
+        crispText(this, x + 18, 46, `${val}`, {
           fontSize: "14px",
           color: "#ffe07a",
           fontStyle: "bold",
