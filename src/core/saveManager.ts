@@ -6,16 +6,12 @@ import { getAwakening, canAwaken, awaken } from "./awakening.ts";
 import { ensureWishlist, setWishlist, canClaimSpark, claimSpark } from "./banner.ts";
 import { craftAlchemy, exchangeCopies } from "./alchemy.ts";
 import {
-  expeditionActive,
-  expeditionPendingGold,
-  startExpedition,
-  collectExpedition,
-  expeditionGoldPerHour,
-  expeditionGoldPerHourFor,
-  expeditionCanCollect,
-  expeditionCollectReadyAt,
-  expeditionEligibleTowerIds,
-} from "./expedition.ts";
+  ensureBoard,
+  startQuest,
+  claimQuest,
+  claimableQuestCount,
+  eligibleTowersForSlot,
+} from "./expeditionBoard.ts";
 import {
   bestEndlessWave,
   recordEndlessWave,
@@ -130,7 +126,7 @@ export class SaveManager extends SaveManagerCore {
     if (freeSpinAvailable(this.save, today)) n++;
     n += claimableBountyCount(this.save);
     n += claimableMilestoneCount(this.save);
-    if (expeditionCanCollect(this.save, nowMs) && expeditionPendingGold(this.save, nowMs) > 0) n++;
+    n += claimableQuestCount(this.save, nowMs);
     return n;
   }
 
@@ -151,36 +147,35 @@ export class SaveManager extends SaveManagerCore {
     return ok;
   }
 
-  // ── F2 Idle expedition ──────────────────────────────────────────────────────
-  expeditionActive(): boolean {
-    return expeditionActive(this.save);
-  }
-  expeditionPendingGold(nowMs = Date.now()): number {
-    return expeditionPendingGold(this.save, nowMs);
-  }
-  expeditionGoldPerHour(): number {
-    return expeditionGoldPerHour(this.save);
-  }
-  expeditionGoldPerHourFor(towerIds: string[]): number {
-    return expeditionGoldPerHourFor(this.save, towerIds);
-  }
-  expeditionCanCollect(nowMs = Date.now()): boolean {
-    return expeditionCanCollect(this.save, nowMs);
-  }
-  expeditionCollectReadyAt(): number {
-    return expeditionCollectReadyAt(this.save);
-  }
-  expeditionEligibleTowerIds(): string[] {
-    return expeditionEligibleTowerIds(this.save);
-  }
-  startExpedition(towerIds: string[], nowMs = Date.now()): void {
-    startExpedition(this.save, towerIds, nowMs);
+  // ── F2 Expedition quest board ────────────────────────────────────────────────
+  /** Fill/refresh the board (call on opening the Expedition screen). */
+  ensureExpeditionBoard(nowMs = Date.now()): void {
+    ensureBoard(this.save, nowMs, new Rng((Math.random() * 1e9) | 0));
     this.persist();
   }
-  collectExpedition(nowMs = Date.now(), rng: Rng = new Rng((Math.random() * 1e9) | 0)): Reward {
-    const r = collectExpedition(this.save, nowMs, rng);
+  /** The current board quests (Available / Running / Ready). */
+  expeditionQuests() {
+    return this.save.meta.expedition.quests;
+  }
+  /** Owned towers that satisfy a slot's rarity floor and aren't otherwise busy. */
+  expeditionEligibleForSlot(slotRarity: string, alreadyPicked: string[]): string[] {
+    return eligibleTowersForSlot(this.save, slotRarity, alreadyPicked);
+  }
+  /** Dispatch a quest; returns whether it started. */
+  startExpeditionQuest(questId: string, towerIds: string[], nowMs = Date.now()): boolean {
+    const ok = startQuest(this.save, questId, towerIds, nowMs);
+    if (ok) this.persist();
+    return ok;
+  }
+  /** Claim a Ready quest; returns the rolled reward ({} if not ready). */
+  claimExpeditionQuest(questId: string, nowMs = Date.now()): Reward {
+    const reward = claimQuest(this.save, questId, nowMs, new Rng((Math.random() * 1e9) | 0));
     this.persist();
-    return r;
+    return reward;
+  }
+  /** Count of Ready quests (drives the Activities badge). */
+  expeditionClaimable(nowMs = Date.now()): number {
+    return claimableQuestCount(this.save, nowMs);
   }
 
   // ── F11 Endless survival ────────────────────────────────────────────────────

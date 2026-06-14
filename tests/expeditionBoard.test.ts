@@ -14,7 +14,7 @@ import {
   claimableQuestCount,
   claimQuest,
 } from "../src/core/expeditionBoard.ts";
-import { QUEST_TIERS } from "../src/data/expeditionQuests.ts";
+import { QUEST_TIERS, type QuestInstance } from "../src/data/expeditionQuests.ts";
 import { TOWERS } from "../src/data/towers.ts";
 
 function ownerOf(rarity: string): string {
@@ -73,10 +73,10 @@ describe("expedition board", () => {
     const rare = ownerOf("Rare");
     const magic = ownerOf("Magic");
     const save = saveOwning([rare, magic]);
-    const q = {
+    const q: QuestInstance = {
       id: "x",
-      rarity: "Rare" as const,
-      slots: ["Magic", "Rare"] as string[],
+      rarity: "Rare",
+      slots: ["Magic", "Rare"],
       durationMs: 1,
       startedAt: 0,
       assigned: [],
