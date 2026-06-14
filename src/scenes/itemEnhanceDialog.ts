@@ -16,6 +16,7 @@ import { equipLevelGate } from "../data/equipGate.ts";
 import { addGatedButton } from "./gatedButton.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
+import { enhanceDialogLayout, ROW_H, STATS_TOP } from "./enhanceDialogLayout.ts";
 
 export interface EnhanceCallbacks {
   onChange: () => void; // an enhance attempt landed — refresh the inventory
@@ -38,13 +39,15 @@ export function renderEnhanceDialog(
   if (!inst || !def) return;
   dialog.removeAll(true);
 
-  const numStats = Object.values(inst.rolledStats).filter((v) => typeof v === "number").length;
-  const ROW_H = 20,
-    STATS_TOP = 44;
+  // Size the panel from the ACTUAL rendered rows (base stats + the primary-affix
+  // row), not the base-stat count alone — otherwise the panel is one row short
+  // and the Enhance button lands on the "Success %" line. Row count is level-
+  // independent, so probe it with any from/to.
+  const rowCount = enhancePreviewRows(inst, def, 0, 1).length;
+  const layout = enhanceDialogLayout(rowCount);
   const W = 360,
     dx = (scene.scale.width - W) / 2;
-  // Height grows with the stat list so every stat's before/after is visible.
-  const H = STATS_TOP + Math.max(1, numStats) * ROW_H + 96;
+  const H = layout.H;
   const dy = Math.max(80, (scene.scale.height - H) / 2 - 20);
   const g = scene.add.graphics();
   g.fillStyle(0x070b12, 0.6).fillRect(0, 0, scene.scale.width, scene.scale.height); // scrim
@@ -98,15 +101,14 @@ export function renderEnhanceDialog(
     if (rows.length === 0)
       add(20, STATS_TOP, "No scaling stats.", { fontSize: "12px", color: "#9fb2c8" });
 
-    const infoY = STATS_TOP + Math.max(1, rows.length) * ROW_H + 6;
     add(
       16,
-      infoY,
+      layout.needsY,
       maxed ? "Maxed (+15)." : `Needs: ${MATERIALS_MAP.get(jewel)?.name} (you have ${have})`,
     );
     add(
       16,
-      infoY + 24,
+      layout.successY,
       maxed
         ? ""
         : `Success: ${Math.round(chance * 100)}%${cur >= 6 ? "  ·  on failure the item loses 1–5 levels" : ""}`,
@@ -120,7 +122,7 @@ export function renderEnhanceDialog(
     const btn = crispText(
       scene,
       dx + enhX,
-      dy + H - 50,
+      dy + layout.buttonY,
       maxed ? "MAX" : canDo ? "⚒  Enhance" : "Need jewel",
       {
         fontSize: "15px",
@@ -146,7 +148,7 @@ export function renderEnhanceDialog(
     if (cb.onEquip) {
       addGatedButton(scene, dialog, {
         x: dx + W * 0.34,
-        y: dy + H - 50,
+        y: dy + layout.buttonY,
         label: "✓  Equip",
         bg: "#2e7d32",
         gate: equipLevelGate(save.hero.level, instanceReqLevel(inst, def)),
