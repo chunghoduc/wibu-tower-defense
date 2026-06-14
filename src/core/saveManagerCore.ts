@@ -135,13 +135,35 @@ export class SaveManagerCore {
     return results;
   }
 
-  /** Unlock a passive node. Returns false if not enough skill points or node unreachable. */
-  unlockPassiveNode(nodeId: string): boolean {
+  /** Unlock a passive node. Returns false if not enough skill points or node unreachable.
+   *  For "choose" nodes, records `choiceId` (defaulting to the first option). */
+  unlockPassiveNode(nodeId: string, choiceId?: string): boolean {
     const save = this.save;
     if (save.hero.skillPoints <= 0) return false;
     if (save.hero.unlockedNodes.includes(nodeId)) return false;
     save.hero.unlockedNodes.push(nodeId);
     save.hero.skillPoints -= 1;
+    const node = PASSIVE_NODES_MAP.get(nodeId);
+    if (node?.choices && node.choices.length > 0) {
+      const valid = choiceId && node.choices.some((c) => c.id === choiceId);
+      save.hero.nodeChoices[nodeId] = valid ? choiceId! : node.choices[0].id;
+    }
+    this.persist();
+    return true;
+  }
+
+  /**
+   * Switch the active option on an already-unlocked "choose" node. Free — the
+   * options are intra-node sidegrades and the node's point is already spent.
+   * Returns false if the node isn't unlocked, isn't a choice node, or the option
+   * id is unknown.
+   */
+  setNodeChoice(nodeId: string, choiceId: string): boolean {
+    const hero = this.save.hero;
+    if (!hero.unlockedNodes.includes(nodeId)) return false;
+    const node = PASSIVE_NODES_MAP.get(nodeId);
+    if (!node?.choices || !node.choices.some((c) => c.id === choiceId)) return false;
+    hero.nodeChoices[nodeId] = choiceId;
     this.persist();
     return true;
   }
@@ -158,6 +180,7 @@ export class SaveManagerCore {
     if ((this.save.materials[OBLIVION_ORB] ?? 0) <= 0) return false;
     if (!canForgetNode(hero.unlockedNodes, nodeId)) return false;
     hero.unlockedNodes = hero.unlockedNodes.filter((id) => id !== nodeId);
+    delete hero.nodeChoices[nodeId];
     hero.skillPoints += 1;
     this.save.materials[OBLIVION_ORB] -= 1;
     this.persist();
@@ -175,6 +198,7 @@ export class SaveManagerCore {
     if (refunded === 0) return 0;
     hero.skillPoints += refunded;
     hero.unlockedNodes = [];
+    hero.nodeChoices = {};
     this.persist();
     return refunded;
   }
