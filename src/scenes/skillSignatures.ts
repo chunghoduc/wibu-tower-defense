@@ -47,12 +47,13 @@ const spiritComet: SigFn = (d, at, s, radius) => {
   d.motes(at, radius, 12, () => (Math.random() < 0.5 ? core : hot), -1);
 };
 
+// iron-cleave is "a wide arc that cleaves" — lead with ONE dominant broad sweep,
+// backed by a tighter bright arc and a horizontal ground-crack shock.
 const steelCross: SigFn = (d, at, s, radius) => {
   const { core, hot, deep } = s.palette;
-  d.crescent(at, core, -130, 110, radius * 0.85, 5, 220, 30);
-  d.after(60, () => d.crescent(at, hot, 50, 110, radius * 0.85, 5, 220, -30));
-  d.beam(at, 0, radius * 1.2, hot, 4, 240);
-  d.beam({ x: at.x - radius * 0.6, y: at.y }, 0, radius * 1.2, deep, 3, 260);
+  d.crescent(at, core, -210, 200, radius, 6, 260, 36); // the wide cleaving arc
+  d.crescent(at, hot, -200, 180, radius * 0.7, 3, 240, 36);
+  d.beam({ x: at.x - radius * 0.6, y: at.y }, 0, radius * 1.6, deep, 3, 260); // ground-crack shock
   d.spark(at, hot, 10, 22);
 };
 
@@ -83,14 +84,16 @@ const guillotine: SigFn = (d, at, s, radius) => {
   d.shake(120, 0.005);
 };
 
+// The three arrows now FLY IN via the projectile volley; this is just where they
+// land — three small fanned impact sparks + a verdant settle (no full beams).
 const tripleVolley: SigFn = (d, at, s, radius) => {
   const { core, hot, deep } = s.palette;
   [-32, 0, 32].forEach((deg, i) =>
-    d.after(i * 45, () => {
+    d.after(i * 30, () => {
       const a = Phaser.Math.DegToRad(deg);
-      d.beam(at, a, radius * 1.1, core, 3, 240);
-      const tip = { x: at.x + Math.cos(a) * radius, y: at.y + Math.sin(a) * radius };
-      d.spark(tip, hot, 5, 12);
+      const tip = { x: at.x + Math.cos(a) * radius * 0.5, y: at.y + Math.sin(a) * radius * 0.5 };
+      d.disc(tip, 7, hot, 0.85, 1.6, 160);
+      d.spark(tip, core, 5, 12);
     }),
   );
   d.ring(at, radius * 0.7, deep, 360, 2);
@@ -140,14 +143,16 @@ const arcaneSupernova: SigFn = (d, at, s, radius) => {
   d.shake(180, 0.007);
 };
 
+// The five bullets now STREAM IN via the projectile volley; this is just the
+// staccato impacts where they hit + the gunsmoke (no muzzle/tracer beams here).
 const muzzleBarrage: SigFn = (d, at, s, radius) => {
   const { core, hot, deep } = s.palette;
+  void radius;
   for (let i = 0; i < 5; i++)
     d.after(i * 55, () => {
-      const off = { x: at.x + (i - 2) * 8, y: at.y };
-      d.disc(off, 9, hot, 0.9, 1.6, 160); // muzzle flash
-      d.beam(off, Phaser.Math.FloatBetween(-0.15, 0.15), radius, core, 3, 200); // tracer
-      d.smoke({ x: off.x, y: off.y }, deep, 6);
+      const off = { x: at.x + (i - 2) * 7, y: at.y + Phaser.Math.Between(-4, 4) };
+      d.disc(off, 8, hot, 0.9, 1.5, 150); // impact spit
+      d.spark(off, core, 4, 12);
     });
   d.after(320, () => {
     d.spark(at, hot, 8, 20);
@@ -195,8 +200,13 @@ const pureTechnique: SigFn = (d, at, s, radius) => {
 
 const voidRift: SigFn = (d, at, s, radius) => {
   const { core, hot, deep } = s.palette;
+  // void-palm is "a palm strike that tears through reality" — a hard palm thrust
+  // lands FIRST, then reality tears open behind it.
+  d.gleam(at, 0, radius * 0.9, hot, 5); // palm thrust
+  d.disc(at, 14, hot, 0.9, 1.4, 160);
+  d.spark(at, hot, 8, 18);
   // a dark rift opens with a glowing rim, cracks space, then snaps shut
-  d.disc(at, radius * 0.6, deep, 0.85, 1.0, 320); // black core swell
+  d.after(110, () => d.disc(at, radius * 0.6, deep, 0.85, 1.0, 320)); // black core swell
   d.ring(at, radius * 0.65, hot, 360, 5); // violet rim
   for (let i = 0; i < 10; i++) {
     // cracks in space

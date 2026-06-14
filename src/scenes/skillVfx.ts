@@ -8,10 +8,13 @@
 import type Phaser from "phaser";
 import { SKILL_STYLE_COLOR, skillStyleFor } from "../data/attackStyle.ts";
 import { skillVfxSpec, deliveryForShape } from "../data/skillVfxMeta.ts";
+import { skillMotif } from "../data/skillMotif.ts";
 import { skillShapeFor } from "../data/towerSkillShapeIndex.ts";
 import { renderSignature } from "./skillSignatures.ts";
 import { renderTowerShape } from "./towerSkillFx.ts";
 import { renderDelivery } from "./skillDelivery.ts";
+import { planVolley } from "./projectileVolley.ts";
+import { renderVolley } from "./projectileVolleyFx.ts";
 import { VfxDraw } from "./vfxDraw.ts";
 import type { FxPool } from "./fxPool.ts";
 import { ACCENT, SkillElementFx } from "./skillElementFx.ts";
@@ -43,14 +46,23 @@ export class SkillVfx {
     source: "tower" | "hero",
   ): void {
     const draw = new VfxDraw(this.scene, this.fac, this.depth, this.pool);
+    const motif = skillMotif(skillId);
     const spec = skillVfxSpec(skillId);
     if (spec) {
-      // Hero skill: deliver from the source (fly / fall / erupt / beam), then fire
-      // the bespoke impact set-piece on arrival. baseBurst carries the icon emblem.
-      renderDelivery(draw, spec.delivery, from, at, spec.palette, radius, () => {
+      // Hero skill: deliver from the source — literal projectiles when the skill
+      // fires something (tri-shot → 3 arrows), else the choreographed delivery
+      // (melee sweep / sky-fall / ground-erupt / beam) — then the bespoke impact
+      // set-piece on arrival. baseBurst carries the icon emblem.
+      const onArrive = () => {
         this.elements.baseBurst(at, spec.palette.core, radius, skillId);
         renderSignature(this.scene, this.fac, this.depth, at, spec, radius, this.pool);
-      });
+      };
+      if (motif.kind !== "none") {
+        const shots = planVolley(from, at, motif);
+        renderVolley(this.scene, this.fac, this.depth, this.pool, motif.kind, shots, spec.palette, onArrive);
+      } else {
+        renderDelivery(draw, spec.delivery, from, at, spec.palette, radius, onArrive);
+      }
       return;
     }
     // Tower active (or any id without a bespoke hero signature): element × shape.
@@ -60,7 +72,7 @@ export class SkillVfx {
     const accent = ACCENT[style];
     const palette = { core: color, hot: accent.hot, deep: accent.deep };
     const shape = skillShapeFor(skillId);
-    renderDelivery(draw, deliveryForShape(shape), from, at, palette, radius, () => {
+    const onArrive = () => {
       this.elements.baseBurst(at, color, radius, skillId);
       renderTowerShape(draw, shape, at, palette, radius); // structural motion (under particles)
       this.elements.render(style, at, color, radius); // elemental substance (on top)
@@ -70,6 +82,14 @@ export class SkillVfx {
       if (source === "hero" || heavy || med || style === "lightning") {
         this.scene.cameras.main.shake(heavy ? 200 : 130, heavy ? 0.007 : 0.004);
       }
-    });
+    };
+    if (motif.kind !== "none") {
+      // Projectile shapes (barrage/bolt/chain/beam) fire literal shots from the source.
+      const shots = planVolley(from, at, motif);
+      renderVolley(this.scene, this.fac, this.depth, this.pool, motif.kind, shots, palette, onArrive);
+    } else {
+      // Area shapes (nova/slam/cloud/aura) erupt at the target — no projectile.
+      renderDelivery(draw, deliveryForShape(shape), from, at, palette, radius, onArrive);
+    }
   }
 }
