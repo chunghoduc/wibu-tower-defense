@@ -6,6 +6,13 @@ import { boxRewardEntries } from "../data/boxRewardView.ts";
 import { makeFitIcon } from "./itemIcon.ts";
 import { addNamePlate } from "./namePlate.ts";
 import { boxTex, fxTex } from "../data/assetKeys.ts";
+import {
+  boxOpenTimings,
+  TILE_STAGGER_MS,
+  TILE_TWEEN_MS,
+  HINT_DELAY_MS,
+  HINT_FADE_MS,
+} from "./boxOpenTimings.ts";
 
 const ADD = Phaser.BlendModes.ADD;
 
@@ -88,11 +95,14 @@ export class BoxOpenOverlay {
       ease: "Quad.easeIn",
     });
 
-    s.time.delayedCall(640, () => this.pop(cx, cy, color, chest));
-    s.time.delayedCall(1000, () => this.reveal(reward, cx, cy));
+    // Drive the sequence off the shared timing model so tap-to-close can never
+    // arm before every reward tile has finished revealing (see boxOpenTimings).
+    const t = boxOpenTimings(boxRewardEntries(reward).length);
+    s.time.delayedCall(t.popMs, () => this.pop(cx, cy, color, chest));
+    s.time.delayedCall(t.revealMs, () => this.reveal(reward, cx, cy));
 
-    // Tap to close — armed only after the reveal so the burst is never cut short.
-    s.time.delayedCall(1050, () => dim.once("pointerdown", () => this.close()));
+    // Tap to close — armed only after the full reveal so it's never cut short.
+    s.time.delayedCall(t.armCloseMs, () => dim.once("pointerdown", () => this.close()));
   }
 
   private pop(
@@ -217,8 +227,8 @@ export class BoxOpenOverlay {
         targets: tile,
         alpha: 1,
         scale: 1,
-        duration: 280,
-        delay: i * 110,
+        duration: TILE_TWEEN_MS,
+        delay: i * TILE_STAGGER_MS,
         ease: "Back.easeOut",
       });
     });
@@ -228,7 +238,12 @@ export class BoxOpenOverlay {
       .setOrigin(0.5)
       .setAlpha(0);
     this.root.add(hint);
-    s.tweens.add({ targets: hint, alpha: 1, duration: 400, delay: entries.length * 110 + 200 });
+    s.tweens.add({
+      targets: hint,
+      alpha: 1,
+      duration: HINT_FADE_MS,
+      delay: entries.length * TILE_STAGGER_MS + HINT_DELAY_MS,
+    });
   }
 
   /** A bright-on-black VFX texture set up for additive, rarity-tinted rendering. */
