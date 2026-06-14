@@ -1,11 +1,11 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import type { SaveManager } from "../core/saveManager.ts";
 import type { PassiveNodeDef } from "../data/schema.ts";
 
 const CHIP_X = 545; // matches PANEL_X in PassiveGridScene
 const CHIP_W = 400; // matches PANEL_W
 const CHIP_TOP = 176; // sits where panelStats would be
-const CHIP_H = 34;
+const CHIP_H = 30;
 const CHIP_GAP = 8;
 
 const COL_SEL_BG = "#5d4037";

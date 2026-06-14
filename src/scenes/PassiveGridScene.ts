@@ -9,6 +9,7 @@ import { JewelOverlay } from "./jewelOverlay.ts";
 import { JEWEL_CATALOG_MAP } from "../data/jewels.ts";
 import { OBLIVION_ORB } from "../data/materials.ts";
 import { RESPEC_DIAMOND_COST } from "../core/saveManager.ts";
+import { MasteryChoicePanel } from "./masteryChoicePanel.ts";
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 const MIN_X = 4;
@@ -63,6 +64,7 @@ export class PassiveGridScene extends Phaser.Scene {
   private socketBtn!: Phaser.GameObjects.Text;
   private removeBtn!: Phaser.GameObjects.Text;
   private jewelOverlay!: JewelOverlay;
+  private choicePanel!: MasteryChoicePanel;
   private resetArmed = false;
   private panelLevelReq!: Phaser.GameObjects.Text;
 
@@ -209,6 +211,7 @@ export class PassiveGridScene extends Phaser.Scene {
     this.removeBtn.on("pointerdown", () => this.confirmRemoveSocket());
 
     this.jewelOverlay = new JewelOverlay(this, this.mgr, () => this.redraw());
+    this.choicePanel = new MasteryChoicePanel(this, this.mgr, () => this.redraw());
 
     // Click detection on the grid area
     this.input.on("pointerdown", (ptr: Phaser.Input.Pointer) => {
@@ -381,7 +384,8 @@ export class PassiveGridScene extends Phaser.Scene {
 
   private tryUnlock(): void {
     if (!this.selectedNode) return;
-    const ok = this.mgr.unlockPassiveNode(this.selectedNode.id);
+    const choiceId = this.selectedNode.choices ? this.choicePanel.getPending() : undefined;
+    const ok = this.mgr.unlockPassiveNode(this.selectedNode.id, choiceId ?? undefined);
     if (ok) {
       this.redraw();
     }
@@ -472,6 +476,7 @@ export class PassiveGridScene extends Phaser.Scene {
       this.forgetBtn.setVisible(false);
       this.socketBtn.setVisible(false);
       this.removeBtn.setVisible(false);
+      this.choicePanel.clear();
       return;
     }
 
@@ -485,6 +490,14 @@ export class PassiveGridScene extends Phaser.Scene {
     this.panelType.setText(`${node.type.toUpperCase()}  ·  ${node.region}`);
     this.panelDesc.setText(node.description);
     this.panelStats.setText(formatStatBonuses(node)).setColor("#a5d6a7");
+
+    // "Choose" nodes replace the static stat line with an interactive option picker.
+    if (node.choices && node.choices.length > 0) {
+      this.panelStats.setText("");
+      this.choicePanel.render(node, isUnlocked);
+    } else {
+      this.choicePanel.clear();
+    }
 
     if (levelLocked) {
       this.panelLevelReq.setText(`Requires level ${node.unlockAtLevel}`);
@@ -523,8 +536,9 @@ export class PassiveGridScene extends Phaser.Scene {
         .setColor(jewelDef ? "#80d8ff" : "#a5d6a7");
     }
 
-    if (isUnlocked) {
-      // Show a small "Unlocked ✓" badge
+    // Show a small "Unlocked ✓" badge. Choice nodes skip it — their highlighted
+    // option chip already conveys the active pick and would collide with the badge.
+    if (isUnlocked && !node.choices) {
       this.panelLevelReq.setText("✓ Unlocked").setColor("#a5d6a7");
     }
   }
