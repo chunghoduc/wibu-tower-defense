@@ -26,6 +26,7 @@ import {
   type CategoryChips,
 } from "./itemFilter.ts";
 import { BoxOpenOverlay } from "./boxOpenOverlay.ts";
+import { createDragLifecycle } from "./inventoryDragLifecycle.ts";
 import {
   TILE,
   makeItemTile,
@@ -253,36 +254,45 @@ export class HeroScene extends Phaser.Scene {
   }
 
   private setupDrag(): void {
-    this.input.on("dragstart", (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) => {
-      obj.setDepth(150);
-      this.hideTooltip();
-      this.didDrag = true;
-    });
-    this.input.on(
-      "drag",
-      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => {
+    // The view rebuild + tap-guard reset live in `dragend` (never in `drop`):
+    // destroying the dragged tile during `drop` makes Phaser skip the dragend
+    // emit, which used to leave `didDrag` stuck true and freeze every later tap.
+    // See inventoryDragLifecycle.ts for the full rationale.
+    const drag = createDragLifecycle<Phaser.GameObjects.Container, Phaser.GameObjects.Zone>({
+      lift: (obj) => {
+        obj.setDepth(150);
+        this.hideTooltip();
+      },
+      move: (obj, x, y) => {
         obj.x = x;
         obj.y = y;
       },
+      applyDrop: (obj, zone) => this.handleDrop(obj, zone),
+      refresh: () => this.refresh(),
+      setDragging: (active) => {
+        this.didDrag = active;
+      },
+      defer: (fn) => {
+        this.time.delayedCall(0, fn);
+      },
+    });
+    this.input.on("dragstart", (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) =>
+      drag.dragStart(obj),
+    );
+    this.input.on(
+      "drag",
+      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) =>
+        drag.drag(obj, x, y),
     );
     this.input.on(
       "drop",
-      (
-        _p: Phaser.Input.Pointer,
-        obj: Phaser.GameObjects.Container,
-        zone: Phaser.GameObjects.Zone,
-      ) => {
-        this.handleDrop(obj, zone);
-      },
+      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, zone: Phaser.GameObjects.Zone) =>
+        drag.drop(obj, zone),
     );
     this.input.on(
       "dragend",
-      (_p: Phaser.Input.Pointer, _obj: Phaser.GameObjects.Container, dropped: boolean) => {
-        if (!dropped) this.refresh(); // snap back
-        this.time.delayedCall(0, () => {
-          this.didDrag = false;
-        }); // reset after pointerup
-      },
+      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, dropped: boolean) =>
+        drag.dragEnd(obj, dropped),
     );
   }
 
@@ -303,7 +313,9 @@ export class HeroScene extends Phaser.Scene {
         this.showToast(`${def.name} doesn't fit ${SLOT_LABEL[slot]}`);
       }
     }
-    this.refresh();
+    // NOTE: do NOT refresh() here — that would destroy the dragged tile during
+    // Phaser's `drop` event and make it skip `dragend`. The rebuild runs in
+    // `dragend` (via the drag lifecycle) for every drop, equip and snap-back.
   }
 
   private refresh(): void {
