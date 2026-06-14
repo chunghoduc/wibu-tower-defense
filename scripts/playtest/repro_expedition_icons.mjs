@@ -85,8 +85,9 @@ async function main() {
       const hasRewardIcon=texKeys.some(k=>k==='icon__gold'||k==='icon__gem'||k.startsWith('material__'));
       const texts=all.filter(o=>o.type==='Text').map(o=>o.text||'');
       const rerollTxt=texts.find(x=>/Reroll \\(\\d\\/5\\)/.test(x))||'';
+      const dispatchTxt=texts.find(x=>/Dispatches \\d\\/5/.test(x))||'';
       const m=rerollTxt.match(/\\((\\d)\\/5\\)/);
-      return JSON.stringify({ hasRarityGem, hasRewardIcon, rerollTxt, before: m?Number(m[1]):-1 });`),
+      return JSON.stringify({ hasRarityGem, hasRewardIcon, rerollTxt, dispatchTxt, before: m?Number(m[1]):-1 });`),
   );
   console.log("board report:", report);
 
@@ -112,7 +113,13 @@ async function main() {
   // texture when it actually loaded. Reward icons + reroll decrement are firm.
   const gemsOk = !texLoaded || report.hasRarityGem;
   const rerollOk = after.ok && report.before >= 0 && after.left === report.before - 1;
-  const ok = gemsOk && report.hasRewardIcon && /Reroll \(\d\/5\)/.test(report.rerollTxt) && rerollOk;
+  const dispatchOk = /Dispatches \d\/5/.test(report.dispatchTxt);
+  const ok =
+    gemsOk &&
+    report.hasRewardIcon &&
+    /Reroll \(\d\/5\)/.test(report.rerollTxt) &&
+    rerollOk &&
+    dispatchOk;
   console.log(ok ? "VERDICT: PASS" : "VERDICT: FAIL");
   ws.close();
   process.exit(ok ? 0 : 1);
