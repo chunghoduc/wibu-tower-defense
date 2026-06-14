@@ -8,6 +8,7 @@
 import { RARITIES, type Rarity } from "./schemaEnums.ts";
 import type { Reward } from "../core/rewards.ts";
 import type { Rng } from "../core/rng.ts";
+import { goldIcon, diamondIcon, materialIcon, type RewardIconView } from "./rewardIcon.ts";
 import {
   BLESS_JEWEL,
   SOUL_JEWEL,
@@ -129,6 +130,40 @@ export const QUEST_TIERS: Record<Rarity, QuestTierDef> = {
     },
   ),
 };
+
+/**
+ * The icons a tier *can* pay (its reward pool), for the card preview. Gold always
+ * leads; gem-dropping tiers show the diamond; then each tier's signature
+ * material(s). Mirrors the tier's `rewardRoll` shape — never the exact future
+ * roll (that stays a claim-time surprise). Capped at 5 to fit the card.
+ */
+export function tierRewardPreview(rarity: Rarity): RewardIconView[] {
+  const v: RewardIconView[] = [goldIcon()];
+  const mats: string[] = [];
+  switch (rarity) {
+    case "Common":
+      mats.push(BLESS_JEWEL);
+      break;
+    case "Magic":
+      v.push(diamondIcon());
+      mats.push(SOUL_JEWEL);
+      break;
+    case "Rare":
+      v.push(diamondIcon());
+      mats.push(SOUL_JEWEL, SUMMON_SCROLL);
+      break;
+    case "Legendary":
+      v.push(diamondIcon());
+      mats.push(AWAKENING_CRYSTAL, CHAOS_JEWEL);
+      break;
+    case "Unique":
+      v.push(diamondIcon());
+      mats.push(AWAKENING_CRYSTAL, JEWEL_OF_CHAOS, FEATHER);
+      break;
+  }
+  for (const id of mats) v.push(materialIcon(id));
+  return v.slice(0, 5);
+}
 
 /** A generated, persistable quest on the board. */
 export interface QuestInstance {
