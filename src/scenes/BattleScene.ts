@@ -35,6 +35,7 @@ import type { BattleTilemap } from "./battleTilemap.ts";
 import type { CharacterDef, Difficulty, StageDef } from "../data/schema.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { crispText } from "./ui.ts";
+import { roleBadgeTex, roleBadgeOnCard } from "./roleBadge.ts";
 import { fadeIn, DUR } from "./uiKit.ts";
 import { BattleInfoPanel } from "./battleInfoPanel.ts";
 import { FxLayer } from "./fx.ts";
@@ -468,6 +469,15 @@ export class BattleScene extends Phaser.Scene {
       const badge = this.add.graphics();
       this.drawTypeBadge(badge, (TW - 8) / 2 - 9, -8, def); // melee/ranged + role (T5)
       c.add(badge);
+      // Role emblem on top of the disc (the field-tower treatment, but for the
+      // card) so the build-bar "squad list" shows the role, not a bare dot.
+      const rbKey = roleBadgeTex(def.role);
+      if (this.textures.exists(rbKey)) {
+        const geo = roleBadgeOnCard(TW - 8);
+        const emblem = this.add.image(geo.x, geo.y, rbKey);
+        if (emblem.height) emblem.setScale(geo.diameter / emblem.height);
+        c.add(emblem);
+      }
       c.setData("towerId", def.id);
       c.setInteractive({ useHandCursor: true, draggable: true });
       // Tap (not drag) a card to ARM it for tap-to-place; drag still works.
