@@ -12,6 +12,7 @@ import { archetypeFor, ARCHETYPE_COLOR, ARCHETYPE_LABEL } from "../data/itemArch
 import type { ItemDef, Rarity } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { RARITY_INT } from "../data/rarityColors.ts";
+import { floatTooltip } from "./tooltipLayer.ts";
 
 const RARITY_HEX: Record<Rarity, string> = {
   Common: "#c8d2dc",
@@ -174,5 +175,6 @@ export function renderItemTooltip(
       }),
     );
   }
+  floatTooltip(c); // stat tooltip always renders above other UI
   c.setVisible(true);
 }

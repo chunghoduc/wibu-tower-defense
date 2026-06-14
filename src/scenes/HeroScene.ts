@@ -8,6 +8,7 @@ import { fadeIn, fadeToScene, fadeShow, fadeHide } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
+import { TOOLTIP_DEPTH } from "./tooltipLayer.ts";
 import { renderCompareDialog } from "./itemCompareDialog.ts";
 import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type ItemDef } from "../data/schema.ts";
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
@@ -205,7 +206,7 @@ export class HeroScene extends Phaser.Scene {
     this.statsBox = this.add.container(0, 0).setDepth(6);
 
     this.tiles = this.add.container(0, 0).setDepth(10); // item tiles sit above the doll/base
-    this.tooltip = this.add.container(0, 0).setDepth(200).setVisible(false);
+    this.tooltip = this.add.container(0, 0).setDepth(TOOLTIP_DEPTH).setVisible(false);
     this.dialog = this.add.container(0, 0).setDepth(240).setVisible(false);
     this.toast = this.add
       .text(W / 2, 500, "", { fontSize: "13px", color: "#ffd6a0", backgroundColor: "#2a1a1a" })

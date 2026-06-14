@@ -7,6 +7,7 @@
 // given container, builds the card near (x, y) clamped on-screen, and shows it.
 import Phaser from "phaser";
 import { panelText } from "./ui.ts";
+import { floatTooltip } from "./tooltipLayer.ts";
 
 export interface InfoTooltipData {
   title: string;
@@ -79,5 +80,6 @@ export function renderInfoTooltip(
     t.setPosition(tx + PAD, ty + dy);
     c.add(t);
   }
+  floatTooltip(c); // info tooltip always renders above other UI
   c.setVisible(true);
 }

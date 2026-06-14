@@ -25,6 +25,7 @@ import {
   type CategoryChips,
 } from "./itemFilter.ts";
 import { renderItemTooltip } from "./itemTooltip.ts";
+import { TOOLTIP_DEPTH } from "./tooltipLayer.ts";
 import type { Rarity } from "../data/schema.ts";
 import { itemTex } from "../data/assetKeys.ts";
 import { RARITY_INT } from "../data/rarityColors.ts";
@@ -114,7 +115,7 @@ export class ShopScene extends Phaser.Scene {
       .text(W / 2, 500, "", { fontSize: "13px", color: "#a5d6a7" })
       .setOrigin(0.5);
     this.grid = this.add.container(0, 0);
-    this.tooltip = this.add.container(0, 0).setDepth(200).setVisible(false);
+    this.tooltip = this.add.container(0, 0).setDepth(TOOLTIP_DEPTH).setVisible(false);
 
     // Category sub-filter for the Sell grid (Weapon / Armor / Accessory).
     this.catChips = buildCategoryChips(this, 24, 62, (c) => {
