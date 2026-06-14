@@ -1,41 +1,39 @@
+/**
+ * Achievement grant logic. Achievements auto-grant their reward the instant
+ * their condition is met (progress.current >= target). State lives in
+ * save.progress.achievementFlags. The catalog + progress functions live in
+ * data/achievements.ts; the AchievementScene reads progress for display.
+ */
 import { addTowerToCollection, isTowerOwned } from "./collection.ts";
+import { grantReward } from "./rewards.ts";
 import type { HeroSave } from "./save.ts";
+import { ACHIEVEMENTS, type AchievementDef } from "../data/achievements.ts";
 
-export interface AchievementUnlock {
-  id: string;
-  description: string;
-  rewardCharacterId: string;
-  checkFn: (save: HeroSave) => boolean;
+export type { AchievementDef } from "../data/achievements.ts";
+export { ACHIEVEMENTS } from "../data/achievements.ts";
+
+/** True if this achievement's condition is currently satisfied. */
+export function isAchievementUnlocked(def: AchievementDef, save: HeroSave): boolean {
+  const p = def.progress(save);
+  return p.current >= p.target;
 }
 
-export const ACHIEVEMENT_UNLOCKS: AchievementUnlock[] = [
-  {
-    id: "clear-stage-3",
-    description: "Clear Stage 3 on any difficulty",
-    rewardCharacterId: "tobi-skipstone",
-    checkFn: (save) => {
-      const r = save.progress.stageClearMap["stage-3"];
-      return !!(r && (r.Normal || r.Hard || r.Nightmare));
-    },
-  },
-  {
-    id: "place-50-towers",
-    description: "Place 50 towers total across all battles",
-    rewardCharacterId: "mochi-morale-sprite",
-    checkFn: (save) => save.progress.totalTowersPlaced >= 50,
-  },
-];
-
+/**
+ * Grant every newly-satisfied achievement: flag it, grant its reward bundle and
+ * (if any) its reward hero. Returns the reward labels granted this call (used by
+ * the SaveManager call sites for celebration); empty when nothing new unlocked.
+ */
 export function checkAndGrantAchievements(save: HeroSave): string[] {
   const granted: string[] = [];
-  for (const ach of ACHIEVEMENT_UNLOCKS) {
-    if (save.progress.achievementFlags[ach.id]) continue;
-    if (!ach.checkFn(save)) continue;
-    save.progress.achievementFlags[ach.id] = true;
-    if (!isTowerOwned(save, ach.rewardCharacterId)) {
-      addTowerToCollection(save, ach.rewardCharacterId);
+  for (const def of ACHIEVEMENTS) {
+    if (save.progress.achievementFlags[def.id]) continue;
+    if (!isAchievementUnlocked(def, save)) continue;
+    save.progress.achievementFlags[def.id] = true;
+    grantReward(save, def.reward);
+    if (def.reward.characterId && !isTowerOwned(save, def.reward.characterId)) {
+      addTowerToCollection(save, def.reward.characterId);
     }
-    granted.push(ach.rewardCharacterId);
+    granted.push(def.reward.characterId ?? def.name);
   }
   return granted;
 }
