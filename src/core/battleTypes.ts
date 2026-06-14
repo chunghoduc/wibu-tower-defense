@@ -160,14 +160,20 @@ export const WAVE_INTERVAL = 30;
  * The earlier you call, the more you earn — trading safety for tempo + gold.
  */
 export const SKIP_COIN_PER_SEC = 2;
+/**
+ * Global in-battle kill-bounty multiplier. A flat economy knob: lower it so the
+ * player must choose which towers to build/upgrade instead of affording them all.
+ * Applied once to every enemy's per-kill reward in BattleState.killEnemy.
+ */
+export const BOUNTY_SCALE = 0.7;
 /** F13 combo: seconds a streak survives without a kill before it resets. */
 export const COMBO_DECAY = 2.5;
-/** F13 combo: gold multiplier caps at this value (×3 at full streak). */
-export const COMBO_MAX_MULT = 3;
+/** F13 combo: gold multiplier caps at this value (×2 at full streak). */
+export const COMBO_MAX_MULT = 2;
 /** F13 combo: kills needed to reach the max multiplier. */
 export const COMBO_KILLS_FOR_MAX = 20;
 /** F14 perfect wave: bonus gold = this fraction of the gold earned that wave. */
-export const PERFECT_WAVE_BONUS_FRAC = 0.25;
+export const PERFECT_WAVE_BONUS_FRAC = 0.15;
 /** Free-placement: towers can't be placed within this distance of the lane. */
 export const LANE_CLEARANCE = 30;
 /** Free-placement: minimum spacing between two towers. */

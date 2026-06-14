@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BattleState, COMBO_MAX_MULT, type FxEvent } from "../src/core/battle.ts";
+import { BOUNTY_SCALE, PERFECT_WAVE_BONUS_FRAC } from "../src/core/battleTypes.ts";
 import {
   makeStats,
   type CharacterDef,
@@ -82,6 +83,18 @@ function run(b: BattleState, fxSink?: FxEvent[], maxSeconds = 60) {
     if (fxSink) fxSink.push(...b.fx);
   }
 }
+
+describe("economy nerf constants", () => {
+  it("caps the combo gold multiplier at x2", () => {
+    expect(COMBO_MAX_MULT).toBe(2);
+  });
+  it("pays a 15% perfect-wave bonus", () => {
+    expect(PERFECT_WAVE_BONUS_FRAC).toBe(0.15);
+  });
+  it("scales kill bounties to 70%", () => {
+    expect(BOUNTY_SCALE).toBe(0.7);
+  });
+});
 
 describe("F13 combo multiplier", () => {
   it("comboMult ramps from 1 toward COMBO_MAX_MULT and emits combo fx", () => {

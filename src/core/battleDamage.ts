@@ -30,6 +30,7 @@ import {
   type FxEvent,
   type TowerRuntime,
   COMBO_DECAY,
+  BOUNTY_SCALE,
   SPLASH_RADIUS,
   MANA_MAX,
   manaGainOnHit,
@@ -396,8 +397,8 @@ export const damageMethods = {
     const scale = DIFFICULTY_SCALING[this.difficulty];
     const eliteBonus = e.elite ? ELITE_BOUNTY_MULT : 1;
     const baseReward =
-      e.def.bounty * scale.bountyMult * eliteBonus * (1 + this.hero.stats.goldFind);
-    // F13 combo: a rapid kill-streak multiplies gold (×1 → ×3) and resets its decay.
+      e.def.bounty * BOUNTY_SCALE * scale.bountyMult * eliteBonus * (1 + this.hero.stats.goldFind);
+    // F13 combo: a rapid kill-streak multiplies gold (×1 → ×2) and resets its decay.
     this.combo += 1;
     this.comboTimer = COMBO_DECAY;
     const reward = Math.round(baseReward * this.comboMult());

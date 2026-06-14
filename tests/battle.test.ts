@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BattleState } from "../src/core/battle.ts";
+import { BOUNTY_SCALE } from "../src/core/battleTypes.ts";
 import {
   makeStats,
   type AttackDamageType,
@@ -124,9 +125,11 @@ describe("BattleState outcomes", () => {
     b.placeTower("turret", 0);
     runUntilDone(b);
     expect(b.outcome).toBe("won");
-    // ≥ 5 kills * 10 bounty; combo (F13) + perfect-wave (F14) bonuses add on top
-    // (their exact math is covered in tests/combo-perfect.test.ts).
-    expect(b.gold).toBeGreaterThanOrEqual(50);
+    // ≥ 5 kills * round(10 * BOUNTY_SCALE) floor; combo (F13) + perfect-wave (F14)
+    // bonuses add on top (their exact math is covered in tests/combo-perfect.test.ts).
+    expect(b.gold).toBeGreaterThanOrEqual(5 * Math.round(10 * BOUNTY_SCALE));
+    // Proves the bounty was scaled down: un-nerfed 5 kills alone would clear 50.
+    expect(BOUNTY_SCALE).toBeLessThan(1);
   });
 });
 
