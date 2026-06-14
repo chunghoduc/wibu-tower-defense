@@ -31,6 +31,10 @@ export interface ExpeditionSave {
   freeRerollsLeft: number;
   /** UTC yyyy-mm-dd the reroll counter was last reset. "" = never. */
   rerollDay: string;
+  /** Quest dispatches remaining today (0..DISPATCH_PER_DAY). */
+  dispatchesLeft: number;
+  /** UTC yyyy-mm-dd the dispatch counter was last reset. "" = never. */
+  dispatchDay: string;
 }
 
 /** F3 — Weekly bounty board. */
@@ -126,6 +130,8 @@ export function defaultMeta(): MetaSave {
       nextQuestSeq: 0,
       freeRerollsLeft: 5,
       rerollDay: "",
+      dispatchesLeft: 5,
+      dispatchDay: "",
     },
     bounties: { weekKey: "", progress: {}, claimed: [] },
     spin: { lastSpinDate: "", pityCount: 0 },
@@ -157,6 +163,8 @@ export function backfillMeta(meta: Partial<MetaSave> | undefined): MetaSave {
       nextQuestSeq: meta.expedition?.nextQuestSeq ?? 0,
       freeRerollsLeft: meta.expedition?.freeRerollsLeft ?? 5,
       rerollDay: meta.expedition?.rerollDay ?? "",
+      dispatchesLeft: meta.expedition?.dispatchesLeft ?? 5,
+      dispatchDay: meta.expedition?.dispatchDay ?? "",
     },
     bounties: {
       ...d.bounties,
