@@ -18,6 +18,7 @@ import { TOWER_ROLES, type Rarity, type TowerRole } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 import { renderCharInfo, renderHeroInfo } from "./squadInfoPanel.ts";
 import { makeCharTile, makeSlotTile, RARITY_HEX } from "./squadTiles.ts";
+import { createSquadDrag } from "./squadDrag.ts";
 import { TAP_SLOP_PX } from "../core/gesture.ts";
 
 const RARITY_ORDER: Record<Rarity, number> = {
@@ -174,46 +175,50 @@ export class SquadScene extends Phaser.Scene {
   }
 
   private setupDrag(): void {
-    this.input.on("dragstart", (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) => {
-      obj.setDepth(50);
-      this.didDrag = true;
-    });
-    this.input.on(
-      "drag",
-      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) => {
+    // Route all drag events through the pure controller. Critically, `drop` does
+    // the data mutation ONLY — the redraw (which destroys the dragged tile and
+    // would make Phaser skip dragend, leaving `didDrag` stuck true) is deferred
+    // to dragend. See squadDrag.ts for the full rationale.
+    const drag = createSquadDrag<Phaser.GameObjects.Container, Phaser.GameObjects.Zone>({
+      lift: (obj) => obj.setDepth(50),
+      move: (obj, x, y) => {
         obj.x = x;
         obj.y = y;
       },
+      charId: (obj) => (obj.getData("charId") as string | undefined) ?? null,
+      slotOf: (zone) => (zone.getData("slot") as number | undefined) ?? null,
+      fromSlot: (obj) => (obj.getData("fromSlot") as number | undefined) ?? null,
+      assign: (id, slot) => this.assignToSlot(id, slot),
+      removeFromSquad: (id) => {
+        const idx = this.slots.indexOf(id);
+        if (idx >= 0) {
+          this.slots[idx] = null;
+          this.persist();
+        }
+      },
+      refresh: () => this.redraw(),
+      setDragging: (active) => {
+        this.didDrag = active;
+      },
+      defer: (fn) => this.time.delayedCall(0, fn),
+    });
+    this.input.on("dragstart", (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) =>
+      drag.dragStart(obj),
+    );
+    this.input.on(
+      "drag",
+      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, x: number, y: number) =>
+        drag.drag(obj, x, y),
     );
     this.input.on(
       "drop",
-      (
-        _p: Phaser.Input.Pointer,
-        obj: Phaser.GameObjects.Container,
-        zone: Phaser.GameObjects.Zone,
-      ) => {
-        const id = obj.getData("charId") as string;
-        const slot = zone.getData("slot") as number;
-        if (id != null && slot != null) this.assignToSlot(id, slot);
-      },
+      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, zone: Phaser.GameObjects.Zone) =>
+        drag.drop(obj, zone),
     );
     this.input.on(
       "dragend",
-      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, dropped: boolean) => {
-        // A slotted character dragged off all slot zones is removed from the squad.
-        if (!dropped && obj.getData("fromSlot") != null) {
-          const id = obj.getData("charId") as string;
-          const idx = this.slots.indexOf(id);
-          if (idx >= 0) {
-            this.slots[idx] = null;
-            this.persist();
-          }
-        }
-        if (!dropped) this.redraw();
-        this.time.delayedCall(0, () => {
-          this.didDrag = false;
-        });
-      },
+      (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container, dropped: boolean) =>
+        drag.dragEnd(obj, dropped),
     );
   }
 
@@ -223,12 +228,14 @@ export class SquadScene extends Phaser.Scene {
     this.mgr.setSquad(this.slots.filter((s): s is string => Boolean(s)));
   }
 
+  /** Data mutation only — the dragend rebuild renders the result. Must NOT
+   *  redraw here: that destroys the dragged tile and makes Phaser skip dragend. */
   private assignToSlot(id: string, slot: number): void {
     const cur = this.slots.indexOf(id);
     if (cur >= 0) this.slots[cur] = null; // move (no duplicates)
     this.slots[slot] = id;
     this.persist();
-    this.select(id);
+    this.selectedId = id; // select without redraw; dragend's refresh shows it
   }
 
   private select(id: string): void {
