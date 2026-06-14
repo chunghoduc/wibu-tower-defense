@@ -18,3 +18,7 @@ logs/
 .firebase/
 firebase-debug.log*
 firebase-debug.*.log*
+
+# Python bytecode cache (SDXL art tooling under scripts/sdart)
+__pycache__/
+*.pyc
