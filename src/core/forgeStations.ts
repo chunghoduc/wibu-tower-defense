@@ -76,7 +76,9 @@ export function alchemyRecipeVMs(haves: Record<string, number>): ForgeRecipeVM[]
     const outputs = Object.entries(r.outputs).map(([m, n]) => matIngredient(m, n));
     return {
       id: r.id,
-      label: r.name,
+      // Drop the "Transmute " prefix so selector chips stay short; the input→output
+      // lane already shows the full transformation.
+      label: r.name.replace(/^Transmute\s+/i, ""),
       inputs,
       outputs,
       canCraft: inputs.every((i) => (i.have ?? 0) >= i.qty),
