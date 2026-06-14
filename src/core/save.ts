@@ -2,7 +2,7 @@ import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { type MetaSave, defaultMeta, backfillMeta } from "./meta.ts";
 
-export const CURRENT_SAVE_VERSION = 13;
+export const CURRENT_SAVE_VERSION = 14;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -285,6 +285,8 @@ export function loadAndMigrate(raw: unknown): HeroSave {
           nextQuestSeq: 0,
           freeRerollsLeft: 5,
           rerollDay: "",
+          dispatchesLeft: 5,
+          dispatchDay: "",
         },
       },
       version: 11,
@@ -301,6 +303,14 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     if (save.meta?.expedition) {
       save.meta.expedition.freeRerollsLeft ??= 5;
       save.meta.expedition.rerollDay ??= "";
+    }
+  }
+  if ((save.version ?? 0) < 14) {
+    // Expedition daily dispatch cap: existing boards start the day with a full 5.
+    save = { ...save, version: 14 };
+    if (save.meta?.expedition) {
+      save.meta.expedition.dispatchesLeft ??= 5;
+      save.meta.expedition.dispatchDay ??= "";
     }
   }
   // Defensive backfill: a save persisted AT the current version but missing a

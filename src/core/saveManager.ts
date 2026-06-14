@@ -188,6 +188,10 @@ export class SaveManager extends SaveManagerCore {
   expeditionRerollsLeft(): number {
     return this.save.meta.expedition.freeRerollsLeft;
   }
+  /** Quest dispatches remaining today (day-reset aware via ensureExpeditionBoard). */
+  expeditionDispatchesLeft(): number {
+    return this.save.meta.expedition.dispatchesLeft;
+  }
 
   // ── F11 Endless survival ────────────────────────────────────────────────────
   bestEndlessWave(stageId: string): number {
