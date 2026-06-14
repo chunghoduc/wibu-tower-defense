@@ -7,6 +7,7 @@
  * Core logic for each feature lives in its own src/core/<feature>.ts module and
  * mutates the relevant slice here.
  */
+import type { QuestInstance } from "../data/expeditionQuests.ts";
 
 /** F1 — Login streak calendar (consecutive-day cycle). */
 export interface StreakSave {
@@ -18,14 +19,14 @@ export interface StreakSave {
   best: number;
 }
 
-/** F2 — Idle expedition (offline accrual). */
+/** F2 — Expedition quest board (parallel dispatch quests). */
 export interface ExpeditionSave {
-  /** Epoch ms the current expedition began; 0 = none active. */
-  startedAt: number;
-  /** Tower ids dispatched (up to 3). */
-  towerIds: string[];
-  /** Epoch ms rewards were last collected (accrual baseline). */
-  lastCollectAt: number;
+  /** Active quests on the board (Available or Running). */
+  quests: QuestInstance[];
+  /** ISO yyyy-mm-dd of the last daily reroll of Available quests. */
+  lastRerollDay: string;
+  /** Monotonic counter that sources unique quest ids. */
+  nextQuestSeq: number;
 }
 
 /** F3 — Weekly bounty board. */
@@ -115,7 +116,7 @@ export interface MetaSave {
 export function defaultMeta(): MetaSave {
   return {
     streak: { count: 0, lastClaimDate: "", best: 0 },
-    expedition: { startedAt: 0, towerIds: [], lastCollectAt: 0 },
+    expedition: { quests: [], lastRerollDay: "", nextQuestSeq: 0 },
     bounties: { weekKey: "", progress: {}, claimed: [] },
     spin: { lastSpinDate: "", pityCount: 0 },
     challenge: { dayKey: "", modifierId: "", cleared: false },
@@ -140,7 +141,11 @@ export function backfillMeta(meta: Partial<MetaSave> | undefined): MetaSave {
   if (!meta) return d;
   return {
     streak: { ...d.streak, ...meta.streak },
-    expedition: { ...d.expedition, ...meta.expedition },
+    expedition: {
+      quests: meta.expedition?.quests ?? [],
+      lastRerollDay: meta.expedition?.lastRerollDay ?? "",
+      nextQuestSeq: meta.expedition?.nextQuestSeq ?? 0,
+    },
     bounties: {
       ...d.bounties,
       ...meta.bounties,

@@ -2,7 +2,7 @@ import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { type MetaSave, defaultMeta, backfillMeta } from "./meta.ts";
 
-export const CURRENT_SAVE_VERSION = 10;
+export const CURRENT_SAVE_VERSION = 11;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -268,6 +268,18 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   if ((save.version ?? 0) < 10) {
     // Addictive-features suite: stub in the meta block (all features start empty).
     save = { ...save, meta: defaultMeta(), version: 10 };
+  }
+  if ((save.version ?? 0) < 11) {
+    // Expedition redesign: the single idle run becomes a quest board. Any
+    // in-flight idle accrual is forfeited (cosmetic) — reset to an empty board.
+    save = {
+      ...save,
+      meta: {
+        ...save.meta,
+        expedition: { quests: [], lastRerollDay: "", nextQuestSeq: 0 },
+      },
+      version: 11,
+    };
   }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the
