@@ -94,7 +94,7 @@ export interface AwakenTowerInput {
 export function awakeningVMs(rows: AwakenTowerInput[]): ForgeRecipeVM[] {
   return rows.map((t) => {
     const max = t.rank >= MAX_AWAKENING;
-    const cost = awakeningCost(t.rank);
+    const cost = max ? 0 : (awakeningCost(t.rank) ?? 0);
     return {
       id: t.id,
       label: t.name,

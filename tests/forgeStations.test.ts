@@ -28,7 +28,7 @@ describe("alchemyRecipeVMs", () => {
 
 describe("awakeningVMs", () => {
   test("input cost comes from awakeningCost and gates on crystals", () => {
-    const cost = awakeningCost(0);
+    const cost = awakeningCost(0) ?? 0;
     const [vm] = awakeningVMs([{ id: "t", name: "T", rank: 0, crystalsHave: cost }]);
     expect(vm.canCraft).toBe(true);
     expect(vm.inputs[0].qty).toBe(cost);
