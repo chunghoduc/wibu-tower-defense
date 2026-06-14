@@ -104,7 +104,7 @@ async function main() {
   const l2c = async (lx, ly) =>
     JSON.parse(await evalJs(`const p=window.__l2c(${lx},${ly}); return JSON.stringify({x:+p.x.toFixed(1),y:+p.y.toFixed(1)});`));
   const touch = (type, pts) => rpc("Input.dispatchTouchEvent", { type, touchPoints: pts });
-  const tapLogical = async (lx, ly) => {
+  const _tapLogical = async (lx, ly) => {
     const p = await l2c(lx, ly);
     await touch("touchStart", [{ x: p.x, y: p.y }]);
     await wait(60);
