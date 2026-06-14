@@ -12,10 +12,17 @@ import { rewardEmojis } from "./rewardBurst.ts";
 import { rewardLabel } from "../core/rewards.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { QuestAssignDialog } from "./questAssignDialog.ts";
-import { QUEST_TIERS, type QuestInstance } from "../data/expeditionQuests.ts";
+import {
+  QUEST_TIERS,
+  tierRewardPreview,
+  type QuestInstance,
+} from "../data/expeditionQuests.ts";
 import { questState, questRemainingMs } from "../core/expeditionBoard.ts";
-import { towerTex } from "../data/assetKeys.ts";
+import { towerTex, rarityTex } from "../data/assetKeys.ts";
 import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
+import { makeFitIcon } from "./itemIcon.ts";
+import { raritySlotRow } from "./raritySlotRow.ts";
+import type { Rarity } from "../data/schemaEnums.ts";
 
 const W = 960;
 const CARD_X = 24;
@@ -115,6 +122,27 @@ export class ExpeditionScene extends Phaser.Scene {
       }).setOrigin(0.5, 0),
     );
     quests.forEach((q, i) => this.drawCard(q, TOP + i * (CARD_H + CARD_GAP)));
+
+    // Free daily reroll button (rotates Available quests; Running ones survive).
+    const left = this.mgr.expeditionRerollsLeft();
+    const btn = crispText(this, W - 24, 30, `🎲 Reroll (${left}/5)`, {
+      fontSize: "14px",
+      color: left > 0 ? "#ffffff" : "#7a8699",
+      backgroundColor: left > 0 ? "#5a3a7a" : "#2a3340",
+      fontStyle: "bold",
+    })
+      .setOrigin(1, 0)
+      .setPadding(12, 6, 12, 6);
+    if (left > 0) {
+      btn.setInteractive({ useHandCursor: true });
+      btn.on("pointerup", () => {
+        if (this.mgr.rerollExpeditionBoard()) {
+          this.showToast("Board rerolled!");
+          this.redraw();
+        }
+      });
+    }
+    this.layer.add(btn);
   }
 
   private drawCard(q: QuestInstance, y: number): void {
@@ -146,24 +174,59 @@ export class ExpeditionScene extends Phaser.Scene {
       }),
     );
     const tier = QUEST_TIERS[q.rarity];
+    // "Needs" caption + rarity gem row (replaces the text "Needs ≥Common + …").
     this.layer.add(
-      crispText(this, CARD_X + 14, y + 32, `Needs ${q.slots.map((s) => `≥${s}`).join(" + ")}`, {
+      crispText(this, CARD_X + 14, y + 33, "Needs", { fontSize: "11px", color: "#aab8cc" }),
+    );
+    this.drawRarityGems(q.slots, CARD_X + 58, y + 39);
+    // Reward: a "could-drop" icon row (the pool — exact roll stays a surprise).
+    this.layer.add(
+      crispText(this, CARD_X + 14, y + 54, `${tier.rewardHint} · ${fmtDuration(q.durationMs)}`, {
         fontSize: "11px",
-        color: "#aab8cc",
+        color: "#ffe07a",
       }),
     );
-    this.layer.add(
-      crispText(
-        this,
-        CARD_X + 14,
-        y + 50,
-        `Reward: ${tier.rewardHint}  ·  ${fmtDuration(q.durationMs)}`,
-        { fontSize: "11px", color: "#ffe07a" },
-      ),
-    );
+    tierRewardPreview(q.rarity).forEach((view, i) => {
+      this.layer.add(makeFitIcon(this, CARD_X + 250 + i * 26, y + 58, view.iconKey, 22, view.emoji));
+    });
 
     if (state === "available") this.drawAvailable(q, y);
     else this.drawRunningOrReady(q, state, y, now);
+  }
+
+  /** Draw the required-rarity gem row; texture per gem, procedural faceted fallback. */
+  private drawRarityGems(slots: Rarity[], x: number, y: number): void {
+    for (const gem of raritySlotRow(slots, x, y)) {
+      const key = rarityTex(gem.rarity);
+      if (this.textures.exists(key)) {
+        const img = this.add.image(gem.cx, gem.cy, key).setOrigin(0.5);
+        img.setScale(gem.size / Math.max(img.width, img.height));
+        this.layer.add(img);
+        continue;
+      }
+      const g = this.add.graphics();
+      const r = gem.size / 2;
+      const col = RARITY_INT[gem.rarity];
+      g.fillStyle(col, 1).fillPoints(
+        [
+          { x: gem.cx, y: gem.cy - r },
+          { x: gem.cx + r, y: gem.cy },
+          { x: gem.cx, y: gem.cy + r },
+          { x: gem.cx - r, y: gem.cy },
+        ],
+        true,
+      );
+      g.fillStyle(0xffffff, 0.35).fillPoints(
+        [
+          { x: gem.cx, y: gem.cy - r },
+          { x: gem.cx + r * 0.5, y: gem.cy - r * 0.2 },
+          { x: gem.cx, y: gem.cy },
+          { x: gem.cx - r * 0.5, y: gem.cy - r * 0.2 },
+        ],
+        true,
+      );
+      this.layer.add(g);
+    }
   }
 
   private drawAvailable(q: QuestInstance, y: number): void {
