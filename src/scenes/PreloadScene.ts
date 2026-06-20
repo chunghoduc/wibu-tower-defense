@@ -13,6 +13,7 @@ import { BG_IMAGES, bgKey } from "../data/bgManifest.ts";
 import { UI_SVGS, UI_IMAGES } from "../data/uiManifest.ts";
 import { FX_IDS } from "../data/fxManifest.ts";
 import { ITEM_CATALOG } from "../data/items.ts";
+import { WORN_SLOTS } from "../data/heroDressLayout.ts";
 import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
 import { bakeBossWalks } from "./bossWalkBake.ts";
 import { createLoadingBackdrop } from "./loadingBackdropFx.ts";
@@ -23,6 +24,7 @@ import {
   fxTex,
   materialTex,
   itemTex,
+  wornTex,
   HERODOLL_BASE_TEX,
   CASTLE_TEX,
   CASTLE_DAMAGED_TEX,
@@ -138,6 +140,18 @@ export class PreloadScene extends Phaser.Scene {
       this.load.spritesheet(key, versioned(`assets/sprites/item/${it.id}.png`), {
         frameWidth: 96,
         frameHeight: 96,
+      });
+    }
+    // Purpose-built worn-on-body overlays (128×128) for body-slot gear — the
+    // hero "dressed" paper-doll wears these instead of the framed inventory icon
+    // (heroDressLayout prefers worn__<id>, falls back to the icon when absent).
+    // Catalog-driven + loaderror-swallowed, so a partial art batch loads safely.
+    const wornBodySlots = new Set<string>(WORN_SLOTS);
+    for (const it of ITEM_CATALOG) {
+      if (!wornBodySlots.has(it.slot)) continue;
+      this.load.spritesheet(wornTex(it.id), versioned(`assets/sprites/worn/${it.id}.png`), {
+        frameWidth: 128,
+        frameHeight: 128,
       });
     }
   }

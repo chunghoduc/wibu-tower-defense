@@ -30,6 +30,8 @@ import {
   RARITY_GEM_VISUAL,
   rarityGemStyle,
   RARITY_GEM_NEGATIVE,
+  wornStyleFor,
+  WORN_NEGATIVE,
 } from "./prompts.mjs";
 
 // Item icons are catalog-driven: `npm run gen:item-visual` dumps every item's
@@ -274,6 +276,26 @@ function buildJobs() {
       h: 768,
       size: 96,
     });
+  // worn-on-body overlays — the hero "dressed" paper-doll. One per BODY-slot item
+  // (accessories excluded), purpose-framed front-facing with no wearer, cut to
+  // 128px (rendered scaled to the body part; resolves worn__<id> with item-icon
+  // fallback). Driven by the same itemVisual catalog dump as item icons.
+  const WORN_SLOTS = new Set(["Weapon", "Helmet", "BodyArmor", "Gloves", "Boots", "Wing"]);
+  for (const it of items) {
+    if (!WORN_SLOTS.has(it.slot)) continue;
+    jobs.push({
+      kind: "worn",
+      id: it.id,
+      file: `${it.id}.png`,
+      prompt: wornStyleFor(it.look, it.slot, it.rarity),
+      seed: seedOf("worn-" + it.id),
+      w: 768,
+      h: 768,
+      size: 128,
+      neg: WORN_NEGATIVE,
+      slot: it.slot,
+    });
+  }
   // skill ability emblems — 96×96, same fixed-size contract as item icons.
   const skills = existsSync(SKILL_VISUAL_PATH)
     ? JSON.parse(readFileSync(SKILL_VISUAL_PATH, "utf8"))
@@ -297,8 +319,11 @@ function buildJobs() {
 }
 
 async function main() {
+  const slot = arg("slot"); // worn batches: filter by item slot (e.g. BodyArmor)
+  const limit = arg("limit"); // cap the batch size (smoke tests)
   let jobs = buildJobs();
   if (only) jobs = jobs.filter((j) => j.kind === only);
+  if (slot) jobs = jobs.filter((j) => j.slot === slot);
   if (sample) {
     const pick = ["karu-sunfist", "zoran-thricedraw", "garan-sandshackle", "yuki-frostward-maiden"];
     jobs = jobs.filter(
@@ -311,6 +336,7 @@ async function main() {
     );
   }
   if (!force) jobs = jobs.filter((j) => !existsSync(`${GAME}/${j.kind}/${j.file}`));
+  if (limit) jobs = jobs.slice(0, Number(limit));
 
   console.log(`SD generating ${jobs.length} sprites`);
   let n = 0;

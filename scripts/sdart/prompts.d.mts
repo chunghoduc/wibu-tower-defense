@@ -31,5 +31,9 @@ export const RARITY_GEM_NEGATIVE: string;
 export function rarityGemStyle(visual: string): string;
 export function itemStyle(v: string): string;
 export function itemStyleFor(look: string, rarity: string): string;
+/** One worn-framing phrase per body slot (Weapon/Helmet/BodyArmor/Gloves/Boots/Wing). */
+export const WORN_FRAMING: Record<string, string>;
+export const WORN_NEGATIVE: string;
+export function wornStyleFor(look: string, slot: string, rarity: string): string;
 export function skillStyleFor(look: string, rarity: string): string;
 export const ITEM_VISUAL: Record<string, string>;

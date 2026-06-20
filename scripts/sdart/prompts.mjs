@@ -387,6 +387,39 @@ export function itemStyleFor(look, rarity) {
   return ITEM_STYLE.replace("{V}", `${look}, ${RARITY_RIM[rarity] || RARITY_RIM.Common}`);
 }
 
+// ---- WORN-ON-BODY OVERLAYS (the hero "dressed" paper-doll) ----
+// Purpose-framed worn art per gear item: the piece ALONE, front-facing, no
+// character/body/hands, so it composites cleanly onto the neutral hero
+// mannequin at a body-region anchor (NOT a 3/4 inventory icon shot). Reuses each
+// item's curated `look`; only the framing differs per slot. The dress presenter
+// resolves worn__<id> with the item-icon as a graceful fallback (exists-gated),
+// so a partial batch ships safely. Accessories (Amulet/Ring/Pet) are excluded —
+// they don't read as worn on a body.
+export const WORN_FRAMING = {
+  Weapon:
+    "shown alone as a single weapon prop with no wielder, upright and centered, full length filling the frame, crisp three-quarter front view",
+  Helmet:
+    "shown alone as a single empty headgear piece with no head or face inside, front view, centered, hollow",
+  BodyArmor:
+    "shown alone as a single empty chest armor torso garment with no wearer, front view, centered, flat-laid",
+  Gloves:
+    "shown alone as a matching pair of empty hand armor with no hands inside, front view, side by side, centered",
+  Boots:
+    "shown alone as a matching pair of empty footwear with no feet inside, front view, side by side, centered",
+  Wing: "shown alone as a symmetric pair of wings fully spread, front view, centered, no wearer",
+};
+const WORN_STYLE =
+  "a single game equipment piece worn-gear display, {V}, no character, no person, no body, no hands, no face, clean cel-shaded anime game asset, bold clean outline, centered, isolated on a plain solid light grey background, no shadow, soft rim light";
+const WORN_NEG =
+  "character, person, human, hero, knight, anime girl, anime boy, body, torso skin, head, face, neck, hands, fingers, arms, legs, feet, mannequin, dress form, full figure, portrait, wearing, model, multiple items, item grid, inventory panel, thumbnails, frame, border, text, words, numbers, watermark, signature, drop shadow, cast shadow, gradient background, busy background, scenery, blurry, lowres, jpeg artifacts";
+export const WORN_NEGATIVE = WORN_NEG;
+/** Worn-overlay prompt from catalog metadata: the curated `look` + slot framing + rarity rim. */
+export function wornStyleFor(look, slot, rarity) {
+  const framing = WORN_FRAMING[slot] || "shown alone, front view, centered";
+  const rim = RARITY_RIM[rarity] || RARITY_RIM.Common;
+  return WORN_STYLE.replace("{V}", `${look}, ${framing}, ${rim}`);
+}
+
 // ---- SKILLS (ability-emblem icon style) ----
 // A skill icon is the EMBLEM of its cast effect — a glowing magical sigil/burst,
 // no character, no weapon-holder. The `look` comes straight from each skill's VFX
