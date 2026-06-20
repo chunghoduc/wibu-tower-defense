@@ -287,7 +287,14 @@ function buildJobs() {
       kind: "worn",
       id: it.id,
       file: `${it.id}.png`,
-      prompt: wornStyleFor(it.look, it.slot, it.rarity),
+      // Gloves/Boots use SINGLE-limb framing (one piece) — the procedural rig
+      // mirrors them onto both hand/foot bones for per-limb tracking.
+      prompt: wornStyleFor(
+        it.look,
+        it.slot,
+        it.rarity,
+        it.slot === "Gloves" || it.slot === "Boots",
+      ),
       seed: seedOf("worn-" + it.id),
       w: 768,
       h: 768,

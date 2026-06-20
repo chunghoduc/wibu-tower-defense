@@ -408,14 +408,24 @@ export const WORN_FRAMING = {
     "shown alone as a matching pair of empty footwear with no feet inside, front view, side by side, centered",
   Wing: "shown alone as a symmetric pair of wings fully spread, front view, centered, no wearer",
 };
+// Single-limb framing for slots whose worn art splits L/R on the procedural rig
+// (one boot / one gauntlet, mirrored onto each foot/hand bone).
+export const WORN_FRAMING_SINGLE = {
+  Gloves:
+    "shown alone as a SINGLE empty gauntlet for one hand only, no pair, no hand inside, three-quarter front view, centered, hollow",
+  Boots:
+    "shown alone as a SINGLE empty boot for one foot only, no pair, no foot inside, three-quarter front view, centered, hollow",
+};
 const WORN_STYLE =
   "a single game equipment piece worn-gear display, {V}, no character, no person, no body, no hands, no face, clean cel-shaded anime game asset, bold clean outline, centered, isolated on a plain solid light grey background, no shadow, soft rim light";
 const WORN_NEG =
   "character, person, human, hero, knight, anime girl, anime boy, body, torso skin, head, face, neck, hands, fingers, arms, legs, feet, mannequin, dress form, full figure, portrait, wearing, model, multiple items, item grid, inventory panel, thumbnails, frame, border, text, words, numbers, watermark, signature, drop shadow, cast shadow, gradient background, busy background, scenery, blurry, lowres, jpeg artifacts";
 export const WORN_NEGATIVE = WORN_NEG;
-/** Worn-overlay prompt from catalog metadata: the curated `look` + slot framing + rarity rim. */
-export function wornStyleFor(look, slot, rarity) {
-  const framing = WORN_FRAMING[slot] || "shown alone, front view, centered";
+/** Worn-overlay prompt from catalog metadata: the curated `look` + slot framing + rarity rim.
+ *  `single` selects the single-limb framing (one boot/gauntlet) for the per-limb rig. */
+export function wornStyleFor(look, slot, rarity, single = false) {
+  const framing =
+    (single && WORN_FRAMING_SINGLE[slot]) || WORN_FRAMING[slot] || "shown alone, front view, centered";
   const rim = RARITY_RIM[rarity] || RARITY_RIM.Common;
   return WORN_STYLE.replace("{V}", `${look}, ${framing}, ${rim}`);
 }

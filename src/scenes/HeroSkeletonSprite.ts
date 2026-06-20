@@ -30,7 +30,7 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
   private size = 54;
   private facingLeft = false;
   private hasWings = false;
-  private perLimb = false; // flipped on once per-limb art ships (Phase 2)
+  private perLimb = true; // per-limb art shipped (Phase 2): boots/gloves split L/R
 
   private walkPhase = 0;
   private oneShot: { kind: OneShotKind; start: number } | null = null;
