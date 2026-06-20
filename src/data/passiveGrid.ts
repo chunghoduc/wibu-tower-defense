@@ -1,11 +1,12 @@
 import { type PassiveNodeDef, validatePassiveNode } from "./schema.ts";
 import { PASSIVE_NODES_REGIONS_2 } from "./passiveGridRegions2.ts";
+import { buildExtendedPassiveTree } from "./passiveTreeGen.ts";
 
 function n(def: PassiveNodeDef): PassiveNodeDef {
   return validatePassiveNode(def);
 }
 
-export const PASSIVE_NODES: PassiveNodeDef[] = [
+export const BASE_NODES: PassiveNodeDef[] = [
   // Starting node
   n({
     id: "grid-start",
@@ -344,6 +345,11 @@ export const PASSIVE_NODES: PassiveNodeDef[] = [
   // Tactician / Predator / Phantom / Conduit / Prestige (split file)
   ...PASSIVE_NODES_REGIONS_2,
 ];
+
+// The live tree extends the authored BASE_NODES with ~870 procedurally-generated
+// nodes (deterministic, no authored ID/stat/position changes) so a max-level hero
+// (~100 points) can complete only one region lobe and never allocate even 1/5.
+export const PASSIVE_NODES: PassiveNodeDef[] = buildExtendedPassiveTree(BASE_NODES);
 
 export const PASSIVE_NODES_MAP = new Map<string, PassiveNodeDef>(
   PASSIVE_NODES.map((n) => [n.id, n]),

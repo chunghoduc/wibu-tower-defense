@@ -39,8 +39,10 @@ describe("PASSIVE_NODES catalog", () => {
       }
     }
   });
-  it("prestige nodes have unlockAtLevel set", () => {
-    const prestige = PASSIVE_NODES.filter((n) => n.region === "prestige");
+  it("authored prestige gate nodes have unlockAtLevel set", () => {
+    // The authored prestige bridges are level-gated; the generated prestige lobe
+    // (gen-prestige-*) extends from them and is reachable via neighbours instead.
+    const prestige = PASSIVE_NODES.filter((n) => n.region === "prestige" && !n.id.startsWith("gen-"));
     for (const n of prestige) {
       expect(n.unlockAtLevel, `prestige node ${n.id} missing unlockAtLevel`).toBeGreaterThan(0);
     }
@@ -48,9 +50,9 @@ describe("PASSIVE_NODES catalog", () => {
   it("has at least 3 keystone nodes", () => {
     expect(PASSIVE_NODES.filter((n) => n.type === "keystone").length).toBeGreaterThanOrEqual(3);
   });
-  it("has 8 jewel-socket nodes — one per region", () => {
+  it("has at least one jewel-socket per region", () => {
     const sockets = PASSIVE_NODES.filter((n) => n.type === "jewel-socket");
-    expect(sockets.length).toBe(8);
+    expect(sockets.length).toBeGreaterThanOrEqual(8);
     expect(new Set(sockets.map((n) => n.region)).size).toBe(8);
   });
   it("jewel-socket nodes carry no innate stats (their power is the jewel)", () => {
@@ -109,10 +111,18 @@ describe("canForgetNode", () => {
 describe("mastery choice nodes", () => {
   const choiceNodes = PASSIVE_NODES.filter((n) => n.choices && n.choices.length > 0);
 
-  it("has the four expected choose-nodes", () => {
-    expect(choiceNodes.map((n) => n.id).sort()).toEqual(
-      ["arcane-mastery-1", "brawler-mastery-1", "tactician-mastery-1", "warden-mastery-1"].sort(),
-    );
+  it("includes the four authored choose-nodes (plus generated lobe masteries)", () => {
+    const ids = new Set(choiceNodes.map((n) => n.id));
+    for (const authored of [
+      "arcane-mastery-1",
+      "brawler-mastery-1",
+      "tactician-mastery-1",
+      "warden-mastery-1",
+    ]) {
+      expect(ids.has(authored), `missing authored mastery ${authored}`).toBe(true);
+    }
+    // Every region now also gets a generated mastery node.
+    expect(choiceNodes.filter((n) => n.id.startsWith("gen-")).length).toBeGreaterThanOrEqual(8);
   });
 
   it("each choice node has >=2 options with unique ids and at least one stat", () => {
