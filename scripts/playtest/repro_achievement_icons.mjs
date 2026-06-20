@@ -66,10 +66,7 @@ async function main() {
   // Wait for the medallion textures to finish loading in PreloadScene.
   let texCount = 0;
   for (let i = 0; i < 30; i++) {
-    texCount = await evalJs(`const g=window.__game;
-      const ids=g.__ACH_IDS||[];
-      return ids.filter(id=>g.textures.exists('achievement__'+id)).length;`);
-    // __ACH_IDS isn't exposed; fall back to a known sample below.
+    // __ACH_IDS isn't exposed; probe a known sample of medallion textures.
     texCount = await evalJs(`const tx=window.__game.textures;
       return ['clear-stage-3','win-nightmare','hero-level-50','kills-100000','codex-100','place-5000-towers']
         .filter(id=>tx.exists('achievement__'+id)).length;`);

@@ -20,7 +20,7 @@ for (const f of readdirSync(`${SPR}/tower`)
   const { w, h } = pngSize(`${SPR}/tower/${f}`);
   entries.push({
     key: `tower__${id}`,
-    kind: "tower",
+    kind: "tower-pose", // NOT "tower": keeps these out of the roster contract filter
     id,
     path: `assets/sprites/tower/${f}`,
     frameWidth: w,
@@ -34,7 +34,7 @@ for (const fam of ["bow", "fist", "gun", "staff"]) {
   const { w, h } = pngSize(`${SPR}/hero/hero__${fam}.png`);
   entries.push({
     key: `hero__${fam}`,
-    kind: "hero",
+    kind: "hero-pose", // NOT "hero": keeps these out of any hero-roster filter
     id: fam,
     path: `assets/sprites/hero/hero__${fam}.png`,
     frameWidth: w,
