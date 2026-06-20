@@ -388,7 +388,7 @@ export const spritesMethods = {
     // that step in alternating phase (legPuppet/enemyLegRig). Ground enemies
     // only — flyers have no legs. Feet now physically lift+swing, fixing the
     // "slide/float" of a rigid body bob without baking any multi-frame strip.
-    const rig = e.flying ? undefined : this.enemyLegs.get(e.uid);
+    const rig = this.enemyLegs.get(e.uid); // only regular ground enemies have one
     if (rig) {
       if (frozen) {
         restLegRig(rig, s);
@@ -520,7 +520,10 @@ export const spritesMethods = {
         if (tint === null) s.clearTint();
         else s.setTint(tint);
         const shadow = this.ensureShadow(e.uid, p.x, p.y, displayH);
-        if (wantsLegs(e.flying, s.width, s.height)) {
+        // Leg puppet is for regular ground enemies. Bosses keep their authored
+        // multi-frame sheet (stomp walk + atk/skill/hurt cast poses) — cropping a
+        // leg puppet over those one-shot frames would desync the legs mid-cast.
+        if (!boss && wantsLegs(e.flying, s.width, s.height)) {
           ensureLegRig(this, this.world, this.enemyLegs, e.uid, s, key);
         }
         this.animateEnemy(s, e, key, shadow, p); // walk / fly / hurt animation + ground shadow
