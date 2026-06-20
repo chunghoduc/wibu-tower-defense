@@ -33,7 +33,7 @@ export function wantsLegs(flying: boolean, frameW: number, frameH: number): bool
  */
 export function ensureLegRig(
   scene: Phaser.Scene,
-  world: Phaser.GameObjects.Container,
+  world: Phaser.GameObjects.Layer,
   rigs: Map<number, LegRig>,
   uid: number,
   body: Phaser.GameObjects.Sprite,
