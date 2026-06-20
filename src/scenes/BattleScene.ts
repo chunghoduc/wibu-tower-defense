@@ -45,6 +45,7 @@ import { DEPTH } from "./battleDepths.ts";
 import { Sfx } from "./audio.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
 import { type HeroLayeredSprite } from "./HeroLayeredSprite.ts";
+import { type HeroSkeletonSprite } from "./HeroSkeletonSprite.ts";
 import { BattleCameraController } from "./battleCamera.ts";
 import { RARITY_INT, buildSquad } from "./battleSceneHelpers.ts";
 import { renderMethods, type RenderMethods } from "./battleSceneRender.ts";
@@ -135,7 +136,7 @@ export class BattleScene extends Phaser.Scene {
   enemyShadows = new Map<number, Phaser.GameObjects.Ellipse>(); // ground-contact anchors
   enemyLegs = new Map<number, LegRig>(); // per-enemy leg-puppet pieces
 
-  heroSprite: HeroLayeredSprite | null = null;
+  heroSprite: HeroLayeredSprite | HeroSkeletonSprite | null = null;
   fx!: FxLayer;
   camCtl?: BattleCameraController;
   tapX = 0;
