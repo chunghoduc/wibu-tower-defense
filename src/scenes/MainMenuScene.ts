@@ -17,7 +17,9 @@ import { homeTopBar, homeNavLayout } from "./homeLayout.ts";
 import { drawPill, drawBattleCta } from "./homeBarFx.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { claimableQuestCount } from "../core/questTracker.ts";
-import { towerTex, itemTex, menuTex } from "../data/assetKeys.ts";
+import { towerTex, itemTex, menuTex, heroPoseTex } from "../data/assetKeys.ts";
+import { resolveHeroLayers } from "./heroEquipVisuals.ts";
+import { heroPoseFamily } from "../data/heroPose.ts";
 
 /** A menu destination: a painted icon button in the bottom navigation dock. */
 interface MenuItem {
@@ -80,7 +82,7 @@ export class MainMenuScene extends Phaser.Scene {
     if (set.musicEnabled && !set.muted) this.input.once("pointerdown", () => music.start());
 
     this.drawBackdrop(W, H);
-    this.drawHero(W, H);
+    this.drawHero(save, W, H);
     this.drawHangers(save, W, H);
     this.drawSquad(save, W, H);
     this.drawPet(save, W, H);
@@ -114,16 +116,21 @@ export class MainMenuScene extends Phaser.Scene {
     this.backdropFx = new MenuBackdropFx(this, buildMenuAtmosphere(W, H, ATMOSPHERE_SEED));
   }
 
-  private drawHero(W: number, H: number): void {
-    if (!this.textures.exists("hero__hero")) return;
+  private drawHero(save: ReturnType<SaveManager["getSave"]>, W: number, H: number): void {
+    const family = heroPoseFamily(resolveHeroLayers(save.inventory).weaponType);
+    const poseKey = family ? heroPoseTex(family) : null;
+    // Weapon-class pose if the equipped weapon has pose art; else animated idle.
+    const key = poseKey && this.textures.exists(poseKey) ? poseKey : "hero__hero";
+    if (!this.textures.exists(key)) return;
     const HERO_H = 104,
       cy = H * 0.5;
     const hero = this.add
-      .sprite(W / 2, cy, "hero__hero")
+      .sprite(W / 2, cy, key)
       .setOrigin(0.5, 0.85)
       .setDepth(2);
     hero.setScale(HERO_H / hero.height);
-    if (this.anims.exists("hero__hero_idle")) hero.play("hero__hero_idle");
+    // Only the multi-frame base sheet animates; the single-frame pose stays still.
+    if (key === "hero__hero" && this.anims.exists("hero__hero_idle")) hero.play("hero__hero_idle");
     // NOTE: bare hero — no dressHero. Equipped gear is shown on the wall hangers.
   }
 
