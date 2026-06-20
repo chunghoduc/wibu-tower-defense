@@ -394,25 +394,27 @@ export interface DifficultyScaling {
  * so the base game asks for real defence. Bounty rises with difficulty to reward
  * the climb.
  *
- * Combat-power (hpMult × atkMult) vs the Normal floor (1.55 × 1.25 ≈ 1.94):
- *   Normal    1.55 × 1.25 ≈ 1.94   (1×)
- *   Hard      7.8  × 2.5  ≈ 19.5   (≈10× Normal)
- *   Nightmare 14.8 × 3.3  ≈ 48.8   (≈25× Normal)
+ * Combat-power (hpMult × atkMult) vs the Normal floor (2.1 × 1.5 ≈ 3.15):
+ *   Normal    2.1  × 1.5  ≈ 3.15   (1×)
+ *   Hard      8.8  × 2.8  ≈ 24.6   (≈8× Normal)
+ *   Nightmare 16.5 × 3.6  ≈ 59.4   (≈19× Normal)
  *
  * BOSSES get a further multiplier (bossHpMult/bossAtkMult) on top, so a Normal
- * boss is ~2.48× HP over equal-base trash, a Hard boss ~15.6× HP / 3.25× ATK and
- * a Nightmare boss ~35.5× HP / 4.95× ATK over its Normal-tier self — the marquee
- * threat scales harder than the trash, and now reads as a real wall even on Normal
- * (where bossHpMult used to be a no-op 1.0).
+ * boss is ~2.31× HP over equal-base trash, a Hard boss ~13.2× HP and a Nightmare
+ * boss ~30.5× HP — the marquee threat still scales harder than the trash, but the
+ * wall now leans on authored base HP + mechanics rather than a big multiplier.
  */
 export const DIFFICULTY_SCALING: Record<Difficulty, DifficultyScaling> = {
-  // Normal floor lifted (1.3→1.55 HP, 1.15→1.25 atk): the base game asks for
-  // real defence from wave one. Most of the "too easy" fix comes from the
-  // intra-stage wave ramp (see waveScaling.ts), not this flat multiplier.
-  // bossHpMult lifted off 1.0 so the one boss per stage is a genuine wall.
-  Normal: { hpMult: 1.55, atkMult: 1.25, bountyMult: 1, bossHpMult: 1.6, bossAtkMult: 1 },
-  Hard: { hpMult: 7.8, atkMult: 2.5, bountyMult: 3, bossHpMult: 2.0, bossAtkMult: 1.3 },
-  Nightmare: { hpMult: 14.8, atkMult: 3.3, bountyMult: 5, bossHpMult: 2.4, bossAtkMult: 1.5 },
+  // Rebalance 2026-06-15 — combat was "trash trivial, only lose to immortal
+  // bosses". The non-boss floor is lifted (hpMult 1.55→2.1, atkMult 1.25→1.5 on
+  // Normal) so trash is ~+35% HP and a leak actually chunks the castle. bossHpMult
+  // is CUT (1.6→1.1 Normal) so the trash lift doesn't inflate bosses — the boss
+  // wall now leans on authored base HP + mechanics, not a big multiplier. Effective
+  // Normal boss HP factor (hpMult×bossHpMult) drops 2.48→2.31 even as trash rises.
+  // Monotonic law preserved: hp/atk/bossHp all increase across tiers.
+  Normal: { hpMult: 2.1, atkMult: 1.5, bountyMult: 1, bossHpMult: 1.1, bossAtkMult: 1 },
+  Hard: { hpMult: 8.8, atkMult: 2.8, bountyMult: 3, bossHpMult: 1.5, bossAtkMult: 1.3 },
+  Nightmare: { hpMult: 16.5, atkMult: 3.6, bountyMult: 5, bossHpMult: 1.85, bossAtkMult: 1.5 },
 };
 
 /** A point on the map in world coordinates. */

@@ -220,7 +220,7 @@ export const HOMAGE_BOSSES: EnemyDef[] = [
     bounty: 260,
     castleDamage: 18,
     baseStats: makeStats({
-      maxHp: 3800,
+      maxHp: 3200,
       armor: 55,
       magicResist: 35,
       moveSpeed: 22,

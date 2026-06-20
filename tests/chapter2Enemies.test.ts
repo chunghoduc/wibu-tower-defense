@@ -18,7 +18,10 @@ describe("Bloodmad Reaver — frenzy", () => {
       id: "reaver",
       name: "Bloodmad Reaver",
       archetype: "Berserker",
-      baseStats: { ...mkEnemy().baseStats, maxHp: 70, moveSpeed: 60, atk: 30 },
+      // base 50 ⇒ ~105 effective on the Normal floor (hpMult 2.1, 2026-06-15
+      // rebalance) — keeps this frenzy-mechanic check calibrated to cross 50%
+      // within the tower window regardless of the global HP floor.
+      baseStats: { ...mkEnemy().baseStats, maxHp: 50, moveSpeed: 60, atk: 30 },
       special: { frenzy: { belowHpPct: 0.5, speedMult: 1.8, atkMult: 1.6 } },
     });
     // A weak (but unkillable) tower so the enemy survives and crosses 50% slowly.

@@ -80,9 +80,9 @@ const BOSS_HP_RANK = [
   "devourer", // 2400
   "crimsonlord", // 2600
   "madarok", // 2700
-  "fallenward", // 3100
-  "meruon", // 3800
-  "ashghost", // 4200
+  "fallenward", // 2850
+  "meruon", // 3200
+  "ashghost", // 3500
 ];
 const bossRank = (id: string): number => {
   const r = BOSS_HP_RANK.indexOf(id);

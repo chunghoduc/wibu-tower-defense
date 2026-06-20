@@ -10,8 +10,12 @@ import type { Rng } from "./rng.ts";
  * Bosses are never made elite — they are already special.
  */
 
-/** Chance that a given battle contains an elite (rolled once per battle). */
-export const ELITE_BATTLE_CHANCE = 0.25;
+/**
+ * Chance that a given battle contains an elite (rolled once per battle).
+ * 2026-06-15 rebalance: 0.25→0.35 — roughly one battle in three now fields a
+ * beefy elite mini-wall, adding tanky variety to a toughened enemy pool.
+ */
+export const ELITE_BATTLE_CHANCE = 0.35;
 
 /**
  * Flat damage reduction an elite gains. The damage pipeline applies the

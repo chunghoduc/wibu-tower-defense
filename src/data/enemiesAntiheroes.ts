@@ -302,7 +302,7 @@ export const ANTIHERO_BOSSES: EnemyDef[] = [
     bounty: 230,
     castleDamage: 15,
     baseStats: makeStats({
-      maxHp: 3100,
+      maxHp: 2850,
       armor: 45,
       magicResist: 35,
       moveSpeed: 24,
@@ -341,7 +341,7 @@ export const ANTIHERO_BOSSES: EnemyDef[] = [
     bounty: 300,
     castleDamage: 20,
     baseStats: makeStats({
-      maxHp: 4200,
+      maxHp: 3500,
       armor: 55,
       magicResist: 35,
       moveSpeed: 24,

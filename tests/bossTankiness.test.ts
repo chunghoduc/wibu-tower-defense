@@ -9,9 +9,11 @@ describe("boss tankiness", () => {
     }
   });
 
-  it("Normal bossHpMult is no longer a no-op (bosses are tankier than equal-base trash)", () => {
-    // Was 1.0 — the lever did nothing on the tier most players live in.
-    expect(DIFFICULTY_SCALING.Normal.bossHpMult).toBeGreaterThanOrEqual(1.5);
+  it("Normal bossHpMult stays a real lever, but no longer the whole wall", () => {
+    // 2026-06-15 rebalance: cut 1.6→1.1 so the lifted trash floor (hpMult 2.1)
+    // doesn't inflate bosses. Bosses still scale >1x on the difficulty axis and
+    // lean on authored base HP + mechanics for the wall, not this multiplier.
+    expect(DIFFICULTY_SCALING.Normal.bossHpMult).toBeGreaterThanOrEqual(1.05);
   });
 
   it("effective boss HP factor (hpMult x bossHpMult) is strictly increasing — monotonic law holds at boss level", () => {
