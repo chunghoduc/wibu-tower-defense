@@ -98,8 +98,12 @@ export class PassiveGridScene extends Phaser.Scene {
 
   private setupCameras(): void {
     const { width, height } = this.scale;
+    // Opaque dark backdrop so the (large, scrolling) tree always reads clearly and
+    // never bleeds whatever scene rendered before it.
+    this.cameras.main.setBackgroundColor("#0a0e14");
     this.uiCam = this.cameras.add(0, 0, width, height);
     this.uiCam.setScroll(0, 0);
+    this.uiCam.transparent = true;
 
     // Partition rendering: tree → main camera only; panel + chrome → UI camera only.
     this.uiCam.ignore(this.gfx);
