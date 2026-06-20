@@ -64,6 +64,21 @@ async function main() {
   }
   console.log("game ready:", ready);
 
+  // Demo allocation: light up a contiguous blob from grid-start so the path glow,
+  // node halos, and keystone auras are visible in the screenshot.
+  const allocated = await evalJs(`const g=window.__game;
+    const mod=await import("/src/data/passiveGrid.ts");
+    const nodes=mod.PASSIVE_NODES, map=mod.PASSIVE_NODES_MAP;
+    const start=nodes.find((n)=>n.id==="grid-start")||nodes[0];
+    const seen=new Set([start.id]); const q=[start.id]; const path=[];
+    while(q.length && path.length<30){ const id=q.shift(); path.push(id);
+      const nd=map.get(id); if(!nd) continue;
+      for(const nb of nd.neighbors){ if(!seen.has(nb)){ seen.add(nb); q.push(nb); } } }
+    const s=g.registry.get("saveManager").getSave();
+    s.hero.unlockedNodes=path; s.hero.level=Math.max(s.hero.level||1,60);
+    return path.length;`);
+  console.log("demo allocated:", allocated);
+
   await evalJs(`const g=window.__game;
     g.scene.getScenes(true).forEach((sc)=>{ if(sc.scene.key!=="PassiveGridScene") g.scene.stop(sc.scene.key); });
     g.scene.start("PassiveGridScene"); return "started";`);

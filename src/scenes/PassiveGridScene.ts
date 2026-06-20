@@ -13,6 +13,8 @@ import {
   frontierCenter,
   type Bounds,
 } from "./passiveTreeCamera.ts";
+import { buildPassiveTreeAtmosphere, type RegionCenter } from "./passiveTreeAtmosphere.ts";
+import { PassiveTreeFx } from "./passiveTreeFx.ts";
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 const MIN_X = 4;
@@ -52,6 +54,7 @@ export class PassiveGridScene extends Phaser.Scene {
 
   private uiCam!: Phaser.Cameras.Scene2D.Camera;
   private bounds!: Bounds;
+  private fx!: PassiveTreeFx;
   private uiOnlyObjects: Phaser.GameObjects.GameObject[] = [];
 
   private dragging = false;
@@ -74,6 +77,13 @@ export class PassiveGridScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => fadeToScene(this, "MainMenuScene"));
     this.uiOnlyObjects.push(back);
+
+    // Cosmic backdrop + node glow sit on the main camera, beneath the tree.
+    this.bounds = treeBounds(PASSIVE_NODES, toPixel);
+    this.fx = new PassiveTreeFx(
+      this,
+      buildPassiveTreeAtmosphere(this.bounds, this.regionCenters(), 1337),
+    );
 
     // Tree lives on the main (scrollable) camera; the side panel on a fixed UI camera.
     this.gfx = this.add.graphics();
@@ -98,22 +108,44 @@ export class PassiveGridScene extends Phaser.Scene {
 
   private setupCameras(): void {
     const { width, height } = this.scale;
-    // Opaque dark backdrop so the (large, scrolling) tree always reads clearly and
-    // never bleeds whatever scene rendered before it.
-    this.cameras.main.setBackgroundColor("#0a0e14");
+    // Near-black clear so off-bounds void reads as deep space; the gradient bands +
+    // nebulae (on the main camera) supply the actual atmospheric backdrop.
+    this.cameras.main.setBackgroundColor("#04060a");
     this.uiCam = this.cameras.add(0, 0, width, height);
     this.uiCam.setScroll(0, 0);
     this.uiCam.transparent = true;
 
-    // Partition rendering: tree → main camera only; panel + chrome → UI camera only.
-    this.uiCam.ignore(this.gfx);
+    // Partition rendering: tree + cosmos → main camera only; panel + chrome → UI camera.
+    this.uiCam.ignore([this.gfx, ...this.fx.objects]);
     this.cameras.main.ignore([...this.panel.objects, ...this.uiOnlyObjects]);
 
-    this.bounds = treeBounds(PASSIVE_NODES, toPixel);
     const save = this.mgr.getSave();
     const c = frontierCenter(PASSIVE_NODES, save.hero.unlockedNodes, toPixel);
     this.cameras.main.centerOn(c.x, c.y);
     this.applyScrollClamp();
+  }
+
+  /** Centroid (in pixels) of each region's nodes, paired with its color. */
+  private regionCenters(): RegionCenter[] {
+    const acc = new Map<string, { sx: number; sy: number; n: number }>();
+    for (const node of PASSIVE_NODES) {
+      const p = toPixel(node.gridX, node.gridY);
+      const a = acc.get(node.region) ?? { sx: 0, sy: 0, n: 0 };
+      a.sx += p.x;
+      a.sy += p.y;
+      a.n += 1;
+      acc.set(node.region, a);
+    }
+    return [...acc.entries()].map(([region, a]) => ({
+      region,
+      x: a.sx / a.n,
+      y: a.sy / a.n,
+      color: REGION_COLOR[region] ?? 0x888888,
+    }));
+  }
+
+  update(time: number): void {
+    this.fx?.update(time);
   }
 
   private applyScrollClamp(): void {
@@ -200,6 +232,7 @@ export class PassiveGridScene extends Phaser.Scene {
     );
 
     this.gfx.clear();
+    this.fx.drawGlow(PASSIVE_NODES, unlockedSet, toPixel, (region) => REGION_COLOR[region] ?? 0x888888);
 
     const drawn = new Set<string>();
     for (const node of PASSIVE_NODES) {
