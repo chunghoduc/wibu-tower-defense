@@ -12,6 +12,8 @@
 export const itemTex = (id: string): string => `item__${id}`;
 /** Character/tower sprite sheet. */
 export const towerTex = (id: string): string => `tower__${id}`;
+/** Single-frame combat-stance pose for a tower character (shown while engaged). */
+export const towerAttackTex = (id: string): string => `tower__${id}__attack`;
 /** Skill-jewel gem icon (96×96). */
 export const jewelTex = (id: string): string => `jewel__${id}`;
 /** Crafting-material icon (non-box: enhance jewels, scroll, …). */
@@ -40,5 +42,7 @@ export const GOLD_TEX = "icon__gold";
 export const GEM_TEX = "icon__gem";
 export const XP_TEX = "icon__xp";
 export const HERODOLL_BASE_TEX = "herodoll__base";
+/** Single-frame hero weapon-class pose (bow|fist|gun|staff) — home throne hero. */
+export const heroPoseTex = (family: string): string => `hero__${family}`;
 export const CASTLE_TEX = structureTex("castle");
 export const CASTLE_DAMAGED_TEX = structureTex("castle__damaged");
