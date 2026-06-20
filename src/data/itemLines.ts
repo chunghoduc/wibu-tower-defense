@@ -25,8 +25,8 @@ export const BASE_ITEM_LINES: ItemLine[] = [
     slot: "Weapon",
     weaponType: "Bow",
     primary: "attackSpeed",
-    primaryBase: 0.12,
-    stats: { atk: 13, attackSpeed: 0.2 },
+    primaryBase: 0.06,
+    stats: { atk: 13, attackSpeed: 0.1 },
     affixPool: ["critRate", "critDamage", "range"],
   },
   {
@@ -131,8 +131,8 @@ export const BASE_ITEM_LINES: ItemLine[] = [
     base: "Swift Gloves",
     slot: "Gloves",
     primary: "attackSpeed",
-    primaryBase: 0.08,
-    stats: { attackSpeed: 0.08 },
+    primaryBase: 0.04,
+    stats: { attackSpeed: 0.05 },
     affixPool: ["critRate", "atk"],
   },
   {
@@ -321,8 +321,8 @@ export const BASE_ITEM_LINES: ItemLine[] = [
     base: "Duelist Band",
     slot: "Ring",
     primary: "attackSpeed",
-    primaryBase: 0.07,
-    stats: { attackSpeed: 0.06, atk: 4 },
+    primaryBase: 0.04,
+    stats: { attackSpeed: 0.04, atk: 4 },
     affixPool: ["attackSpeed", "critRate", "atk"],
   },
 ];

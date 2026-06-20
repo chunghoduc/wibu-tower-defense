@@ -22,6 +22,7 @@ const DEFAULT_AFFIX_RANGE: [number, number] = [0.05, 0.2];
 const AFFIX_RANGE: Partial<Record<string, [number, number]>> = {
   critRate: [0.02, 0.05], // +2–5% crit chance per affix
   critDamage: [0.05, 0.15], // +5–15% crit damage per affix
+  attackSpeed: [0.02, 0.06], // +2–6% atk speed per affix (nerfed from 5–20%)
 };
 
 function i(def: ItemDef): ItemDef {
@@ -70,8 +71,8 @@ export const ITEM_CATALOG: ItemDef[] = [
     weaponType: "Bow",
     rarity: "Magic",
     requiredLevel: 10,
-    baseStats: { atk: 22, attackSpeed: 0.3 },
-    primaryAffix: { type: "attackSpeed", baseValue: 0.12 },
+    baseStats: { atk: 22, attackSpeed: 0.12 },
+    primaryAffix: { type: "attackSpeed", baseValue: 0.06 },
     affixPool: ["critRate", "critDamage", "range"],
     artRef: "placeholder",
   }),

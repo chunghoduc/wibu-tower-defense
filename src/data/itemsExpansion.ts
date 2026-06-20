@@ -84,8 +84,8 @@ export const EXPANSION_LINES: ItemLine[] = [
     weaponType: "Bow",
     archetype: "physical",
     primary: "attackSpeed",
-    primaryBase: 0.12,
-    stats: { atk: 13, attackSpeed: 0.2 },
+    primaryBase: 0.06,
+    stats: { atk: 13, attackSpeed: 0.1 },
     affixPool: ["critRate", "critDamage", "range"],
   },
   // homage: Greek myth → the Bow of Apollo
@@ -303,8 +303,8 @@ export const EXPANSION_LINES: ItemLine[] = [
     slot: "Wing",
     archetype: "physical",
     primary: "attackSpeed",
-    primaryBase: 0.08,
-    stats: { moveSpeed: 24, attackSpeed: 0.06 },
+    primaryBase: 0.04,
+    stats: { moveSpeed: 24, attackSpeed: 0.04 },
     affixPool: ["attackSpeed", "moveSpeed", "critRate"],
   },
   // homage: myth → the phoenix
