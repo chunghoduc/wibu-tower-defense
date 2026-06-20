@@ -1,9 +1,10 @@
 // src/scenes/HeroLayeredSprite.ts
 
 import Phaser from "phaser";
-import { resolveHeroLayers, type HeroLayerConfig } from "./heroEquipVisuals.ts";
+import { resolveHeroLayers, type HeroLayerConfig, type GearLayer } from "./heroEquipVisuals.ts";
 import type { WeaponType } from "../data/schema.ts";
 import type { InventorySave } from "../core/save.ts";
+import { heroBattleRig, WORN_GEAR_SLOTS, type WornGearSlot } from "../data/heroBattleRig.ts";
 
 /**
  * Hero battle sprite with equipment-driven visual layers and locomotion.
@@ -54,14 +55,21 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   private readonly weaponSprite: Phaser.GameObjects.Sprite;
   private readonly wingsSprite: Phaser.GameObjects.Sprite;
 
+  /** Worn-armour overlays (helmet/body/gloves/boots), anchored by heroBattleRig. */
+  private readonly gearSprites: Record<WornGearSlot, Phaser.GameObjects.Sprite>;
+
   /** Pet wanders outside the container — managed here but positioned separately. */
   readonly petSprite: Phaser.GameObjects.Sprite;
+
+  // Body display size (px) captured from scaleToHeight; the rig scales gear to it.
+  private bodyPx = 0;
 
   private _lastConfig: HeroLayerConfig = {
     weaponKey: null,
     weaponType: null,
     wingKey: null,
     petKey: null,
+    gear: { Helmet: null, BodyArmor: null, Gloves: null, Boots: null },
   };
 
   // Base (un-flapped) scale/anchor captured from scaleToHeight, so the flap and
@@ -108,11 +116,29 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
       .setVisible(false)
       .setScale(0.22);
 
-    // Back→front: wings · body · weapon. (Worn armour isn't composited on the
-    // battle body — the rig already reads as a fully-armoured knight, and flat
-    // inventory icons pasted on top read as stickers; equipped gear is shown as
-    // icon tiles + stats on the equipment screen instead.)
-    this.add([this.wingsSprite, this.bodySprite, this.weaponSprite]);
+    // Worn-armour overlays composited on the body. Centre-origin so heroBattleRig
+    // can place each by its region centre; hidden until a piece is equipped.
+    const mkGear = () =>
+      scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.5);
+    this.gearSprites = {
+      BodyArmor: mkGear(),
+      Boots: mkGear(),
+      Helmet: mkGear(),
+      Gloves: mkGear(),
+    };
+
+    // Back→front: wings · body · breastplate · boots · helmet · gauntlet · weapon.
+    // Armour overlays ride between the body and the held weapon so the weapon
+    // always reads on top of the hand.
+    this.add([
+      this.wingsSprite,
+      this.bodySprite,
+      this.gearSprites.BodyArmor,
+      this.gearSprites.Boots,
+      this.gearSprites.Helmet,
+      this.gearSprites.Gloves,
+      this.weaponSprite,
+    ]);
 
     this.petSprite = scene.add
       .sprite(x + 30, y + 8, "__missing")
@@ -162,8 +188,27 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     this.wingsSprite.y = this.wingBaseY + hover;
     this.bodySprite.setFlipX(this.facingLeft);
     if (!busy) this.applyWeaponPose(hover);
+    this.positionGear(hover);
 
     this.updatePet(now, dt);
+  }
+
+  /**
+   * Anchor each worn-armour overlay to its body region for the current size,
+   * bob and facing (heroBattleRig) so the gear follows the body's motion.
+   */
+  private positionGear(hover: number): void {
+    if (this.bodyPx <= 0) return;
+    const facing = this.facingLeft ? -1 : 1;
+    const places = heroBattleRig({ bodyH: this.bodyPx, bodyW: this.bodyPx, hover, facing });
+    for (const p of places) {
+      const spr = this.gearSprites[p.slot];
+      if (!spr.visible) continue;
+      spr.setPosition(p.x, p.y);
+      spr.setDisplaySize(p.displayH, p.displayH);
+      spr.setAngle(p.angle);
+      spr.setFlipX(p.flipX);
+    }
   }
 
   /** Place the held weapon at its resting pose for the current weapon + facing. */
@@ -405,6 +450,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
   }
 
   scaleToHeight(targetPx: number): this {
+    this.bodyPx = targetPx;
     const scale = targetPx / this.bodySprite.height;
     // Held weapon is sized to sit over the rig's own sword in the hand so a swap
     // reads as one weapon, not a small icon floating beside the baked blade.
@@ -437,6 +483,11 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     super.setVisible(visible);
     this.petSprite.setVisible(visible && this._lastConfig.petKey !== null);
     return this;
+  }
+
+  /** Whether any worn-armour overlay is currently shown (for tests/diagnostics). */
+  get wornGearVisible(): boolean {
+    return WORN_GEAR_SLOTS.some((s) => this.gearSprites[s].visible);
   }
 
   /** Start/refresh the constant wing-flap tween (scale + sway). */
@@ -498,6 +549,23 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
       }
     }
 
+    for (const slot of WORN_GEAR_SLOTS) {
+      const key = this.pickGearKey(config.gear[slot]);
+      if (key === this.pickGearKey(this._lastConfig.gear[slot])) continue;
+      const spr = this.gearSprites[slot];
+      if (key) spr.setTexture(key).setVisible(true);
+      else spr.setVisible(false);
+    }
+
     this._lastConfig = config;
+  }
+
+  /** Prefer the purpose-built worn art, fall back to the inventory icon, else hide. */
+  private pickGearKey(layer: GearLayer | null): string | null {
+    if (!layer) return null;
+    const t = this.scene.textures;
+    if (t.exists(layer.wornKey)) return layer.wornKey;
+    if (t.exists(layer.iconKey)) return layer.iconKey;
+    return null;
   }
 }

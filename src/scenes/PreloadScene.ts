@@ -14,6 +14,7 @@ import { UI_SVGS, UI_IMAGES } from "../data/uiManifest.ts";
 import { FX_IDS } from "../data/fxManifest.ts";
 import { ITEM_CATALOG } from "../data/items.ts";
 import { WORN_SLOTS } from "../data/heroDressLayout.ts";
+import { hasWornArt } from "../data/wornManifest.ts";
 import { MATERIAL_ICON_IDS } from "../data/materialIconManifest.ts";
 import { bakeBossWalks } from "./bossWalkBake.ts";
 import { createLoadingBackdrop } from "./loadingBackdropFx.ts";
@@ -149,6 +150,7 @@ export class PreloadScene extends Phaser.Scene {
     const wornBodySlots = new Set<string>(WORN_SLOTS);
     for (const it of ITEM_CATALOG) {
       if (!wornBodySlots.has(it.slot)) continue;
+      if (!hasWornArt(it.id)) continue; // only request art that exists (no 404 spam)
       this.load.spritesheet(wornTex(it.id), versioned(`assets/sprites/worn/${it.id}.png`), {
         frameWidth: 128,
         frameHeight: 128,
