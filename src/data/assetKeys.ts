@@ -44,5 +44,7 @@ export const XP_TEX = "icon__xp";
 export const HERODOLL_BASE_TEX = "herodoll__base";
 /** Single-frame hero weapon-class pose (bow|fist|gun|staff) — home throne hero. */
 export const heroPoseTex = (family: string): string => `hero__${family}`;
+/** Worn-on-body overlay art for a gear item (transparent, slot-framed). */
+export const wornTex = (id: string): string => `worn__${id}`;
 export const CASTLE_TEX = structureTex("castle");
 export const CASTLE_DAMAGED_TEX = structureTex("castle__damaged");
