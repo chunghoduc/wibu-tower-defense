@@ -14,7 +14,14 @@ import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 import { enemyWalkTransform } from "./enemyWalkTransform.ts";
 import { lerpV } from "./renderLerp.ts";
 import type { BattleScene } from "./BattleScene.ts";
-import { towerTex } from "../data/assetKeys.ts";
+import { towerTex, towerAttackTex } from "../data/assetKeys.ts";
+import {
+  ENGAGED_MS,
+  isEngaged,
+  towerDisplayScale,
+  POSE_ORIGIN_Y,
+  IDLE_ORIGIN_Y,
+} from "./attackPose.ts";
 import { roleBadgeTex, ROLE_BADGE } from "./roleBadge.ts";
 import { DEPTH } from "./battleDepths.ts";
 import { wantsLegs, ensureLegRig, updateLegRig, restLegRig, destroyLegRig } from "./enemyLegRig.ts";
@@ -43,6 +50,7 @@ export const spritesMethods = {
       } else {
         const ts = this.towerSprites.get(ev.uid) ?? null;
         ts?.setData("atkUntil", this.time.now + TOWER_STRIKE_MS); // procedural recoil punch
+        ts?.setData("engagedUntil", this.time.now + ENGAGED_MS); // combat-stance pose window
         this.playSpriteOneShot(ts, ["attack"], "idle");
       }
     } else if (ev.type === "hit") {
@@ -470,8 +478,20 @@ export const spritesMethods = {
       );
       if (s) {
         s.setAlpha(t.disabledTimer > 0 ? 0.5 : 1);
+        // Combat-stance swap: show the dramatic __attack pose while engaged, if
+        // art exists; else the animated idle sheet. One swap per state change.
+        const attackKey = towerAttackTex(t.def.id);
+        const engaged =
+          isEngaged((s.getData("engagedUntil") as number) ?? 0, this.time.now) &&
+          this.textures.exists(attackKey);
+        const desiredKey = engaged ? attackKey : towerTex(t.def.id);
+        if (s.texture.key !== desiredKey) {
+          s.setTexture(desiredKey);
+          s.setOrigin(0.5, engaged ? POSE_ORIGIN_Y : IDLE_ORIGIN_Y);
+          if (!engaged && this.anims.exists(`${desiredKey}_idle`)) s.play(`${desiredKey}_idle`);
+        }
         if (s.height) {
-          const base = (50 / s.height) * (1 + 0.05 * t.battleLevel); // grow as upgraded (T10)
+          const base = towerDisplayScale(s.height, t.battleLevel, engaged); // grow as upgraded (T10)
           this.animateTower(s, t, base);
         }
       }
