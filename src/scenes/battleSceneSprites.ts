@@ -17,6 +17,7 @@ import type { BattleScene } from "./BattleScene.ts";
 import { towerTex } from "../data/assetKeys.ts";
 import { roleBadgeTex, ROLE_BADGE } from "./roleBadge.ts";
 import { DEPTH } from "./battleDepths.ts";
+import { wantsLegs, ensureLegRig, updateLegRig, restLegRig, destroyLegRig } from "./enemyLegRig.ts";
 
 /** Duration (ms) of a tower's procedural strike-recoil punch. */
 const TOWER_STRIKE_MS = 200;
@@ -383,6 +384,21 @@ export const spritesMethods = {
     s.x = p.x + xOff;
     s.y = p.y + yOff;
 
+    // Leg puppet: the single sprite is shown as a cropped body + two leg pieces
+    // that step in alternating phase (legPuppet/enemyLegRig). Ground enemies
+    // only — flyers have no legs. Feet now physically lift+swing, fixing the
+    // "slide/float" of a rigid body bob without baking any multi-frame strip.
+    const rig = this.enemyLegs.get(e.uid); // only regular ground enemies have one
+    if (rig) {
+      if (frozen) {
+        restLegRig(rig, s);
+      } else {
+        const phase = (s.getData("gaitPhase") as number) ?? 0;
+        const displayH = base * s.height; // on-screen height in px
+        updateLegRig(rig, s, phase, 1, displayH / 44); // taller creatures step bigger
+      }
+    }
+
     // Ground-contact shadow: pinned at the ground point (never bobs), it shrinks
     // and fades as the body lifts on each step — the anchor that turns a sliding
     // sprite into a creature with weight on solid ground. Flyers keep a fixed,
@@ -504,6 +520,12 @@ export const spritesMethods = {
         if (tint === null) s.clearTint();
         else s.setTint(tint);
         const shadow = this.ensureShadow(e.uid, p.x, p.y, displayH);
+        // Leg puppet is for regular ground enemies. Bosses keep their authored
+        // multi-frame sheet (stomp walk + atk/skill/hurt cast poses) — cropping a
+        // leg puppet over those one-shot frames would desync the legs mid-cast.
+        if (!boss && wantsLegs(e.flying, s.width, s.height)) {
+          ensureLegRig(this, this.world, this.enemyLegs, e.uid, s, key);
+        }
         this.animateEnemy(s, e, key, shadow, p); // walk / fly / hurt animation + ground shadow
       }
     }
@@ -517,6 +539,7 @@ export const spritesMethods = {
         sh.destroy();
         this.enemyShadows.delete(uid);
       }
+    for (const [uid] of this.enemyLegs) if (!seenE.has(uid)) destroyLegRig(this.enemyLegs, uid);
 
     const h = this.battle.hero;
     if (h.alive && hasSprite(this, "hero__hero")) {

@@ -17,6 +17,7 @@ export const DEPTH = {
   ROAD: -11, // tilemap road tiles
   SKILL_FX_UNDER: -6, // SkillVfx + BossSkillFx base — beneath the units
   ENEMY_SHADOW: 1, // ground-contact shadow
+  ENEMY_LEG: 1.5, // leg-puppet pieces — above the shadow, behind the body torso
   TERRAIN: 1, // SVG obstacles / decor
   ENEMY: 2, // enemy + boss + tower sprites
   HERO: 3, // hero layered sprite
