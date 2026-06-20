@@ -556,3 +556,15 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Placeholder scan:** none — every code step shows complete code; commands have expected output.
 
 **Type consistency:** `LegPose`/`LegRigPose`/`legPuppet`/`legWorldPos` (Task 1) match their uses in `enemyLegRig.ts` (Task 2); `LegRig`/`ensureLegRig`/`updateLegRig`/`restLegRig`/`destroyLegRig`/`wantsLegs` (Task 2) match the imports + calls in Task 3; `enemyLegs` map type `Map<number, LegRig>` is consistent across BattleScene field, presenter, and call sites. `DEPTH.ENEMY_LEG` added in Task 2 Step 1 is consumed in Task 2 Step 2.
+
+---
+
+## Implementation notes & deviations (2026-06-20)
+
+What actually shipped on `feat/enemy-leg-puppet-walk` differs from the plan in two deliberate ways:
+
+1. **Bosses excluded (M2 cut).** Bosses carry authored multi-frame sheets (walk/atk/skill/hurt cast poses) + a baked stomp. Cropping a leg puppet over those one-shot cast frames would desync the legs mid-cast, and the visual couldn't be headless-verified. The rig is gated to **non-boss** ground enemies; bosses keep their existing animation untouched. `bossWalkBake.ts` / `enemyWalkWarp.ts` were therefore NOT deleted.
+
+2. **New milestone — fix a live floating-strip regression (root cause found mid-implementation).** Commit `2978275` had reverted 16 of 25 enemy PNGs from clean 300×300 single sprites back to 6-frame horizontal strips while the manifest still said `300×300, frames:1`. Phaser's spritesheet parser computes `column=floor(128/300)=0 → total=0`, so the sprite renders the whole strip smeared down the lane — the exact bug `b627ba8` "killed", live again (and `--disable-gpu` headless masks it). The strips were also unusable cycles (slime/raider = 6 identical tiles). Fixed by extracting frame 0 → 300×300 for the 16 (Pillow, no SDXL), `ASSET_VERSION → 2026-06-20a`. This both fixes a shipped bug and gives the puppet a correct sprite to animate. Commit `ff99519`.
+
+**Verification reality:** the live in-browser CDP capture could not run — the sandbox OOM-kills `vite preview` / `python -m http.server`, and Chrome 149 needs `--remote-allow-origins=*` for the DevTools WS. Validated instead by: the 7 pure `legPuppet` tests, the full 1428-test suite (incl. the single-frame manifest guard, which proves no strip), `tsc`/`eslint`/`madge`/`build` all clean, and a faithful Pillow montage applying the exact crop+offset math to the real `grunt.png`. Branch is NOT deployed — recommend a human glance in a real browser before merge/deploy.
