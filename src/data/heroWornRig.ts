@@ -86,6 +86,15 @@ function place(
 }
 
 /**
+ * Which sprite parts a slot actually renders in the given mode. Only these parts
+ * are placed by `placeWorn`, so the presenter must only show these (a stray
+ * `single` boot in perLimb mode would never be positioned → sits at the origin).
+ */
+export function partsForSlot(slot: WornGearSlot, perLimb: boolean): WornPart[] {
+  return perLimb && PER_LIMB[slot] ? ["L", "R"] : ["single"];
+}
+
+/**
  * Per-frame placements for the four worn-armour slots. `perLimb` splits boots and
  * gloves across both limbs (phase 2 single-limb art); otherwise one piece per slot.
  */

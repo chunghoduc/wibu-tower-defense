@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { resolveSkeleton } from "../src/data/heroSkeleton.ts";
-import { placeWorn, WORN_GEAR_SLOTS } from "../src/data/heroWornRig.ts";
+import { placeWorn, partsForSlot, WORN_GEAR_SLOTS } from "../src/data/heroWornRig.ts";
 
 const bones = resolveSkeleton({ size: 100, hover: 0, facing: 1, deltas: {} });
 
@@ -25,6 +25,17 @@ describe("heroWornRig", () => {
     expect(boots.find((b) => b.part === "R")!.flipX).toBe(false);
     expect(ps.filter((p) => p.slot === "Gloves")).toHaveLength(2);
     expect(ps.filter((p) => p.slot === "Helmet")).toHaveLength(1);
+  });
+
+  it("partsForSlot matches the parts placeWorn actually emits (no orphan sprite)", () => {
+    for (const perLimb of [false, true]) {
+      const ps = placeWorn(bones, 100, 1, perLimb);
+      for (const slot of WORN_GEAR_SLOTS) {
+        const emitted = ps.filter((p) => p.slot === slot).map((p) => p.part).sort();
+        const declared = [...partsForSlot(slot, perLimb)].sort();
+        expect(declared).toEqual(emitted);
+      }
+    }
   });
 
   it("anchors each piece near its bone (helmet at head, boots at feet)", () => {

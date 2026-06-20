@@ -12,7 +12,7 @@ import { resolveHeroLayers, type HeroLayerConfig, type GearLayer } from "./heroE
 import type { InventorySave } from "../core/save.ts";
 import { resolveSkeleton, type BoneId, type BoneXform } from "../data/heroSkeleton.ts";
 import { poseSkeleton, type AnimState } from "../data/heroSkeletonAnim.ts";
-import { placeWorn, WORN_GEAR_SLOTS } from "../data/heroWornRig.ts";
+import { placeWorn, partsForSlot, WORN_GEAR_SLOTS } from "../data/heroWornRig.ts";
 
 type OneShotKind = "attack" | "cast" | "hurt";
 const PRIO: Record<OneShotKind, number> = { attack: 1, cast: 2, hurt: 3 };
@@ -245,10 +245,14 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
     for (const slot of WORN_GEAR_SLOTS) {
       const key = this.pickGearKey(config.gear[slot]);
       if (key === this.pickGearKey(this._lastConfig.gear[slot])) continue;
+      // Only the parts this slot renders in the current mode are positioned by
+      // placeWorn; any other part must stay hidden or it sits unplaced at the
+      // container origin (the "big boot in the middle" bug).
+      const used = new Set<string>(partsForSlot(slot, this.perLimb));
       for (const part of GEAR_PARTS) {
         const id = `${slot}:${part}`;
         let spr = this.gearSprites.get(id);
-        if (key) {
+        if (key && used.has(part)) {
           if (!spr) {
             spr = this.scene.add.sprite(0, 0, key).setOrigin(0.5, 0.5);
             this.add(spr);
