@@ -49,6 +49,7 @@ import { BattleCameraController } from "./battleCamera.ts";
 import { RARITY_INT, buildSquad } from "./battleSceneHelpers.ts";
 import { renderMethods, type RenderMethods } from "./battleSceneRender.ts";
 import { spritesMethods, type SpritesMethods } from "./battleSceneSprites.ts";
+import type { LegRig } from "./enemyLegRig.ts";
 import { inputMethods, type InputMethods } from "./battleSceneInput.ts";
 import { placementMethods, type PlacementMethods } from "./battleScenePlacement.ts";
 import { towerTex } from "../data/assetKeys.ts";
@@ -132,6 +133,7 @@ export class BattleScene extends Phaser.Scene {
   roleBadges = new Map<number, Phaser.GameObjects.Image>(); // per-tower role emblem
   enemySprites = new Map<number, Phaser.GameObjects.Sprite>();
   enemyShadows = new Map<number, Phaser.GameObjects.Ellipse>(); // ground-contact anchors
+  enemyLegs = new Map<number, LegRig>(); // per-enemy leg-puppet pieces
 
   heroSprite: HeroLayeredSprite | null = null;
   fx!: FxLayer;
@@ -171,6 +173,7 @@ export class BattleScene extends Phaser.Scene {
     this.roleBadges.clear();
     this.enemySprites.clear();
     this.enemyShadows.clear();
+    this.enemyLegs.clear();
     this.heroSprite = null;
     this.selectedTowerUid = -1;
     this.quickActions = null;
