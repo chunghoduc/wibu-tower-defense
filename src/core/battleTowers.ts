@@ -5,6 +5,7 @@
  */
 import { dist } from "./path.ts";
 import { selectTarget } from "./targeting.ts";
+import { cappedAttackSpeed } from "./attackSpeedCap.ts";
 import { attackStyleFor, isMeleeStyle } from "../data/attackStyle.ts";
 import type { BattleState } from "./battle.ts";
 import {
@@ -64,7 +65,7 @@ export const towerMethods = {
         continue;
       }
 
-      const effAs = t.stats.attackSpeed * (1 + t.buffAsPct);
+      const effAs = cappedAttackSpeed(t.stats.attackSpeed * (1 + t.buffAsPct));
       t.attackCd -= dt;
       if (t.attackCd > 0 || effAs <= 0) continue;
 

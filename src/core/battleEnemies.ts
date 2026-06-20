@@ -10,6 +10,7 @@ import { slowedSpeed } from "./effects.ts";
 import { dist, lerp, pointAtDistance } from "./path.ts";
 import { computeAuraMods, NEUTRAL_AURA } from "./enemyAuras.ts";
 import { enemyTowerAttack } from "./enemyCombat.ts";
+import { cappedAttackSpeed } from "./attackSpeedCap.ts";
 import { shouldFrenzy, frenzyMods } from "./enemyFrenzy.ts";
 import { advanceAdaptivePhase, adaptiveImmuneType } from "./enemyAdaptive.ts";
 import { castleLeakDamage } from "../data/enemies.ts";
@@ -142,10 +143,11 @@ export const enemyMethods = {
   },
 
   enemyAttack(this: BattleState, e: EnemyRuntime, dt: number, hit: () => void): void {
+    const as = cappedAttackSpeed(e.stats.attackSpeed);
     e.attackCd -= dt;
-    if (e.attackCd <= 0 && e.stats.attackSpeed > 0) {
+    if (e.attackCd <= 0 && as > 0) {
       hit();
-      e.attackCd = 1 / e.stats.attackSpeed;
+      e.attackCd = 1 / as;
     }
   },
 

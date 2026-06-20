@@ -8,6 +8,7 @@ import { dist, lerp } from "./path.ts";
 import { selectTarget } from "./targeting.ts";
 import { heroAttackStyle } from "../data/attackStyle.ts";
 import { heroActiveBurst, awardSkillUseXp } from "./hero.ts";
+import { cappedAttackSpeed } from "./attackSpeedCap.ts";
 import type { BattleState } from "./battle.ts";
 import { HERO_FILTER, MANA_MAX } from "./battleTypes.ts";
 
@@ -32,8 +33,9 @@ export const heroMethods = {
       h.pos = lerp(h.pos, h.moveTarget, step / toTarget);
     }
 
+    const heroAs = cappedAttackSpeed(h.stats.attackSpeed);
     h.attackCd -= dt;
-    if (h.attackCd > 0 || h.stats.attackSpeed <= 0) return;
+    if (h.attackCd > 0 || heroAs <= 0) return;
 
     const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
     if (!target) return;
@@ -78,7 +80,7 @@ export const heroMethods = {
         h.activeMult = heroActiveBurst(this._heroSave).mult;
       }
     }
-    h.attackCd = 1 / h.stats.attackSpeed;
+    h.attackCd = 1 / heroAs;
   },
 };
 
