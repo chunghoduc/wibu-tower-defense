@@ -34,13 +34,15 @@ interface Anchor {
   depth: number;
   behind?: boolean;
 }
+// Tuned to the front-facing full-body mannequin (hero-base.png): head ≈13% down,
+// torso ≈42%, fists ≈60%, boots ≈90%.
 const ANCHORS: Partial<Record<ItemSlot, Anchor>> = {
-  Wing: { nx: 0.5, ny: 0.42, scale: 0.62, depth: 0, behind: true },
-  BodyArmor: { nx: 0.5, ny: 0.46, scale: 0.42, depth: 3 },
-  Helmet: { nx: 0.5, ny: 0.17, scale: 0.24, depth: 5 },
-  Boots: { nx: 0.5, ny: 0.86, scale: 0.26, depth: 4 },
-  Gloves: { nx: 0.74, ny: 0.56, scale: 0.18, depth: 6 },
-  Weapon: { nx: 0.24, ny: 0.52, scale: 0.46, depth: 7 },
+  Wing: { nx: 0.5, ny: 0.34, scale: 0.66, depth: 0, behind: true },
+  BodyArmor: { nx: 0.5, ny: 0.4, scale: 0.4, depth: 3 },
+  Helmet: { nx: 0.5, ny: 0.1, scale: 0.18, depth: 5 },
+  Boots: { nx: 0.5, ny: 0.9, scale: 0.2, depth: 4 },
+  Gloves: { nx: 0.7, ny: 0.62, scale: 0.13, depth: 6 },
+  Weapon: { nx: 0.25, ny: 0.54, scale: 0.5, depth: 7 },
 };
 
 // Stable iteration order (depth drives the actual draw order).

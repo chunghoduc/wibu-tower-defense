@@ -11,8 +11,9 @@ import { renderItemTooltip } from "./itemTooltip.ts";
 import { TOOLTIP_DEPTH } from "./tooltipLayer.ts";
 import { renderCompareDialog, type CompareTarget } from "./itemCompareDialog.ts";
 import { equipRoute } from "../data/equipRoute.ts";
-import { ITEM_SLOTS, equipSlotsFor, type ItemSlot, type ItemDef } from "../data/schema.ts";
+import { equipSlotsFor, type ItemSlot, type ItemDef } from "../data/schema.ts";
 import { DOLL_SLOTS, DOLL_PANEL, DOLL_BASE_KEY } from "../data/heroDoll.ts";
+import { dressDoll } from "./heroDollDress.ts";
 import { renderHeroStats } from "./heroStatsPanel.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { TAP_SLOP_PX } from "../core/gesture.ts";
@@ -58,6 +59,8 @@ export class HeroScene extends Phaser.Scene {
   private tiles!: Phaser.GameObjects.Container; // draggable item tiles
   private slotZones = new Map<ItemSlot, Phaser.GameObjects.Zone>();
   private slotPos = new Map<ItemSlot, { x: number; y: number }>();
+  // Rendered mannequin box (set in create()); body gear is dressed onto it.
+  private dollBody = { x: DOLL_PANEL.x, y: DOLL_PANEL.y, w: DOLL_PANEL.w, h: DOLL_PANEL.h };
   private invRect = { x: 360, y: 96, w: 580, h: 380 };
   private statsBox!: Phaser.GameObjects.Container;
   private static readonly STATS_PANEL = { x: 26, y: 398, w: 300, h: 136 };
@@ -152,6 +155,14 @@ export class HeroScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setDepth(1);
       img.setScale(Math.min(dp.w / img.width, dp.h / img.height) * 0.98);
+      // The mannequin's real on-screen box — body gear is dressed onto THIS so a
+      // helmet lands on the head, a breastplate on the torso, boots at the feet.
+      this.dollBody = {
+        x: img.x - img.displayWidth / 2,
+        y: img.y - img.displayHeight / 2,
+        w: img.displayWidth,
+        h: img.displayHeight,
+      };
     }
     const DSIZE = 40;
     for (const ds of DOLL_SLOTS) {
@@ -328,15 +339,8 @@ export class HeroScene extends Phaser.Scene {
     this.catChips.setVisible(this.filter === "items");
     this.catChips.update(this.itemCategory);
 
-    // Equipped tiles always sit on the paper-doll.
-    for (const slot of ITEM_SLOTS) {
-      const instId = save.inventory.equipped[slot];
-      if (!instId) continue;
-      const inst = save.inventory.items.find((it) => it.id === instId);
-      if (!inst) continue;
-      const p = this.slotPos.get(slot)!;
-      this.tiles.add(makeItemTile(this, inst, p.x, p.y, slot, this.itemTileCb(), 40));
-    }
+    // Dress the mannequin with equipped gear (worn body layers + accessory chips).
+    dressDoll(this, this.tiles, save.inventory, this.dollBody, this.slotPos, this.itemTileCb());
 
     // Window the inventory list: clamp the scroll offset to what the current
     // filter holds, then only the rows inside the viewport get tiles.

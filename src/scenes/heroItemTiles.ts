@@ -12,7 +12,7 @@ import type { ItemSlot } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { MATERIALS_MAP, BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { boxOddsText } from "../core/boxes.ts";
-import { materialTex, boxTex, itemTex } from "../data/assetKeys.ts";
+import { materialTex, boxTex, itemTex, wornTex } from "../data/assetKeys.ts";
 import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
 
 export const TILE = 52;
@@ -26,7 +26,20 @@ export interface ItemTileCallbacks {
   onTap(inst: ItemInstanceSave, fromSlot: ItemSlot | null): void;
 }
 
-/** A draggable item tile centered at (x,y). `size` lets doll slots be smaller. */
+/** Optional rendering modes for a tile. */
+export interface ItemTileOpts {
+  /** Prefer the item's worn-on-body art over the inventory icon when present. */
+  preferWorn?: boolean;
+  /** Drop the square rarity frame + slot label and size the art to `size`
+   *  height — used to dress the paper-doll mannequin so gear reads as worn. */
+  frameless?: boolean;
+}
+
+/**
+ * A draggable item tile centered at (x,y). `size` lets doll slots be smaller.
+ * In `frameless` mode the tile is just the (body-fitted) gear art — the draggable
+ * handle IS the worn gear, so the mannequin looks dressed rather than tiled.
+ */
 export function makeItemTile(
   scene: Phaser.Scene,
   inst: ItemInstanceSave,
@@ -35,19 +48,32 @@ export function makeItemTile(
   fromSlot: ItemSlot | null,
   cb: ItemTileCallbacks,
   size = TILE,
+  opts: ItemTileOpts = {},
 ): Phaser.GameObjects.Container {
   const def = ITEM_CATALOG_MAP.get(inst.defId);
   const rarity = def?.rarity ?? "Common";
+  const frameless = opts.frameless ?? false;
   const c = scene.add.container(x, y).setSize(size, size).setDepth(8);
-  const g = scene.add.graphics();
-  g.fillStyle(0x1c2636, 1).fillRoundedRect(-size / 2, -size / 2, size, size, 5);
-  g.lineStyle(2, RARITY_INT[rarity], 1).strokeRoundedRect(-size / 2, -size / 2, size, size, 5);
-  c.add(g);
-  const key = itemTex(inst.defId);
+  if (!frameless) {
+    const g = scene.add.graphics();
+    g.fillStyle(0x1c2636, 1).fillRoundedRect(-size / 2, -size / 2, size, size, 5);
+    g.lineStyle(2, RARITY_INT[rarity], 1).strokeRoundedRect(-size / 2, -size / 2, size, size, 5);
+    c.add(g);
+  }
+  const worn = wornTex(inst.defId);
+  const key =
+    opts.preferWorn && scene.textures.exists(worn) ? worn : itemTex(inst.defId);
   if (scene.textures.exists(key)) {
-    const img = scene.add.image(0, -2, key).setOrigin(0.5);
-    img.setScale((size - 12) / img.height);
+    // Frameless = body-fitted (art height ≈ size); framed = padded inside the tile.
+    const img = scene.add.image(0, frameless ? 0 : -2, key).setOrigin(0.5);
+    img.setScale((frameless ? size : size - 12) / img.height);
     c.add(img);
+  } else if (frameless) {
+    c.add(
+      scene.add
+        .text(0, 0, (def?.name ?? "?").slice(0, 6), { fontSize: "9px", color: RARITY_HEX[rarity] })
+        .setOrigin(0.5),
+    );
   } else {
     c.add(
       scene.add
@@ -60,7 +86,7 @@ export function makeItemTile(
         .setOrigin(0.5),
     );
   }
-  if (size >= TILE) {
+  if (size >= TILE && !frameless) {
     c.add(
       scene.add
         .text(
@@ -75,8 +101,9 @@ export function makeItemTile(
     );
   }
 
-  // Enhancement level badge (+N) — top-right (T13).
-  if ((inst.enhanceLevel ?? 0) > 0) {
+  // Enhancement level badge (+N) — top-right (T13). Skipped on frameless worn
+  // gear (a body-fitted overlay shouldn't carry a floating UI badge).
+  if ((inst.enhanceLevel ?? 0) > 0 && !frameless) {
     const bg = scene.add.graphics();
     bg.fillStyle(0x1a1206, 0.9).fillCircle(size / 2 - 8, -size / 2 + 8, 9);
     bg.lineStyle(1.5, 0xffd34d, 1).strokeCircle(size / 2 - 8, -size / 2 + 8, 9);
