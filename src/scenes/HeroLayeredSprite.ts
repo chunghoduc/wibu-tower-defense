@@ -69,7 +69,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
     weaponType: null,
     wingKey: null,
     petKey: null,
-    gear: { Helmet: null, BodyArmor: null, Gloves: null, Boots: null },
+    gear: { Helmet: null, BodyArmor: null, Pants: null, Gloves: null, Boots: null },
   };
 
   // Base (un-flapped) scale/anchor captured from scaleToHeight, so the flap and
@@ -122,6 +122,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
       scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.5);
     this.gearSprites = {
       BodyArmor: mkGear(),
+      Pants: mkGear(),
       Boots: mkGear(),
       Helmet: mkGear(),
       Gloves: mkGear(),

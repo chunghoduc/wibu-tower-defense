@@ -8,7 +8,7 @@
 
 import type { BoneId, BoneXform } from "./heroSkeleton.ts";
 
-export const WORN_GEAR_SLOTS = ["Helmet", "BodyArmor", "Gloves", "Boots"] as const;
+export const WORN_GEAR_SLOTS = ["Helmet", "BodyArmor", "Pants", "Gloves", "Boots"] as const;
 export type WornGearSlot = (typeof WORN_GEAR_SLOTS)[number];
 
 export type WornPart = "single" | "L" | "R";
@@ -35,9 +35,11 @@ interface Attach {
   depth: number;
 }
 
-// back→front draw order encoded in depth: boots(2) < body(3) < gloves(4) < helmet(5).
+// back→front draw order encoded in depth: boots(2) < pants(2.5) < body(3) < gloves(4) < helmet(5).
 const SINGLE: Record<WornGearSlot, Attach> = {
   Boots: { bone: "pelvis", ox: 0, oy: 0.4, scale: 0.3, depth: 2 },
+  // Legguards ride the pelvis and cover the upper legs (waist → knees).
+  Pants: { bone: "pelvis", ox: 0, oy: 0.26, scale: 0.4, depth: 2.5 },
   BodyArmor: { bone: "torso", ox: 0, oy: 0.06, scale: 0.42, depth: 3 },
   Gloves: { bone: "handR", ox: 0, oy: 0, scale: 0.18, depth: 4 },
   Helmet: { bone: "head", ox: 0, oy: 0, scale: 0.3, depth: 5 },

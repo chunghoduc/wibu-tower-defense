@@ -39,6 +39,7 @@ interface Anchor {
 const ANCHORS: Partial<Record<ItemSlot, Anchor>> = {
   Wing: { nx: 0.5, ny: 0.34, scale: 0.66, depth: 0, behind: true },
   BodyArmor: { nx: 0.5, ny: 0.4, scale: 0.4, depth: 3 },
+  Pants: { nx: 0.5, ny: 0.66, scale: 0.28, depth: 3.5 },
   Helmet: { nx: 0.5, ny: 0.1, scale: 0.18, depth: 5 },
   Boots: { nx: 0.5, ny: 0.9, scale: 0.2, depth: 4 },
   Gloves: { nx: 0.7, ny: 0.62, scale: 0.13, depth: 6 },
@@ -47,7 +48,15 @@ const ANCHORS: Partial<Record<ItemSlot, Anchor>> = {
 
 // Stable iteration order (depth drives the actual draw order). Exported so the
 // asset loader gates worn-art preloads to exactly these body slots (no drift).
-export const WORN_SLOTS: ItemSlot[] = ["Wing", "BodyArmor", "Helmet", "Boots", "Gloves", "Weapon"];
+export const WORN_SLOTS: ItemSlot[] = [
+  "Wing",
+  "BodyArmor",
+  "Pants",
+  "Helmet",
+  "Boots",
+  "Gloves",
+  "Weapon",
+];
 
 function defFor(inventory: InventorySave, slot: ItemSlot) {
   const instId = inventory.equipped[slot];

@@ -217,7 +217,7 @@
   },
   {
     "id": "worn-warblade",
-    "name": "Worn Hollowmoon Cleaver",
+    "name": "Hollowmoon Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Common",
@@ -226,7 +226,7 @@
   },
   {
     "id": "fine-warblade",
-    "name": "Fine Hollowmoon Cleaver",
+    "name": "Hollowmoon Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Magic",
@@ -235,7 +235,7 @@
   },
   {
     "id": "masterwork-warblade",
-    "name": "Masterwork Hollowmoon Cleaver",
+    "name": "Hollowmoon Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Rare",
@@ -244,7 +244,7 @@
   },
   {
     "id": "heroic-warblade",
-    "name": "Heroic Hollowmoon Cleaver",
+    "name": "Hollowmoon Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Legendary",
@@ -253,7 +253,7 @@
   },
   {
     "id": "mythic-warblade",
-    "name": "Mythic Hollowmoon Cleaver",
+    "name": "Hollowmoon Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Unique",
@@ -262,7 +262,7 @@
   },
   {
     "id": "worn-longbow",
-    "name": "Worn Spiritbone Longbow",
+    "name": "Spiritbone Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Common",
@@ -271,7 +271,7 @@
   },
   {
     "id": "fine-longbow",
-    "name": "Fine Spiritbone Longbow",
+    "name": "Spiritbone Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Magic",
@@ -280,7 +280,7 @@
   },
   {
     "id": "masterwork-longbow",
-    "name": "Masterwork Spiritbone Longbow",
+    "name": "Spiritbone Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Rare",
@@ -289,7 +289,7 @@
   },
   {
     "id": "heroic-longbow",
-    "name": "Heroic Spiritbone Longbow",
+    "name": "Spiritbone Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Legendary",
@@ -298,7 +298,7 @@
   },
   {
     "id": "mythic-longbow",
-    "name": "Mythic Spiritbone Longbow",
+    "name": "Spiritbone Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Unique",
@@ -307,7 +307,7 @@
   },
   {
     "id": "worn-wizard-staff",
-    "name": "Worn Crimson Caster Staff",
+    "name": "Crimson Caster Staff",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Common",
@@ -316,7 +316,7 @@
   },
   {
     "id": "fine-wizard-staff",
-    "name": "Fine Crimson Caster Staff",
+    "name": "Crimson Caster Staff",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Magic",
@@ -325,7 +325,7 @@
   },
   {
     "id": "masterwork-wizard-staff",
-    "name": "Masterwork Crimson Caster Staff",
+    "name": "Crimson Caster Staff",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Rare",
@@ -334,7 +334,7 @@
   },
   {
     "id": "heroic-wizard-staff",
-    "name": "Heroic Crimson Caster Staff",
+    "name": "Crimson Caster Staff",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Legendary",
@@ -343,7 +343,7 @@
   },
   {
     "id": "mythic-wizard-staff",
-    "name": "Mythic Crimson Caster Staff",
+    "name": "Crimson Caster Staff",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Unique",
@@ -352,7 +352,7 @@
   },
   {
     "id": "worn-hand-cannon",
-    "name": "Worn Stampede Sidearm",
+    "name": "Stampede Sidearm",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Common",
@@ -361,7 +361,7 @@
   },
   {
     "id": "fine-hand-cannon",
-    "name": "Fine Stampede Sidearm",
+    "name": "Stampede Sidearm",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Magic",
@@ -370,7 +370,7 @@
   },
   {
     "id": "masterwork-hand-cannon",
-    "name": "Masterwork Stampede Sidearm",
+    "name": "Stampede Sidearm",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Rare",
@@ -379,7 +379,7 @@
   },
   {
     "id": "heroic-hand-cannon",
-    "name": "Heroic Stampede Sidearm",
+    "name": "Stampede Sidearm",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Legendary",
@@ -388,7 +388,7 @@
   },
   {
     "id": "mythic-hand-cannon",
-    "name": "Mythic Stampede Sidearm",
+    "name": "Stampede Sidearm",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Unique",
@@ -397,7 +397,7 @@
   },
   {
     "id": "worn-grimoire",
-    "name": "Worn Clovermark Grimoire",
+    "name": "Clovermark Grimoire",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Common",
@@ -406,7 +406,7 @@
   },
   {
     "id": "fine-grimoire",
-    "name": "Fine Clovermark Grimoire",
+    "name": "Clovermark Grimoire",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Magic",
@@ -415,7 +415,7 @@
   },
   {
     "id": "masterwork-grimoire",
-    "name": "Masterwork Clovermark Grimoire",
+    "name": "Clovermark Grimoire",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Rare",
@@ -424,7 +424,7 @@
   },
   {
     "id": "heroic-grimoire",
-    "name": "Heroic Clovermark Grimoire",
+    "name": "Clovermark Grimoire",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Legendary",
@@ -433,7 +433,7 @@
   },
   {
     "id": "mythic-grimoire",
-    "name": "Mythic Clovermark Grimoire",
+    "name": "Clovermark Grimoire",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Unique",
@@ -442,7 +442,7 @@
   },
   {
     "id": "worn-war-fists",
-    "name": "Worn Symbol Knuckles",
+    "name": "Symbol Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Common",
@@ -451,7 +451,7 @@
   },
   {
     "id": "fine-war-fists",
-    "name": "Fine Symbol Knuckles",
+    "name": "Symbol Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Magic",
@@ -460,7 +460,7 @@
   },
   {
     "id": "masterwork-war-fists",
-    "name": "Masterwork Symbol Knuckles",
+    "name": "Symbol Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Rare",
@@ -469,7 +469,7 @@
   },
   {
     "id": "heroic-war-fists",
-    "name": "Heroic Symbol Knuckles",
+    "name": "Symbol Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Legendary",
@@ -478,7 +478,7 @@
   },
   {
     "id": "mythic-war-fists",
-    "name": "Mythic Symbol Knuckles",
+    "name": "Symbol Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Unique",
@@ -487,7 +487,7 @@
   },
   {
     "id": "worn-warhelm",
-    "name": "Worn Slayer's Steel Helm",
+    "name": "Slayer's Steel Helm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Common",
@@ -496,7 +496,7 @@
   },
   {
     "id": "fine-warhelm",
-    "name": "Fine Slayer's Steel Helm",
+    "name": "Slayer's Steel Helm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Magic",
@@ -505,7 +505,7 @@
   },
   {
     "id": "masterwork-warhelm",
-    "name": "Masterwork Slayer's Steel Helm",
+    "name": "Slayer's Steel Helm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Rare",
@@ -514,7 +514,7 @@
   },
   {
     "id": "heroic-warhelm",
-    "name": "Heroic Slayer's Steel Helm",
+    "name": "Slayer's Steel Helm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -523,7 +523,7 @@
   },
   {
     "id": "mythic-warhelm",
-    "name": "Mythic Slayer's Steel Helm",
+    "name": "Slayer's Steel Helm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Unique",
@@ -532,7 +532,7 @@
   },
   {
     "id": "worn-mage-cowl",
-    "name": "Worn Arcanist's Cowl",
+    "name": "Arcanist's Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Common",
@@ -541,7 +541,7 @@
   },
   {
     "id": "fine-mage-cowl",
-    "name": "Fine Arcanist's Cowl",
+    "name": "Arcanist's Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Magic",
@@ -550,7 +550,7 @@
   },
   {
     "id": "masterwork-mage-cowl",
-    "name": "Masterwork Arcanist's Cowl",
+    "name": "Arcanist's Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Rare",
@@ -559,7 +559,7 @@
   },
   {
     "id": "heroic-mage-cowl",
-    "name": "Heroic Arcanist's Cowl",
+    "name": "Arcanist's Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -568,7 +568,7 @@
   },
   {
     "id": "mythic-mage-cowl",
-    "name": "Mythic Arcanist's Cowl",
+    "name": "Arcanist's Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Unique",
@@ -577,7 +577,7 @@
   },
   {
     "id": "worn-platemail",
-    "name": "Worn Claymore Plate",
+    "name": "Claymore Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -586,7 +586,7 @@
   },
   {
     "id": "fine-platemail",
-    "name": "Fine Claymore Plate",
+    "name": "Claymore Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -595,7 +595,7 @@
   },
   {
     "id": "masterwork-platemail",
-    "name": "Masterwork Claymore Plate",
+    "name": "Claymore Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -604,7 +604,7 @@
   },
   {
     "id": "heroic-platemail",
-    "name": "Heroic Claymore Plate",
+    "name": "Claymore Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -613,7 +613,7 @@
   },
   {
     "id": "mythic-platemail",
-    "name": "Mythic Claymore Plate",
+    "name": "Claymore Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -622,7 +622,7 @@
   },
   {
     "id": "worn-battle-robe",
-    "name": "Worn Sage Battle Robe",
+    "name": "Sage Battle Robe",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -631,7 +631,7 @@
   },
   {
     "id": "fine-battle-robe",
-    "name": "Fine Sage Battle Robe",
+    "name": "Sage Battle Robe",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -640,7 +640,7 @@
   },
   {
     "id": "masterwork-battle-robe",
-    "name": "Masterwork Sage Battle Robe",
+    "name": "Sage Battle Robe",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -649,7 +649,7 @@
   },
   {
     "id": "heroic-battle-robe",
-    "name": "Heroic Sage Battle Robe",
+    "name": "Sage Battle Robe",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -658,7 +658,7 @@
   },
   {
     "id": "mythic-battle-robe",
-    "name": "Mythic Sage Battle Robe",
+    "name": "Sage Battle Robe",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -667,7 +667,7 @@
   },
   {
     "id": "worn-brigandine",
-    "name": "Worn Einherjar Brigandine",
+    "name": "Einherjar Brigandine",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -676,7 +676,7 @@
   },
   {
     "id": "fine-brigandine",
-    "name": "Fine Einherjar Brigandine",
+    "name": "Einherjar Brigandine",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -685,7 +685,7 @@
   },
   {
     "id": "masterwork-brigandine",
-    "name": "Masterwork Einherjar Brigandine",
+    "name": "Einherjar Brigandine",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -694,7 +694,7 @@
   },
   {
     "id": "heroic-brigandine",
-    "name": "Heroic Einherjar Brigandine",
+    "name": "Einherjar Brigandine",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -703,7 +703,7 @@
   },
   {
     "id": "mythic-brigandine",
-    "name": "Mythic Einherjar Brigandine",
+    "name": "Einherjar Brigandine",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -712,7 +712,7 @@
   },
   {
     "id": "worn-battle-gloves",
-    "name": "Worn Brawler's Wraps",
+    "name": "Brawler's Wraps",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Common",
@@ -721,7 +721,7 @@
   },
   {
     "id": "fine-battle-gloves",
-    "name": "Fine Brawler's Wraps",
+    "name": "Brawler's Wraps",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Magic",
@@ -730,7 +730,7 @@
   },
   {
     "id": "masterwork-battle-gloves",
-    "name": "Masterwork Brawler's Wraps",
+    "name": "Brawler's Wraps",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Rare",
@@ -739,7 +739,7 @@
   },
   {
     "id": "heroic-battle-gloves",
-    "name": "Heroic Brawler's Wraps",
+    "name": "Brawler's Wraps",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Legendary",
@@ -748,7 +748,7 @@
   },
   {
     "id": "mythic-battle-gloves",
-    "name": "Mythic Brawler's Wraps",
+    "name": "Brawler's Wraps",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Unique",
@@ -757,7 +757,7 @@
   },
   {
     "id": "worn-swift-gloves",
-    "name": "Worn Godspeed Gloves",
+    "name": "Godspeed Gloves",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Common",
@@ -766,7 +766,7 @@
   },
   {
     "id": "fine-swift-gloves",
-    "name": "Fine Godspeed Gloves",
+    "name": "Godspeed Gloves",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Magic",
@@ -775,7 +775,7 @@
   },
   {
     "id": "masterwork-swift-gloves",
-    "name": "Masterwork Godspeed Gloves",
+    "name": "Godspeed Gloves",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Rare",
@@ -784,7 +784,7 @@
   },
   {
     "id": "heroic-swift-gloves",
-    "name": "Heroic Godspeed Gloves",
+    "name": "Godspeed Gloves",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Legendary",
@@ -793,7 +793,7 @@
   },
   {
     "id": "mythic-swift-gloves",
-    "name": "Mythic Godspeed Gloves",
+    "name": "Godspeed Gloves",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Unique",
@@ -802,7 +802,7 @@
   },
   {
     "id": "worn-assassin-mitts",
-    "name": "Worn Shadowfang Mitts",
+    "name": "Shadowfang Mitts",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Common",
@@ -811,7 +811,7 @@
   },
   {
     "id": "fine-assassin-mitts",
-    "name": "Fine Shadowfang Mitts",
+    "name": "Shadowfang Mitts",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Magic",
@@ -820,7 +820,7 @@
   },
   {
     "id": "masterwork-assassin-mitts",
-    "name": "Masterwork Shadowfang Mitts",
+    "name": "Shadowfang Mitts",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Rare",
@@ -829,7 +829,7 @@
   },
   {
     "id": "heroic-assassin-mitts",
-    "name": "Heroic Shadowfang Mitts",
+    "name": "Shadowfang Mitts",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Legendary",
@@ -838,7 +838,7 @@
   },
   {
     "id": "mythic-assassin-mitts",
-    "name": "Mythic Shadowfang Mitts",
+    "name": "Shadowfang Mitts",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Unique",
@@ -847,7 +847,7 @@
   },
   {
     "id": "worn-striders",
-    "name": "Worn Shinobi Striders",
+    "name": "Shinobi Striders",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Common",
@@ -856,7 +856,7 @@
   },
   {
     "id": "fine-striders",
-    "name": "Fine Shinobi Striders",
+    "name": "Shinobi Striders",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Magic",
@@ -865,7 +865,7 @@
   },
   {
     "id": "masterwork-striders",
-    "name": "Masterwork Shinobi Striders",
+    "name": "Shinobi Striders",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Rare",
@@ -874,7 +874,7 @@
   },
   {
     "id": "heroic-striders",
-    "name": "Heroic Shinobi Striders",
+    "name": "Shinobi Striders",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Legendary",
@@ -883,7 +883,7 @@
   },
   {
     "id": "mythic-striders",
-    "name": "Mythic Shinobi Striders",
+    "name": "Shinobi Striders",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Unique",
@@ -892,7 +892,7 @@
   },
   {
     "id": "worn-war-boots",
-    "name": "Worn Vanguard War Boots",
+    "name": "Vanguard War Boots",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Common",
@@ -901,7 +901,7 @@
   },
   {
     "id": "fine-war-boots",
-    "name": "Fine Vanguard War Boots",
+    "name": "Vanguard War Boots",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Magic",
@@ -910,7 +910,7 @@
   },
   {
     "id": "masterwork-war-boots",
-    "name": "Masterwork Vanguard War Boots",
+    "name": "Vanguard War Boots",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Rare",
@@ -919,7 +919,7 @@
   },
   {
     "id": "heroic-war-boots",
-    "name": "Heroic Vanguard War Boots",
+    "name": "Vanguard War Boots",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Legendary",
@@ -928,7 +928,7 @@
   },
   {
     "id": "mythic-war-boots",
-    "name": "Mythic Vanguard War Boots",
+    "name": "Vanguard War Boots",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Unique",
@@ -936,8 +936,188 @@
     "look": "sturdy grey armored marching boots with steel toe-caps and harness straps"
   },
   {
+    "id": "worn-plate-legguards",
+    "name": "Bulwark Legplates",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "pants",
+    "look": "a pair of heavy steel leg plates — articulated cuisses and knee guards over dark padded trousers"
+  },
+  {
+    "id": "fine-plate-legguards",
+    "name": "Bulwark Legplates",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "pants",
+    "look": "a pair of heavy steel leg plates — articulated cuisses and knee guards over dark padded trousers"
+  },
+  {
+    "id": "masterwork-plate-legguards",
+    "name": "Bulwark Legplates",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "pants",
+    "look": "a pair of heavy steel leg plates — articulated cuisses and knee guards over dark padded trousers"
+  },
+  {
+    "id": "heroic-plate-legguards",
+    "name": "Bulwark Legplates",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "pants",
+    "look": "a pair of heavy steel leg plates — articulated cuisses and knee guards over dark padded trousers"
+  },
+  {
+    "id": "mythic-plate-legguards",
+    "name": "Bulwark Legplates",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "pants",
+    "look": "a pair of heavy steel leg plates — articulated cuisses and knee guards over dark padded trousers"
+  },
+  {
+    "id": "worn-war-greaves",
+    "name": "Vanguard Warplate Legs",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "pants",
+    "look": "rugged grey armored war-trousers with riveted thigh plates and harness straps"
+  },
+  {
+    "id": "fine-war-greaves",
+    "name": "Vanguard Warplate Legs",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "pants",
+    "look": "rugged grey armored war-trousers with riveted thigh plates and harness straps"
+  },
+  {
+    "id": "masterwork-war-greaves",
+    "name": "Vanguard Warplate Legs",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "pants",
+    "look": "rugged grey armored war-trousers with riveted thigh plates and harness straps"
+  },
+  {
+    "id": "heroic-war-greaves",
+    "name": "Vanguard Warplate Legs",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "pants",
+    "look": "rugged grey armored war-trousers with riveted thigh plates and harness straps"
+  },
+  {
+    "id": "mythic-war-greaves",
+    "name": "Vanguard Warplate Legs",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "pants",
+    "look": "rugged grey armored war-trousers with riveted thigh plates and harness straps"
+  },
+  {
+    "id": "worn-swift-leggings",
+    "name": "Gale Runner Leggings",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "pants",
+    "look": "slim dark-blue running leggings with light shin-wraps trailing faint wind streaks"
+  },
+  {
+    "id": "fine-swift-leggings",
+    "name": "Gale Runner Leggings",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "pants",
+    "look": "slim dark-blue running leggings with light shin-wraps trailing faint wind streaks"
+  },
+  {
+    "id": "masterwork-swift-leggings",
+    "name": "Gale Runner Leggings",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "pants",
+    "look": "slim dark-blue running leggings with light shin-wraps trailing faint wind streaks"
+  },
+  {
+    "id": "heroic-swift-leggings",
+    "name": "Gale Runner Leggings",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "pants",
+    "look": "slim dark-blue running leggings with light shin-wraps trailing faint wind streaks"
+  },
+  {
+    "id": "mythic-swift-leggings",
+    "name": "Gale Runner Leggings",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "pants",
+    "look": "slim dark-blue running leggings with light shin-wraps trailing faint wind streaks"
+  },
+  {
+    "id": "worn-mage-trousers",
+    "name": "Arcanist's Trousers",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Common",
+    "family": "pants",
+    "look": "deep midnight-blue mage robes-trousers trimmed with faint silver runes down each leg"
+  },
+  {
+    "id": "fine-mage-trousers",
+    "name": "Arcanist's Trousers",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Magic",
+    "family": "pants",
+    "look": "deep midnight-blue mage robes-trousers trimmed with faint silver runes down each leg"
+  },
+  {
+    "id": "masterwork-mage-trousers",
+    "name": "Arcanist's Trousers",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Rare",
+    "family": "pants",
+    "look": "deep midnight-blue mage robes-trousers trimmed with faint silver runes down each leg"
+  },
+  {
+    "id": "heroic-mage-trousers",
+    "name": "Arcanist's Trousers",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Legendary",
+    "family": "pants",
+    "look": "deep midnight-blue mage robes-trousers trimmed with faint silver runes down each leg"
+  },
+  {
+    "id": "mythic-mage-trousers",
+    "name": "Arcanist's Trousers",
+    "slot": "Pants",
+    "weaponType": null,
+    "rarity": "Unique",
+    "family": "pants",
+    "look": "deep midnight-blue mage robes-trousers trimmed with faint silver runes down each leg"
+  },
+  {
     "id": "worn-mana-talisman",
-    "name": "Worn Spirit Ward Talisman",
+    "name": "Spirit Ward Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -946,7 +1126,7 @@
   },
   {
     "id": "fine-mana-talisman",
-    "name": "Fine Spirit Ward Talisman",
+    "name": "Spirit Ward Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -955,7 +1135,7 @@
   },
   {
     "id": "masterwork-mana-talisman",
-    "name": "Masterwork Spirit Ward Talisman",
+    "name": "Spirit Ward Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -964,7 +1144,7 @@
   },
   {
     "id": "heroic-mana-talisman",
-    "name": "Heroic Spirit Ward Talisman",
+    "name": "Spirit Ward Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -973,7 +1153,7 @@
   },
   {
     "id": "mythic-mana-talisman",
-    "name": "Mythic Spirit Ward Talisman",
+    "name": "Spirit Ward Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -982,7 +1162,7 @@
   },
   {
     "id": "worn-focus-gem",
-    "name": "Worn Soul Focus Gem",
+    "name": "Soul Focus Gem",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -991,7 +1171,7 @@
   },
   {
     "id": "fine-focus-gem",
-    "name": "Fine Soul Focus Gem",
+    "name": "Soul Focus Gem",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -1000,7 +1180,7 @@
   },
   {
     "id": "masterwork-focus-gem",
-    "name": "Masterwork Soul Focus Gem",
+    "name": "Soul Focus Gem",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -1009,7 +1189,7 @@
   },
   {
     "id": "heroic-focus-gem",
-    "name": "Heroic Soul Focus Gem",
+    "name": "Soul Focus Gem",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1018,7 +1198,7 @@
   },
   {
     "id": "mythic-focus-gem",
-    "name": "Mythic Soul Focus Gem",
+    "name": "Soul Focus Gem",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -1027,7 +1207,7 @@
   },
   {
     "id": "worn-pierce-pendant",
-    "name": "Worn Piercer's Pendant",
+    "name": "Piercer's Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -1036,7 +1216,7 @@
   },
   {
     "id": "fine-pierce-pendant",
-    "name": "Fine Piercer's Pendant",
+    "name": "Piercer's Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -1045,7 +1225,7 @@
   },
   {
     "id": "masterwork-pierce-pendant",
-    "name": "Masterwork Piercer's Pendant",
+    "name": "Piercer's Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -1054,7 +1234,7 @@
   },
   {
     "id": "heroic-pierce-pendant",
-    "name": "Heroic Piercer's Pendant",
+    "name": "Piercer's Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1063,7 +1243,7 @@
   },
   {
     "id": "mythic-pierce-pendant",
-    "name": "Mythic Piercer's Pendant",
+    "name": "Piercer's Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -1072,7 +1252,7 @@
   },
   {
     "id": "worn-blood-ring",
-    "name": "Worn Crimson Thirst Ring",
+    "name": "Crimson Thirst Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -1081,7 +1261,7 @@
   },
   {
     "id": "fine-blood-ring",
-    "name": "Fine Crimson Thirst Ring",
+    "name": "Crimson Thirst Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -1090,7 +1270,7 @@
   },
   {
     "id": "masterwork-blood-ring",
-    "name": "Masterwork Crimson Thirst Ring",
+    "name": "Crimson Thirst Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -1099,7 +1279,7 @@
   },
   {
     "id": "heroic-blood-ring",
-    "name": "Heroic Crimson Thirst Ring",
+    "name": "Crimson Thirst Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1108,7 +1288,7 @@
   },
   {
     "id": "mythic-blood-ring",
-    "name": "Mythic Crimson Thirst Ring",
+    "name": "Crimson Thirst Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -1117,7 +1297,7 @@
   },
   {
     "id": "worn-fortune-ring",
-    "name": "Worn Pirate's Fortune Ring",
+    "name": "Pirate's Fortune Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -1126,7 +1306,7 @@
   },
   {
     "id": "fine-fortune-ring",
-    "name": "Fine Pirate's Fortune Ring",
+    "name": "Pirate's Fortune Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -1135,7 +1315,7 @@
   },
   {
     "id": "masterwork-fortune-ring",
-    "name": "Masterwork Pirate's Fortune Ring",
+    "name": "Pirate's Fortune Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -1144,7 +1324,7 @@
   },
   {
     "id": "heroic-fortune-ring",
-    "name": "Heroic Pirate's Fortune Ring",
+    "name": "Pirate's Fortune Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1153,7 +1333,7 @@
   },
   {
     "id": "mythic-fortune-ring",
-    "name": "Mythic Pirate's Fortune Ring",
+    "name": "Pirate's Fortune Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -1162,7 +1342,7 @@
   },
   {
     "id": "worn-precision-ring",
-    "name": "Worn Hawk-Eye Band",
+    "name": "Hawk-Eye Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -1171,7 +1351,7 @@
   },
   {
     "id": "fine-precision-ring",
-    "name": "Fine Hawk-Eye Band",
+    "name": "Hawk-Eye Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -1180,7 +1360,7 @@
   },
   {
     "id": "masterwork-precision-ring",
-    "name": "Masterwork Hawk-Eye Band",
+    "name": "Hawk-Eye Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -1189,7 +1369,7 @@
   },
   {
     "id": "heroic-precision-ring",
-    "name": "Heroic Hawk-Eye Band",
+    "name": "Hawk-Eye Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1198,7 +1378,7 @@
   },
   {
     "id": "mythic-precision-ring",
-    "name": "Mythic Hawk-Eye Band",
+    "name": "Hawk-Eye Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -1207,7 +1387,7 @@
   },
   {
     "id": "worn-vital-ring",
-    "name": "Worn Senzu Vital Ring",
+    "name": "Senzu Vital Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -1216,7 +1396,7 @@
   },
   {
     "id": "fine-vital-ring",
-    "name": "Fine Senzu Vital Ring",
+    "name": "Senzu Vital Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -1225,7 +1405,7 @@
   },
   {
     "id": "masterwork-vital-ring",
-    "name": "Masterwork Senzu Vital Ring",
+    "name": "Senzu Vital Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -1234,7 +1414,7 @@
   },
   {
     "id": "heroic-vital-ring",
-    "name": "Heroic Senzu Vital Ring",
+    "name": "Senzu Vital Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1243,7 +1423,7 @@
   },
   {
     "id": "mythic-vital-ring",
-    "name": "Mythic Senzu Vital Ring",
+    "name": "Senzu Vital Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -1252,7 +1432,7 @@
   },
   {
     "id": "worn-aegis-charm",
-    "name": "Worn Guardian's Aegis Charm",
+    "name": "Guardian's Aegis Charm",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -1261,7 +1441,7 @@
   },
   {
     "id": "fine-aegis-charm",
-    "name": "Fine Guardian's Aegis Charm",
+    "name": "Guardian's Aegis Charm",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -1270,7 +1450,7 @@
   },
   {
     "id": "masterwork-aegis-charm",
-    "name": "Masterwork Guardian's Aegis Charm",
+    "name": "Guardian's Aegis Charm",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -1279,7 +1459,7 @@
   },
   {
     "id": "heroic-aegis-charm",
-    "name": "Heroic Guardian's Aegis Charm",
+    "name": "Guardian's Aegis Charm",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1288,7 +1468,7 @@
   },
   {
     "id": "mythic-aegis-charm",
-    "name": "Mythic Guardian's Aegis Charm",
+    "name": "Guardian's Aegis Charm",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -1297,7 +1477,7 @@
   },
   {
     "id": "worn-coin-pet",
-    "name": "Worn Goldslime Sprite",
+    "name": "Goldslime Sprite",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Common",
@@ -1306,7 +1486,7 @@
   },
   {
     "id": "fine-coin-pet",
-    "name": "Fine Goldslime Sprite",
+    "name": "Goldslime Sprite",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Magic",
@@ -1315,7 +1495,7 @@
   },
   {
     "id": "masterwork-coin-pet",
-    "name": "Masterwork Goldslime Sprite",
+    "name": "Goldslime Sprite",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Rare",
@@ -1324,7 +1504,7 @@
   },
   {
     "id": "heroic-coin-pet",
-    "name": "Heroic Goldslime Sprite",
+    "name": "Goldslime Sprite",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1333,7 +1513,7 @@
   },
   {
     "id": "mythic-coin-pet",
-    "name": "Mythic Goldslime Sprite",
+    "name": "Goldslime Sprite",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Unique",
@@ -1342,7 +1522,7 @@
   },
   {
     "id": "worn-fortune-pet",
-    "name": "Worn Payday Felynx",
+    "name": "Payday Felynx",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Common",
@@ -1351,7 +1531,7 @@
   },
   {
     "id": "fine-fortune-pet",
-    "name": "Fine Payday Felynx",
+    "name": "Payday Felynx",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Magic",
@@ -1360,7 +1540,7 @@
   },
   {
     "id": "masterwork-fortune-pet",
-    "name": "Masterwork Payday Felynx",
+    "name": "Payday Felynx",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Rare",
@@ -1369,7 +1549,7 @@
   },
   {
     "id": "heroic-fortune-pet",
-    "name": "Heroic Payday Felynx",
+    "name": "Payday Felynx",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1378,7 +1558,7 @@
   },
   {
     "id": "mythic-fortune-pet",
-    "name": "Mythic Payday Felynx",
+    "name": "Payday Felynx",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Unique",
@@ -1387,7 +1567,7 @@
   },
   {
     "id": "worn-skywings",
-    "name": "Worn Skyfreedom Wings",
+    "name": "Skyfreedom Wings",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Common",
@@ -1396,7 +1576,7 @@
   },
   {
     "id": "fine-skywings",
-    "name": "Fine Skyfreedom Wings",
+    "name": "Skyfreedom Wings",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Magic",
@@ -1405,7 +1585,7 @@
   },
   {
     "id": "masterwork-skywings",
-    "name": "Masterwork Skyfreedom Wings",
+    "name": "Skyfreedom Wings",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Rare",
@@ -1414,7 +1594,7 @@
   },
   {
     "id": "heroic-skywings",
-    "name": "Heroic Skyfreedom Wings",
+    "name": "Skyfreedom Wings",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1423,7 +1603,7 @@
   },
   {
     "id": "mythic-skywings",
-    "name": "Mythic Skyfreedom Wings",
+    "name": "Skyfreedom Wings",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Unique",
@@ -1432,7 +1612,7 @@
   },
   {
     "id": "worn-frost-glaive",
-    "name": "Worn Frostfang Glaive",
+    "name": "Frostfang Glaive",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Common",
@@ -1441,7 +1621,7 @@
   },
   {
     "id": "fine-frost-glaive",
-    "name": "Fine Frostfang Glaive",
+    "name": "Frostfang Glaive",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Magic",
@@ -1450,7 +1630,7 @@
   },
   {
     "id": "masterwork-frost-glaive",
-    "name": "Masterwork Frostfang Glaive",
+    "name": "Frostfang Glaive",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Rare",
@@ -1459,7 +1639,7 @@
   },
   {
     "id": "heroic-frost-glaive",
-    "name": "Heroic Frostfang Glaive",
+    "name": "Frostfang Glaive",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Legendary",
@@ -1468,7 +1648,7 @@
   },
   {
     "id": "mythic-frost-glaive",
-    "name": "Mythic Frostfang Glaive",
+    "name": "Frostfang Glaive",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Unique",
@@ -1477,7 +1657,7 @@
   },
   {
     "id": "worn-venom-fang",
-    "name": "Worn Serpent Venom Fang",
+    "name": "Serpent Venom Fang",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Common",
@@ -1486,7 +1666,7 @@
   },
   {
     "id": "fine-venom-fang",
-    "name": "Fine Serpent Venom Fang",
+    "name": "Serpent Venom Fang",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Magic",
@@ -1495,7 +1675,7 @@
   },
   {
     "id": "masterwork-venom-fang",
-    "name": "Masterwork Serpent Venom Fang",
+    "name": "Serpent Venom Fang",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Rare",
@@ -1504,7 +1684,7 @@
   },
   {
     "id": "heroic-venom-fang",
-    "name": "Heroic Serpent Venom Fang",
+    "name": "Serpent Venom Fang",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Legendary",
@@ -1513,7 +1693,7 @@
   },
   {
     "id": "mythic-venom-fang",
-    "name": "Mythic Serpent Venom Fang",
+    "name": "Serpent Venom Fang",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Unique",
@@ -1522,7 +1702,7 @@
   },
   {
     "id": "worn-bulwark-plate",
-    "name": "Worn Aegis Bulwark Plate",
+    "name": "Aegis Bulwark Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -1531,7 +1711,7 @@
   },
   {
     "id": "fine-bulwark-plate",
-    "name": "Fine Aegis Bulwark Plate",
+    "name": "Aegis Bulwark Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -1540,7 +1720,7 @@
   },
   {
     "id": "masterwork-bulwark-plate",
-    "name": "Masterwork Aegis Bulwark Plate",
+    "name": "Aegis Bulwark Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -1549,7 +1729,7 @@
   },
   {
     "id": "heroic-bulwark-plate",
-    "name": "Heroic Aegis Bulwark Plate",
+    "name": "Aegis Bulwark Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1558,7 +1738,7 @@
   },
   {
     "id": "mythic-bulwark-plate",
-    "name": "Mythic Aegis Bulwark Plate",
+    "name": "Aegis Bulwark Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -1567,7 +1747,7 @@
   },
   {
     "id": "worn-oracle-crown",
-    "name": "Worn Geass Oracle Crown",
+    "name": "Geass Oracle Crown",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Common",
@@ -1576,7 +1756,7 @@
   },
   {
     "id": "fine-oracle-crown",
-    "name": "Fine Geass Oracle Crown",
+    "name": "Geass Oracle Crown",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Magic",
@@ -1585,7 +1765,7 @@
   },
   {
     "id": "masterwork-oracle-crown",
-    "name": "Masterwork Geass Oracle Crown",
+    "name": "Geass Oracle Crown",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Rare",
@@ -1594,7 +1774,7 @@
   },
   {
     "id": "heroic-oracle-crown",
-    "name": "Heroic Geass Oracle Crown",
+    "name": "Geass Oracle Crown",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1603,7 +1783,7 @@
   },
   {
     "id": "mythic-oracle-crown",
-    "name": "Mythic Geass Oracle Crown",
+    "name": "Geass Oracle Crown",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Unique",
@@ -1612,7 +1792,7 @@
   },
   {
     "id": "worn-shadowstep-treads",
-    "name": "Worn Shadowstep Treads",
+    "name": "Shadowstep Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Common",
@@ -1621,7 +1801,7 @@
   },
   {
     "id": "fine-shadowstep-treads",
-    "name": "Fine Shadowstep Treads",
+    "name": "Shadowstep Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Magic",
@@ -1630,7 +1810,7 @@
   },
   {
     "id": "masterwork-shadowstep-treads",
-    "name": "Masterwork Shadowstep Treads",
+    "name": "Shadowstep Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Rare",
@@ -1639,7 +1819,7 @@
   },
   {
     "id": "heroic-shadowstep-treads",
-    "name": "Heroic Shadowstep Treads",
+    "name": "Shadowstep Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1648,7 +1828,7 @@
   },
   {
     "id": "mythic-shadowstep-treads",
-    "name": "Mythic Shadowstep Treads",
+    "name": "Shadowstep Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Unique",
@@ -1657,7 +1837,7 @@
   },
   {
     "id": "worn-duelist-band",
-    "name": "Worn Duelist's Band",
+    "name": "Duelist's Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -1666,7 +1846,7 @@
   },
   {
     "id": "fine-duelist-band",
-    "name": "Fine Duelist's Band",
+    "name": "Duelist's Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -1675,7 +1855,7 @@
   },
   {
     "id": "masterwork-duelist-band",
-    "name": "Masterwork Duelist's Band",
+    "name": "Duelist's Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -1684,7 +1864,7 @@
   },
   {
     "id": "heroic-duelist-band",
-    "name": "Heroic Duelist's Band",
+    "name": "Duelist's Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -1693,7 +1873,7 @@
   },
   {
     "id": "mythic-duelist-band",
-    "name": "Mythic Duelist's Band",
+    "name": "Duelist's Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -1702,7 +1882,7 @@
   },
   {
     "id": "worn-kingsworn-brand",
-    "name": "Worn Kingsworn Brand",
+    "name": "Kingsworn Brand",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Common",
@@ -1711,7 +1891,7 @@
   },
   {
     "id": "fine-kingsworn-brand",
-    "name": "Fine Kingsworn Brand",
+    "name": "Kingsworn Brand",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Magic",
@@ -1720,7 +1900,7 @@
   },
   {
     "id": "masterwork-kingsworn-brand",
-    "name": "Masterwork Kingsworn Brand",
+    "name": "Kingsworn Brand",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Rare",
@@ -1729,7 +1909,7 @@
   },
   {
     "id": "heroic-kingsworn-brand",
-    "name": "Heroic Kingsworn Brand",
+    "name": "Kingsworn Brand",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Legendary",
@@ -1738,7 +1918,7 @@
   },
   {
     "id": "mythic-kingsworn-brand",
-    "name": "Mythic Kingsworn Brand",
+    "name": "Kingsworn Brand",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Unique",
@@ -1747,7 +1927,7 @@
   },
   {
     "id": "worn-moonlit-greatblade",
-    "name": "Worn Moonlit Greatblade",
+    "name": "Moonlit Greatblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Common",
@@ -1756,7 +1936,7 @@
   },
   {
     "id": "fine-moonlit-greatblade",
-    "name": "Fine Moonlit Greatblade",
+    "name": "Moonlit Greatblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Magic",
@@ -1765,7 +1945,7 @@
   },
   {
     "id": "masterwork-moonlit-greatblade",
-    "name": "Masterwork Moonlit Greatblade",
+    "name": "Moonlit Greatblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Rare",
@@ -1774,7 +1954,7 @@
   },
   {
     "id": "heroic-moonlit-greatblade",
-    "name": "Heroic Moonlit Greatblade",
+    "name": "Moonlit Greatblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Legendary",
@@ -1783,7 +1963,7 @@
   },
   {
     "id": "mythic-moonlit-greatblade",
-    "name": "Mythic Moonlit Greatblade",
+    "name": "Moonlit Greatblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Unique",
@@ -1792,7 +1972,7 @@
   },
   {
     "id": "worn-rimewill-runeblade",
-    "name": "Worn Rimewill Runeblade",
+    "name": "Rimewill Runeblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Common",
@@ -1801,7 +1981,7 @@
   },
   {
     "id": "fine-rimewill-runeblade",
-    "name": "Fine Rimewill Runeblade",
+    "name": "Rimewill Runeblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Magic",
@@ -1810,7 +1990,7 @@
   },
   {
     "id": "masterwork-rimewill-runeblade",
-    "name": "Masterwork Rimewill Runeblade",
+    "name": "Rimewill Runeblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Rare",
@@ -1819,7 +1999,7 @@
   },
   {
     "id": "heroic-rimewill-runeblade",
-    "name": "Heroic Rimewill Runeblade",
+    "name": "Rimewill Runeblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Legendary",
@@ -1828,7 +2008,7 @@
   },
   {
     "id": "mythic-rimewill-runeblade",
-    "name": "Mythic Rimewill Runeblade",
+    "name": "Rimewill Runeblade",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Unique",
@@ -1837,7 +2017,7 @@
   },
   {
     "id": "worn-busterfell-cleaver",
-    "name": "Worn Busterfell Cleaver",
+    "name": "Busterfell Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Common",
@@ -1846,7 +2026,7 @@
   },
   {
     "id": "fine-busterfell-cleaver",
-    "name": "Fine Busterfell Cleaver",
+    "name": "Busterfell Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Magic",
@@ -1855,7 +2035,7 @@
   },
   {
     "id": "masterwork-busterfell-cleaver",
-    "name": "Masterwork Busterfell Cleaver",
+    "name": "Busterfell Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Rare",
@@ -1864,7 +2044,7 @@
   },
   {
     "id": "heroic-busterfell-cleaver",
-    "name": "Heroic Busterfell Cleaver",
+    "name": "Busterfell Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Legendary",
@@ -1873,7 +2053,7 @@
   },
   {
     "id": "mythic-busterfell-cleaver",
-    "name": "Mythic Busterfell Cleaver",
+    "name": "Busterfell Cleaver",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Unique",
@@ -1882,7 +2062,7 @@
   },
   {
     "id": "worn-emberlight-saber",
-    "name": "Worn Emberlight Saber",
+    "name": "Emberlight Saber",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Common",
@@ -1891,7 +2071,7 @@
   },
   {
     "id": "fine-emberlight-saber",
-    "name": "Fine Emberlight Saber",
+    "name": "Emberlight Saber",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Magic",
@@ -1900,7 +2080,7 @@
   },
   {
     "id": "masterwork-emberlight-saber",
-    "name": "Masterwork Emberlight Saber",
+    "name": "Emberlight Saber",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Rare",
@@ -1909,7 +2089,7 @@
   },
   {
     "id": "heroic-emberlight-saber",
-    "name": "Heroic Emberlight Saber",
+    "name": "Emberlight Saber",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Legendary",
@@ -1918,7 +2098,7 @@
   },
   {
     "id": "mythic-emberlight-saber",
-    "name": "Mythic Emberlight Saber",
+    "name": "Emberlight Saber",
     "slot": "Weapon",
     "weaponType": "Sword",
     "rarity": "Unique",
@@ -1927,7 +2107,7 @@
   },
   {
     "id": "worn-galewind-longbow",
-    "name": "Worn Galewind Longbow",
+    "name": "Galewind Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Common",
@@ -1936,7 +2116,7 @@
   },
   {
     "id": "fine-galewind-longbow",
-    "name": "Fine Galewind Longbow",
+    "name": "Galewind Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Magic",
@@ -1945,7 +2125,7 @@
   },
   {
     "id": "masterwork-galewind-longbow",
-    "name": "Masterwork Galewind Longbow",
+    "name": "Galewind Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Rare",
@@ -1954,7 +2134,7 @@
   },
   {
     "id": "heroic-galewind-longbow",
-    "name": "Heroic Galewind Longbow",
+    "name": "Galewind Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Legendary",
@@ -1963,7 +2143,7 @@
   },
   {
     "id": "mythic-galewind-longbow",
-    "name": "Mythic Galewind Longbow",
+    "name": "Galewind Longbow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Unique",
@@ -1972,7 +2152,7 @@
   },
   {
     "id": "worn-dawnsong-bow",
-    "name": "Worn Dawnsong Bow",
+    "name": "Dawnsong Bow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Common",
@@ -1981,7 +2161,7 @@
   },
   {
     "id": "fine-dawnsong-bow",
-    "name": "Fine Dawnsong Bow",
+    "name": "Dawnsong Bow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Magic",
@@ -1990,7 +2170,7 @@
   },
   {
     "id": "masterwork-dawnsong-bow",
-    "name": "Masterwork Dawnsong Bow",
+    "name": "Dawnsong Bow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Rare",
@@ -1999,7 +2179,7 @@
   },
   {
     "id": "heroic-dawnsong-bow",
-    "name": "Heroic Dawnsong Bow",
+    "name": "Dawnsong Bow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Legendary",
@@ -2008,7 +2188,7 @@
   },
   {
     "id": "mythic-dawnsong-bow",
-    "name": "Mythic Dawnsong Bow",
+    "name": "Dawnsong Bow",
     "slot": "Weapon",
     "weaponType": "Bow",
     "rarity": "Unique",
@@ -2017,7 +2197,7 @@
   },
   {
     "id": "worn-peacekeeper-revolver",
-    "name": "Worn Peacekeeper Revolver",
+    "name": "Peacekeeper Revolver",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Common",
@@ -2026,7 +2206,7 @@
   },
   {
     "id": "fine-peacekeeper-revolver",
-    "name": "Fine Peacekeeper Revolver",
+    "name": "Peacekeeper Revolver",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Magic",
@@ -2035,7 +2215,7 @@
   },
   {
     "id": "masterwork-peacekeeper-revolver",
-    "name": "Masterwork Peacekeeper Revolver",
+    "name": "Peacekeeper Revolver",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Rare",
@@ -2044,7 +2224,7 @@
   },
   {
     "id": "heroic-peacekeeper-revolver",
-    "name": "Heroic Peacekeeper Revolver",
+    "name": "Peacekeeper Revolver",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Legendary",
@@ -2053,7 +2233,7 @@
   },
   {
     "id": "mythic-peacekeeper-revolver",
-    "name": "Mythic Peacekeeper Revolver",
+    "name": "Peacekeeper Revolver",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Unique",
@@ -2062,7 +2242,7 @@
   },
   {
     "id": "worn-starhunter-cannon",
-    "name": "Worn Starhunter Cannon",
+    "name": "Starhunter Cannon",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Common",
@@ -2071,7 +2251,7 @@
   },
   {
     "id": "fine-starhunter-cannon",
-    "name": "Fine Starhunter Cannon",
+    "name": "Starhunter Cannon",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Magic",
@@ -2080,7 +2260,7 @@
   },
   {
     "id": "masterwork-starhunter-cannon",
-    "name": "Masterwork Starhunter Cannon",
+    "name": "Starhunter Cannon",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Rare",
@@ -2089,7 +2269,7 @@
   },
   {
     "id": "heroic-starhunter-cannon",
-    "name": "Heroic Starhunter Cannon",
+    "name": "Starhunter Cannon",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Legendary",
@@ -2098,7 +2278,7 @@
   },
   {
     "id": "mythic-starhunter-cannon",
-    "name": "Mythic Starhunter Cannon",
+    "name": "Starhunter Cannon",
     "slot": "Weapon",
     "weaponType": "Gun",
     "rarity": "Unique",
@@ -2107,7 +2287,7 @@
   },
   {
     "id": "worn-eldwood-wand",
-    "name": "Worn Eldwood Wand",
+    "name": "Eldwood Wand",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Common",
@@ -2116,7 +2296,7 @@
   },
   {
     "id": "fine-eldwood-wand",
-    "name": "Fine Eldwood Wand",
+    "name": "Eldwood Wand",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Magic",
@@ -2125,7 +2305,7 @@
   },
   {
     "id": "masterwork-eldwood-wand",
-    "name": "Masterwork Eldwood Wand",
+    "name": "Eldwood Wand",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Rare",
@@ -2134,7 +2314,7 @@
   },
   {
     "id": "heroic-eldwood-wand",
-    "name": "Heroic Eldwood Wand",
+    "name": "Eldwood Wand",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Legendary",
@@ -2143,7 +2323,7 @@
   },
   {
     "id": "mythic-eldwood-wand",
-    "name": "Mythic Eldwood Wand",
+    "name": "Eldwood Wand",
     "slot": "Weapon",
     "weaponType": "Staff",
     "rarity": "Unique",
@@ -2152,7 +2332,7 @@
   },
   {
     "id": "worn-dreadpage-codex",
-    "name": "Worn Dreadpage Codex",
+    "name": "Dreadpage Codex",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Common",
@@ -2161,7 +2341,7 @@
   },
   {
     "id": "fine-dreadpage-codex",
-    "name": "Fine Dreadpage Codex",
+    "name": "Dreadpage Codex",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Magic",
@@ -2170,7 +2350,7 @@
   },
   {
     "id": "masterwork-dreadpage-codex",
-    "name": "Masterwork Dreadpage Codex",
+    "name": "Dreadpage Codex",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Rare",
@@ -2179,7 +2359,7 @@
   },
   {
     "id": "heroic-dreadpage-codex",
-    "name": "Heroic Dreadpage Codex",
+    "name": "Dreadpage Codex",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Legendary",
@@ -2188,7 +2368,7 @@
   },
   {
     "id": "mythic-dreadpage-codex",
-    "name": "Mythic Dreadpage Codex",
+    "name": "Dreadpage Codex",
     "slot": "Weapon",
     "weaponType": "Tome",
     "rarity": "Unique",
@@ -2197,7 +2377,7 @@
   },
   {
     "id": "worn-titangrip-knuckles",
-    "name": "Worn Titangrip Knuckles",
+    "name": "Titangrip Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Common",
@@ -2206,7 +2386,7 @@
   },
   {
     "id": "fine-titangrip-knuckles",
-    "name": "Fine Titangrip Knuckles",
+    "name": "Titangrip Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Magic",
@@ -2215,7 +2395,7 @@
   },
   {
     "id": "masterwork-titangrip-knuckles",
-    "name": "Masterwork Titangrip Knuckles",
+    "name": "Titangrip Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Rare",
@@ -2224,7 +2404,7 @@
   },
   {
     "id": "heroic-titangrip-knuckles",
-    "name": "Heroic Titangrip Knuckles",
+    "name": "Titangrip Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Legendary",
@@ -2233,7 +2413,7 @@
   },
   {
     "id": "mythic-titangrip-knuckles",
-    "name": "Mythic Titangrip Knuckles",
+    "name": "Titangrip Knuckles",
     "slot": "Weapon",
     "weaponType": "Fist",
     "rarity": "Unique",
@@ -2242,7 +2422,7 @@
   },
   {
     "id": "worn-mithrilweave-shirt",
-    "name": "Worn Mithrilweave Shirt",
+    "name": "Mithrilweave Shirt",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -2251,7 +2431,7 @@
   },
   {
     "id": "fine-mithrilweave-shirt",
-    "name": "Fine Mithrilweave Shirt",
+    "name": "Mithrilweave Shirt",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -2260,7 +2440,7 @@
   },
   {
     "id": "masterwork-mithrilweave-shirt",
-    "name": "Masterwork Mithrilweave Shirt",
+    "name": "Mithrilweave Shirt",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -2269,7 +2449,7 @@
   },
   {
     "id": "heroic-mithrilweave-shirt",
-    "name": "Heroic Mithrilweave Shirt",
+    "name": "Mithrilweave Shirt",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2278,7 +2458,7 @@
   },
   {
     "id": "mythic-mithrilweave-shirt",
-    "name": "Mythic Mithrilweave Shirt",
+    "name": "Mithrilweave Shirt",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -2287,7 +2467,7 @@
   },
   {
     "id": "worn-beskar-plate",
-    "name": "Worn Beskar Plate",
+    "name": "Beskar Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -2296,7 +2476,7 @@
   },
   {
     "id": "fine-beskar-plate",
-    "name": "Fine Beskar Plate",
+    "name": "Beskar Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -2305,7 +2485,7 @@
   },
   {
     "id": "masterwork-beskar-plate",
-    "name": "Masterwork Beskar Plate",
+    "name": "Beskar Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -2314,7 +2494,7 @@
   },
   {
     "id": "heroic-beskar-plate",
-    "name": "Heroic Beskar Plate",
+    "name": "Beskar Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2323,7 +2503,7 @@
   },
   {
     "id": "mythic-beskar-plate",
-    "name": "Mythic Beskar Plate",
+    "name": "Beskar Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -2332,7 +2512,7 @@
   },
   {
     "id": "worn-havelthane-plate",
-    "name": "Worn Havelthane Plate",
+    "name": "Havelthane Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -2341,7 +2521,7 @@
   },
   {
     "id": "fine-havelthane-plate",
-    "name": "Fine Havelthane Plate",
+    "name": "Havelthane Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -2350,7 +2530,7 @@
   },
   {
     "id": "masterwork-havelthane-plate",
-    "name": "Masterwork Havelthane Plate",
+    "name": "Havelthane Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -2359,7 +2539,7 @@
   },
   {
     "id": "heroic-havelthane-plate",
-    "name": "Heroic Havelthane Plate",
+    "name": "Havelthane Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2368,7 +2548,7 @@
   },
   {
     "id": "mythic-havelthane-plate",
-    "name": "Mythic Havelthane Plate",
+    "name": "Havelthane Plate",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -2377,7 +2557,7 @@
   },
   {
     "id": "worn-dragonscale-mail",
-    "name": "Worn Dragonscale Mail",
+    "name": "Dragonscale Mail",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -2386,7 +2566,7 @@
   },
   {
     "id": "fine-dragonscale-mail",
-    "name": "Fine Dragonscale Mail",
+    "name": "Dragonscale Mail",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -2395,7 +2575,7 @@
   },
   {
     "id": "masterwork-dragonscale-mail",
-    "name": "Masterwork Dragonscale Mail",
+    "name": "Dragonscale Mail",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -2404,7 +2584,7 @@
   },
   {
     "id": "heroic-dragonscale-mail",
-    "name": "Heroic Dragonscale Mail",
+    "name": "Dragonscale Mail",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2413,7 +2593,7 @@
   },
   {
     "id": "mythic-dragonscale-mail",
-    "name": "Mythic Dragonscale Mail",
+    "name": "Dragonscale Mail",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -2422,7 +2602,7 @@
   },
   {
     "id": "worn-sentinel-bulwark",
-    "name": "Worn Sentinel Bulwark",
+    "name": "Sentinel Bulwark",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Common",
@@ -2431,7 +2611,7 @@
   },
   {
     "id": "fine-sentinel-bulwark",
-    "name": "Fine Sentinel Bulwark",
+    "name": "Sentinel Bulwark",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Magic",
@@ -2440,7 +2620,7 @@
   },
   {
     "id": "masterwork-sentinel-bulwark",
-    "name": "Masterwork Sentinel Bulwark",
+    "name": "Sentinel Bulwark",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Rare",
@@ -2449,7 +2629,7 @@
   },
   {
     "id": "heroic-sentinel-bulwark",
-    "name": "Heroic Sentinel Bulwark",
+    "name": "Sentinel Bulwark",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2458,7 +2638,7 @@
   },
   {
     "id": "mythic-sentinel-bulwark",
-    "name": "Mythic Sentinel Bulwark",
+    "name": "Sentinel Bulwark",
     "slot": "BodyArmor",
     "weaponType": null,
     "rarity": "Unique",
@@ -2467,7 +2647,7 @@
   },
   {
     "id": "worn-ribbon-circlet",
-    "name": "Worn Ribbon Circlet",
+    "name": "Ribbon Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Common",
@@ -2476,7 +2656,7 @@
   },
   {
     "id": "fine-ribbon-circlet",
-    "name": "Fine Ribbon Circlet",
+    "name": "Ribbon Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Magic",
@@ -2485,7 +2665,7 @@
   },
   {
     "id": "masterwork-ribbon-circlet",
-    "name": "Masterwork Ribbon Circlet",
+    "name": "Ribbon Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Rare",
@@ -2494,7 +2674,7 @@
   },
   {
     "id": "heroic-ribbon-circlet",
-    "name": "Heroic Ribbon Circlet",
+    "name": "Ribbon Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2503,7 +2683,7 @@
   },
   {
     "id": "mythic-ribbon-circlet",
-    "name": "Mythic Ribbon Circlet",
+    "name": "Ribbon Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Unique",
@@ -2512,7 +2692,7 @@
   },
   {
     "id": "worn-hadeshood-cowl",
-    "name": "Worn Hadeshood Cowl",
+    "name": "Hadeshood Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Common",
@@ -2521,7 +2701,7 @@
   },
   {
     "id": "fine-hadeshood-cowl",
-    "name": "Fine Hadeshood Cowl",
+    "name": "Hadeshood Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Magic",
@@ -2530,7 +2710,7 @@
   },
   {
     "id": "masterwork-hadeshood-cowl",
-    "name": "Masterwork Hadeshood Cowl",
+    "name": "Hadeshood Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Rare",
@@ -2539,7 +2719,7 @@
   },
   {
     "id": "heroic-hadeshood-cowl",
-    "name": "Heroic Hadeshood Cowl",
+    "name": "Hadeshood Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2548,7 +2728,7 @@
   },
   {
     "id": "mythic-hadeshood-cowl",
-    "name": "Mythic Hadeshood Cowl",
+    "name": "Hadeshood Cowl",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Unique",
@@ -2557,7 +2737,7 @@
   },
   {
     "id": "worn-valor-greathelm",
-    "name": "Worn Valor Greathelm",
+    "name": "Valor Greathelm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Common",
@@ -2566,7 +2746,7 @@
   },
   {
     "id": "fine-valor-greathelm",
-    "name": "Fine Valor Greathelm",
+    "name": "Valor Greathelm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Magic",
@@ -2575,7 +2755,7 @@
   },
   {
     "id": "masterwork-valor-greathelm",
-    "name": "Masterwork Valor Greathelm",
+    "name": "Valor Greathelm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Rare",
@@ -2584,7 +2764,7 @@
   },
   {
     "id": "heroic-valor-greathelm",
-    "name": "Heroic Valor Greathelm",
+    "name": "Valor Greathelm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2593,7 +2773,7 @@
   },
   {
     "id": "mythic-valor-greathelm",
-    "name": "Mythic Valor Greathelm",
+    "name": "Valor Greathelm",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Unique",
@@ -2602,7 +2782,7 @@
   },
   {
     "id": "worn-seerlight-circlet",
-    "name": "Worn Seerlight Circlet",
+    "name": "Seerlight Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Common",
@@ -2611,7 +2791,7 @@
   },
   {
     "id": "fine-seerlight-circlet",
-    "name": "Fine Seerlight Circlet",
+    "name": "Seerlight Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Magic",
@@ -2620,7 +2800,7 @@
   },
   {
     "id": "masterwork-seerlight-circlet",
-    "name": "Masterwork Seerlight Circlet",
+    "name": "Seerlight Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Rare",
@@ -2629,7 +2809,7 @@
   },
   {
     "id": "heroic-seerlight-circlet",
-    "name": "Heroic Seerlight Circlet",
+    "name": "Seerlight Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2638,7 +2818,7 @@
   },
   {
     "id": "mythic-seerlight-circlet",
-    "name": "Mythic Seerlight Circlet",
+    "name": "Seerlight Circlet",
     "slot": "Helmet",
     "weaponType": null,
     "rarity": "Unique",
@@ -2647,7 +2827,7 @@
   },
   {
     "id": "worn-titanhold-gauntlets",
-    "name": "Worn Titanhold Gauntlets",
+    "name": "Titanhold Gauntlets",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Common",
@@ -2656,7 +2836,7 @@
   },
   {
     "id": "fine-titanhold-gauntlets",
-    "name": "Fine Titanhold Gauntlets",
+    "name": "Titanhold Gauntlets",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Magic",
@@ -2665,7 +2845,7 @@
   },
   {
     "id": "masterwork-titanhold-gauntlets",
-    "name": "Masterwork Titanhold Gauntlets",
+    "name": "Titanhold Gauntlets",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Rare",
@@ -2674,7 +2854,7 @@
   },
   {
     "id": "heroic-titanhold-gauntlets",
-    "name": "Heroic Titanhold Gauntlets",
+    "name": "Titanhold Gauntlets",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2683,7 +2863,7 @@
   },
   {
     "id": "mythic-titanhold-gauntlets",
-    "name": "Mythic Titanhold Gauntlets",
+    "name": "Titanhold Gauntlets",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Unique",
@@ -2692,7 +2872,7 @@
   },
   {
     "id": "worn-trickster-grips",
-    "name": "Worn Trickster Grips",
+    "name": "Trickster Grips",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Common",
@@ -2701,7 +2881,7 @@
   },
   {
     "id": "fine-trickster-grips",
-    "name": "Fine Trickster Grips",
+    "name": "Trickster Grips",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Magic",
@@ -2710,7 +2890,7 @@
   },
   {
     "id": "masterwork-trickster-grips",
-    "name": "Masterwork Trickster Grips",
+    "name": "Trickster Grips",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Rare",
@@ -2719,7 +2899,7 @@
   },
   {
     "id": "heroic-trickster-grips",
-    "name": "Heroic Trickster Grips",
+    "name": "Trickster Grips",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2728,7 +2908,7 @@
   },
   {
     "id": "mythic-trickster-grips",
-    "name": "Mythic Trickster Grips",
+    "name": "Trickster Grips",
     "slot": "Gloves",
     "weaponType": null,
     "rarity": "Unique",
@@ -2737,7 +2917,7 @@
   },
   {
     "id": "worn-mistwalk-treads",
-    "name": "Worn Mistwalk Treads",
+    "name": "Mistwalk Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Common",
@@ -2746,7 +2926,7 @@
   },
   {
     "id": "fine-mistwalk-treads",
-    "name": "Fine Mistwalk Treads",
+    "name": "Mistwalk Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Magic",
@@ -2755,7 +2935,7 @@
   },
   {
     "id": "masterwork-mistwalk-treads",
-    "name": "Masterwork Mistwalk Treads",
+    "name": "Mistwalk Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Rare",
@@ -2764,7 +2944,7 @@
   },
   {
     "id": "heroic-mistwalk-treads",
-    "name": "Heroic Mistwalk Treads",
+    "name": "Mistwalk Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2773,7 +2953,7 @@
   },
   {
     "id": "mythic-mistwalk-treads",
-    "name": "Mythic Mistwalk Treads",
+    "name": "Mistwalk Treads",
     "slot": "Boots",
     "weaponType": null,
     "rarity": "Unique",
@@ -2782,7 +2962,7 @@
   },
   {
     "id": "worn-valkyrie-pinions",
-    "name": "Worn Valkyrie Pinions",
+    "name": "Valkyrie Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Common",
@@ -2791,7 +2971,7 @@
   },
   {
     "id": "fine-valkyrie-pinions",
-    "name": "Fine Valkyrie Pinions",
+    "name": "Valkyrie Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Magic",
@@ -2800,7 +2980,7 @@
   },
   {
     "id": "masterwork-valkyrie-pinions",
-    "name": "Masterwork Valkyrie Pinions",
+    "name": "Valkyrie Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Rare",
@@ -2809,7 +2989,7 @@
   },
   {
     "id": "heroic-valkyrie-pinions",
-    "name": "Heroic Valkyrie Pinions",
+    "name": "Valkyrie Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2818,7 +2998,7 @@
   },
   {
     "id": "mythic-valkyrie-pinions",
-    "name": "Mythic Valkyrie Pinions",
+    "name": "Valkyrie Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Unique",
@@ -2827,7 +3007,7 @@
   },
   {
     "id": "worn-phoenix-pinions",
-    "name": "Worn Phoenix Pinions",
+    "name": "Phoenix Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Common",
@@ -2836,7 +3016,7 @@
   },
   {
     "id": "fine-phoenix-pinions",
-    "name": "Fine Phoenix Pinions",
+    "name": "Phoenix Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Magic",
@@ -2845,7 +3025,7 @@
   },
   {
     "id": "masterwork-phoenix-pinions",
-    "name": "Masterwork Phoenix Pinions",
+    "name": "Phoenix Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Rare",
@@ -2854,7 +3034,7 @@
   },
   {
     "id": "heroic-phoenix-pinions",
-    "name": "Heroic Phoenix Pinions",
+    "name": "Phoenix Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2863,7 +3043,7 @@
   },
   {
     "id": "mythic-phoenix-pinions",
-    "name": "Mythic Phoenix Pinions",
+    "name": "Phoenix Pinions",
     "slot": "Wing",
     "weaponType": null,
     "rarity": "Unique",
@@ -2872,7 +3052,7 @@
   },
   {
     "id": "worn-juggernaut-signet",
-    "name": "Worn Juggernaut Signet",
+    "name": "Juggernaut Signet",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -2881,7 +3061,7 @@
   },
   {
     "id": "fine-juggernaut-signet",
-    "name": "Fine Juggernaut Signet",
+    "name": "Juggernaut Signet",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -2890,7 +3070,7 @@
   },
   {
     "id": "masterwork-juggernaut-signet",
-    "name": "Masterwork Juggernaut Signet",
+    "name": "Juggernaut Signet",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -2899,7 +3079,7 @@
   },
   {
     "id": "heroic-juggernaut-signet",
-    "name": "Heroic Juggernaut Signet",
+    "name": "Juggernaut Signet",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2908,7 +3088,7 @@
   },
   {
     "id": "mythic-juggernaut-signet",
-    "name": "Mythic Juggernaut Signet",
+    "name": "Juggernaut Signet",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -2917,7 +3097,7 @@
   },
   {
     "id": "worn-archmage-loop",
-    "name": "Worn Archmage Loop",
+    "name": "Archmage Loop",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -2926,7 +3106,7 @@
   },
   {
     "id": "fine-archmage-loop",
-    "name": "Fine Archmage Loop",
+    "name": "Archmage Loop",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -2935,7 +3115,7 @@
   },
   {
     "id": "masterwork-archmage-loop",
-    "name": "Masterwork Archmage Loop",
+    "name": "Archmage Loop",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -2944,7 +3124,7 @@
   },
   {
     "id": "heroic-archmage-loop",
-    "name": "Heroic Archmage Loop",
+    "name": "Archmage Loop",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2953,7 +3133,7 @@
   },
   {
     "id": "mythic-archmage-loop",
-    "name": "Mythic Archmage Loop",
+    "name": "Archmage Loop",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -2962,7 +3142,7 @@
   },
   {
     "id": "worn-bulwark-band",
-    "name": "Worn Bulwark Band",
+    "name": "Bulwark Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -2971,7 +3151,7 @@
   },
   {
     "id": "fine-bulwark-band",
-    "name": "Fine Bulwark Band",
+    "name": "Bulwark Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -2980,7 +3160,7 @@
   },
   {
     "id": "masterwork-bulwark-band",
-    "name": "Masterwork Bulwark Band",
+    "name": "Bulwark Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -2989,7 +3169,7 @@
   },
   {
     "id": "heroic-bulwark-band",
-    "name": "Heroic Bulwark Band",
+    "name": "Bulwark Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -2998,7 +3178,7 @@
   },
   {
     "id": "mythic-bulwark-band",
-    "name": "Mythic Bulwark Band",
+    "name": "Bulwark Band",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -3007,7 +3187,7 @@
   },
   {
     "id": "worn-wayfarer-ring",
-    "name": "Worn Wayfarer Ring",
+    "name": "Wayfarer Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Common",
@@ -3016,7 +3196,7 @@
   },
   {
     "id": "fine-wayfarer-ring",
-    "name": "Fine Wayfarer Ring",
+    "name": "Wayfarer Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Magic",
@@ -3025,7 +3205,7 @@
   },
   {
     "id": "masterwork-wayfarer-ring",
-    "name": "Masterwork Wayfarer Ring",
+    "name": "Wayfarer Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Rare",
@@ -3034,7 +3214,7 @@
   },
   {
     "id": "heroic-wayfarer-ring",
-    "name": "Heroic Wayfarer Ring",
+    "name": "Wayfarer Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3043,7 +3223,7 @@
   },
   {
     "id": "mythic-wayfarer-ring",
-    "name": "Mythic Wayfarer Ring",
+    "name": "Wayfarer Ring",
     "slot": "Ring",
     "weaponType": null,
     "rarity": "Unique",
@@ -3052,7 +3232,7 @@
   },
   {
     "id": "worn-warpriest-talisman",
-    "name": "Worn Warpriest Talisman",
+    "name": "Warpriest Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -3061,7 +3241,7 @@
   },
   {
     "id": "fine-warpriest-talisman",
-    "name": "Fine Warpriest Talisman",
+    "name": "Warpriest Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3070,7 +3250,7 @@
   },
   {
     "id": "masterwork-warpriest-talisman",
-    "name": "Masterwork Warpriest Talisman",
+    "name": "Warpriest Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3079,7 +3259,7 @@
   },
   {
     "id": "heroic-warpriest-talisman",
-    "name": "Heroic Warpriest Talisman",
+    "name": "Warpriest Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3088,7 +3268,7 @@
   },
   {
     "id": "mythic-warpriest-talisman",
-    "name": "Mythic Warpriest Talisman",
+    "name": "Warpriest Talisman",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3097,7 +3277,7 @@
   },
   {
     "id": "worn-archon-amulet",
-    "name": "Worn Archon Amulet",
+    "name": "Archon Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -3106,7 +3286,7 @@
   },
   {
     "id": "fine-archon-amulet",
-    "name": "Fine Archon Amulet",
+    "name": "Archon Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3115,7 +3295,7 @@
   },
   {
     "id": "masterwork-archon-amulet",
-    "name": "Masterwork Archon Amulet",
+    "name": "Archon Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3124,7 +3304,7 @@
   },
   {
     "id": "heroic-archon-amulet",
-    "name": "Heroic Archon Amulet",
+    "name": "Archon Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3133,7 +3313,7 @@
   },
   {
     "id": "mythic-archon-amulet",
-    "name": "Mythic Archon Amulet",
+    "name": "Archon Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3142,7 +3322,7 @@
   },
   {
     "id": "worn-wardstone-amulet",
-    "name": "Worn Wardstone Amulet",
+    "name": "Wardstone Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -3151,7 +3331,7 @@
   },
   {
     "id": "fine-wardstone-amulet",
-    "name": "Fine Wardstone Amulet",
+    "name": "Wardstone Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3160,7 +3340,7 @@
   },
   {
     "id": "masterwork-wardstone-amulet",
-    "name": "Masterwork Wardstone Amulet",
+    "name": "Wardstone Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3169,7 +3349,7 @@
   },
   {
     "id": "heroic-wardstone-amulet",
-    "name": "Heroic Wardstone Amulet",
+    "name": "Wardstone Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3178,7 +3358,7 @@
   },
   {
     "id": "mythic-wardstone-amulet",
-    "name": "Mythic Wardstone Amulet",
+    "name": "Wardstone Amulet",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3187,7 +3367,7 @@
   },
   {
     "id": "worn-midas-locket",
-    "name": "Worn Midas Locket",
+    "name": "Midas Locket",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -3196,7 +3376,7 @@
   },
   {
     "id": "fine-midas-locket",
-    "name": "Fine Midas Locket",
+    "name": "Midas Locket",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3205,7 +3385,7 @@
   },
   {
     "id": "masterwork-midas-locket",
-    "name": "Masterwork Midas Locket",
+    "name": "Midas Locket",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3214,7 +3394,7 @@
   },
   {
     "id": "heroic-midas-locket",
-    "name": "Heroic Midas Locket",
+    "name": "Midas Locket",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3223,7 +3403,7 @@
   },
   {
     "id": "mythic-midas-locket",
-    "name": "Mythic Midas Locket",
+    "name": "Midas Locket",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3232,7 +3412,7 @@
   },
   {
     "id": "worn-heartforge-pendant",
-    "name": "Worn Heartforge Pendant",
+    "name": "Heartforge Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Common",
@@ -3241,7 +3421,7 @@
   },
   {
     "id": "fine-heartforge-pendant",
-    "name": "Fine Heartforge Pendant",
+    "name": "Heartforge Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3250,7 +3430,7 @@
   },
   {
     "id": "masterwork-heartforge-pendant",
-    "name": "Masterwork Heartforge Pendant",
+    "name": "Heartforge Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3259,7 +3439,7 @@
   },
   {
     "id": "heroic-heartforge-pendant",
-    "name": "Heroic Heartforge Pendant",
+    "name": "Heartforge Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3268,7 +3448,7 @@
   },
   {
     "id": "mythic-heartforge-pendant",
-    "name": "Mythic Heartforge Pendant",
+    "name": "Heartforge Pendant",
     "slot": "Amulet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3277,7 +3457,7 @@
   },
   {
     "id": "worn-direwolf-cub",
-    "name": "Worn Direwolf Cub",
+    "name": "Direwolf Cub",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Common",
@@ -3286,7 +3466,7 @@
   },
   {
     "id": "fine-direwolf-cub",
-    "name": "Fine Direwolf Cub",
+    "name": "Direwolf Cub",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3295,7 +3475,7 @@
   },
   {
     "id": "masterwork-direwolf-cub",
-    "name": "Masterwork Direwolf Cub",
+    "name": "Direwolf Cub",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3304,7 +3484,7 @@
   },
   {
     "id": "heroic-direwolf-cub",
-    "name": "Heroic Direwolf Cub",
+    "name": "Direwolf Cub",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3313,7 +3493,7 @@
   },
   {
     "id": "mythic-direwolf-cub",
-    "name": "Mythic Direwolf Cub",
+    "name": "Direwolf Cub",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3322,7 +3502,7 @@
   },
   {
     "id": "worn-arcane-wisp",
-    "name": "Worn Arcane Wisp",
+    "name": "Arcane Wisp",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Common",
@@ -3331,7 +3511,7 @@
   },
   {
     "id": "fine-arcane-wisp",
-    "name": "Fine Arcane Wisp",
+    "name": "Arcane Wisp",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3340,7 +3520,7 @@
   },
   {
     "id": "masterwork-arcane-wisp",
-    "name": "Masterwork Arcane Wisp",
+    "name": "Arcane Wisp",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3349,7 +3529,7 @@
   },
   {
     "id": "heroic-arcane-wisp",
-    "name": "Heroic Arcane Wisp",
+    "name": "Arcane Wisp",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3358,7 +3538,7 @@
   },
   {
     "id": "mythic-arcane-wisp",
-    "name": "Mythic Arcane Wisp",
+    "name": "Arcane Wisp",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3367,7 +3547,7 @@
   },
   {
     "id": "worn-iron-sentinel-chibi",
-    "name": "Worn Iron Sentinel",
+    "name": "Iron Sentinel",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Common",
@@ -3376,7 +3556,7 @@
   },
   {
     "id": "fine-iron-sentinel-chibi",
-    "name": "Fine Iron Sentinel",
+    "name": "Iron Sentinel",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3385,7 +3565,7 @@
   },
   {
     "id": "masterwork-iron-sentinel-chibi",
-    "name": "Masterwork Iron Sentinel",
+    "name": "Iron Sentinel",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3394,7 +3574,7 @@
   },
   {
     "id": "heroic-iron-sentinel-chibi",
-    "name": "Heroic Iron Sentinel",
+    "name": "Iron Sentinel",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3403,7 +3583,7 @@
   },
   {
     "id": "mythic-iron-sentinel-chibi",
-    "name": "Mythic Iron Sentinel",
+    "name": "Iron Sentinel",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3412,7 +3592,7 @@
   },
   {
     "id": "worn-lucky-tanuki",
-    "name": "Worn Lucky Tanuki",
+    "name": "Lucky Tanuki",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Common",
@@ -3421,7 +3601,7 @@
   },
   {
     "id": "fine-lucky-tanuki",
-    "name": "Fine Lucky Tanuki",
+    "name": "Lucky Tanuki",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3430,7 +3610,7 @@
   },
   {
     "id": "masterwork-lucky-tanuki",
-    "name": "Masterwork Lucky Tanuki",
+    "name": "Lucky Tanuki",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3439,7 +3619,7 @@
   },
   {
     "id": "heroic-lucky-tanuki",
-    "name": "Heroic Lucky Tanuki",
+    "name": "Lucky Tanuki",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3448,7 +3628,7 @@
   },
   {
     "id": "mythic-lucky-tanuki",
-    "name": "Mythic Lucky Tanuki",
+    "name": "Lucky Tanuki",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Unique",
@@ -3457,7 +3637,7 @@
   },
   {
     "id": "worn-emberfox-kit",
-    "name": "Worn Emberfox Kit",
+    "name": "Emberfox Kit",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Common",
@@ -3466,7 +3646,7 @@
   },
   {
     "id": "fine-emberfox-kit",
-    "name": "Fine Emberfox Kit",
+    "name": "Emberfox Kit",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Magic",
@@ -3475,7 +3655,7 @@
   },
   {
     "id": "masterwork-emberfox-kit",
-    "name": "Masterwork Emberfox Kit",
+    "name": "Emberfox Kit",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Rare",
@@ -3484,7 +3664,7 @@
   },
   {
     "id": "heroic-emberfox-kit",
-    "name": "Heroic Emberfox Kit",
+    "name": "Emberfox Kit",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Legendary",
@@ -3493,7 +3673,7 @@
   },
   {
     "id": "mythic-emberfox-kit",
-    "name": "Mythic Emberfox Kit",
+    "name": "Emberfox Kit",
     "slot": "Pet",
     "weaponType": null,
     "rarity": "Unique",

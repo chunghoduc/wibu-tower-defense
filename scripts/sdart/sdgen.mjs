@@ -280,7 +280,7 @@ function buildJobs() {
   // (accessories excluded), purpose-framed front-facing with no wearer, cut to
   // 128px (rendered scaled to the body part; resolves worn__<id> with item-icon
   // fallback). Driven by the same itemVisual catalog dump as item icons.
-  const WORN_SLOTS = new Set(["Weapon", "Helmet", "BodyArmor", "Gloves", "Boots", "Wing"]);
+  const WORN_SLOTS = new Set(["Weapon", "Helmet", "BodyArmor", "Pants", "Gloves", "Boots", "Wing"]);
   for (const it of items) {
     if (!WORN_SLOTS.has(it.slot)) continue;
     jobs.push({

@@ -36,6 +36,7 @@ const SLOT_LABEL: Record<ItemSlot, string> = {
   Helmet: "Helmet",
   BodyArmor: "Body",
   Gloves: "Gloves",
+  Pants: "Legs",
   Boots: "Boots",
   Amulet: "Amulet",
   Ring1: "Ring",

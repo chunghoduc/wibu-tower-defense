@@ -2,7 +2,7 @@ import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { type MetaSave, defaultMeta, backfillMeta } from "./meta.ts";
 
-export const CURRENT_SAVE_VERSION = 14;
+export const CURRENT_SAVE_VERSION = 15;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -312,6 +312,11 @@ export function loadAndMigrate(raw: unknown): HeroSave {
       save.meta.expedition.dispatchesLeft ??= 5;
       save.meta.expedition.dispatchDay ??= "";
     }
+  }
+  if ((save.version ?? 0) < 15) {
+    // New "Pants" (leg-armour) equip slot. `equipped` is a Partial<Record> so no
+    // backfill is needed — the slot simply starts empty until the player equips one.
+    save = { ...save, version: 15 };
   }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the

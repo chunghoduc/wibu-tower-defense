@@ -15,7 +15,7 @@ export const CATS: { id: ItemCategory; label: string }[] = [
   { id: "accessory", label: "Accessory" },
 ];
 
-const ARMOR_SLOTS: ItemDefSlot[] = ["Helmet", "BodyArmor", "Gloves", "Boots"];
+const ARMOR_SLOTS: ItemDefSlot[] = ["Helmet", "BodyArmor", "Gloves", "Pants", "Boots"];
 
 /** Does an item with this def-slot belong to the given category? */
 export function slotInCategory(slot: ItemDefSlot, cat: ItemCategory): boolean {

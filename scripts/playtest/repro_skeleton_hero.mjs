@@ -78,7 +78,7 @@ async function main() {
   // No /src import needed: the visual resolvers look up the catalog internally.
   const equipped = await evalJs(`const g=window.__game;
     const want={ Weapon:"heroic-warblade", Helmet:"iron-helm", BodyArmor:"scale-mail",
-      Gloves:"assassin-gloves", Boots:"swift-boots", Wing:"tempest-wings" };
+      Gloves:"assassin-gloves", Pants:"heroic-plate-legguards", Boots:"swift-boots", Wing:"tempest-wings" };
     const mgr=g.registry.get("saveManager"); const s=mgr.getSave();
     s.inventory.items=s.inventory.items||[]; s.inventory.equipped=s.inventory.equipped||{};
     s.hero=s.hero||{}; s.hero.level=Math.max(s.hero.level||1,80); // before equip (req-level gate)

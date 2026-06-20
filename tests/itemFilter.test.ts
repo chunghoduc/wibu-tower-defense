@@ -27,8 +27,8 @@ describe("slotInCategory", () => {
     }
   });
 
-  it("'armor' matches the four worn-armour slots", () => {
-    for (const s of ["Helmet", "BodyArmor", "Gloves", "Boots"] as ItemDefSlot[]) {
+  it("'armor' matches the worn-armour slots", () => {
+    for (const s of ["Helmet", "BodyArmor", "Gloves", "Pants", "Boots"] as ItemDefSlot[]) {
       expect(slotInCategory(s, "armor")).toBe(true);
     }
     for (const s of ["Weapon", "Amulet", "Ring", "Pet", "Wing"] as ItemDefSlot[]) {

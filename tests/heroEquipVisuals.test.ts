@@ -27,7 +27,7 @@ describe("resolveHeroLayers", () => {
       weaponType: null,
       wingKey: null,
       petKey: null,
-      gear: { Helmet: null, BodyArmor: null, Gloves: null, Boots: null },
+      gear: { Helmet: null, BodyArmor: null, Pants: null, Gloves: null, Boots: null },
     });
   });
 

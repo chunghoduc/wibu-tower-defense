@@ -13,6 +13,8 @@ import type { InventorySave } from "../core/save.ts";
 import { resolveSkeleton, type BoneId, type BoneXform } from "../data/heroSkeleton.ts";
 import { poseSkeleton, type AnimState } from "../data/heroSkeletonAnim.ts";
 import { placeWorn, partsForSlot, WORN_GEAR_SLOTS } from "../data/heroWornRig.ts";
+import { weaponHold } from "../data/heroWeaponHold.ts";
+import type { WeaponType } from "../data/schema.ts";
 
 type OneShotKind = "attack" | "cast" | "hurt";
 const PRIO: Record<OneShotKind, number> = { attack: 1, cast: 2, hurt: 3 };
@@ -30,6 +32,7 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
   private size = 54;
   private facingLeft = false;
   private hasWings = false;
+  private weaponType: WeaponType | null = null;
   private perLimb = true; // per-limb art shipped (Phase 2): boots/gloves split L/R
 
   private walkPhase = 0;
@@ -50,7 +53,7 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
     weaponType: null,
     wingKey: null,
     petKey: null,
-    gear: { Helmet: null, BodyArmor: null, Gloves: null, Boots: null },
+    gear: { Helmet: null, BodyArmor: null, Pants: null, Gloves: null, Boots: null },
   };
   private flapTween: Phaser.Tweens.Tween | null = null;
 
@@ -79,7 +82,7 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
 
   scaleToHeight(targetPx: number): this {
     this.size = targetPx;
-    this.weaponSprite.setScale((targetPx / 96) * 0.9); // weapon art ~96px tall
+    // Weapon is sized per-frame in positionWeapon (scaled to the BODY, not the arm).
     this.wingsSprite.setScale((targetPx / 96) * 1.9);
     this.petSprite.setScale((targetPx / 128) * 0.42);
     return this;
@@ -166,8 +169,11 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
   }
 
   private positionWeapon(hand: BoneXform): void {
-    if (!this.weaponSprite.visible) return;
-    this.weaponSprite.setPosition(hand.x, hand.y).setAngle(hand.angle).setFlipX(this.facingLeft);
+    const w = this.weaponSprite;
+    if (!w.visible) return;
+    const h = weaponHold(hand, this.weaponType, this.size, this.facingLeft ? -1 : 1);
+    w.setPosition(h.x, h.y).setAngle(h.angle).setFlipX(h.flipX).setOrigin(h.originX, h.originY);
+    if (w.height) w.setDisplaySize((h.displayH / w.height) * w.width, h.displayH);
   }
 
   playAttack(): void {
@@ -221,6 +227,7 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
       config.weaponKey !== this._lastConfig.weaponKey ||
       config.weaponType !== this._lastConfig.weaponType
     ) {
+      this.weaponType = config.weaponType;
       if (config.weaponKey && t.exists(config.weaponKey))
         this.weaponSprite.setTexture(config.weaponKey).setVisible(true);
       else this.weaponSprite.setVisible(false);

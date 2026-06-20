@@ -5,15 +5,16 @@ import { placeWorn, partsForSlot, WORN_GEAR_SLOTS } from "../src/data/heroWornRi
 const bones = resolveSkeleton({ size: 100, hover: 0, facing: 1, deltas: {} });
 
 describe("heroWornRig", () => {
-  it("re-exports the four body-worn slots", () => {
-    expect([...WORN_GEAR_SLOTS]).toEqual(["Helmet", "BodyArmor", "Gloves", "Boots"]);
+  it("re-exports the body-worn slots", () => {
+    expect([...WORN_GEAR_SLOTS]).toEqual(["Helmet", "BodyArmor", "Pants", "Gloves", "Boots"]);
   });
 
   it("phase-1 (whole-piece): one placement per slot", () => {
     const ps = placeWorn(bones, 100, 1, false);
     expect(ps.filter((p) => p.slot === "Boots")).toHaveLength(1);
     expect(ps.filter((p) => p.slot === "Gloves")).toHaveLength(1);
-    expect(new Set(ps.map((p) => p.slot)).size).toBe(4);
+    expect(ps.filter((p) => p.slot === "Pants")).toHaveLength(1);
+    expect(new Set(ps.map((p) => p.slot)).size).toBe(WORN_GEAR_SLOTS.length);
   });
 
   it("phase-2 (per-limb): boots & gloves split into L/R, one mirrored", () => {

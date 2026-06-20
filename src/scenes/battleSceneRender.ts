@@ -422,6 +422,7 @@ export const renderMethods = {
       "Helmet",
       "BodyArmor",
       "Gloves",
+      "Pants",
       "Boots",
       "Amulet",
       "Ring1",

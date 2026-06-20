@@ -163,6 +163,43 @@ export const BASE_ITEM_LINES: ItemLine[] = [
     stats: { moveSpeed: 18, armor: 6 },
     affixPool: ["armor", "maxHp", "tenacity"],
   },
+  // Pants (leg armour — guards the thighs/shins)
+  {
+    id: "plate-legguards",
+    base: "Plate Legguards",
+    slot: "Pants",
+    primary: "armor",
+    primaryBase: 0.08,
+    stats: { armor: 12, maxHp: 70 },
+    affixPool: ["maxHp", "armor", "damageReduction", "tenacity"],
+  },
+  {
+    id: "war-greaves",
+    base: "War Greaves",
+    slot: "Pants",
+    primary: "maxHp",
+    primaryBase: 0.07,
+    stats: { maxHp: 95, armor: 7 },
+    affixPool: ["maxHp", "armor", "magicResist", "critDefense"],
+  },
+  {
+    id: "swift-leggings",
+    base: "Swift Leggings",
+    slot: "Pants",
+    primary: "moveSpeed",
+    primaryBase: 0.07,
+    stats: { moveSpeed: 14, armor: 5 },
+    affixPool: ["moveSpeed", "tenacity", "armor"],
+  },
+  {
+    id: "mage-trousers",
+    base: "Mage Trousers",
+    slot: "Pants",
+    primary: "magicResist",
+    primaryBase: 0.07,
+    stats: { magicResist: 10, maxHp: 55, skillPower: 0.05 },
+    affixPool: ["magicResist", "skillPower", "manaOnHit"],
+  },
   // Amulets
   {
     id: "mana-talisman",

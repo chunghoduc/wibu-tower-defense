@@ -66,6 +66,7 @@ export const ITEM_SLOTS = [
   "Helmet",
   "BodyArmor",
   "Gloves",
+  "Pants",
   "Boots",
   "Amulet",
   "Ring1",

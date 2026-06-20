@@ -16,7 +16,7 @@
 // four armour pieces that otherwise had no placement at all.
 
 /** The body-worn armour slots this rig positions (weapon + wings are bespoke). */
-export const WORN_GEAR_SLOTS = ["Helmet", "BodyArmor", "Gloves", "Boots"] as const;
+export const WORN_GEAR_SLOTS = ["Helmet", "BodyArmor", "Pants", "Gloves", "Boots"] as const;
 export type WornGearSlot = (typeof WORN_GEAR_SLOTS)[number];
 
 export interface RigInput {
@@ -61,8 +61,9 @@ interface Anchor {
   behind: boolean;
 }
 const ANCHORS: Record<WornGearSlot, Anchor> = {
-  // back→front: torso, then boots, helmet, and the hand-held gauntlet on top.
+  // back→front: torso, legguards, then boots, helmet, and the hand-held gauntlet on top.
   BodyArmor: { nx: 0.5, ny: 0.46, scale: 0.46, angle: 0, depth: 4, behind: false },
+  Pants: { nx: 0.5, ny: 0.68, scale: 0.32, angle: 0, depth: 4.5, behind: false },
   Boots: { nx: 0.5, ny: 0.92, scale: 0.28, angle: 0, depth: 5, behind: false },
   Helmet: { nx: 0.5, ny: 0.11, scale: 0.29, angle: 0, depth: 6, behind: false },
   Gloves: { nx: 0.62, ny: 0.62, scale: 0.22, angle: 0, depth: 7, behind: false },

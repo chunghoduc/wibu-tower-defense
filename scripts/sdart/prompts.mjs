@@ -406,6 +406,8 @@ export const WORN_FRAMING = {
     "shown alone as a matching pair of empty hand armor with no hands inside, front view, side by side, centered",
   Boots:
     "shown alone as a matching pair of empty footwear with no feet inside, front view, side by side, centered",
+  Pants:
+    "shown alone as a single empty pair of leg armor / armored trousers with no legs inside, waist at top and open cuffs at the bottom, front view, centered, flat-laid",
   Wing: "shown alone as a symmetric pair of wings fully spread, front view, centered, no wearer",
 };
 // Single-limb framing for slots whose worn art splits L/R on the procedural rig

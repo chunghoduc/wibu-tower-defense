@@ -24,6 +24,7 @@ export const DOLL_SLOTS: DollSlotDef[] = [
   { slot: "BodyArmor", nx: 0.5, ny: 0.45, label: "Body" },
   { slot: "Weapon", nx: 0.15, ny: 0.47, label: "Weapon" },
   { slot: "Gloves", nx: 0.85, ny: 0.51, label: "Hands" },
+  { slot: "Pants", nx: 0.5, ny: 0.66, label: "Legs" },
   { slot: "Ring1", nx: 0.15, ny: 0.69, label: "Ring" },
   { slot: "Ring2", nx: 0.85, ny: 0.69, label: "Ring" },
   { slot: "Boots", nx: 0.5, ny: 0.85, label: "Feet" },

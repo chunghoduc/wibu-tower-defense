@@ -182,6 +182,50 @@ export const ITEM_LORE_LINES: Record<string, ItemLoreEntry> = {
     specialty: "Planted and protected — speed that doesn't sacrifice footing.",
     lore: "Built for those who charge the wall first.",
   },
+  "plate-legguards": {
+    base: "Bulwark Legplates",
+    appearance: {
+      family: "pants",
+      material: { tint: "#b6bcc6", accent: "#8a93a0" },
+      look: "a pair of heavy steel leg plates — articulated cuisses and knee guards over dark padded trousers",
+    },
+    homage: { source: "Berserk", original: "a knight's greaves" },
+    specialty: "Plated from hip to knee — the lower body simply will not fall.",
+    lore: "Dented a thousand times, broken never.",
+  },
+  "war-greaves": {
+    base: "Vanguard Warplate Legs",
+    appearance: {
+      family: "pants",
+      material: { tint: "#5a5a64", accent: "#aeb6c2" },
+      look: "rugged grey armored war-trousers with riveted thigh plates and harness straps",
+    },
+    homage: { source: "Attack on Titan", original: "the maneuver-gear leg harness" },
+    specialty: "Braced legs that anchor a charge and shrug off the counter-blow.",
+    lore: "First over the wall, last to buckle.",
+  },
+  "swift-leggings": {
+    base: "Gale Runner Leggings",
+    appearance: {
+      family: "pants",
+      material: { tint: "#2a3550", accent: "#9fd8ff" },
+      look: "slim dark-blue running leggings with light shin-wraps trailing faint wind streaks",
+    },
+    homage: { source: "Naruto", original: "a shinobi's leg-wraps" },
+    specialty: "Featherlight wraps that turn every stride into open ground.",
+    lore: "They leave no print worth following.",
+  },
+  "mage-trousers": {
+    base: "Arcanist's Trousers",
+    appearance: {
+      family: "pants",
+      material: { tint: "#3a4a6a", accent: "#c9b8ff" },
+      look: "deep midnight-blue mage robes-trousers trimmed with faint silver runes down each leg",
+    },
+    homage: { source: "Frieren: Beyond Journey's End", original: "a mage's lower robes" },
+    specialty: "Runed cloth that turns hostile magic aside.",
+    lore: "The runes warm faintly before a spell lands.",
+  },
   "mana-talisman": {
     base: "Spirit Ward Talisman",
     appearance: {
