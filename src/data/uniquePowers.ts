@@ -16,6 +16,7 @@
 
 import type { Stats } from "./schema.ts";
 import { archetypeFor, type ItemArchetype } from "./itemArchetype.ts";
+import { TRIGGERED_EFFECTS, type TriggeredEffect } from "./triggeredEffects.ts";
 
 /** What the game knows when resolving a power's magnitude (battle-start statics). */
 export interface UniquePowerContext {
@@ -35,6 +36,8 @@ export interface UniquePowerDef {
   /** Player-facing one-liner with magnitudes embedded; ctx lets count-scaled powers read true. */
   describe(ctx: UniquePowerContext): string;
   contribution(ctx: UniquePowerContext): UniquePowerContribution;
+  /** Optional combat BEHAVIOUR fired by the sim (see data/triggeredEffects.ts). */
+  trigger?: TriggeredEffect;
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -50,18 +53,21 @@ export const UNIQUE_POWERS: Record<string, UniquePowerDef> = {
     name: "Sunflare",
     describe: () => `+${pct(0.18)} more Attack and +${pct(0.25)} Critical Damage`,
     contribution: () => ({ more: { atk: 0.18 }, flat: { critDamage: 0.25 } }),
+    trigger: TRIGGERED_EFFECTS.executioner,
   },
   bulwark: {
     id: "bulwark",
     name: "Aegis Bulwark",
     describe: () => `+${pct(0.2)} more Max Health and +${pct(0.08)} Damage Reduction`,
     contribution: () => ({ more: { maxHp: 0.2 }, flat: { damageReduction: 0.08 } }),
+    trigger: TRIGGERED_EFFECTS.thornmail,
   },
   midas: {
     id: "midas",
     name: "Midas Touch",
     describe: () => `+${pct(0.5)} more Gold Found`,
     contribution: () => ({ more: { goldFind: 0.5 } }),
+    trigger: TRIGGERED_EFFECTS.goldfinger,
   },
 
   // — Archetype pool (procedural Uniques) —
@@ -114,6 +120,92 @@ export const UNIQUE_POWERS: Record<string, UniquePowerDef> = {
     describe: () => `+${pct(0.4)} more Gold Found`,
     contribution: () => ({ more: { goldFind: 0.4 } }),
   },
+
+  // — Pure-trigger powers (behaviour, no passive stat) —
+  stormlord: {
+    id: "stormlord",
+    name: "Stormlord",
+    describe: () => TRIGGERED_EFFECTS.stormcaller.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.stormcaller,
+  },
+  venomous: {
+    id: "venomous",
+    name: "Venomfang",
+    describe: () => TRIGGERED_EFFECTS.venomstrike.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.venomstrike,
+  },
+  detonator: {
+    id: "detonator",
+    name: "Detonator",
+    describe: () => TRIGGERED_EFFECTS.detonate.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.detonate,
+  },
+  frostbrand: {
+    id: "frostbrand",
+    name: "Frostbrand",
+    describe: () => TRIGGERED_EFFECTS.permafrost.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.permafrost,
+  },
+  echoing: {
+    id: "echoing",
+    name: "Echoing Sigil",
+    describe: () => TRIGGERED_EFFECTS.echo.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.echo,
+  },
+  ember_aura: {
+    id: "ember_aura",
+    name: "Emberbloom",
+    describe: () => TRIGGERED_EFFECTS.cinderbloom.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.cinderbloom,
+  },
+  thorned: {
+    id: "thorned",
+    name: "Thornward",
+    describe: () => TRIGGERED_EFFECTS.thornmail.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.thornmail,
+  },
+  riposting: {
+    id: "riposting",
+    name: "Riposte Guard",
+    describe: () => TRIGGERED_EFFECTS.riposte.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.riposte,
+  },
+  sanguine: {
+    id: "sanguine",
+    name: "Sanguine Crest",
+    describe: () => TRIGGERED_EFFECTS.bloodfeast.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.bloodfeast,
+  },
+  reaper: {
+    id: "reaper",
+    name: "Reaper's Mark",
+    describe: () => TRIGGERED_EFFECTS.cull.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.cull,
+  },
+  plaguebearer: {
+    id: "plaguebearer",
+    name: "Plaguebearer",
+    describe: () => TRIGGERED_EFFECTS.contagion.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.contagion,
+  },
+  shatterer: {
+    id: "shatterer",
+    name: "Shatterer",
+    describe: () => TRIGGERED_EFFECTS.shatterblow.describe(),
+    contribution: () => ({}),
+    trigger: TRIGGERED_EFFECTS.shatterblow,
+  },
 };
 
 /** Hand-authored items → their signature power id. */
@@ -125,11 +217,11 @@ export const SIGNATURE_POWERS: Record<string, string> = {
 
 /** Per-archetype power pool for procedural Uniques (id-hash picks within it). */
 const ARCHETYPE_POWERS: Record<ItemArchetype, string[]> = {
-  physical: ["deadeye", "bloodthirst", "warlord"],
-  magic: ["arcane_overflow"],
-  defense: ["juggernaut", "bulwark"],
-  utility: ["tempest", "fortune"],
-  hybrid: ["colossus", "warlord"],
+  physical: ["deadeye", "bloodthirst", "warlord", "reaper", "detonator", "stormlord"],
+  magic: ["arcane_overflow", "frostbrand", "echoing", "ember_aura", "stormlord"],
+  defense: ["juggernaut", "bulwark", "thorned", "riposting", "sanguine"],
+  utility: ["tempest", "fortune", "venomous", "plaguebearer"],
+  hybrid: ["colossus", "warlord", "shatterer", "detonator"],
 };
 
 /** Stable non-negative string hash (FNV-1a) — deterministic power selection. */
