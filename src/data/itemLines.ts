@@ -59,16 +59,6 @@ export const BASE_ITEM_LINES: ItemLine[] = [
     stats: { skillPower: 0.18, manaOnHit: 3 },
     affixPool: ["skillPower", "magicPen", "manaOnHit"],
   },
-  {
-    id: "war-fists",
-    base: "War Fists",
-    slot: "Weapon",
-    weaponType: "Fist",
-    primary: "critRate",
-    primaryBase: 0.05,
-    stats: { atk: 12, critRate: 0.04 },
-    affixPool: ["critDamage", "atk", "attackSpeed"],
-  },
   // Helmets
   {
     id: "warhelm",
@@ -315,16 +305,6 @@ export const BASE_ITEM_LINES: ItemLine[] = [
     primaryBase: 0.12,
     stats: { atk: 15, critDamage: 0.08 },
     affixPool: ["critRate", "armorPen", "atk"],
-  },
-  {
-    id: "venom-fang",
-    base: "Venom Fang",
-    slot: "Weapon",
-    weaponType: "Fist",
-    primary: "omnivamp",
-    primaryBase: 0.04,
-    stats: { atk: 13, omnivamp: 0.03 },
-    affixPool: ["omnivamp", "critRate", "armorPen"],
   },
   {
     id: "bulwark-plate",

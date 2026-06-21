@@ -134,18 +134,6 @@ export const ITEM_LORE_EXPANSION: Record<string, ItemLoreEntry> = {
     specialty: "Forbidden words that strip a target's wards before the spell even lands.",
     lore: "Read aloud only the passages you can survive.",
   },
-  "titangrip-knuckles": {
-    base: "Titangrip Knuckles",
-    appearance: {
-      family: "gauntlet",
-      material: { tint: "#caa23c", accent: "#7a3aa8" },
-      look: "a pair of massive golden battle-gauntlets set with six glowing coloured gemstones across the knuckles",
-    },
-    homage: { source: "Capcom", original: "Power Stone gauntlets" },
-    specialty: "Gathers raw force into one devastating, decisive blow.",
-    lore: "Perfectly balanced — as a fist should be.",
-  },
-
   // ── Body armor & helmets ──────────────────────────────────────────────────
   "mithrilweave-shirt": {
     base: "Mithrilweave Shirt",

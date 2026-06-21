@@ -88,7 +88,7 @@ export function equipSlotsFor(slot: ItemDefSlot): ItemSlot[] {
   return slot === "Ring" ? ["Ring1", "Ring2"] : [slot];
 }
 
-export const WEAPON_TYPES = ["Sword", "Bow", "Staff", "Gun", "Tome", "Fist", "Any"] as const;
+export const WEAPON_TYPES = ["Sword", "Bow", "Staff", "Gun", "Tome", "Any"] as const;
 export type WeaponType = (typeof WEAPON_TYPES)[number];
 
 export const PASSIVE_NODE_TYPES = [

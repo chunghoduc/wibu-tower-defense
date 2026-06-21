@@ -114,8 +114,6 @@ export function heroAttackStyle(
   range: number,
 ): AttackStyle {
   switch (weaponType) {
-    case "Fist":
-      return "punch";
     case "Sword":
       return "slash";
     case "Bow":

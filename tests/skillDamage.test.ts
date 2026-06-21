@@ -48,13 +48,13 @@ describe("heroSkillDamage", () => {
   });
 
   it("carries the skill's own damage type (the True/Magic override path)", () => {
-    expect(heroSkillDamage(equip("void-palm"), "void-palm").damageType).toBe("True");
+    expect(heroSkillDamage(equip("true-strike"), "true-strike").damageType).toBe("True");
     expect(heroSkillDamage(equip("spirit-bolt"), "spirit-bolt").damageType).toBe("Magic");
   });
 
   it("a higher-Power skill yields a strictly bigger burst for the same hero", () => {
     const lo = heroSkillDamage(equip("spirit-bolt"), "spirit-bolt").burst;
-    const hi = heroSkillDamage(equip("void-palm"), "void-palm").burst;
+    const hi = heroSkillDamage(equip("true-strike"), "true-strike").burst;
     expect(hi).toBeGreaterThan(lo);
   });
 

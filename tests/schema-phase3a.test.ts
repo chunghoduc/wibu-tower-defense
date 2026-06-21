@@ -27,18 +27,17 @@ void _itemInstanceCheck;
 void _rolledAffixCheck;
 
 describe("WeaponType", () => {
-  it("includes all six weapon types plus Any", () => {
+  it("includes all five weapon types plus Any", () => {
     expect(WEAPON_TYPES).toContain("Sword");
     expect(WEAPON_TYPES).toContain("Bow");
     expect(WEAPON_TYPES).toContain("Staff");
     expect(WEAPON_TYPES).toContain("Gun");
     expect(WEAPON_TYPES).toContain("Tome");
-    expect(WEAPON_TYPES).toContain("Fist");
     expect(WEAPON_TYPES).toContain("Any");
   });
 
-  it("has exactly 7 entries", () => {
-    expect(WEAPON_TYPES).toHaveLength(7);
+  it("has exactly 6 entries", () => {
+    expect(WEAPON_TYPES).toHaveLength(6);
   });
 });
 

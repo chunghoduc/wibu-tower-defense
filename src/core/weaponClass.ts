@@ -1,7 +1,7 @@
 /**
  * Weapon-CLASS gating for active skills — pure, Phaser-free.
  *
- * The hero's WeaponType enum is coarse (Sword/Bow/Staff/Gun/Tome/Fist/Any). A
+ * The hero's WeaponType enum is coarse (Sword/Bow/Staff/Gun/Tome/Any). A
  * skill can require an exact WeaponType (legacy `requiresWeapon`) OR a flexible
  * weapon CLASS. Class membership is the basis for "magic spells should work with
  * a staff, a tome/book, OR a magic sword": the magic class is satisfied by any
@@ -13,7 +13,7 @@ import type { ItemArchetype } from "../data/itemArchetype.ts";
 
 export type WeaponClass = "magic" | "melee" | "ranged";
 
-const MELEE: ReadonlySet<WeaponType> = new Set(["Sword", "Fist"]);
+const MELEE: ReadonlySet<WeaponType> = new Set(["Sword"]);
 const RANGED: ReadonlySet<WeaponType> = new Set(["Bow", "Gun"]);
 const MAGIC_WEAPONS: ReadonlySet<WeaponType> = new Set(["Staff", "Tome"]);
 

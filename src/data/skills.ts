@@ -36,16 +36,6 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     artRef: "placeholder",
   }),
   s({
-    id: "stone-bash",
-    name: "Stone Bash",
-    rarity: "Magic",
-    description: "A stunning overhead blow that pulverises armour.",
-    requiresWeapon: "Fist",
-    damageType: "Physical",
-    basePower: 110,
-    artRef: "placeholder",
-  }),
-  s({
     id: "execute-slash",
     name: "Execute",
     rarity: "Rare",
@@ -219,16 +209,6 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     description: "A technique perfected beyond all defences — deals True damage.",
     damageType: "True",
     basePower: 200,
-    artRef: "placeholder",
-  }),
-  s({
-    id: "void-palm",
-    name: "Void Palm",
-    rarity: "Unique",
-    description: "A palm strike that tears through reality itself.",
-    requiresWeapon: "Fist",
-    damageType: "True",
-    basePower: 320,
     artRef: "placeholder",
   }),
 ];

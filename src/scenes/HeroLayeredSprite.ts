@@ -28,7 +28,6 @@ type Pose = { x: number; y: number; angle: number; flipX: boolean };
 // a second blade floating off-centre. y negative is up; x flips with facing.
 const REST_POSE: Record<WeaponType, Pose> = {
   Sword: { x: -6, y: -12, angle: 18, flipX: false },
-  Fist: { x: -7, y: -8, angle: 0, flipX: false },
   Bow: { x: -8, y: -12, angle: -32, flipX: false },
   Gun: { x: -6, y: -9, angle: -8, flipX: false },
   Staff: { x: -8, y: -15, angle: 10, flipX: false },
@@ -119,8 +118,7 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
 
     // Worn-armour overlays composited on the body. Centre-origin so heroBattleRig
     // can place each by its region centre; hidden until a piece is equipped.
-    const mkGear = () =>
-      scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.5);
+    const mkGear = () => scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.5);
     this.gearSprites = {
       BodyArmor: mkGear(),
       Pants: mkGear(),
@@ -313,16 +311,6 @@ export class HeroLayeredSprite extends Phaser.GameObjects.Container {
           duration: 120,
           ease: "Sine.easeOut",
           onComplete: back,
-        });
-        break;
-      case "Fist": // quick straight jab — punch forward and snap back
-        this.scene.tweens.add({
-          targets: w,
-          x: rx + 12 * side,
-          duration: 55,
-          ease: "Quint.easeIn",
-          onComplete: () =>
-            this.scene.tweens.add({ targets: w, x: rx, duration: 90, ease: "Back.easeOut" }),
         });
         break;
       default: // Sword / Any — wind-up then swing arc

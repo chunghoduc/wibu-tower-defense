@@ -2,9 +2,8 @@ import { describe, it, expect } from "vitest";
 import { heroPoseFamily } from "./heroPose.ts";
 
 describe("heroPoseFamily", () => {
-  it("maps the four art-backed weapon types to a family", () => {
+  it("maps the art-backed weapon types to a family", () => {
     expect(heroPoseFamily("Bow")).toBe("bow");
-    expect(heroPoseFamily("Fist")).toBe("fist");
     expect(heroPoseFamily("Gun")).toBe("gun");
     expect(heroPoseFamily("Staff")).toBe("staff");
   });

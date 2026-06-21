@@ -26,9 +26,8 @@ describe("weaponClassMet", () => {
     expect(weaponClassMet("magic", undefined, undefined)).toBe(false);
   });
 
-  it("melee is met by swords and fists, not bows", () => {
+  it("melee is met by swords, not bows", () => {
     expect(weaponClassMet("melee", "Sword", "physical")).toBe(true);
-    expect(weaponClassMet("melee", "Fist", undefined)).toBe(true);
     expect(weaponClassMet("melee", "Bow", undefined)).toBe(false);
   });
 

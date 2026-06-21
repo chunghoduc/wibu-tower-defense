@@ -90,7 +90,6 @@ describe("T6 — per-character attack styles", () => {
   });
 
   it("hero attack style is driven by the equipped weapon family", () => {
-    expect(heroAttackStyle("Fist", "Physical", 90)).toBe("punch");
     expect(heroAttackStyle(null, "Physical", 90)).toBe("punch"); // unarmed → boxing
     expect(heroAttackStyle("Sword", "Physical", 115)).toBe("slash");
     expect(heroAttackStyle("Bow", "Physical", 240)).toBe("arrow");

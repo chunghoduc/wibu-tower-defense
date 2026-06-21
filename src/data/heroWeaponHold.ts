@@ -30,10 +30,9 @@ export interface WeaponHold {
 // Resting tilt (deg) added to the hand's world angle, right-facing. The hand
 // hangs straight down at rest (angle ≈ 0) and a weapon icon points "up" from its
 // grip, so a positive tilt leans the blade forward (toward the foe). Tuned per
-// family: polearms/bows stand more upright, fists barely tilt.
+// family: polearms/bows stand more upright.
 const REST_TILT: Record<WeaponType, number> = {
   Sword: 24,
-  Fist: 8,
   Bow: 8,
   Gun: 30,
   Staff: 14,
@@ -42,11 +41,10 @@ const REST_TILT: Record<WeaponType, number> = {
 };
 
 // Weapon display height as a fraction of body height. Big two-handers read larger;
-// fists/tomes are small. These keep the held weapon proportionate to the body
+// tomes are small. These keep the held weapon proportionate to the body
 // instead of scaled to the (much longer) arm bone.
 const SCALE: Record<WeaponType, number> = {
   Sword: 0.46,
-  Fist: 0.26,
   Bow: 0.58,
   Gun: 0.34,
   Staff: 0.64,

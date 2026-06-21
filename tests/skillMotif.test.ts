@@ -35,12 +35,10 @@ describe("skill motif — literal projectile per skill", () => {
     for (const id of [
       "valiant-strike",
       "iron-cleave",
-      "stone-bash",
       "execute-slash",
       "arcane-nova",
       "shadow-curse",
       "true-strike",
-      "void-palm",
     ]) {
       expect(skillMotif(id).kind, `${id} should fire no projectile`).toBe("none");
     }

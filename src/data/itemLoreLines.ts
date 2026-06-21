@@ -61,17 +61,6 @@ export const ITEM_LORE_LINES: Record<string, ItemLoreEntry> = {
     specialty: "Its pages turn raw mana into towering spell-power.",
     lore: "The sigil is said to decide its own master.",
   },
-  "war-fists": {
-    base: "Symbol Knuckles",
-    appearance: {
-      family: "gauntlet",
-      material: { tint: "#c8ccd2", accent: "#ffd24a" },
-      look: "a pair of heavy steel knuckle gauntlets with golden plating across the knuckles",
-    },
-    homage: { source: "My Hero Academia", original: "the Symbol of Peace's gauntleted strikes" },
-    specialty: "Built to land that one heroic, crowd-clearing punch.",
-    lore: "Worn by those who smile while they save you.",
-  },
   warhelm: {
     base: "Slayer's Steel Helm",
     appearance: {
@@ -357,17 +346,6 @@ export const ITEM_LORE_LINES: Record<string, ItemLoreEntry> = {
     homage: { source: "Bleach", original: "the ice-and-sky zanpakuto" },
     specialty: "Each cut bites colder — devastating, freezing critical blows.",
     lore: "Heaven and earth freeze where it falls.",
-  },
-  "venom-fang": {
-    base: "Serpent Venom Fang",
-    appearance: {
-      family: "gauntlet",
-      material: { tint: "#4a8a4a", accent: "#9c4dd0" },
-      look: "a fanged knuckle-claw dripping luminous purple venom",
-    },
-    homage: { source: "Naruto", original: "the serpent sannin's blade" },
-    specialty: "Bleeds the foe and drinks the life back into the striker.",
-    lore: "Its bite outlives the bitten.",
   },
   "bulwark-plate": {
     base: "Aegis Bulwark Plate",

@@ -148,19 +148,6 @@ export const EXPANSION_LINES: ItemLine[] = [
     stats: { skillPower: 0.16, manaOnHit: 3 },
     affixPool: ["magicPen", "skillPower", "manaOnHit"],
   },
-  // homage: Capcom → Power Stone gauntlets
-  {
-    id: "titangrip-knuckles",
-    base: "Titangrip Knuckles",
-    slot: "Weapon",
-    weaponType: "Fist",
-    archetype: "physical",
-    primary: "critDamage",
-    primaryBase: 0.12,
-    stats: { atk: 13, critDamage: 0.08 },
-    affixPool: ["critRate", "atk", "attackSpeed"],
-  },
-
   // ── Body armor & helmets ──────────────────────────────────────────────────
   // homage: LOTR → the mithril shirt
   {

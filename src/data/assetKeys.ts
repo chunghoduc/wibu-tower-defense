@@ -42,7 +42,7 @@ export const GOLD_TEX = "icon__gold";
 export const GEM_TEX = "icon__gem";
 export const XP_TEX = "icon__xp";
 export const HERODOLL_BASE_TEX = "herodoll__base";
-/** Single-frame hero weapon-class pose (bow|fist|gun|staff) — home throne hero. */
+/** Single-frame hero weapon-class pose (bow|gun|staff) — home throne hero. */
 export const heroPoseTex = (family: string): string => `hero__${family}`;
 /** Battle-hero combat-stance art for an equipped weapon type (sword|bow|…|any). */
 export const heroBattleTex = (weapon: string): string => `herobattle__${weapon}`;

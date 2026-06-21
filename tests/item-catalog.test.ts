@@ -85,7 +85,6 @@ describe("loot expansion batch", () => {
     "midas-paw",
     "worn-frost-glaive",
     "mythic-frost-glaive",
-    "worn-venom-fang",
     "mythic-bulwark-plate",
     "worn-oracle-crown",
     "worn-shadowstep-treads",
@@ -108,7 +107,6 @@ describe("loot expansion batch", () => {
   it("every new generated line spans all 5 rarities", () => {
     for (const line of [
       "frost-glaive",
-      "venom-fang",
       "bulwark-plate",
       "oracle-crown",
       "shadowstep-treads",
@@ -135,7 +133,6 @@ describe("200-item homage expansion", () => {
     "starhunter-cannon",
     "eldwood-wand",
     "dreadpage-codex",
-    "titangrip-knuckles",
     "mithrilweave-shirt",
     "beskar-plate",
     "havelthane-plate",
@@ -166,8 +163,8 @@ describe("200-item homage expansion", () => {
     "emberfox-kit",
   ];
 
-  it("adds exactly 40 lines = 200 items, each spanning all 5 rarities", () => {
-    expect(EXPANSION_LINES.length).toBe(40);
+  it("adds exactly 39 lines = 195 items, each spanning all 5 rarities", () => {
+    expect(EXPANSION_LINES.length).toBe(39);
     for (const line of EXPANSION_LINES) {
       for (const prefix of ["worn", "fine", "masterwork", "heroic", "mythic"]) {
         expect(ITEM_CATALOG_MAP.has(`${prefix}-${line}`), `${prefix}-${line}`).toBe(true);

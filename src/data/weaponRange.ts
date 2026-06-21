@@ -1,8 +1,8 @@
 /**
  * Characteristic attack reach per HERO weapon family. The hero's WeaponType maps
  * onto the canonical tower weapon families (weaponFamily.ts) so towers and the
- * hero share one reach table: bare fists box at point blank, swords reach a melee
- * step, bows/guns snipe from afar, staves/tomes cast at mid range. Values straddle
+ * hero share one reach table: swords reach a melee step, bows/guns snipe from
+ * afar, staves/tomes cast at mid range. Values straddle
  * the RANGED_MELEE threshold (120, see attackStyle.ts). `% range` affixes scale on
  * top of this base in the hero stat pipeline.
  */
@@ -11,7 +11,6 @@ import { FAMILY, type WeaponFamily } from "./weaponFamily.ts";
 
 /** Maps a hero WeaponType onto its tower weapon family; `Any` has no family. */
 const HERO_WEAPON_FAMILY: Record<WeaponType, WeaponFamily | null> = {
-  Fist: "fist",
   Sword: "sword",
   Bow: "bow",
   Gun: "gun",
@@ -23,7 +22,6 @@ const HERO_WEAPON_FAMILY: Record<WeaponType, WeaponFamily | null> = {
 const ANY_RANGE = 150;
 
 export const WEAPON_RANGE: Record<WeaponType, number> = {
-  Fist: FAMILY.fist.range,
   Sword: FAMILY.sword.range,
   Bow: FAMILY.bow.range,
   Gun: FAMILY.gun.range,
@@ -32,9 +30,9 @@ export const WEAPON_RANGE: Record<WeaponType, number> = {
   Any: ANY_RANGE,
 };
 
-/** Hero reach for the equipped weapon family; unarmed boxes at the Fist range. */
+/** Hero reach for the equipped weapon family; unarmed defaults to sword reach. */
 export function heroRangeForWeapon(weaponType: WeaponType | null): number {
-  if (!weaponType) return WEAPON_RANGE.Fist;
+  if (!weaponType) return WEAPON_RANGE.Sword;
   const fam = HERO_WEAPON_FAMILY[weaponType];
   return fam ? FAMILY[fam].range : ANY_RANGE;
 }

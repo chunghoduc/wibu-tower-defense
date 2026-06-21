@@ -23,17 +23,17 @@ describe("heroActiveBurst", () => {
 
   it("a higher-basePower skill hits harder", () => {
     const save = createFreshSave();
-    save.hero.obtainedSkills.push({ skillId: "void-palm", level: 0, useXp: 0 });
-    save.hero.equippedSkillIds = ["void-palm"];
-    const voidPalm = heroActiveBurst(save);
+    save.hero.obtainedSkills.push({ skillId: "true-strike", level: 0, useXp: 0 });
+    save.hero.equippedSkillIds = ["true-strike"];
+    const trueStrike = heroActiveBurst(save);
 
     const save2 = createFreshSave();
     save2.hero.obtainedSkills.push({ skillId: "valiant-strike", level: 0, useXp: 0 });
     save2.hero.equippedSkillIds = ["valiant-strike"];
     const valiant = heroActiveBurst(save2);
 
-    expect(voidPalm.mult).toBeGreaterThan(valiant.mult);
-    expect(voidPalm.damageType).toBe("True"); // Void Palm deals True
+    expect(trueStrike.mult).toBeGreaterThan(valiant.mult);
+    expect(trueStrike.damageType).toBe("True"); // True Strike deals True
   });
 
   it("skill level raises the burst (the leveling loop now matters)", () => {

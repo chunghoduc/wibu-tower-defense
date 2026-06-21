@@ -124,15 +124,6 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
       "Two broad steel blade-arcs slash across each other in a hard X, throwing a " +
       "horizontal ground-crack shock and a spray of bright sparks. Cold metallic blue-white.",
   },
-  "stone-bash": {
-    signature: "earthshatter",
-    delivery: "ground",
-    motif: { kind: "none", count: 0, spread: "single" }, // overhead slam at the target
-    palette: { core: 0xd2a86a, hot: 0xffe6b0, deep: 0x7a5230 },
-    appearance:
-      "An overhead slam drives a heavy dust shock outward; jagged stone shards erupt " +
-      "from the ground in a ring and a brown debris cloud billows up. Earthy, weighty, screen-shaking.",
-  },
   "execute-slash": {
     signature: "guillotine",
     delivery: "skyfall",
@@ -213,15 +204,6 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
     appearance:
       "A blinding pure-white slash with no colour to it — a stark flash, golden filament " +
       "lines converging to a single point, and one crisp expanding ring. Absolute, flawless, white-gold.",
-  },
-  "void-palm": {
-    signature: "void-rift",
-    delivery: "beam",
-    motif: { kind: "none", count: 0, spread: "single" }, // a palm strike + reality tear
-    palette: { core: 0x2a0a40, hot: 0xd8a8ff, deep: 0x000000 },
-    appearance:
-      "A black void-rift tears open with a glowing violet rim; cracks in space radiate outward, " +
-      "then the rift collapses to a point and snaps shut in a white reality-tear flash. The most dramatic cast.",
   },
 
   // ── new spectacular spells ────────────────────────────────────────────────

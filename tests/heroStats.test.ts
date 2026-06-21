@@ -96,10 +96,10 @@ describe("resolveHeroBattleStats — items + passives + jewels add up to hero st
   });
 
   it("the equipped weapon family sets the hero's reach & is reported", () => {
-    // Unarmed → boxing (Fist) range.
+    // Unarmed → default sword reach.
     const bare = resolveHeroBattleStats(createFreshSave(), BASE);
     expect(bare.weaponType).toBeNull();
-    expect(bare.stats.range).toBeCloseTo(WEAPON_RANGE.Fist, 5);
+    expect(bare.stats.range).toBeCloseTo(WEAPON_RANGE.Sword, 5);
 
     // Sword → short melee reach.
     const sword = resolveHeroBattleStats(
