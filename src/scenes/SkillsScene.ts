@@ -10,6 +10,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { ACTIVE_SKILLS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { skillXpToLevel } from "../core/hero.ts";
 import { skillAtkMult } from "../core/skillDamage.ts";
+import { skillEffectiveAoe } from "../core/hero.ts";
 import { resolveHeroBattleStats } from "../core/heroStats.ts";
 import { defaultHeroStats } from "../data/stage.ts";
 import { skillWeaponMet } from "../core/loadout.ts";
@@ -259,12 +260,13 @@ export class SkillsScene extends Phaser.Scene {
       // battle: burst = ATK × mult × skillPower (mirrors battleDamage.castActive).
       const mult = skillAtkMult(def.basePower, entry.level);
       const burst = Math.round(heroAtk * mult * heroSkillPower);
+      const aoe = Math.round(skillEffectiveAoe(def.baseAoe, entry.level));
       this.layer.add(
         crispText(
           this,
           x + 10,
           fy + 14,
-          `×${mult.toFixed(1)} ATK  ·  ≈${burst} ${def.damageType}`,
+          `×${mult.toFixed(1)} ATK  ·  ≈${burst} ${def.damageType}  ·  ${aoe}px AoE`,
           { fontSize: "10px", color: DMG_HEX[def.damageType] ?? "#cdd6e6", fontStyle: "bold" },
         ),
       );

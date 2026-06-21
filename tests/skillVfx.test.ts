@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ACTIVE_SKILLS } from "../src/data/skills.ts";
+import { ACTIVE_SKILLS, ACTIVE_SKILLS_MAP } from "../src/data/skills.ts";
+import { skillEffectiveAoe } from "../src/core/hero.ts";
 import {
   SKILL_VFX,
   skillVfxSpec,
@@ -243,5 +244,23 @@ describe("hero cast plumbing", () => {
         if (fx.type === "cast" && fx.source === "hero") castType = fx.damageType;
     }
     expect(castType).toBe("True");
+  });
+
+  it("sizes the cast event radius to the skill's level-scaled AoE (VFX == hit zone)", () => {
+    const b = heroBattleCasting("arcane-nova"); // baseAoe 100, dropped at level 1
+    const def = ACTIVE_SKILLS_MAP.get("arcane-nova")!;
+    b.hero.stats.range = 400;
+    b.hero.stats.attackSpeed = 10;
+    let castRadius: number | null = null;
+    for (let t = 0; t < 160 && castRadius === null; t++) {
+      b.hero.mana = MANA_MAX;
+      b.tick(0.05);
+      for (const fx of b.fx) if (fx.type === "cast" && fx.source === "hero") castRadius = fx.radius;
+    }
+    expect(castRadius).not.toBeNull();
+    // The emitted radius is the level-1 effective AoE of arcane-nova, NOT the old
+    // hardcoded SPLASH_RADIUS (60). Both the damage loop and the VFX read this value.
+    expect(castRadius!).toBeCloseTo(skillEffectiveAoe(def.baseAoe, 1), 4);
+    expect(castRadius!).toBeGreaterThan(60);
   });
 });

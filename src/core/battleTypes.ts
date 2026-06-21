@@ -295,6 +295,8 @@ export interface HeroRuntime {
   equippedSkillId?: string;
   /** Burst multiplier on atk for the equipped active (legacy ×2 when unset). */
   activeMult?: number;
+  /** Level-scaled AoE radius of the equipped active (drives hit-test + cast VFX). */
+  activeAoe?: number;
   /** Damage type of the equipped active skill (falls back to weapon type). */
   activeDamageType?: DamageType;
   pos: Vec2;

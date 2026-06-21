@@ -364,14 +364,21 @@ export const damageMethods = {
     defenseScale?: { armor?: number; magicResist?: number; maxHp?: number },
     powerMult = 2,
     casterRarity?: Rarity,
+    /** True AoE radius. Hero casts pass their level-scaled value; when omitted we
+     *  fall back to the skill's authored baseAoe, then the legacy SPLASH_RADIUS. */
+    radius?: number,
   ): void {
+    const skillDef = skillId ? ACTIVE_SKILLS_MAP.get(skillId) : undefined;
+    // One radius drives BOTH the damage hit-test AND the cast VFX, so the spectacle
+    // always matches the zone that actually takes damage.
+    const aoe = radius ?? skillDef?.baseAoe ?? SPLASH_RADIUS;
     this.emit({
       type: "cast",
       uid,
       from: { x: from.x, y: from.y },
       at: { x: center.x, y: center.y },
       damageType,
-      radius: SPLASH_RADIUS,
+      radius: aoe,
       source,
       skillId,
       rarity: casterRarity,
@@ -391,7 +398,7 @@ export const damageMethods = {
     const ctx = this.dmgCtx(`${source}:${uid}`, "active", detail);
     for (const e of this.enemies) {
       if (!e.alive) continue;
-      if (dist(e.pos, center) <= SPLASH_RADIUS) {
+      if (dist(e.pos, center) <= aoe) {
         this.applyDamage(
           e,
           damageType,
@@ -408,7 +415,6 @@ export const damageMethods = {
     this.fireOnCast(attacker, center, burst, damageType);
 
     // Summon actives conjure temporary friendly minions around the cast center.
-    const skillDef = skillId ? ACTIVE_SKILLS_MAP.get(skillId) : undefined;
     if (skillDef?.summon) {
       const sd = SUMMON_MAP.get(skillDef.summon.defId);
       if (sd) {

@@ -189,8 +189,14 @@ export interface ActiveSkillDef {
    */
   weaponClass?: "magic" | "melee" | "ranged";
   damageType: DamageType;
-  /** Explicitly tuned per skill — NOT derived from rarity. */
+  /** Base damage scalar — explicitly tuned per skill, NOT derived from rarity.
+   *  Grows with the skill's level via `skillEffectivePower`. */
   basePower: number;
+  /** Base area-of-effect radius (px) of the cast's burst. Focused skills author a
+   *  small value (near single-target); area nukes author a wide one. Grows with the
+   *  skill's level via `skillEffectiveAoe`, and the cast VFX is sized to match it.
+   *  Absent ⇒ DEFAULT_SKILL_AOE (legacy 60). */
+  baseAoe?: number;
   /** When present, casting this skill conjures temporary friendly minions. */
   summon?: { defId: string; count?: number; lifespan?: number };
   artRef: string;

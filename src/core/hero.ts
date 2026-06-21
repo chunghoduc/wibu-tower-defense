@@ -59,6 +59,25 @@ export function skillEffectivePower(basePower: number, skillLevel: number): numb
 /** Power 100 == the legacy ×2 burst baseline (so `mult = effectivePower / 50`). */
 export const ACTIVE_POWER_ANCHOR = 50;
 
+/** Fallback AoE radius for a skill that authors no `baseAoe` (mirrors SPLASH_RADIUS). */
+export const DEFAULT_SKILL_AOE = 60;
+/**
+ * AoE growth per skill level. Gentler than the +5%/lvl damage growth because area
+ * scales with the SQUARE of the radius — at +2%/lvl a maxed skill's radius ~triples
+ * (≈9× coverage), which is a dramatic-but-not-absurd reward for levelling.
+ */
+export const ACTIVE_AOE_PER_LEVEL = 0.02;
+
+/**
+ * The skill's effective area-of-effect radius — its authored `baseAoe` (or the
+ * default) grown by the skill's level. This is the TRUE hit radius the sim uses,
+ * and the same value drives the cast VFX size so the spectacle matches the zone
+ * that actually takes damage.
+ */
+export function skillEffectiveAoe(baseAoe: number | undefined, skillLevel: number): number {
+  return (baseAoe ?? DEFAULT_SKILL_AOE) * (1 + ACTIVE_AOE_PER_LEVEL * skillLevel);
+}
+
 /**
  * Resolves the hero's *equipped* active skill into the burst it should actually
  * deal: `burst = atk × mult × skillPower`.
@@ -75,13 +94,21 @@ export function heroActiveBurst(save: HeroSave): {
   skillId?: string;
   mult: number;
   damageType?: DamageType;
+  /** The equipped active's level-scaled AoE radius (DEFAULT_SKILL_AOE when none). */
+  aoe: number;
 } {
   const skillId = save.hero.equippedSkillIds[0];
   const def = skillId ? ACTIVE_SKILLS_MAP.get(skillId) : undefined;
-  if (!def) return { skillId, mult: 2 };
+  if (!def) return { skillId, mult: 2, aoe: DEFAULT_SKILL_AOE };
   const entry = save.hero.obtainedSkills.find((e) => e.skillId === skillId);
-  const power = skillEffectivePower(def.basePower, entry?.level ?? 0);
-  return { skillId, mult: power / ACTIVE_POWER_ANCHOR, damageType: def.damageType };
+  const level = entry?.level ?? 0;
+  const power = skillEffectivePower(def.basePower, level);
+  return {
+    skillId,
+    mult: power / ACTIVE_POWER_ANCHOR,
+    damageType: def.damageType,
+    aoe: skillEffectiveAoe(def.baseAoe, level),
+  };
 }
 
 export function awardHeroXp(save: HeroSave, amount: number): void {

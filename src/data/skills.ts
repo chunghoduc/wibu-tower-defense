@@ -14,6 +14,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     description: "A sweeping heroic blow that strikes all nearby foes. Works with any weapon.",
     damageType: "Physical",
     basePower: 85,
+    baseAoe: 65,
     artRef: "placeholder",
   }),
   s({
@@ -23,6 +24,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     description: "Hurl a bolt of raw spirit energy that bursts on impact. Works with any weapon.",
     damageType: "Magic",
     basePower: 85,
+    baseAoe: 50,
     artRef: "placeholder",
   }),
   s({
@@ -33,6 +35,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     requiresWeapon: "Sword",
     damageType: "Physical",
     basePower: 80,
+    baseAoe: 70,
     artRef: "placeholder",
   }),
   s({
@@ -43,6 +46,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     requiresWeapon: "Sword",
     damageType: "Physical",
     basePower: 160,
+    baseAoe: 45,
     artRef: "placeholder",
   }),
   s({
@@ -53,6 +57,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     requiresWeapon: "Bow",
     damageType: "Physical",
     basePower: 75,
+    baseAoe: 55,
     artRef: "placeholder",
   }),
   s({
@@ -63,6 +68,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     requiresWeapon: "Bow",
     damageType: "Physical",
     basePower: 145,
+    baseAoe: 60,
     artRef: "placeholder",
   }),
   s({
@@ -73,6 +79,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 90,
+    baseAoe: 55,
     artRef: "placeholder",
   }),
   s({
@@ -83,6 +90,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 250,
+    baseAoe: 100,
     artRef: "placeholder",
   }),
   s({
@@ -93,6 +101,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     requiresWeapon: "Gun",
     damageType: "Physical",
     basePower: 100,
+    baseAoe: 35,
     artRef: "placeholder",
   }),
   s({
@@ -103,6 +112,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     requiresWeapon: "Gun",
     damageType: "Physical",
     basePower: 140,
+    baseAoe: 35,
     artRef: "placeholder",
   }),
   s({
@@ -114,6 +124,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 95,
+    baseAoe: 60,
     artRef: "placeholder",
   }),
   // --- Spectacular high-VFX spells (castable with any magic weapon). ---
@@ -126,6 +137,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 300,
+    baseAoe: 110,
     artRef: "placeholder",
   }),
   s({
@@ -136,6 +148,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 230,
+    baseAoe: 90,
     artRef: "placeholder",
   }),
   s({
@@ -146,6 +159,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 240,
+    baseAoe: 95,
     artRef: "placeholder",
   }),
   s({
@@ -156,6 +170,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 300,
+    baseAoe: 70,
     artRef: "placeholder",
   }),
   s({
@@ -166,6 +181,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 280,
+    baseAoe: 100,
     artRef: "placeholder",
   }),
   // --- Summon spells — conjure temporary friendly minions (any magic weapon). ---
@@ -177,6 +193,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 70,
+    baseAoe: 45,
     summon: { defId: "flame-sprite" },
     artRef: "placeholder",
   }),
@@ -188,6 +205,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 90,
+    baseAoe: 45,
     summon: { defId: "frost-golem" },
     artRef: "placeholder",
   }),
@@ -199,6 +217,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 80,
+    baseAoe: 45,
     summon: { defId: "storm-hawk" },
     artRef: "placeholder",
   }),
@@ -209,6 +228,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     description: "A technique perfected beyond all defences — deals True damage.",
     damageType: "True",
     basePower: 200,
+    baseAoe: 40,
     artRef: "placeholder",
   }),
 ];

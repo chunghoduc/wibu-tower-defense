@@ -100,6 +100,9 @@ export function validateActiveSkill(s: ActiveSkillDef): ActiveSkillDef {
     `activeSkill ${s.id}: bad damageType`,
   );
   assert(s.basePower > 0, `activeSkill ${s.id}: basePower must be > 0`);
+  if (s.baseAoe !== undefined) {
+    assert(s.baseAoe > 0, `activeSkill ${s.id}: baseAoe must be > 0`);
+  }
   if (s.requiresWeapon !== undefined) {
     assert(
       (WEAPON_TYPES as readonly string[]).includes(s.requiresWeapon),

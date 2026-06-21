@@ -26,9 +26,11 @@ export const ACCENT: Record<SkillStyle, { hot: number; deep: number }> = {
 };
 
 export class SkillElementFx extends SkillElementPrims {
-  /** Dispatch the elemental substance layer for a keyword-derived style. */
+  /** Dispatch the elemental substance layer for a keyword-derived style.
+   *  `radius` is already the true wave radius (≤ the skill's AoE), so we do NOT
+   *  re-apply `p.scale` here — that would push the substance past the hit zone. */
   render(style: SkillStyle, at: V, color: number, radius: number, p: VfxPower = vfxPower()): void {
-    const r = radius * p.scale;
+    const r = radius;
     switch (style) {
       case "fire":
         this.fire(at, color, r, p);
@@ -62,7 +64,8 @@ export class SkillElementFx extends SkillElementPrims {
     skillId: string | undefined,
     p: VfxPower = vfxPower(),
   ): void {
-    const r = radius * p.scale;
+    // `radius` is already the wave radius — bound the burst to the true hit zone.
+    const r = radius;
     this.ring(at, r, color, 520 * p.duration);
     this.scene.time.delayedCall(90, () => this.ring(at, r * 0.6, 0xffffff, 360));
     const core = this.fac.circle(at.x, at.y, 12 * p.scale, 0xffffff, 0.95).setDepth(this.depth + 3);
@@ -87,7 +90,12 @@ export class SkillElementFx extends SkillElementPrims {
         .setDepth(this.depth + 4)
         .setScale(0.3)
         .setAlpha(0.95);
-      this.tween(spr, { scale: 1.7 * p.scale, angle: 50, alpha: 0 }, 460 * p.duration, "Cubic.easeOut");
+      this.tween(
+        spr,
+        { scale: 1.7 * p.scale, angle: 50, alpha: 0 },
+        460 * p.duration,
+        "Cubic.easeOut",
+      );
     }
   }
 

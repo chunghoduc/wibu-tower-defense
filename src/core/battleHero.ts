@@ -71,6 +71,7 @@ export const heroMethods = {
         undefined,
         h.activeMult ?? 2,
         heroPowerRarity(this._heroSave?.hero.level ?? 1),
+        h.activeAoe,
       );
       h.mana = 0;
       // Skill leveling (spec: +1 use-XP per cast, capped at the hero's level).
@@ -82,7 +83,11 @@ export const heroMethods = {
         // A level-up earned mid-battle must hit harder on the NEXT cast THIS
         // battle, not only next battle — re-resolve the frozen burst multiplier
         // from the live save so the leveling actually couples to the damage.
-        h.activeMult = heroActiveBurst(this._heroSave).mult;
+        // The same re-resolve grows the AoE so a mid-battle level-up widens the
+        // very next cast (and its VFX) this battle, not only next battle.
+        const burst = heroActiveBurst(this._heroSave);
+        h.activeMult = burst.mult;
+        h.activeAoe = burst.aoe;
       }
     }
     h.attackCd = 1 / heroAs;

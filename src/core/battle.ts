@@ -63,7 +63,8 @@ export * from "./battleTypes.ts";
 
 /** The simulation methods split into sibling modules are merged in below. */
 export interface BattleState
-  extends WaveMethods,
+  extends
+    WaveMethods,
     EnemyMethods,
     TowerMethods,
     DamageMethods,
@@ -219,6 +220,7 @@ export class BattleState {
         weaponType,
         equippedSkillId: active.skillId,
         activeMult: active.mult,
+        activeAoe: active.aoe,
         activeDamageType: active.damageType,
         pos: { ...opts.hero.startPos },
         moveTarget: { ...opts.hero.startPos },

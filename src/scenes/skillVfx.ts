@@ -63,17 +63,30 @@ export class SkillVfx {
       // fires something (tri-shot → 3 arrows), else the choreographed delivery
       // (melee sweep / sky-fall / ground-erupt / beam) — then the bespoke impact
       // set-piece on arrival. baseBurst carries the icon emblem.
-      const onArrive = () =>
+      const onArrive = () => {
+        // A crisp ground ring at EXACTLY the true AoE radius — the unambiguous
+        // "this is the hit zone" marker, independent of the particle flourish.
+        draw.ring(at, radius, spec.palette.core, 560, 2.5, 0.6);
         this.replayWaves(draw, power, radius, (wr, first, last) => {
           if (first) this.elements.baseBurst(at, spec.palette.core, wr, skillId, power);
           renderSignature(this.scene, this.fac, this.depth, at, spec, wr, this.pool, power);
           if (last && power.grand) draw.grand(at, spec.palette.core, spec.palette.hot, radius);
         });
+      };
       if (motif.kind !== "none") {
         const shots = planVolley(from, at, motif);
-        renderVolley(this.scene, this.fac, this.depth, this.pool, motif.kind, shots, spec.palette, onArrive);
+        renderVolley(
+          this.scene,
+          this.fac,
+          this.depth,
+          this.pool,
+          motif.kind,
+          shots,
+          spec.palette,
+          onArrive,
+        );
       } else {
-        renderDelivery(draw, spec.delivery, from, at, spec.palette, radius * power.scale, onArrive);
+        renderDelivery(draw, spec.delivery, from, at, spec.palette, radius, onArrive);
       }
       return;
     }
@@ -85,6 +98,8 @@ export class SkillVfx {
     const palette = { core: color, hot: accent.hot, deep: accent.deep };
     const shape = skillShapeFor(skillId);
     const onArrive = () => {
+      // Crisp AoE boundary ring at the true hit radius (matches the damage zone).
+      draw.ring(at, radius, color, 560, 2.5, 0.6);
       this.replayWaves(draw, power, radius, (wr, first, last) => {
         if (first) this.elements.baseBurst(at, color, wr, skillId, power);
         renderTowerShape(draw, shape, at, palette, wr, power); // structural motion (under particles)
@@ -101,25 +116,42 @@ export class SkillVfx {
     if (motif.kind !== "none") {
       // Projectile shapes (barrage/bolt/chain/beam) fire literal shots from the source.
       const shots = planVolley(from, at, motif);
-      renderVolley(this.scene, this.fac, this.depth, this.pool, motif.kind, shots, palette, onArrive);
+      renderVolley(
+        this.scene,
+        this.fac,
+        this.depth,
+        this.pool,
+        motif.kind,
+        shots,
+        palette,
+        onArrive,
+      );
     } else {
       // Area shapes (nova/slam/cloud/aura) erupt at the target — no projectile.
-      renderDelivery(draw, deliveryForShape(shape), from, at, palette, radius * power.scale, onArrive);
+      renderDelivery(draw, deliveryForShape(shape), from, at, palette, radius, onArrive);
     }
   }
 
   /** Replay the impact set-piece `power.waves` times, each wave staggered and
    *  growing outward — the "many frames" cascade that makes a Legendary cast read
-   *  as far weightier than a Common one. `draw` provides the delayed-call timer. */
+   *  as far weightier than a Common one. `draw` provides the delayed-call timer.
+   *
+   *  Crucially, the cascade grows INTO the true AoE: the OUTERMOST wave lands
+   *  exactly on `radius` (the real hit edge), with earlier waves nested inside it.
+   *  Rarity (`power`) still adds more waves / denser particles / a grand flourish,
+   *  but never paints a footprint wider than the zone that actually takes damage. */
   private replayWaves(
     draw: VfxDraw,
     power: VfxPower,
     radius: number,
     wave: (waveRadius: number, isFirst: boolean, isLast: boolean) => void,
   ): void {
-    for (let i = 0; i < power.waves; i++) {
-      const wr = radius * power.scale * (1 + i * 0.18);
-      const fire = () => wave(wr, i === 0, i === power.waves - 1);
+    const n = power.waves;
+    for (let i = 0; i < n; i++) {
+      // i=0 → innermost (0.62·r), i=n-1 → exactly r. Single-wave casts fill to r.
+      const t = n === 1 ? 1 : 0.62 + 0.38 * (i / (n - 1));
+      const wr = radius * t;
+      const fire = () => wave(wr, i === 0, i === n - 1);
       if (i === 0) fire();
       else draw.after(i * WAVE_STAGGER_MS, fire);
     }
