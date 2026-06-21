@@ -18,6 +18,7 @@ import {
   heroBattleStyle,
   HERO_BATTLE_NEGATIVE,
   HERO_ANIM_POSES,
+  heroAnimPoses,
   heroAnimStyle,
   HERO_WING,
   WING_POSE,
@@ -194,8 +195,8 @@ function buildJobs() {
   // Keys/files: heroanim__<wt>__<state>_<i>.
   for (const [wt, desc] of Object.entries(HERO_BATTLE)) {
     const sd = seedOf(`herobattle-${wt}`);
-    for (const [state, poses] of Object.entries(HERO_ANIM_POSES)) {
-      poses.forEach((pose, i) => {
+    for (const state of Object.keys(HERO_ANIM_POSES)) {
+      heroAnimPoses(wt, state).forEach((pose, i) => {
         jobs.push({
           kind: "heroanim",
           id: `${wt}__${state}_${i}`,
@@ -413,9 +414,16 @@ function buildJobs() {
 async function main() {
   const slot = arg("slot"); // worn batches: filter by item slot (e.g. BodyArmor)
   const limit = arg("limit"); // cap the batch size (smoke tests)
+  const heroArch = arg("hero-arch"); // regen only one battle-hero archetype's frames
   let jobs = buildJobs();
   if (only) jobs = jobs.filter((j) => j.kind === only);
   if (slot) jobs = jobs.filter((j) => j.slot === slot);
+  if (heroArch)
+    jobs = jobs.filter(
+      (j) =>
+        (j.kind === "herobattle" || j.kind === "heroanim") &&
+        (j.id === heroArch || j.id.startsWith(`${heroArch}__`)),
+    );
   if (sample) {
     const pick = ["karu-sunfist", "zoran-thricedraw", "garan-sandshackle", "yuki-frostward-maiden"];
     jobs = jobs.filter(

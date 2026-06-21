@@ -153,7 +153,7 @@ export const HERO_WEAPON = {
 // chrome the rest of the roster uses, because the hero is the on-screen star.
 export const HERO_BATTLE = {
   sword:
-    "a heroic armored knight champion with short tousled brown hair and a determined gaze, clad in gleaming ornately-engraved silver plate armour with gold filigree trim and a tattered flowing royal-blue cape, gripping a single huge intact full-length straight broadsword whose long unbroken blade glows with radiant blue light from crossguard to pointed tip, the entire blade always fully visible and complete, a battered round kite shield bearing a golden crest on the other arm, faint embers and dust motes drifting in the air",
+    "a heroic armored knight champion with short tousled brown hair and a determined gaze, clad in gleaming ornately-engraved silver plate armour with gold filigree trim and a tattered flowing royal-blue cape, his right fist firmly clamped around the leather-wrapped hilt of a single intact straight knightly longsword of believable arm-length proportion — the blade never oversized, never longer than his own body, never let go of, never floating free of the hand — its one unbroken blade glowing with a steady even radiant blue light from crossguard to pointed tip, the whole blade always fully visible, a battered round kite shield bearing a golden crest strapped to the other arm, faint embers and dust motes drifting in the air",
   bow: "a swift elven ranger hero with sharp focused eyes, a deep-green fur-trimmed hooded cloak over layered weathered leather armour, a quiver of fletched arrows across the back, drawing a tall ornately-carved longbow to full draw with a crackling arrow of golden light nocked, wind-blown cloak and hair",
   staff:
     "a venerable archmage hero with a long flowing silver beard and wise eyes, in deep-blue star-embroidered robes with intricate runic trim and a wide pointed wizard hat, raising a gnarled ancient wooden staff crowned by a brilliant floating arcane crystal shedding magical light, glowing sigils swirling around him",
@@ -172,7 +172,7 @@ const HERO_BATTLE_STYLE =
   "single full-body anime key-visual splash art of {V}, {P}, highly detailed semi-realistic rendering, intricate ornate detail, dramatic cinematic rim lighting with volumetric glow and god rays, rich painterly shading with crisp clean edges, vibrant saturated color, beautiful, masterpiece, full body visible head to toe, centered, isolated on a pure plain flat white background, empty background";
 export const HERO_BATTLE_NEGATIVE =
   NEG +
-  ", flat shading, dull washed-out colors, plain, simplistic, low detail, sketch, lineart only, unfinished, chibi, photo, photorealistic, 3d render, broken sword, snapped blade, bladeless hilt, missing blade, sword without a blade, hilt only, floating hilt, severed blade, two swords, duplicate weapon, extra weapon";
+  ", flat shading, dull washed-out colors, plain, simplistic, low detail, sketch, lineart only, unfinished, chibi, photo, photorealistic, 3d render, broken sword, snapped blade, bladeless hilt, missing blade, sword without a blade, hilt only, floating hilt, floating weapon, weapon detached from hand, sword not held, dropped weapon, severed blade, two swords, duplicate weapon, extra weapon, oversized weapon, gigantic sword, sword longer than the body, weapon bigger than the character, hands clasped in prayer";
 
 /** Build the battle-hero prompt for a weapon descriptor + a POSE phrase. */
 export function heroBattleStyle(visual, pose) {
@@ -218,6 +218,30 @@ export const HERO_ANIM_POSES = {
     "the spell follow-through, streams of spent magical energy trailing outward, body braced and leaning back from the recoil of the release",
   ],
 };
+
+// Per-archetype POSE OVERRIDES. The generic HERO_ANIM_POSES read as an
+// empty-handed spellcaster (both hands gather energy, arms thrust forward) — that
+// is correct for staff/tome/fist but NONSENSE for the sword knight, who has a
+// sword in one fist and a shield on the other arm: the model resolves the conflict
+// by dropping the sword to float point-down while the hands clasp in prayer. The
+// sword's "cast" is instead a MAGIC-SWORD channel — the glowing blade stays gripped
+// the whole time and the magic flows THROUGH it. Lookup: OVERRIDES[wt]?.[state] ??
+// HERO_ANIM_POSES[state].
+export const HERO_ANIM_POSE_OVERRIDES = {
+  sword: {
+    cast: [
+      "beginning to channel, raising the glowing longsword upright before the face in the firm sword hand, the shield arm braced across the chest, blue light gathering and intensifying along the held blade, head lowered in focus",
+      "channelling at full charge, the glowing longsword thrust high overhead and gripped firm in the sword hand, brilliant blue magical energy spiralling up the whole held blade in a bright swirling aura, shield raised",
+      "the release at apex, sweeping the blazing held longsword down and forward in a powerful arc, a burst of radiant blue magic exploding outward from the blade tip, explosive dynamic motion, the hilt never leaving the fist",
+      "the follow-through, the glowing blade swept low across the body after the strike and still firmly in hand, streams of spent blue magic trailing off the edge, body braced and leaning back from the recoil",
+    ],
+  },
+};
+
+/** Pose list for an archetype + state, with per-archetype overrides. */
+export function heroAnimPoses(wt, state) {
+  return HERO_ANIM_POSE_OVERRIDES[wt]?.[state] ?? HERO_ANIM_POSES[state];
+}
 
 /** Build a battle-hero animation-frame prompt for a weapon descriptor + pose phrase. */
 export function heroAnimStyle(visual, pose) {
