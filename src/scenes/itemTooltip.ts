@@ -66,9 +66,50 @@ export function renderItemTooltip(
     sectionH = 16;
   const footerH = inst.apex ? 42 : 24;
   // Unique Power: the signature line that sets a Unique apart from a Legendary.
-  const power = uniquePowerLine(def);
+  // Resolve per-instance (inst.id) so the tooltip matches the power/behaviour this
+  // exact copy grants in battle (procedural Uniques vary per copy).
+  const power = uniquePowerLine(def, inst.id);
   const trigger = uniqueTriggerLine(def, inst.id);
-  const powerH = (power ? 40 : 0) + (trigger ? 32 : 0);
+  const wrapW = w - padX * 2;
+  // Pre-build the Unique-Power text objects so the block's height is MEASURED from
+  // the real wrapped line counts — fixed offsets used to overlap when a power
+  // description or trigger sentence wrapped to two lines. divGap/nameGap/etc are
+  // the vertical paddings between the divider, name, description and trigger rows.
+  const divGap = 7,
+    nameGap = 4,
+    descGap = 5,
+    powerBottomPad = 6;
+  let powerName: Phaser.GameObjects.Text | null = null;
+  let powerDesc: Phaser.GameObjects.Text | null = null;
+  let triggerText: Phaser.GameObjects.Text | null = null;
+  let powerH = 0;
+  if (power) {
+    powerName = panelText(scene, 0, 0, `◆ ${power.name}`, {
+      fontSize: "11px",
+      color: UNIQUE_POWER_COLOR,
+      fontStyle: "bold",
+    });
+    powerDesc = panelText(scene, 0, 0, power.desc, {
+      fontSize: "10px",
+      color: "#ffe6a8",
+      wordWrap: { width: wrapW },
+    });
+    if (trigger) {
+      triggerText = panelText(scene, 0, 0, trigger, {
+        fontSize: "10px",
+        color: "#8ad7ff",
+        fontStyle: "bold",
+        wordWrap: { width: wrapW },
+      });
+    }
+    powerH =
+      divGap +
+      powerName.height +
+      nameGap +
+      powerDesc.height +
+      (triggerText ? descGap + triggerText.height : 0) +
+      powerBottomPad;
+  }
   const bodyH = groups.reduce((sum, grp) => sum + sectionH + grp.rows.length * rowH, 0);
   const h = headerH + bodyH + powerH + footerH;
   const tx = Phaser.Math.Clamp(x + 30, 0, scene.scale.width - w);
@@ -163,34 +204,21 @@ export function renderItemTooltip(
   }
 
   // Unique Power block: a gold-divided, gold-tinted signature line that no
-  // Legendary can ever show — the whole point of the item's rarity.
-  if (power) {
+  // Legendary can ever show — the whole point of the item's rarity. The text
+  // objects were pre-built (and measured) above; here we just place them so the
+  // gold passive Power and the cyan triggered BEHAVIOUR stack without overlap.
+  if (power && powerName && powerDesc) {
     g.lineStyle(1, 0xffd24a, 0.5).lineBetween(tx + padX, ry + 2, tx + w - padX, ry + 2);
-    c.add(
-      panelText(scene, tx + padX, ry + 7, `◆ ${power.name}`, {
-        fontSize: "11px",
-        color: UNIQUE_POWER_COLOR,
-        fontStyle: "bold",
-      }),
-    );
-    c.add(
-      panelText(scene, tx + padX, ry + 22, power.desc, {
-        fontSize: "10px",
-        color: "#ffe6a8",
-        wordWrap: { width: w - padX * 2 },
-      }),
-    );
-    // The triggered combat behaviour (on-hit/kill/hurt/cast), in a cyan accent so
-    // it reads as the "active" half distinct from the gold passive Power.
-    if (trigger) {
-      c.add(
-        panelText(scene, tx + padX, ry + 40, trigger, {
-          fontSize: "10px",
-          color: "#8ad7ff",
-          fontStyle: "bold",
-          wordWrap: { width: w - padX * 2 },
-        }),
-      );
+    let py = ry + divGap;
+    powerName.setPosition(tx + padX, py);
+    c.add(powerName);
+    py += powerName.height + nameGap;
+    powerDesc.setPosition(tx + padX, py);
+    c.add(powerDesc);
+    py += powerDesc.height + descGap;
+    if (triggerText) {
+      triggerText.setPosition(tx + padX, py);
+      c.add(triggerText);
     }
     ry += powerH;
   }

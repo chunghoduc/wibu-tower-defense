@@ -201,9 +201,17 @@ export const UNIQUE_POWER_COLOR = "#ffd24a";
  * The Unique Power line for an item's tooltip, or null for non-Unique items.
  * Static-context (`uniqueCount: 1`) describe — the count-scaled wording in
  * battle reads from the live loadout; the tooltip shows the per-item baseline.
+ *
+ * Procedural Uniques roll their power PER INSTANCE (seeded by the copy's id, the
+ * same way the battle stat pipeline resolves it in uniquePowerStats.ts), so pass
+ * the instance id to show the power THIS copy actually grants — without it the
+ * tooltip would advertise a different power than the equipped item provides.
  */
-export function uniquePowerLine(def: ItemDef): { name: string; desc: string } | null {
-  const power = uniquePowerFor(def);
+export function uniquePowerLine(
+  def: ItemDef,
+  instanceId?: string,
+): { name: string; desc: string } | null {
+  const power = uniquePowerFor(def, instanceId);
   if (!power) return null;
   return { name: power.name, desc: power.describe({ uniqueCount: 1 }) };
 }
