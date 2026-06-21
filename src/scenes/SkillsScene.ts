@@ -8,7 +8,10 @@ import Phaser from "phaser";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { ACTIVE_SKILLS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
-import { skillXpToLevel, skillEffectivePower } from "../core/hero.ts";
+import { skillXpToLevel } from "../core/hero.ts";
+import { skillAtkMult } from "../core/skillDamage.ts";
+import { resolveHeroBattleStats } from "../core/heroStats.ts";
+import { defaultHeroStats } from "../data/stage.ts";
 import { skillWeaponMet } from "../core/loadout.ts";
 import type { ActiveSkillDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
@@ -113,6 +116,11 @@ export class SkillsScene extends Phaser.Scene {
     this.layer.removeAll(true);
     const save = this.mgr.getSave();
     const byId = new Map(save.hero.obtainedSkills.map((e) => [e.skillId, e]));
+    // Resolve the hero's live ATK + skillPower ONCE — the same values the battle
+    // cast uses — so every card's shown burst equals its in-battle damage.
+    const hero = resolveHeroBattleStats(save, defaultHeroStats()).stats;
+    const heroAtk = hero.atk;
+    const heroSkillPower = Math.max(1, hero.skillPower);
     const visibleRows = Math.max(1, Math.floor((BOTTOM - Y0) / ROW_H));
     this.offset = Phaser.Math.Clamp(this.offset, 0, this.maxOffset);
     // Only build the rows currently in view (windowed) so the grid can scroll.
@@ -123,7 +131,15 @@ export class SkillsScene extends Phaser.Scene {
         const def = ACTIVE_SKILLS[i];
         const x = X0 + c * (CW + GAP_X);
         const y = Y0 + r * ROW_H;
-        this.drawCard(def, x, y, byId.get(def.id), save.hero.equippedSkillIds.includes(def.id));
+        this.drawCard(
+          def,
+          x,
+          y,
+          byId.get(def.id),
+          save.hero.equippedSkillIds.includes(def.id),
+          heroAtk,
+          heroSkillPower,
+        );
       }
     }
     drawScrollbar(this, this.layer, {
@@ -142,6 +158,8 @@ export class SkillsScene extends Phaser.Scene {
     y: number,
     entry: { level: number; useXp: number } | undefined,
     equipped: boolean,
+    heroAtk: number,
+    heroSkillPower: number,
   ): void {
     const owned = entry !== undefined;
     const g = this.add.graphics();
@@ -237,13 +255,17 @@ export class SkillsScene extends Phaser.Scene {
           color: "#9fb0c4",
         }),
       );
+      // Damage multiplication + the EXACT pre-mitigation hit this skill lands in
+      // battle: burst = ATK × mult × skillPower (mirrors battleDamage.castActive).
+      const mult = skillAtkMult(def.basePower, entry.level);
+      const burst = Math.round(heroAtk * mult * heroSkillPower);
       this.layer.add(
         crispText(
           this,
           x + 10,
           fy + 14,
-          `Power ${Math.round(skillEffectivePower(def.basePower, entry.level))}`,
-          { fontSize: "10px", color: "#cdd6e6" },
+          `×${mult.toFixed(1)} ATK  ·  ≈${burst} ${def.damageType}`,
+          { fontSize: "10px", color: DMG_HEX[def.damageType] ?? "#cdd6e6", fontStyle: "bold" },
         ),
       );
 
