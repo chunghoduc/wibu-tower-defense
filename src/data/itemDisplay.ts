@@ -207,6 +207,15 @@ export function uniquePowerLine(def: ItemDef): { name: string; desc: string } | 
   return { name: power.name, desc: power.describe({ uniqueCount: 1 }) };
 }
 
+/**
+ * The triggered-effect (combat BEHAVIOUR) line for a Unique item, or null when
+ * the item has no trigger. Shown beneath the Unique Power as a "⚡ …" row.
+ */
+export function uniqueTriggerLine(def: ItemDef): string | null {
+  const trig = uniquePowerFor(def)?.trigger;
+  return trig ? `⚡ ${trig.describe()}` : null;
+}
+
 export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[] {
   const rows: ItemStatRow[] = [];
   // Match rollItem's scaling so the quality baseline is fair: base stats scale

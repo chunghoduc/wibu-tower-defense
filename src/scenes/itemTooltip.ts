@@ -10,6 +10,7 @@ import { panelText } from "./ui.ts";
 import {
   itemStatRows,
   uniquePowerLine,
+  uniqueTriggerLine,
   UNIQUE_POWER_COLOR,
   SOURCE_COLOR,
   QUALITY_COLOR,
@@ -66,7 +67,8 @@ export function renderItemTooltip(
   const footerH = inst.apex ? 42 : 24;
   // Unique Power: the signature line that sets a Unique apart from a Legendary.
   const power = uniquePowerLine(def);
-  const powerH = power ? 40 : 0;
+  const trigger = uniqueTriggerLine(def);
+  const powerH = (power ? 40 : 0) + (trigger ? 32 : 0);
   const bodyH = groups.reduce((sum, grp) => sum + sectionH + grp.rows.length * rowH, 0);
   const h = headerH + bodyH + powerH + footerH;
   const tx = Phaser.Math.Clamp(x + 30, 0, scene.scale.width - w);
@@ -178,6 +180,18 @@ export function renderItemTooltip(
         wordWrap: { width: w - padX * 2 },
       }),
     );
+    // The triggered combat behaviour (on-hit/kill/hurt/cast), in a cyan accent so
+    // it reads as the "active" half distinct from the gold passive Power.
+    if (trigger) {
+      c.add(
+        panelText(scene, tx + padX, ry + 40, trigger, {
+          fontSize: "10px",
+          color: "#8ad7ff",
+          fontStyle: "bold",
+          wordWrap: { width: w - padX * 2 },
+        }),
+      );
+    }
     ry += powerH;
   }
 
