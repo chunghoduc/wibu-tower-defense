@@ -12,6 +12,7 @@ import { crispText } from "./ui.ts";
 import { enemyStatusTint } from "./battleSceneHelpers.ts";
 import { HeroLayeredSprite } from "./HeroLayeredSprite.ts";
 import { HeroSkeletonSprite } from "./HeroSkeletonSprite.ts";
+import { HeroWeaponSprite } from "./HeroWeaponSprite.ts";
 import { enemyWalkTransform } from "./enemyWalkTransform.ts";
 import { lerpV } from "./renderLerp.ts";
 import type { BattleScene } from "./BattleScene.ts";
@@ -30,9 +31,11 @@ import { wantsLegs, ensureLegRig, updateLegRig, restLegRig, destroyLegRig } from
 /** Duration (ms) of a tower's procedural strike-recoil punch. */
 const TOWER_STRIKE_MS = 200;
 
-// Battle hero rig selector: the procedural skeleton (gear follows each limb) vs.
-// the retained painted-sheet rig. Flip to false to instantly fall back.
-const USE_SKELETON_HERO = true;
+// Battle hero rig selector:
+//   "weapon"   — per-weapon pre-drawn art (stance/attack), wings-only overlay (CURRENT)
+//   "skeleton" — procedural bone paper-doll wearing gear icons (legacy fallback)
+//   "layered"  — painted single-sheet hero (oldest fallback)
+const HERO_RENDER = "weapon" as "weapon" | "skeleton" | "layered";
 
 export const spritesMethods = {
   /** Interpolated draw position for an enemy (fixed-step sim, smooth display). */
@@ -569,12 +572,16 @@ export const spritesMethods = {
     const h = this.battle.hero;
     if (h.alive && hasSprite(this, "hero__hero")) {
       if (!this.heroSprite) {
-        const hs: HeroLayeredSprite | HeroSkeletonSprite = USE_SKELETON_HERO
-          ? new HeroSkeletonSprite(this, h.pos.x, h.pos.y)
-          : new HeroLayeredSprite(this, h.pos.x, h.pos.y);
+        const hs: HeroLayeredSprite | HeroSkeletonSprite | HeroWeaponSprite =
+          HERO_RENDER === "weapon"
+            ? new HeroWeaponSprite(this, h.pos.x, h.pos.y)
+            : HERO_RENDER === "skeleton"
+              ? new HeroSkeletonSprite(this, h.pos.x, h.pos.y)
+              : new HeroLayeredSprite(this, h.pos.x, h.pos.y);
         hs.scaleToHeight(54).setDepth(DEPTH.HERO);
         hs.addToWorld(this.world);
-        if (!USE_SKELETON_HERO && this.anims.exists("hero__hero_idle")) hs.play("hero__hero_idle");
+        if (HERO_RENDER === "layered" && this.anims.exists("hero__hero_idle"))
+          hs.play("hero__hero_idle");
         if (this.saveManager) hs.syncEquipment(this.saveManager.getSave().inventory);
         this.heroSprite = hs;
       }

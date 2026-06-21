@@ -1,0 +1,283 @@
+// src/scenes/HeroWeaponSprite.ts
+//
+// Per-weapon battle hero. Drop-in replacement for HeroSkeletonSprite, but instead
+// of a procedural-bone paper-doll wearing mismatched gear icons, the hero is ONE
+// pre-drawn sprite chosen by the equipped weapon's class (heroWeaponArt). Two poses
+// exist per weapon — a combat stance and an attack money-shot — and all motion
+// (walk bob, attack lunge, hurt flinch, cast rise) is procedural (heroWeaponMotion),
+// the same way enemies/towers animate a single static sprite. Wings + pet stay as
+// overlays; no other worn gear is drawn on the battle hero.
+
+import Phaser from "phaser";
+import { resolveHeroLayers, type HeroLayerConfig } from "./heroEquipVisuals.ts";
+import type { InventorySave } from "../core/save.ts";
+import { weaponArtKeys } from "../data/heroWeaponArt.ts";
+import { heroWeaponMotion, type WeaponMotionState } from "../data/heroWeaponMotion.ts";
+
+type OneShotKind = "attack" | "cast" | "hurt";
+const PRIO: Record<OneShotKind, number> = { attack: 1, cast: 2, hurt: 3 };
+const ONESHOT_MS: Record<OneShotKind, number> = { attack: 300, cast: 460, hurt: 260 };
+const NORMAL_TINT = 0xffffff;
+
+export class HeroWeaponSprite extends Phaser.GameObjects.Container {
+  private readonly bodySprite: Phaser.GameObjects.Sprite;
+  private readonly wingsSprite: Phaser.GameObjects.Sprite;
+  readonly petSprite: Phaser.GameObjects.Sprite;
+
+  private size = 54;
+  private facingLeft = false;
+  private hasWings = false;
+  private stanceKey: string | null = null;
+  private attackKey: string | null = null;
+  private showingAttackPose = false;
+
+  private walkPhase = 0;
+  private oneShot: { kind: OneShotKind; start: number } | null = null;
+  private lastNow = 0;
+
+  private heroX = 0;
+  private heroY = 0;
+  private petX = 0;
+  private petY = 0;
+  private petTX = 0;
+  private petTY = 0;
+  private petRepickAt = 0;
+  private petReady = false;
+
+  private _lastConfig: HeroLayerConfig | null = null;
+  private flapTween: Phaser.Tweens.Tween | null = null;
+
+  constructor(scene: Phaser.Scene, x: number, y: number) {
+    super(scene, x, y);
+    this.heroX = x;
+    this.heroY = y;
+    this.wingsSprite = scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.5);
+    // Body anchored near the feet so the hero stands on the world position.
+    this.bodySprite = scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.66);
+    this.add([this.wingsSprite, this.bodySprite]);
+    this.petSprite = scene.add
+      .sprite(x + 30, y + 8, "__missing")
+      .setVisible(false)
+      .setScale(0.32);
+    scene.add.existing(this);
+  }
+
+  addToWorld(world: Phaser.GameObjects.Container | Phaser.GameObjects.Layer): void {
+    world.add(this as unknown as Phaser.GameObjects.GameObject);
+    world.add(this.petSprite);
+  }
+
+  // Kept for API parity (the painted rig played a sheet anim here); no-op here.
+  play(_animKey: string, _ignoreIfPlaying = false): this {
+    return this;
+  }
+
+  scaleToHeight(targetPx: number): this {
+    this.size = targetPx;
+    this.sizeBody();
+    this.wingsSprite.setScale((targetPx / 96) * 1.85);
+    this.petSprite.setScale((targetPx / 128) * 0.42);
+    return this;
+  }
+
+  /** Fit the body sprite to ~1.7× the nominal size (320px art reads small at 54). */
+  private sizeBody(): void {
+    const b = this.bodySprite;
+    if (!b.height) return;
+    const h = this.size * 1.7;
+    b.setDisplaySize((h / b.height) * b.width, h);
+  }
+
+  tick(now: number, moving: boolean, facingLeft?: boolean): void {
+    const dt = this.lastNow ? Math.min(0.05, Math.max(0, (now - this.lastNow) / 1000)) : 0;
+    this.lastNow = now;
+    if (facingLeft !== undefined) this.facingLeft = facingLeft;
+
+    let state: WeaponMotionState = "idle";
+    let phase: number;
+    if (this.oneShot) {
+      const p = (now - this.oneShot.start) / ONESHOT_MS[this.oneShot.kind];
+      if (p >= 1) this.oneShot = null;
+      else {
+        state = this.oneShot.kind;
+        phase = p;
+      }
+    }
+    if (!this.oneShot) {
+      if (moving && !this.hasWings) {
+        state = "walk";
+        this.walkPhase += dt * 1.4; // ~1.4 strides/s
+        phase = this.walkPhase % 1;
+      } else {
+        state = "idle";
+        phase = (now * 0.0009) % 1;
+      }
+    }
+
+    const side = this.facingLeft ? -1 : 1;
+    const m = heroWeaponMotion(state, phase!, this.size, side);
+
+    // Pose swap (stance ↔ attack) — only touch the texture when it changes.
+    this.setPose(m.useAttackPose);
+
+    const b = this.bodySprite;
+    let hover = 0;
+    if (this.hasWings) hover = -this.size * 0.16 + Math.sin(now * 0.005) * this.size * 0.05;
+    b.setPosition(m.dx, m.dy + hover);
+    b.setAngle(m.angle);
+    b.setFlipX(this.facingLeft);
+    b.setAlpha(m.alpha);
+    b.setTint(m.tint ?? NORMAL_TINT);
+    // Re-apply squash on top of the fitted display size.
+    if (b.height) {
+      const baseH = this.size * 1.7;
+      const baseW = (baseH / b.height) * b.width;
+      b.setDisplaySize(baseW * m.scaleX, baseH * m.scaleY);
+    }
+
+    this.wingsSprite.setPosition(0, -this.size * 0.42 + hover * 0.6);
+    this.updatePet(now, dt);
+  }
+
+  private setPose(attack: boolean): void {
+    if (attack === this.showingAttackPose) return;
+    const key = attack ? this.attackKey : this.stanceKey;
+    if (key && this.scene.textures.exists(key)) {
+      this.bodySprite.setTexture(key);
+      this.sizeBody();
+      this.showingAttackPose = attack;
+    }
+  }
+
+  playAttack(): void {
+    this.beginOneShot("attack");
+  }
+  playCast(): void {
+    this.beginOneShot("cast");
+  }
+  playHurt(): void {
+    this.beginOneShot("hurt");
+  }
+
+  private beginOneShot(kind: OneShotKind): void {
+    if (this.oneShot && PRIO[this.oneShot.kind] > PRIO[kind]) return; // outranked
+    this.oneShot = { kind, start: this.lastNow };
+  }
+
+  getBodySprite(): Phaser.GameObjects.Sprite {
+    return this.bodySprite;
+  }
+  get currentAnimKey(): string | null {
+    return this.oneShot?.kind ?? null;
+  }
+  get wornGearVisible(): boolean {
+    return false; // battle hero no longer wears gear (art bakes the weapon in)
+  }
+
+  override setDepth(value: number): this {
+    super.setDepth(value);
+    this.petSprite.setDepth(value - 0.5);
+    return this;
+  }
+  override setPosition(x: number, y: number): this {
+    super.setPosition(x, y);
+    this.heroX = x;
+    this.heroY = y;
+    return this;
+  }
+  override setVisible(visible: boolean): this {
+    super.setVisible(visible);
+    this.petSprite.setVisible(visible && this._lastConfig?.petKey != null);
+    return this;
+  }
+
+  syncEquipment(inventory: InventorySave): void {
+    const config = resolveHeroLayers(inventory);
+    const t = this.scene.textures;
+
+    if (!this._lastConfig || config.weaponType !== this._lastConfig.weaponType) {
+      const keys = weaponArtKeys(config.weaponType);
+      this.stanceKey = keys.stanceKey;
+      this.attackKey = t.exists(keys.attackKey) ? keys.attackKey : keys.stanceKey;
+      const show = t.exists(keys.stanceKey);
+      if (show) {
+        this.bodySprite.setTexture(keys.stanceKey).setVisible(true);
+        this.showingAttackPose = false;
+        this.sizeBody();
+      } else {
+        this.bodySprite.setVisible(false);
+      }
+    }
+
+    if (!this._lastConfig || config.wingKey !== this._lastConfig.wingKey) {
+      const show = !!config.wingKey && t.exists(config.wingKey);
+      if (show) {
+        this.wingsSprite.setTexture(config.wingKey!).setVisible(true);
+        this.startFlap();
+      } else {
+        this.wingsSprite.setVisible(false);
+        this.stopFlap();
+      }
+      this.hasWings = show;
+    }
+
+    if (!this._lastConfig || config.petKey !== this._lastConfig.petKey) {
+      if (config.petKey && t.exists(config.petKey))
+        this.petSprite.setTexture(config.petKey).setVisible(true);
+      else this.petSprite.setVisible(false);
+    }
+
+    this._lastConfig = config;
+  }
+
+  private startFlap(): void {
+    this.stopFlap();
+    this.flapTween = this.scene.tweens.add({
+      targets: this.wingsSprite,
+      angle: { from: -6, to: 6 },
+      duration: 380,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+  }
+  private stopFlap(): void {
+    if (this.flapTween) {
+      this.flapTween.stop();
+      this.flapTween = null;
+    }
+    this.wingsSprite.setAngle(0);
+  }
+
+  private updatePet(now: number, dt: number): void {
+    const pet = this.petSprite;
+    if (!pet.visible) {
+      this.petReady = false;
+      return;
+    }
+    if (!this.petReady) {
+      this.petX = this.heroX + 26;
+      this.petY = this.heroY + 8;
+      this.petRepickAt = 0;
+      this.petReady = true;
+    }
+    const dx = this.petTX - this.petX,
+      dy = this.petTY - this.petY,
+      d = Math.hypot(dx, dy);
+    if (now >= this.petRepickAt || d < 8) {
+      const ang = (now % 6283) / 1000;
+      const r = 26 + (now % 30);
+      this.petTX = this.heroX + Math.cos(ang) * r;
+      this.petTY = this.heroY + Math.sin(ang) * r * 0.6;
+      this.petRepickAt = now + 700;
+    }
+    if (d > 1) {
+      const step = Math.min(d, 78 * dt);
+      this.petX += (dx / d) * step;
+      this.petY += (dy / d) * step;
+      pet.setFlipX(dx < 0);
+    }
+    const hop = d > 10 ? Math.abs(Math.sin(now * 0.018)) * 4 : 0;
+    pet.setPosition(this.petX, this.petY - hop);
+  }
+}

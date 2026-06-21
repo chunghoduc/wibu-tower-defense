@@ -14,6 +14,7 @@ import {
   BOSS_VISUAL,
   HERO_BASE,
   HERO_WEAPON,
+  HERO_BATTLE,
   STRUCTURE_VISUAL,
   STRUCTURE_STATE,
   structureStyle,
@@ -147,6 +148,31 @@ function buildJobs() {
       file: `hero__${wt}.png`,
       prompt: style(`${HERO_BASE} ${desc}, ${POSE.idle}`),
       seed: seedOf("hero"),
+      w: 768,
+      h: 1024,
+      size: 320,
+    });
+  }
+  // battle-hero per-weapon art: stance + attack, one shared seed per weapon so the
+  // two poses are the same character.
+  for (const [wt, desc] of Object.entries(HERO_BATTLE)) {
+    const sd = seedOf(`herobattle-${wt}`);
+    jobs.push({
+      kind: "herobattle",
+      id: wt,
+      file: `${wt}.png`,
+      prompt: style(`${desc}, ${POSE.idle}`),
+      seed: sd,
+      w: 768,
+      h: 1024,
+      size: 320,
+    });
+    jobs.push({
+      kind: "herobattle",
+      id: `${wt}__attack`,
+      file: `${wt}__attack.png`,
+      prompt: style(`${desc}, ${POSE.attack}`),
+      seed: sd,
       w: 768,
       h: 1024,
       size: 320,

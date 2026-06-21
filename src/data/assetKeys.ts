@@ -44,6 +44,10 @@ export const XP_TEX = "icon__xp";
 export const HERODOLL_BASE_TEX = "herodoll__base";
 /** Single-frame hero weapon-class pose (bow|fist|gun|staff) — home throne hero. */
 export const heroPoseTex = (family: string): string => `hero__${family}`;
+/** Battle-hero combat-stance art for an equipped weapon type (sword|bow|…|any). */
+export const heroBattleTex = (weapon: string): string => `herobattle__${weapon}`;
+/** Battle-hero attack-pose art (the strike money-shot) for an equipped weapon type. */
+export const heroBattleAttackTex = (weapon: string): string => `herobattle__${weapon}__attack`;
 /** Worn-on-body overlay art for a gear item (transparent, slot-framed). */
 export const wornTex = (id: string): string => `worn__${id}`;
 export const CASTLE_TEX = structureTex("castle");

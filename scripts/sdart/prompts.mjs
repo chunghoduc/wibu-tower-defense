@@ -142,6 +142,22 @@ export const HERO_WEAPON = {
   fist: "no weapon, bare armored fists raised in a boxing stance, gauntlets glowing with energy",
 };
 
+// ---- BATTLE HERO weapon-class art (the in-battle hero, one archetype per
+// WeaponType). Each is generated in two poses sharing one seed (stance + attack)
+// so the strike reads as the same character. No worn gear — the weapon is baked in;
+// only wings overlay at runtime. Keys: herobattle__<wt> / herobattle__<wt>__attack.
+export const HERO_BATTLE = {
+  sword:
+    "a heroic armored knight champion with short brown hair, gleaming silver plate armor with gold trim and a flowing blue cape, wielding a large glowing broadsword in one hand and a round kite shield in the other",
+  bow: "a nimble ranger hero with a green hood and leather travel armor, a quiver of arrows on the back, drawing a tall ornate longbow with a glowing nocked arrow",
+  staff:
+    "a powerful wizard hero with a wide-brimmed pointed hat and long star-patterned blue robes, a long silver beard, raising a tall wooden staff topped with a radiant glowing crystal",
+  gun: "a dashing steampunk gunslinger hero in a long brown leather coat and goggles, brass-and-wood armor plating, brandishing a large ornate hand cannon firearm wreathed in muzzle sparks",
+  tome: "a scholarly warlock hero in a high-collared dark violet coat with golden arcane runes, a floating open spellbook (tome) orbited by glowing magic glyphs, one hand raised channelling purple energy",
+  fist: "a fierce monk martial-artist hero with a bare muscular torso, a red sash and bandaged forearms, glowing golden energy aura around both clenched fists, dynamic kung-fu stance",
+  any: "a versatile adventurer hero with short brown hair, practical leather-and-steel travel armor and a blue tabard, holding a sturdy steel arming sword in a ready guard",
+};
+
 // ---- ENEMIES ----
 export const ENEMY_VISUAL = {
   grunt:
