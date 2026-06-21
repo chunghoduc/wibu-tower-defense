@@ -153,7 +153,7 @@ export const HERO_WEAPON = {
 // chrome the rest of the roster uses, because the hero is the on-screen star.
 export const HERO_BATTLE = {
   sword:
-    "a heroic armored knight champion with short tousled brown hair and a determined gaze, clad in gleaming ornately-engraved silver plate armour with gold filigree trim and a tattered flowing royal-blue cape, raising a massive broadsword glowing with radiant blue light along the fuller, a battered round kite shield bearing a golden crest, faint embers and dust motes drifting in the air",
+    "a heroic armored knight champion with short tousled brown hair and a determined gaze, clad in gleaming ornately-engraved silver plate armour with gold filigree trim and a tattered flowing royal-blue cape, gripping a single huge intact full-length straight broadsword whose long unbroken blade glows with radiant blue light from crossguard to pointed tip, the entire blade always fully visible and complete, a battered round kite shield bearing a golden crest on the other arm, faint embers and dust motes drifting in the air",
   bow: "a swift elven ranger hero with sharp focused eyes, a deep-green fur-trimmed hooded cloak over layered weathered leather armour, a quiver of fletched arrows across the back, drawing a tall ornately-carved longbow to full draw with a crackling arrow of golden light nocked, wind-blown cloak and hair",
   staff:
     "a venerable archmage hero with a long flowing silver beard and wise eyes, in deep-blue star-embroidered robes with intricate runic trim and a wide pointed wizard hat, raising a gnarled ancient wooden staff crowned by a brilliant floating arcane crystal shedding magical light, glowing sigils swirling around him",
@@ -172,7 +172,7 @@ const HERO_BATTLE_STYLE =
   "single full-body anime key-visual splash art of {V}, {P}, highly detailed semi-realistic rendering, intricate ornate detail, dramatic cinematic rim lighting with volumetric glow and god rays, rich painterly shading with crisp clean edges, vibrant saturated color, beautiful, masterpiece, full body visible head to toe, centered, isolated on a pure plain flat white background, empty background";
 export const HERO_BATTLE_NEGATIVE =
   NEG +
-  ", flat shading, dull washed-out colors, plain, simplistic, low detail, sketch, lineart only, unfinished, chibi, photo, photorealistic, 3d render";
+  ", flat shading, dull washed-out colors, plain, simplistic, low detail, sketch, lineart only, unfinished, chibi, photo, photorealistic, 3d render, broken sword, snapped blade, bladeless hilt, missing blade, sword without a blade, hilt only, floating hilt, severed blade, two swords, duplicate weapon, extra weapon";
 
 /** Build the battle-hero prompt for a weapon descriptor + a POSE phrase. */
 export function heroBattleStyle(visual, pose) {
