@@ -44,6 +44,29 @@ describe("triggered-effect catalog", () => {
     expect(TRIGGERED_EFFECTS.timewarp.seconds).toBeGreaterThan(0);
   });
 
+  it("ATK-scaling damage effects state their damage as an explicit ×N ATK multiplier", () => {
+    // Every effect that deals damage as a fraction of the source's attack must
+    // surface that scaling as a `×N ATK` multiplier so the player can read the
+    // damage from the tooltip (not a bare "fires lightning" with no number).
+    const atkScaled = [
+      "venomstrike",
+      "shatterblow",
+      "deepwound",
+      "pyreburst",
+      "painnova",
+      "cinderbloom",
+    ];
+    for (const k of atkScaled) {
+      const e = TRIGGERED_EFFECTS[k];
+      expect(e.atkFrac, k).toBeGreaterThan(0);
+      expect(e.describe(), k).toContain(`×${e.atkFrac} ATK`);
+    }
+  });
+
+  it("the chain effect surfaces a per-jump ATK multiplier (no longer numberless)", () => {
+    expect(TRIGGERED_EFFECTS.stormcaller.describe()).toMatch(/×[\d.]+ ATK/);
+  });
+
   it("carries the new DEFENSIVE on-hurt kinds with the fields their handlers read", () => {
     const def = ["frostguard", "aegisthorns", "secondwind", "undying"];
     for (const k of def) {

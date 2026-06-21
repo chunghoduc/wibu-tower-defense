@@ -57,6 +57,9 @@ export interface TriggeredEffect {
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
+/** ATK-scaled damage shown as an explicit multiplier, e.g. "×0.6 ATK" — so the
+ *  player can read a damaging proc's magnitude straight off the tooltip. */
+const atkx = (v: number) => `×${v} ATK`;
 const mk = (e: Omit<TriggeredEffect, "describe">, text: string): TriggeredEffect => ({
   ...e,
   describe: () => text,
@@ -77,7 +80,8 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
   ),
   stormcaller: mk(
     { event: "onHit", chance: 0.15, kind: "chain", type: "Magic", targets: 3, falloff: 0.6 },
-    `On hit: ${pct(0.15)} chance to arc lightning through 3 nearby foes`,
+    // chain seeds at ×1 ATK then falls off ×0.6 per jump → first arc lands ×0.6.
+    `On hit: ${pct(0.15)} chance to arc lightning through 3 nearby foes for ${atkx(0.6)} each (fading per jump)`,
   ),
   permafrost: mk(
     { event: "onHit", chance: 0.12, kind: "freeze", seconds: 0.6 },
@@ -89,7 +93,7 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
   ),
   venomstrike: mk(
     { event: "onHit", chance: 0.25, kind: "poison", type: "Magic", atkFrac: 0.4, seconds: 3 },
-    `On hit: ${pct(0.25)} chance to poison for ${pct(0.4)} attack/s over 3s`,
+    `On hit: ${pct(0.25)} chance to poison for ${atkx(0.4)}/s over 3s`,
   ),
   soulrend: mk(
     { event: "onHit", chance: 0.15, kind: "heal", dmgFrac: 0.5 },
@@ -98,11 +102,11 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
   // — onCrit —
   shatterblow: mk(
     { event: "onCrit", chance: 1, kind: "blast", type: "Physical", atkFrac: 0.6, radius: 70 },
-    `On critical hit: detonate a blast for ${pct(0.6)} attack around the target`,
+    `On critical hit: detonate a blast for ${atkx(0.6)} around the target`,
   ),
   deepwound: mk(
     { event: "onCrit", chance: 1, kind: "bleed", type: "Physical", atkFrac: 0.5, seconds: 4 },
-    `On critical hit: inflict a deep wound bleeding for ${pct(0.5)} attack/s over 4s`,
+    `On critical hit: inflict a deep wound bleeding for ${atkx(0.5)}/s over 4s`,
   ),
   // — onKill —
   detonate: mk(
@@ -139,7 +143,7 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
       radius: 90,
       seconds: 3,
     },
-    `On kill: ignite nearby foes, burning them for ${pct(0.3)} attack/s over 3s`,
+    `On kill: ignite nearby foes, burning them for ${atkx(0.3)}/s over 3s`,
   ),
   // — onHurt —
   thornmail: mk(
@@ -156,7 +160,7 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
   ),
   painnova: mk(
     { event: "onHurt", chance: 1, kind: "painnova", type: "Physical", atkFrac: 0.6, radius: 80 },
-    `When struck: erupt a nova for ${pct(0.6)} attack around the hero`,
+    `When struck: erupt a nova for ${atkx(0.6)} around the hero`,
   ),
   frostguard: mk(
     { event: "onHurt", chance: 1, kind: "frostguard", slowPct: 0.4, seconds: 2, radius: 90 },
@@ -189,7 +193,7 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
       radius: 80,
       seconds: 3,
     },
-    `On cast: leave a burning field that scorches enemies for 3s`,
+    `On cast: leave a burning field that scorches enemies for ${atkx(0.3)}/s over 3s`,
   ),
   castfrost: mk(
     { event: "onCast", chance: 1, kind: "castnova", radius: 80, seconds: 0.8 },
