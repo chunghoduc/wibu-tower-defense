@@ -4,6 +4,9 @@ import {
   ccDuration,
   slowedSpeed,
   tickDots,
+  dotMaxHpDps,
+  DOT_MAXHP_FRAC,
+  DOT_BOSS_FRAC_MULT,
   type Dot,
 } from "../src/core/effects.ts";
 
@@ -36,6 +39,33 @@ describe("slowedSpeed", () => {
     expect(slowedSpeed(100, 0.4)).toBeCloseTo(60);
     expect(slowedSpeed(100, 0)).toBe(100);
     expect(slowedSpeed(100, 1)).toBe(0);
+  });
+});
+
+describe("dotMaxHpDps", () => {
+  it("burns a small fraction of the target's max HP per second", () => {
+    expect(dotMaxHpDps(1000, false)).toBeCloseTo(1000 * DOT_MAXHP_FRAC);
+  });
+
+  it("reduces the burn on bosses by the boss multiplier", () => {
+    expect(dotMaxHpDps(1000, true)).toBeCloseTo(1000 * DOT_MAXHP_FRAC * DOT_BOSS_FRAC_MULT);
+    expect(dotMaxHpDps(1000, true)).toBeLessThan(dotMaxHpDps(1000, false));
+  });
+
+  it("scales linearly with max HP so it stays relevant vs high-HP tanks", () => {
+    expect(dotMaxHpDps(8000, false)).toBeCloseTo(8 * dotMaxHpDps(1000, false));
+  });
+
+  it("accepts explicit frac/boss-mult overrides and never goes negative", () => {
+    expect(dotMaxHpDps(500, false, 0.05)).toBeCloseTo(25);
+    expect(dotMaxHpDps(-50, false)).toBe(0);
+  });
+
+  it("uses a small fraction reduced further on bosses (sane defaults)", () => {
+    expect(DOT_MAXHP_FRAC).toBeGreaterThan(0);
+    expect(DOT_MAXHP_FRAC).toBeLessThanOrEqual(0.05);
+    expect(DOT_BOSS_FRAC_MULT).toBeGreaterThan(0);
+    expect(DOT_BOSS_FRAC_MULT).toBeLessThan(1);
   });
 });
 

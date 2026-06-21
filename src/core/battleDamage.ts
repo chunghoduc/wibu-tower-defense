@@ -18,7 +18,7 @@ import {
   type DamagePacket,
 } from "./damage.ts";
 import { combatLogOn, emitDamageLog } from "./combatLog.ts";
-import { absorbWithShield, ccDuration } from "./effects.ts";
+import { absorbWithShield, ccDuration, dotMaxHpDps } from "./effects.ts";
 import { dist } from "./path.ts";
 import { ELITE_BOUNTY_MULT } from "./elite.ts";
 import { recordKill, bestiaryDamageMul } from "./bestiary.ts";
@@ -43,6 +43,7 @@ import {
   SPLASH_RADIUS,
   MANA_MAX,
   manaGainOnHit,
+  isBossEnemy,
 } from "./battleTypes.ts";
 
 export const damageMethods = {
@@ -328,8 +329,13 @@ export const damageMethods = {
     duration: number,
     attacker: Stats,
   ): void {
+    // Every burn/poison also chips a small fraction of the TARGET'S MAX HP per
+    // second (reduced on bosses) so a DoT stays meaningful against high-HP tanks
+    // where the flat attack-scaled burn is a rounding error. Folded into the flat
+    // dps here, where the sim knows the target's max HP + boss status.
+    const pctDps = dotMaxHpDps(target.stats.maxHp, isBossEnemy(target));
     target.dots.push({
-      dps,
+      dps: dps + pctDps,
       remaining: duration,
       type,
       armorPen: attacker.armorPen,

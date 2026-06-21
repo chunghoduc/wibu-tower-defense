@@ -15,6 +15,27 @@ export interface Dot {
   magicPen: number;
 }
 
+/**
+ * Burn/poison DoTs chip away a small fraction of the TARGET'S MAX HP per second
+ * on top of their flat attack-scaled damage, so a damage-over-time tower stays
+ * relevant against high-HP tanks (where a flat burn is a rounding error). Bosses
+ * take a reduced fraction — a percent-max-HP melt must never trivialise the
+ * marquee fights. Folded into the stored `dps` at application time (see addDot),
+ * since the Dot itself is a flat number and only the sim knows the target's HP.
+ */
+export const DOT_MAXHP_FRAC = 0.015; // 1.5% of the target's max HP per second
+export const DOT_BOSS_FRAC_MULT = 0.25; // bosses take a quarter of that
+
+/** Per-second burn contributed by the target's max HP (reduced on bosses). */
+export function dotMaxHpDps(
+  maxHp: number,
+  isBoss: boolean,
+  frac: number = DOT_MAXHP_FRAC,
+  bossMult: number = DOT_BOSS_FRAC_MULT,
+): number {
+  return Math.max(0, maxHp) * frac * (isBoss ? bossMult : 1);
+}
+
 /** Crowd-control duration after the target's tenacity reduces it. */
 export function ccDuration(base: number, tenacity: number): number {
   return Math.max(0, base * (1 - clamp01(tenacity)));

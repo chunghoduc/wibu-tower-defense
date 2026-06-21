@@ -14,6 +14,7 @@ import { heroSkillDamage } from "../core/skillDamage.ts";
 import { ACTIVE_SKILLS_MAP } from "./skills.ts";
 import { SUMMON_MAP } from "./summons.ts";
 import { defaultHeroStats } from "./stage.ts";
+import { DOT_MAXHP_FRAC, DOT_BOSS_FRAC_MULT } from "../core/effects.ts";
 
 const SPLASH_RADIUS = 60; // battle.ts SPLASH_RADIUS
 const ACTIVE_MULT = 2; // battle.ts castActive: burst = effAtk * 2 * skillPower
@@ -100,9 +101,13 @@ export function roleEffectDetail(def: CharacterDef, stats: Stats): string | null
         f = b?.chainFalloff ?? 0.6;
       return `Chain: hits ${tg} extra foes, ${pct(f)} retained/bounce (≈${n0(stats.atk * f)} on the 2nd).`;
     }
-    case "dot":
+    case "dot": {
       if (!b?.dot) return null;
-      return `DoT: ${n0(b.dot.dps)}/s ${b.dot.damageType ?? def.damageType} for ${b.dot.duration}s = ${Math.round(b.dot.dps * b.dot.duration)} total.`;
+      const flat = `DoT: ${n0(b.dot.dps)}/s ${b.dot.damageType ?? def.damageType} for ${b.dot.duration}s = ${Math.round(b.dot.dps * b.dot.duration)} total.`;
+      // The burn also melts a fraction of the target's max HP each second (¼ on bosses).
+      const bossPct = pct(DOT_MAXHP_FRAC * DOT_BOSS_FRAC_MULT);
+      return `${flat} Also burns ${pct(DOT_MAXHP_FRAC)} of the target's max HP/s (${bossPct} on bosses).`;
+    }
     case "debuff": {
       // Slow is the on-hit control; stun is the active skill (see activeSkillDetail).
       if (!b?.slow) return null;

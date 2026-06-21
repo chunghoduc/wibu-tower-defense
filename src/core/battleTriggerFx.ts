@@ -11,10 +11,9 @@ import type { DamageType, Stats, Vec2 } from "../data/schema.ts";
 import type { TriggeredEffect } from "../data/triggeredEffects.ts";
 import { procCoefficient } from "../data/procCoefficient.ts";
 import type { BattleState } from "./battle.ts";
-import { type EnemyRuntime, SPLASH_RADIUS } from "./battleTypes.ts";
+import { type EnemyRuntime, SPLASH_RADIUS, isBossEnemy } from "./battleTypes.ts";
 
 const TYPE = (e: TriggeredEffect): DamageType => e.type ?? "Magic";
-const isBoss = (e: EnemyRuntime): boolean => e.def.boss != null || e.def.archetype === "Boss";
 
 export const triggerMethods = {
   _rollTrigger(this: BattleState, e: TriggeredEffect): boolean {
@@ -146,7 +145,7 @@ export const triggerMethods = {
     switch (e.kind) {
       case "execute":
         if (
-          !isBoss(target) &&
+          !isBossEnemy(target) &&
           (e.hpFrac === undefined || target.hp <= target.stats.maxHp * e.hpFrac)
         ) {
           this.killEnemy(target);

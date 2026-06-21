@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeStats } from "../src/data/schema.ts";
 import { mkEnemy, mkStage, mkTower, oneWave, runFor, runUntilDone, world } from "./fixtures.ts";
+import { DOT_MAXHP_FRAC, DOT_BOSS_FRAC_MULT } from "../src/core/effects.ts";
 
 describe("support role", () => {
   it("buffs nearby towers via its aura", () => {
@@ -90,15 +91,24 @@ describe("damage-over-time scaling", () => {
       baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 100 }),
     });
 
+  // A high-HP non-boss target so the percent-max-HP burn component is large and
+  // measurable next to the attack-scaled portion.
+  const ENEMY_MAXHP = 1e7;
+
   // Place a dot tower (optionally next to an attack-buffing support aura), let it
-  // apply its burn, and read the dps actually stored on the enemy.
-  const appliedDps = (withAura: boolean): number => {
+  // apply its burn, and read BOTH the stored dps and the enemy's true runtime max
+  // HP (spawn scaling — esp. the boss path — inflates the authored base).
+  const applied = (
+    withAura: boolean,
+    maxHp = ENEMY_MAXHP,
+    archetype?: "Boss",
+  ): { dps: number; maxHp: number } => {
     const towers = withAura ? [burner(), auraTower()] : [burner()];
     const slots = [
       { x: 150, y: -30 },
       { x: 160, y: -30 },
     ];
-    const enemy = mkEnemy({ baseStats: makeStats({ maxHp: 1e7, moveSpeed: 1, atk: 0 }) });
+    const enemy = mkEnemy({ archetype, baseStats: makeStats({ maxHp, moveSpeed: 1, atk: 0 }) });
     const stage = mkStage(oneWave("grunt", 1), {
       castleHp: 1e7,
       slots,
@@ -112,16 +122,37 @@ describe("damage-over-time scaling", () => {
     if (withAura) b.placeTower("aura", 1);
     (b as unknown as { startNextWave(): void }).startNextWave(); // skip the 30s opening cadence
     runFor(b, 2);
-    return b.enemies[0]?.dots[0]?.dps ?? 0;
+    const en = b.enemies[0];
+    return { dps: en?.dots[0]?.dps ?? 0, maxHp: en?.stats.maxHp ?? 0 };
   };
 
-  it("a dot tower's burn scales with its effective attack (aura doubles the burn)", () => {
-    const base = appliedDps(false);
-    const buffed = appliedDps(true);
-    expect(base).toBeGreaterThan(0);
-    // A +100% attack aura doubles the tower's effective attack, so the burn dps
-    // it stamps onto the enemy doubles too — the dot scales with stats.
-    expect(buffed).toBeCloseTo(base * 2, 1);
+  it("a dot tower's burn scales with its effective attack (aura doubles the attack burn)", () => {
+    // Every burn also carries a flat percent-max-HP component (identical for both
+    // runs — same target HP), so the ATTACK-scaled remainder is what doubles under
+    // a +100% attack aura.
+    const base = applied(false);
+    const buffed = applied(true);
+    const floor = base.maxHp * DOT_MAXHP_FRAC;
+    expect(base.dps - floor).toBeGreaterThan(0);
+    expect(buffed.dps - floor).toBeCloseTo((base.dps - floor) * 2, 1);
+  });
+
+  it("burns a fraction of the target's max HP per second on top of the flat burn", () => {
+    // A bigger health pool ⇒ a strictly bigger stored burn, by exactly the extra
+    // percent-max-HP it adds (the attack-scaled part is unchanged).
+    const small = applied(false, 1e6);
+    const big = applied(false, 1e7);
+    expect(big.dps - small.dps).toBeCloseTo((big.maxHp - small.maxHp) * DOT_MAXHP_FRAC, 0);
+  });
+
+  it("reduces the percent-max-HP burn on bosses", () => {
+    const normal = applied(false, ENEMY_MAXHP);
+    const boss = applied(false, ENEMY_MAXHP, "Boss");
+    // Same authored attack-scaled burn, but the boss takes only a quarter of its %
+    // component. Compare each run against its OWN runtime max HP.
+    const attackBurn = (r: { dps: number; maxHp: number }, mult: number) =>
+      r.dps - r.maxHp * DOT_MAXHP_FRAC * mult;
+    expect(attackBurn(normal, 1)).toBeCloseTo(attackBurn(boss, DOT_BOSS_FRAC_MULT), 0);
   });
 });
 

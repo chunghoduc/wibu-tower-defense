@@ -243,6 +243,11 @@ export interface EnemyRuntime {
   mana: number;
 }
 
+/** A marquee boss enemy — either authored boss mechanics or the Boss archetype. */
+export function isBossEnemy(e: EnemyRuntime): boolean {
+  return e.def.boss != null || e.def.archetype === "Boss";
+}
+
 export interface TowerRuntime {
   uid: number;
   def: CharacterDef;
