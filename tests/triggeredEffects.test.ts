@@ -43,4 +43,27 @@ describe("triggered-effect catalog", () => {
     expect(TRIGGERED_EFFECTS.timewarp.slowPct).toBeGreaterThan(0);
     expect(TRIGGERED_EFFECTS.timewarp.seconds).toBeGreaterThan(0);
   });
+
+  it("carries the new DEFENSIVE on-hurt kinds with the fields their handlers read", () => {
+    const def = ["frostguard", "aegisthorns", "secondwind", "undying"];
+    for (const k of def) {
+      expect(TRIGGERED_EFFECTS[k], k).toBeDefined();
+      expect(TRIGGERED_EFFECTS[k].event, k).toBe("onHurt");
+    }
+    // frostguard = on-struck chill aura (slow magnitude + duration + radius)
+    expect(TRIGGERED_EFFECTS.frostguard.kind).toBe("frostguard");
+    expect(TRIGGERED_EFFECTS.frostguard.slowPct).toBeGreaterThan(0);
+    expect(TRIGGERED_EFFECTS.frostguard.seconds).toBeGreaterThan(0);
+    // aegisthorns = retaliate for a fraction of the hero's MAX HP
+    expect(TRIGGERED_EFFECTS.aegisthorns.kind).toBe("aegisthorns");
+    expect(TRIGGERED_EFFECTS.aegisthorns.hpFrac).toBeGreaterThan(0);
+    // secondwind = low-HP last-stand heal (heal % + a threshold)
+    expect(TRIGGERED_EFFECTS.secondwind.kind).toBe("secondwind");
+    expect(TRIGGERED_EFFECTS.secondwind.hpFrac).toBeGreaterThan(0);
+    expect(TRIGGERED_EFFECTS.secondwind.threshold).toBeGreaterThan(0);
+    expect(TRIGGERED_EFFECTS.secondwind.threshold).toBeLessThan(1);
+    // undying = cheat-death revive fraction
+    expect(TRIGGERED_EFFECTS.undying.kind).toBe("undying");
+    expect(TRIGGERED_EFFECTS.undying.hpFrac).toBeGreaterThan(0);
+  });
 });

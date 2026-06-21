@@ -161,6 +161,8 @@ export class BattleState {
   /** @internal Reentrancy guard — triggered damage must not re-proc a trigger (only
    *  the ORIGINAL attack/kill/hurt/cast does). Raised while a fire* handler runs. */
   _triggerDepth = 0;
+  /** @internal Whether the once-per-battle `undying` cheat-death has been spent. */
+  _heroUndyingUsed = false;
 
   constructor(stage: StageDef, catalogs: Catalogs, opts: BattleOptions) {
     this.stage = stage;

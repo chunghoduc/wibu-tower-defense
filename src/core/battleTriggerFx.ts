@@ -15,6 +15,10 @@ import { type EnemyRuntime, SPLASH_RADIUS, isBossEnemy } from "./battleTypes.ts"
 
 const TYPE = (e: TriggeredEffect): DamageType => e.type ?? "Magic";
 
+/** Boss reduction for max-HP-scaled thorns — a quarter, mirroring the DoT
+ *  boss-mult convention so a fat HP pool can't melt a marquee fight. */
+const AEGISTHORNS_BOSS_MULT = 0.25;
+
 export const triggerMethods = {
   _rollTrigger(this: BattleState, e: TriggeredEffect): boolean {
     return e.chance >= 1 ? true : this.rng.chance(e.chance);
@@ -101,9 +105,50 @@ export const triggerMethods = {
             TYPE(e),
             this.hero.stats,
           );
+        } else if (e.kind === "frostguard") {
+          // A retaliatory chill aura — slow EVERY foe around the hero (distinct
+          // from glaciate, which freezes only the single attacker).
+          this.forEnemiesInRadius(this.hero.pos, e.radius ?? 90, (en) =>
+            this.applySlow(en, e.slowPct ?? 0.4, e.seconds ?? 2),
+          );
+        } else if (e.kind === "aegisthorns") {
+          // Thorns that scale off the hero's MAX HP (tanking IS the damage),
+          // reduced on bosses so a fat HP pool can't melt a marquee fight.
+          const mult = isBossEnemy(attacker) ? AEGISTHORNS_BOSS_MULT : 1;
+          this.applyDamage(
+            attacker,
+            TYPE(e),
+            this.hero.stats.maxHp * (e.hpFrac ?? 0.06) * mult,
+            0,
+            0,
+            false,
+            true,
+          );
+        } else if (e.kind === "secondwind") {
+          // Last-stand heal: only when the hero is struck while already low.
+          if (this.hero.hp <= this.hero.stats.maxHp * (e.threshold ?? 0.35))
+            this.healHero(this.hero.stats.maxHp * (e.hpFrac ?? 0.12));
         }
+        // `undying` is consumed at the lethal moment (tryHeroUndying), not here.
       }
     });
+  },
+
+  /**
+   * Cheat-death intercept for the `undying` defensive trigger: when a hit would
+   * kill the hero, spend the once-per-battle guard to survive at a HP floor.
+   * Returns true if the hero was saved (caller must NOT mark them dead). Called
+   * from dealDamageToHero BEFORE the death is committed, because the hero is
+   * already at/below 0 HP and fireOnHurt only runs while alive.
+   */
+  tryHeroUndying(this: BattleState): boolean {
+    if (this._heroUndyingUsed) return false;
+    const e = this.triggers.onHurt.find((t) => t.kind === "undying");
+    if (!e) return false;
+    this._heroUndyingUsed = true;
+    this.hero.hp = Math.max(1, this.hero.stats.maxHp * (e.hpFrac ?? 0.25));
+    this.hero.alive = true;
+    return true;
   },
 
   fireOnCast(

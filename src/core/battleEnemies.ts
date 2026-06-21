@@ -322,8 +322,11 @@ export const enemyMethods = {
     const incoming = mitigatedDamage(packet, this.hero.stats);
     this.hero.hp -= incoming;
     this.logEnemyHit(attacker, "hero", packet, this.hero.stats, this.hero.hp);
-    if (this.hero.hp <= 0) this.hero.alive = false;
-    // Unique-item on-hurt triggers (thornmail reflect, riposte counter).
+    // A lethal hit: spend the once-per-battle `undying` guard if equipped, else die.
+    if (this.hero.hp <= 0) {
+      if (!this.tryHeroUndying()) this.hero.alive = false;
+    }
+    // Unique-item on-hurt triggers (thornmail reflect, riposte counter, etc.).
     else this.fireOnHurt(attacker, incoming);
   },
 

@@ -31,6 +31,10 @@ export type TriggerKind =
   | "riposte" // onHurt: hero counter-attacks the attacker
   | "glaciate" // onHurt: freeze the attacker that struck the hero
   | "painnova" // onHurt: blast enemies around the hero
+  | "frostguard" // onHurt: chill ALL nearby foes (slow aura) when struck
+  | "aegisthorns" // onHurt: retaliate for a fraction of the hero's MAX HP (less vs bosses)
+  | "secondwind" // onHurt: heal a chunk of max HP when struck below a low-HP threshold
+  | "undying" // onHurt(lethal): once per battle, survive a fatal blow at a HP floor
   | "echo" // onCast: re-apply the burst once
   | "cinder" // onCast: burning field (DoT) on enemies in radius
   | "castnova"; // onCast: freeze enemies in the cast radius
@@ -48,6 +52,7 @@ export interface TriggeredEffect {
   targets?: number; // chain bounce count
   falloff?: number; // chain damage falloff per bounce
   seconds?: number; // freeze / slow / poison / bleed / cinder / nova duration
+  threshold?: number; // low-HP trigger gate as a fraction of max HP (secondwind)
   describe(): string;
 }
 
@@ -152,6 +157,22 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
   painnova: mk(
     { event: "onHurt", chance: 1, kind: "painnova", type: "Physical", atkFrac: 0.6, radius: 80 },
     `When struck: erupt a nova for ${pct(0.6)} attack around the hero`,
+  ),
+  frostguard: mk(
+    { event: "onHurt", chance: 1, kind: "frostguard", slowPct: 0.4, seconds: 2, radius: 90 },
+    `When struck: a frost ward chills nearby foes, slowing them ${pct(0.4)} for 2s`,
+  ),
+  aegisthorns: mk(
+    { event: "onHurt", chance: 1, kind: "aegisthorns", type: "Physical", hpFrac: 0.06 },
+    `When struck: retaliate for ${pct(0.06)} of your max health (reduced vs bosses)`,
+  ),
+  secondwind: mk(
+    { event: "onHurt", chance: 1, kind: "secondwind", hpFrac: 0.12, threshold: 0.35 },
+    `When struck below ${pct(0.35)} health: recover ${pct(0.12)} of your max health`,
+  ),
+  undying: mk(
+    { event: "onHurt", chance: 1, kind: "undying", hpFrac: 0.25 },
+    `Once per battle: survive a fatal blow, recovering to ${pct(0.25)} health`,
   ),
   // — onCast —
   echo: mk(

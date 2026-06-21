@@ -105,6 +105,69 @@ describe("trigger sim handlers", () => {
     expect(slowHits).toBeGreaterThan(fastHits);
   });
 
+  it("frostguard chills nearby foes when the hero is struck", () => {
+    const b = spawnedWorld();
+    b.triggers.onHurt.push(TRIGGERED_EFFECTS.frostguard);
+    const e = b.enemies[0];
+    e.pos = { ...b.hero.pos }; // inside the aura radius
+    expect(e.slowTimer).toBe(0);
+    b.fireOnHurt(e, 50);
+    expect(e.slowTimer).toBeGreaterThan(0);
+    expect(e.slowPct).toBeGreaterThan(0);
+  });
+
+  it("aegisthorns retaliates for a fraction of the hero's MAX HP (less vs bosses)", () => {
+    const normal = spawnedWorld();
+    const boss = spawnedWorld(mkEnemy({ id: "boss", archetype: "Boss" }));
+    for (const b of [normal, boss]) {
+      b.triggers.onHurt.push(TRIGGERED_EFFECTS.aegisthorns);
+      b.hero.stats.maxHp = 10000;
+    }
+    const en = normal.enemies[0];
+    const eb = boss.enemies[0];
+    en.hp = en.stats.maxHp = 1e9; // huge bag so the hit never kills
+    eb.hp = eb.stats.maxHp = 1e9;
+    const n0 = en.hp;
+    const b0 = eb.hp;
+    normal.fireOnHurt(en, 1);
+    boss.fireOnHurt(eb, 1);
+    const normalDealt = n0 - en.hp;
+    const bossDealt = b0 - eb.hp;
+    expect(normalDealt).toBeGreaterThan(0);
+    // ~6% of 10000 max HP retaliated; reduced on the boss.
+    expect(normalDealt).toBeGreaterThan(bossDealt);
+    expect(bossDealt).toBeGreaterThan(0);
+  });
+
+  it("secondwind heals the hero only when struck below the low-HP threshold", () => {
+    const b = spawnedWorld();
+    b.triggers.onHurt.push(TRIGGERED_EFFECTS.secondwind);
+    b.hero.stats.maxHp = 1000;
+    // Above threshold: no heal.
+    b.hero.hp = 900;
+    b.fireOnHurt(b.enemies[0], 10);
+    expect(b.hero.hp).toBe(900);
+    // Below threshold: heals a chunk of max HP.
+    b.hero.hp = 200;
+    b.fireOnHurt(b.enemies[0], 10);
+    expect(b.hero.hp).toBeGreaterThan(200);
+  });
+
+  it("undying lets the hero survive ONE fatal blow per battle, then die", () => {
+    const b = spawnedWorld();
+    b.triggers.onHurt.push(TRIGGERED_EFFECTS.undying);
+    b.hero.stats.maxHp = 1000;
+    b.hero.hp = 50;
+    const e = b.enemies[0];
+    e.stats.atk = 1e6; // guaranteed lethal
+    b.dealDamageToHero(e);
+    expect(b.hero.alive).toBe(true);
+    expect(b.hero.hp).toBeGreaterThan(0); // revived to a survival floor
+    // Second fatal blow: the once-per-battle guard is spent.
+    b.dealDamageToHero(e);
+    expect(b.hero.alive).toBe(false);
+  });
+
   it("detonate damages a bystander on kill (and does not recurse forever)", () => {
     const stage = mkStage(oneWave("grunt", 2, 0.1), {
       castleHp: 1e9,

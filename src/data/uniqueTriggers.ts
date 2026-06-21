@@ -33,7 +33,18 @@ export const TRIGGER_POOLS: Record<ItemArchetype, string[]> = {
     "echo",
     "contagion",
   ],
-  defense: ["thornmail", "riposte", "glaciate", "painnova", "bloodfeast", "frostnova"],
+  defense: [
+    "thornmail",
+    "riposte",
+    "glaciate",
+    "painnova",
+    "bloodfeast",
+    "frostnova",
+    "frostguard",
+    "aegisthorns",
+    "secondwind",
+    "undying",
+  ],
   utility: ["goldfinger", "permafrost", "timewarp", "frostnova", "soulrend", "contagion"],
   hybrid: ["executioner", "stormcaller", "detonate", "frostnova", "deepwound", "echo", "painnova"],
 };
@@ -42,8 +53,18 @@ export const TRIGGER_POOLS: Record<ItemArchetype, string[]> = {
 export const SIGNATURE_TRIGGER_POOLS: Record<string, string[]> = {
   // radiant sun blade — execute / burn / burst
   dawnbreaker: ["executioner", "cull", "deepwound", "pyreburst", "shatterblow"],
-  // holy aegis — retaliation / freeze
-  "aegis-of-dawn": ["thornmail", "glaciate", "painnova", "riposte", "frostnova"],
+  // holy aegis — retaliation / guardian / survival
+  "aegis-of-dawn": [
+    "thornmail",
+    "glaciate",
+    "painnova",
+    "riposte",
+    "frostnova",
+    "aegisthorns",
+    "secondwind",
+    "undying",
+    "frostguard",
+  ],
   // greed — gold / sustain / spread
   "midas-paw": ["goldfinger", "overkiller", "soulrend", "contagion"],
 };
