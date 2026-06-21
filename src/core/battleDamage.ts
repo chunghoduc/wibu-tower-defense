@@ -334,7 +334,9 @@ export const damageMethods = {
 
   applyStun(this: BattleState, target: EnemyRuntime, duration: number, chance: number): void {
     if (target.def.immunity === "CC") return;
-    if (!this.rng.chance(chance)) return;
+    // A guaranteed skill stun (chance >= 1) never rolls, so it can't perturb the
+    // shared RNG stream that drives loot/crits.
+    if (chance < 1 && !this.rng.chance(chance)) return;
     target.stunTimer = Math.max(target.stunTimer, ccDuration(duration, target.stats.tenacity));
   },
 

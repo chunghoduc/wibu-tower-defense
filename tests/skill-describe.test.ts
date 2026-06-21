@@ -19,11 +19,13 @@ describe("skillDescribe", () => {
     expect(roleEffectDetail(t, t.baseStats)).toContain("64 total");
   });
 
-  it("debuff role shows slow % and stun", () => {
-    const t = byId("yuki-frostward-maiden"); // slow 50% 3s, stun 0.6s 20%
+  it("debuff role shows slow on hit; stun lives on the active skill", () => {
+    const t = byId("yuki-frostward-maiden"); // slow 50% 3s on hit, stun 0.6s via skill
     const d = roleEffectDetail(t, t.baseStats)!;
     expect(d).toContain("slow 50% for 3s");
-    expect(d).toContain("stun 0.6s");
+    // Stun is no longer an on-hit proc — it's the single-target active skill.
+    expect(d).not.toContain("stun");
+    expect(activeSkillDetail(t, t.baseStats)).toContain("Stuns its single target for 0.6s");
   });
 
   it("support role shows aura values", () => {

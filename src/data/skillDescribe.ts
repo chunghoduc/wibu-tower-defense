@@ -31,8 +31,11 @@ export function activeSkillDetail(def: CharacterDef, stats: Stats): string {
   const radius = def.behavior?.splashRadius ?? SPLASH_RADIUS;
   const defNote = ds ? ` + ${n0(defBonus)} from defenses` : "";
   const role = roleEffectDetail(def, stats);
+  const stun = def.behavior?.stun;
+  const stunNote = stun ? `\n▸ Stuns its single target for ${stun.duration}s.` : "";
   return (
     `${info.description}\n▸ Burst: ${burst} ${type} (atk ${n0(stats.atk)} ×${ACTIVE_MULT} × ${sp.toFixed(2)} skill power${defNote}), ${radius}px AoE.` +
+    stunNote +
     (role ? `\n▸ ${role}` : "")
   );
 }
@@ -52,10 +55,9 @@ export function roleEffectDetail(def: CharacterDef, stats: Stats): string | null
       if (!b?.dot) return null;
       return `DoT: ${n0(b.dot.dps)}/s ${b.dot.damageType ?? def.damageType} for ${b.dot.duration}s = ${Math.round(b.dot.dps * b.dot.duration)} total.`;
     case "debuff": {
-      const parts: string[] = [];
-      if (b?.slow) parts.push(`slow ${pct(b.slow.pct)} for ${b.slow.duration}s`);
-      if (b?.stun) parts.push(`stun ${b.stun.duration}s (${pct(b.stun.chance)})`);
-      return parts.length ? `Control: ${parts.join(", ")}.` : null;
+      // Slow is the on-hit control; stun is the active skill (see activeSkillDetail).
+      if (!b?.slow) return null;
+      return `Control: slow ${pct(b.slow.pct)} for ${b.slow.duration}s.`;
     }
     case "support":
       if (!b?.buffAura) return null;

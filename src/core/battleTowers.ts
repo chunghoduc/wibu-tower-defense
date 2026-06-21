@@ -105,6 +105,9 @@ export const towerMethods = {
           t.def.active ?? undefined,
           t.behavior?.defenseScale,
         );
+        // The active skill is the ONLY source of stun, and it locks down a
+        // single enemy — its current target — never the whole AoE cluster.
+        if (t.behavior?.stun) this.applyStun(target, t.behavior.stun.duration, 1);
         t.mana = 0;
       }
       t.attackCd = 1 / effAs;
@@ -140,8 +143,9 @@ export const towerMethods = {
         }
         break;
       case "debuff":
+        // Slow is the on-hit control. Stun is NOT applied on hit — it is the
+        // tower's active skill (see updateTowers), a single-target lockdown.
         if (bhv?.slow) this.applySlow(target, bhv.slow.pct, bhv.slow.duration);
-        if (bhv?.stun) this.applyStun(target, bhv.stun.duration, bhv.stun.chance);
         break;
       default:
         break;

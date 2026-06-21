@@ -57,7 +57,11 @@ export interface TowerBehavior {
   dot?: { dps: number; duration: number; damageType?: DamageType };
   /** debuff role: slow applied on hit. */
   slow?: { pct: number; duration: number };
-  /** debuff role: stun applied on hit. */
+  /**
+   * debuff role: a single-target stun delivered ONLY by the tower's active skill
+   * (never on hit). The skill stuns exactly one enemy — its current target — for
+   * `duration`s. `chance` is legacy on-hit tuning; the skill stun is guaranteed.
+   */
   stun?: { duration: number; chance: number };
   /** support role: aura buffing nearby towers. */
   buffAura?: { radius: number; atkPct?: number; attackSpeedPct?: number };
