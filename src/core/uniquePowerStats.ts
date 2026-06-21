@@ -18,7 +18,7 @@ export interface UniquePowerStats {
 }
 
 /** Defs of every equipped item that resolves to a Unique Power. */
-function equippedUniqueDefs(save: HeroSave) {
+export function equippedUniqueDefs(save: HeroSave) {
   const defs = [];
   for (const instanceId of Object.values(save.inventory.equipped)) {
     if (!instanceId) continue;
