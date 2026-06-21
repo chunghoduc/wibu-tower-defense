@@ -13,6 +13,9 @@ import { drawSkillGlyph, drawStatGlyph } from "./battleInfoGlyphs.ts";
 export interface StatRow {
   key: string;
   value: string;
+  /** Set when this stat is currently raised by a support-aura buff — the number
+   *  is tinted this color (and re-tinted live as the tower enters/leaves auras). */
+  buffColor?: number;
 }
 export interface PanelItem {
   iconKey: string | null;
@@ -68,7 +71,11 @@ export interface LiveVals {
   maxMana: number;
   gold: number;
   upgradeCost: number;
+  /** Fresh stat rows (tower only) so aura-buffed atk / attack-speed update live. */
+  statRows?: StatRow[];
 }
+
+const STAT_COLOR = "#e8eef6";
 
 export const PANEL_W = 232;
 const PAD = 10;
@@ -131,6 +138,7 @@ export class BattleInfoPanel {
   private current: PanelVM | null = null;
   private hpText: Phaser.GameObjects.Text | null = null;
   private manaText: Phaser.GameObjects.Text | null = null;
+  private statTextByKey = new Map<string, Phaser.GameObjects.Text>();
   private upBtn: Phaser.GameObjects.Text | null = null;
   private bars: { hpY: number; manaY: number; hasMana: boolean } = {
     hpY: 0,
@@ -277,6 +285,20 @@ export class BattleInfoPanel {
       this.manaText?.setText(`${Math.floor(live.mana)}/${Math.ceil(live.maxMana)}`);
     if (this.current.kind === "tower" && this.upBtn)
       this.refreshUp(live.upgradeCost, this.current.maxed, live.gold >= live.upgradeCost);
+    if (live.statRows) this.refreshStats(live.statRows);
+  }
+
+  /** Re-tint + retext stat numbers in place so aura buffs show the moment a tower
+   *  enters or leaves a support aura — no full rebuild (row set is stable). */
+  private refreshStats(rows: StatRow[]): void {
+    for (const r of rows) {
+      const t = this.statTextByKey.get(r.key);
+      if (!t) continue;
+      if (t.text !== r.value) t.setText(r.value);
+      const col =
+        r.buffColor != null ? Phaser.Display.Color.IntegerToColor(r.buffColor).rgba : STAT_COLOR;
+      if (t.style.color !== col) t.setColor(col);
+    }
   }
 
   // ── builders ─────────────────────────────────────────────────────────────────
@@ -357,17 +379,19 @@ export class BattleInfoPanel {
   private statIcons(stats: StatRow[], y: number): number {
     const ig = this.gfx();
     const colW = this.innerW / 2;
+    this.statTextByKey.clear();
     stats.forEach((s, i) => {
       const cx = (i % 2) * colW,
         cy = y + Math.floor(i / 2) * 18;
       drawStatGlyph(ig, s.key, cx + 7, cy + 8, 6.5);
-      this.add(
-        crispText(this.scene, cx + 18, cy, s.value, {
-          fontSize: "11px",
-          color: "#e8eef6",
-          fontStyle: "bold",
-        }),
-      );
+      const t = crispText(this.scene, cx + 18, cy, s.value, {
+        fontSize: "11px",
+        color:
+          s.buffColor != null ? Phaser.Display.Color.IntegerToColor(s.buffColor).rgba : STAT_COLOR,
+        fontStyle: "bold",
+      });
+      this.statTextByKey.set(s.key, t);
+      this.add(t);
       // hover label
       const z = this.scene.add.zone(cx, cy, colW, 17).setOrigin(0).setInteractive();
       z.on("pointerover", (p: Phaser.Input.Pointer) => this.showTip(STAT_LABEL[s.key] ?? s.key, p));

@@ -31,7 +31,7 @@ import {
   RARITY_INT,
   statRows,
   HERO_STAT_KEYS,
-  TOWER_STAT_KEYS,
+  towerStatRows,
 } from "./battleSceneHelpers.ts";
 import type { BattleScene } from "./BattleScene.ts";
 import { towerTex, itemTex, skillTex } from "../data/assetKeys.ts";
@@ -283,7 +283,7 @@ export const inputMethods = {
       maxHp: t.stats.maxHp,
       mana: t.mana,
       maxMana: t.def.role !== "support" ? MANA_MAX : 0,
-      stats: statRows(t.stats as unknown as Record<string, number>, TOWER_STAT_KEYS),
+      stats: towerStatRows(t.stats as unknown as Record<string, number>, t.buffAtkPct, t.buffAsPct),
       skills,
       upgradeCost: this.battle.upgradeCost(t.uid),
       sellValue: this.battle.sellValue(t.uid),

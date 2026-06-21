@@ -3,7 +3,6 @@
  * BattleScene.ts to keep the scene class focused (T10).
  */
 import Phaser from "phaser";
-import type { StatRow } from "./battleInfoPanel.ts";
 import type { CharacterDef } from "../data/schema.ts";
 import type { HeroSave } from "../core/save.ts";
 import type { EnemyRuntime } from "../core/battle.ts";
@@ -39,53 +38,19 @@ export const TERRAIN_COLOR: Record<string, number> = {
 
 // Re-exported for BattleScene/battleSceneInput (historical import site).
 export { RARITY_INT } from "../data/rarityColors.ts";
-export const n0 = (v: number) => `${Math.round(v)}`;
-export const n1 = (v: number) => v.toFixed(1);
-export const pct = (v: number) => `${Math.round(v * 100)}%`;
-export const mult = (v: number) => `${v.toFixed(1)}\u00d7`;
-export function statRows(
-  s: Record<string, number>,
-  keys: [string, (v: number) => string][],
-): StatRow[] {
-  const out: StatRow[] = [];
-  for (const [key, fmt] of keys) {
-    const v = s[key];
-    if (v === undefined || v === 0) continue;
-    out.push({ key, value: fmt(v) });
-  }
-  return out;
-}
-export const HERO_STAT_KEYS: [string, (v: number) => string][] = [
-  ["atk", n0],
-  ["range", n0],
-  ["attackSpeed", n1],
-  ["critRate", pct],
-  ["critDamage", mult],
-  ["armor", n0],
-  ["magicResist", n0],
-  ["moveSpeed", n0],
-  ["hpRegen", n0],
-  ["skillPower", mult],
-  ["omnivamp", pct],
-  ["goldFind", pct],
-];
-export const TOWER_STAT_KEYS: [string, (v: number) => string][] = [
-  ["atk", n0],
-  ["range", n0],
-  ["attackSpeed", n1],
-  ["critRate", pct],
-  ["critDamage", mult],
-  ["armorPen", pct],
-  ["magicPen", pct],
-  ["skillPower", mult],
-  ["armor", n0],
-  ["magicResist", n0],
-  ["hpRegen", n0],
-  ["damageReduction", pct],
-  ["critDefense", pct],
-  ["tenacity", pct],
-  ["omnivamp", pct],
-];
+// Pure stat formatting lives in statFormat.ts (Phaser-free, unit-tested);
+// re-exported here so existing import sites stay stable.
+export {
+  n0,
+  n1,
+  pct,
+  mult,
+  statRows,
+  HERO_STAT_KEYS,
+  TOWER_STAT_KEYS,
+  AURA_BUFF_COLOR,
+  towerStatRows,
+} from "./statFormat.ts";
 
 export const ROLE_COLOR: Record<string, number> = {
   damage: 0x4fc3f7,

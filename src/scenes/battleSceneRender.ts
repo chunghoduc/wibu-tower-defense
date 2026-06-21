@@ -25,6 +25,7 @@ import {
   TERRAIN_COLOR,
   towerKind,
   starPoints,
+  towerStatRows,
 } from "./battleSceneHelpers.ts";
 import { auraRadiusOf, auraPulse, AURA_RING_COLOR } from "../core/auraIndicator.ts";
 import { groundLanes } from "../core/path.ts";
@@ -55,6 +56,11 @@ export const renderMethods = {
           maxMana: t.def.role !== "support" ? MANA_MAX : 0,
           gold: this.battle.gold,
           upgradeCost: this.battle.upgradeCost(t.uid),
+          statRows: towerStatRows(
+            t.stats as unknown as Record<string, number>,
+            t.buffAtkPct,
+            t.buffAsPct,
+          ),
         });
     } else {
       const h = this.battle.hero;
