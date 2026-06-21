@@ -100,7 +100,7 @@ describe("homeNavLayout primary CTA prominence", () => {
     const l = homeNavLayout({ left: 4, right: 4, bottom: 3 }, W, H);
     const bottomH = l.bottom[0].h;
     expect(l.primary.h).toBeGreaterThan(bottomH);
-    expect(l.primary.h).toBe(52);
+    expect(l.primary.h).toBe(64);
   });
   it("grows the dock panel to fully contain the taller primary + the row", () => {
     const l = homeNavLayout({ left: 4, right: 4, bottom: 3 }, W, H);

@@ -31,7 +31,6 @@ import {
   CASTLE_DAMAGED_TEX,
   roleTex,
   achievementTex,
-  battleEmblemTex,
   rarityTex,
 } from "../data/assetKeys.ts";
 import { TOWER_ROLES, RARITIES } from "../data/schemaEnums.ts";
@@ -124,9 +123,8 @@ export class PreloadScene extends Phaser.Scene {
     for (const r of RARITIES) {
       this.load.image(rarityTex(r), versioned(`assets/sprites/rarity/${r}.png`));
     }
-    // Combat emblem on the home BATTLE CTA (SDXL). Gated by textures.exists in
-    // drawBattleCta — a missing file degrades to no emblem, never a __MISSING box.
-    this.load.image(battleEmblemTex(), versioned(`assets/sprites/ui/battle-emblem.png`));
+    // (The home BATTLE CTA is now fully procedural — gold-rimmed ember capsule
+    // with a vector sword mark; it no longer loads an SDXL combat emblem.)
     // Additive-blend VFX textures (box-open burst/glow/sparkle).
     for (const id of FX_IDS) this.load.image(fxTex(id), versioned(`assets/sprites/fx/${id}.png`));
     // Crafting-material icons (enhance jewels + summon scroll).

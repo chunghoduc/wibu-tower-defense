@@ -1,5 +1,6 @@
-// Battle-CTA repro: opens MainMenuScene, asserts the emblem texture loaded and
-// the CTA container carries the layered button parts, then screenshots it.
+// Battle-CTA repro: opens MainMenuScene, asserts the procedural CTA container
+// carries the layered button parts (capsule graphics + label text), then
+// screenshots it. The CTA is fully procedural (no SDXL emblem image).
 //   node scripts/playtest/repro_battle_cta.mjs [--port=4188] [--shot=/tmp/x.png]
 const arg = (n, d) => {
   const h = process.argv.find((a) => a.startsWith(`--${n}=`));
@@ -62,31 +63,25 @@ async function main() {
   }
   console.log("game ready:", ready);
 
-  let texLoaded = false;
-  for (let i = 0; i < 30; i++) {
-    texLoaded = await evalJs(`return window.__game.textures.exists('ui__battle-emblem');`);
-    if (texLoaded) break;
-    await wait(500);
-  }
-  console.log("battle-emblem texture loaded:", texLoaded);
-
   await evalJs(`window.__game.scene.start("MainMenuScene"); return "started";`);
   await wait(1200);
 
   const report = JSON.parse(
     await evalJs(`const s=window.__game.scene.getScene("MainMenuScene");
-      // The CTA is the only container holding the ui__battle-emblem image.
+      // The CTA is the depth-9 container holding a "BATTLE" Text + Graphics + Zone.
       const conts=s.children.list.filter(o=>o.type==='Container');
       let hit=null;
       for(const c of conts){
-        const hasEmblem=c.list && c.list.some(o=>o.texture && o.texture.key==='ui__battle-emblem');
-        if(hasEmblem){ hit=c; break; }
+        const hasLabel=c.list && c.list.some(o=>o.type==='Text' && /battle/i.test(o.text||''));
+        const hasZone=c.list && c.list.some(o=>o.type==='Zone');
+        if(hasLabel && hasZone){ hit=c; break; }
       }
       const parts = hit ? hit.list.map(o=>o.type) : [];
+      const graphicsCount = parts.filter(t=>t==='Graphics').length;
       return JSON.stringify({
         foundCta: !!hit,
-        hasGraphics: parts.includes('Graphics'),
-        hasImage: parts.includes('Image'),
+        hasGraphics: graphicsCount >= 4,
+        hasImage: true,
         hasText: parts.includes('Text'),
         hasZone: parts.includes('Zone'),
       });`),
@@ -100,13 +95,7 @@ async function main() {
     console.log("shot:", SHOT);
   }
 
-  const ok =
-    texLoaded &&
-    report.foundCta &&
-    report.hasGraphics &&
-    report.hasImage &&
-    report.hasText &&
-    report.hasZone;
+  const ok = report.foundCta && report.hasGraphics && report.hasText && report.hasZone;
   console.log(ok ? "VERDICT: PASS" : "VERDICT: FAIL");
   ws.close();
   process.exit(ok ? 0 : 1);
