@@ -14,6 +14,8 @@ import type { ActiveSkillDef } from "../data/schema.ts";
 import { crispText } from "./ui.ts";
 import { skillTex } from "../data/assetKeys.ts";
 import { RARITY_HEX, RARITY_INT } from "../data/rarityColors.ts";
+import { attachDragScroll, type DragScrollHandle } from "./scrollDrag.ts";
+import { drawScrollbar } from "./scrollbar.ts";
 
 const DMG_HEX: Record<string, string> = { Physical: "#ff8a65", Magic: "#b39ddb", True: "#fff176" };
 const DMG_INT: Record<string, number> = { Physical: 0xff8a65, Magic: 0xb39ddb, True: 0xfff176 };
@@ -25,11 +27,16 @@ const COLS = 4,
   Y0 = 62,
   GAP_X = 8,
   GAP_Y = 6;
+const ROW_H = CH + GAP_Y;
+const BOTTOM = 524; // last y the grid may reach (above the toast at 516+ / bottom edge)
 
 export class SkillsScene extends Phaser.Scene {
   private mgr!: SaveManager;
   private layer!: Phaser.GameObjects.Container;
   private toast!: Phaser.GameObjects.Text;
+  private offset = 0;
+  private maxOffset = 0;
+  private drag?: DragScrollHandle;
 
   constructor() {
     super("SkillsScene");
@@ -73,6 +80,32 @@ export class SkillsScene extends Phaser.Scene {
       .setPadding(8, 4, 8, 4)
       .setDepth(60)
       .setVisible(false);
+
+    // Scrolling: more skill cards than fit on screen. Window the rows and let
+    // the wheel (desktop) or a finger drag (mobile) move the offset.
+    this.offset = 0;
+    const visibleRows = Math.max(1, Math.floor((BOTTOM - Y0) / ROW_H));
+    this.maxOffset = Math.max(0, Math.ceil(ACTIVE_SKILLS.length / COLS) - visibleRows);
+    this.input.on("wheel", (_p: unknown, _o: unknown, _dx: number, dy: number) => {
+      if (this.maxOffset <= 0) return;
+      const next = Phaser.Math.Clamp(this.offset + (dy > 0 ? 1 : -1), 0, this.maxOffset);
+      if (next !== this.offset) {
+        this.offset = next;
+        this.redraw();
+      }
+    });
+    this.drag = attachDragScroll(this, {
+      rect: () => ({ x: X0, y: Y0, w: COLS * (CW + GAP_X), h: BOTTOM - Y0 }),
+      rowH: ROW_H,
+      maxOffset: () => this.maxOffset,
+      getOffset: () => this.offset,
+      setOffset: (n) => {
+        this.offset = n;
+      },
+      onChange: () => this.redraw(),
+    });
+    this.events.once("shutdown", () => this.drag?.destroy());
+
     this.redraw();
   }
 
@@ -80,10 +113,26 @@ export class SkillsScene extends Phaser.Scene {
     this.layer.removeAll(true);
     const save = this.mgr.getSave();
     const byId = new Map(save.hero.obtainedSkills.map((e) => [e.skillId, e]));
-    ACTIVE_SKILLS.forEach((def, i) => {
-      const x = X0 + (i % COLS) * (CW + GAP_X);
-      const y = Y0 + Math.floor(i / COLS) * (CH + GAP_Y);
-      this.drawCard(def, x, y, byId.get(def.id), save.hero.equippedSkillIds.includes(def.id));
+    const visibleRows = Math.max(1, Math.floor((BOTTOM - Y0) / ROW_H));
+    this.offset = Phaser.Math.Clamp(this.offset, 0, this.maxOffset);
+    // Only build the rows currently in view (windowed) so the grid can scroll.
+    for (let r = 0; r < visibleRows; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const i = (this.offset + r) * COLS + c;
+        if (i >= ACTIVE_SKILLS.length) break;
+        const def = ACTIVE_SKILLS[i];
+        const x = X0 + c * (CW + GAP_X);
+        const y = Y0 + r * ROW_H;
+        this.drawCard(def, x, y, byId.get(def.id), save.hero.equippedSkillIds.includes(def.id));
+      }
+    }
+    drawScrollbar(this, this.layer, {
+      x: X0 + COLS * (CW + GAP_X) - GAP_X + 2,
+      y: Y0,
+      h: visibleRows * ROW_H - GAP_Y,
+      total: Math.ceil(ACTIVE_SKILLS.length / COLS),
+      visible: visibleRows,
+      offset: this.offset,
     });
   }
 
