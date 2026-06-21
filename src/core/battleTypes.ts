@@ -23,6 +23,7 @@ import type { AuraMods } from "./enemyAuras.ts";
 import type { HeroSave } from "./save.ts";
 import type { TargetFilter } from "./targeting.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
+import type { TriggerKind } from "../data/triggeredEffects.ts";
 
 export type Outcome = "ongoing" | "won" | "lost";
 
@@ -71,6 +72,16 @@ export type FxEvent =
     }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }
+  // A triggered Unique-item proc fired: a branded flourish (scenes/triggerFx.ts).
+  // `to` is the recoil/spread target; `radius` the AoE; `element` tints nova/dotSeed.
+  | {
+      type: "trigger";
+      kind: TriggerKind;
+      at: Vec2;
+      to?: Vec2;
+      radius?: number;
+      element?: DamageType;
+    }
   | {
       type: "bossCast";
       uid: number;

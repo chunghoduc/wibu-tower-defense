@@ -20,6 +20,23 @@ const TYPE = (e: TriggeredEffect): DamageType => e.type ?? "Magic";
 const AEGISTHORNS_BOSS_MULT = 0.25;
 
 export const triggerMethods = {
+  /** Emit a branded VFX flourish for a triggered proc (scenes/triggerFx.ts). */
+  _emitTriggerFx(
+    this: BattleState,
+    kind: TriggeredEffect["kind"],
+    at: Vec2,
+    opts?: { to?: Vec2; radius?: number; element?: DamageType },
+  ): void {
+    this.emit({
+      type: "trigger",
+      kind,
+      at: { x: at.x, y: at.y },
+      to: opts?.to ? { x: opts.to.x, y: opts.to.y } : undefined,
+      radius: opts?.radius,
+      element: opts?.element,
+    });
+  },
+
   _rollTrigger(this: BattleState, e: TriggeredEffect): boolean {
     return e.chance >= 1 ? true : this.rng.chance(e.chance);
   },
@@ -81,9 +98,10 @@ export const triggerMethods = {
         if (!this._rollTrigger(e)) continue;
         if (e.kind === "reflect") {
           this.applyDamage(attacker, TYPE(e), incoming * (e.dmgFrac ?? 0.3), 0, 0, false, true);
+          this._emitTriggerFx("reflect", this.hero.pos, { to: attacker.pos });
         } else if (e.kind === "riposte") {
           const h = this.hero;
-          if (h.alive)
+          if (h.alive) {
             this.performAttack(
               h,
               h.pos,
@@ -95,8 +113,11 @@ export const triggerMethods = {
               -1,
               "slash",
             );
+            this._emitTriggerFx("riposte", h.pos, { to: attacker.pos });
+          }
         } else if (e.kind === "glaciate") {
           this.applyStun(attacker, e.seconds ?? 1, 1);
+          this._emitTriggerFx("glaciate", attacker.pos, { radius: 36 });
         } else if (e.kind === "painnova") {
           this.applyBurstInRadius(
             this.hero.pos,
@@ -105,12 +126,14 @@ export const triggerMethods = {
             TYPE(e),
             this.hero.stats,
           );
+          this._emitTriggerFx("painnova", this.hero.pos, { radius: e.radius ?? 80, element: TYPE(e) });
         } else if (e.kind === "frostguard") {
           // A retaliatory chill aura — slow EVERY foe around the hero (distinct
           // from glaciate, which freezes only the single attacker).
           this.forEnemiesInRadius(this.hero.pos, e.radius ?? 90, (en) =>
             this.applySlow(en, e.slowPct ?? 0.4, e.seconds ?? 2),
           );
+          this._emitTriggerFx("frostguard", this.hero.pos, { radius: e.radius ?? 90 });
         } else if (e.kind === "aegisthorns") {
           // Thorns that scale off the hero's MAX HP (tanking IS the damage),
           // reduced on bosses so a fat HP pool can't melt a marquee fight.
@@ -124,10 +147,13 @@ export const triggerMethods = {
             false,
             true,
           );
+          this._emitTriggerFx("aegisthorns", this.hero.pos, { to: attacker.pos });
         } else if (e.kind === "secondwind") {
           // Last-stand heal: only when the hero is struck while already low.
-          if (this.hero.hp <= this.hero.stats.maxHp * (e.threshold ?? 0.35))
+          if (this.hero.hp <= this.hero.stats.maxHp * (e.threshold ?? 0.35)) {
             this.healHero(this.hero.stats.maxHp * (e.hpFrac ?? 0.12));
+            this._emitTriggerFx("secondwind", this.hero.pos);
+          }
         }
         // `undying` is consumed at the lethal moment (tryHeroUndying), not here.
       }
@@ -148,6 +174,7 @@ export const triggerMethods = {
     this._heroUndyingUsed = true;
     this.hero.hp = Math.max(1, this.hero.stats.maxHp * (e.hpFrac ?? 0.25));
     this.hero.alive = true;
+    this._emitTriggerFx("undying", this.hero.pos);
     return true;
   },
 
@@ -164,14 +191,17 @@ export const triggerMethods = {
         if (!this._rollTrigger(e)) continue;
         if (e.kind === "echo") {
           this.applyBurstInRadius(center, SPLASH_RADIUS, burst, type, attacker);
+          this._emitTriggerFx("echo", center, { radius: SPLASH_RADIUS, element: type });
         } else if (e.kind === "cinder") {
           this.forEnemiesInRadius(center, e.radius ?? 80, (en) =>
             this.addDot(en, TYPE(e), attacker.atk * (e.atkFrac ?? 0.3), e.seconds ?? 3, attacker),
           );
+          this._emitTriggerFx("cinder", center, { radius: e.radius ?? 80, element: TYPE(e) });
         } else if (e.kind === "castnova") {
           this.forEnemiesInRadius(center, e.radius ?? 80, (en) =>
             this.applyStun(en, e.seconds ?? 0.8, 1),
           );
+          this._emitTriggerFx("castnova", center, { radius: e.radius ?? 80 });
         }
       }
     });
@@ -193,6 +223,7 @@ export const triggerMethods = {
           !isBossEnemy(target) &&
           (e.hpFrac === undefined || target.hp <= target.stats.maxHp * e.hpFrac)
         ) {
+          this._emitTriggerFx("execute", target.pos);
           this.killEnemy(target);
         }
         break;
@@ -205,6 +236,7 @@ export const triggerMethods = {
           target,
           e.radius ?? 70,
         );
+        this._emitTriggerFx("blast", target.pos, { radius: e.radius ?? 70, element: TYPE(e) });
         break;
       case "chain":
         this.triggerChain(
@@ -218,18 +250,25 @@ export const triggerMethods = {
         break;
       case "freeze":
         this.applyStun(target, e.seconds ?? 0.6, 1);
+        this._emitTriggerFx("freeze", target.pos, { radius: 32 });
         break;
       case "slow":
         this.applySlow(target, e.slowPct ?? 0.6, e.seconds ?? 1.5);
+        this._emitTriggerFx("slow", target.pos, { radius: 30 });
         break;
       case "poison":
         this.addDot(target, TYPE(e), srcStats.atk * (e.atkFrac ?? 0.4), e.seconds ?? 3, srcStats);
+        this._emitTriggerFx("poison", target.pos, { element: TYPE(e) });
         break;
       case "bleed":
         this.addDot(target, TYPE(e), srcStats.atk * (e.atkFrac ?? 0.5), e.seconds ?? 4, srcStats);
+        this._emitTriggerFx("bleed", target.pos, { element: TYPE(e) });
         break;
       case "heal":
-        if (dealt > 0) this.healHero(dealt * (e.dmgFrac ?? 0.5));
+        if (dealt > 0) {
+          this.healHero(dealt * (e.dmgFrac ?? 0.5));
+          this._emitTriggerFx("heal", this.hero.pos);
+        }
         break;
       default:
         break;
@@ -248,18 +287,22 @@ export const triggerMethods = {
           victim,
           e.radius ?? 80,
         );
+        this._emitTriggerFx("blast", victim.pos, { radius: e.radius ?? 80, element: TYPE(e) });
         break;
       case "heal":
         this.healHero(this.hero.stats.maxHp * (e.hpFrac ?? 0.04));
+        this._emitTriggerFx("heal", this.hero.pos);
         break;
       case "overkill":
         // After death victim.hp is negative; the magnitude is the overkill done.
         this.healHero(Math.max(0, -victim.hp) * (e.dmgFrac ?? 0.3));
+        this._emitTriggerFx("overkill", this.hero.pos);
         break;
       case "frostnova":
         this.forEnemiesInRadius(victim.pos, e.radius ?? 90, (en) => {
           if (en !== victim) this.applyStun(en, e.seconds ?? 0.8, 1);
         });
+        this._emitTriggerFx("frostnova", victim.pos, { radius: e.radius ?? 90 });
         break;
       case "pyre":
         this.forEnemiesInRadius(victim.pos, e.radius ?? 90, (en) => {
@@ -272,6 +315,7 @@ export const triggerMethods = {
               this.hero.stats,
             );
         });
+        this._emitTriggerFx("pyre", victim.pos, { radius: e.radius ?? 90 });
         break;
       case "gold": {
         const bonus = Math.max(1, Math.round(victim.def.bounty * 0.5));
@@ -290,6 +334,7 @@ export const triggerMethods = {
           this.forEnemiesInRadius(victim.pos, e.radius ?? 90, (en) => {
             if (en !== victim) for (const d of victim.dots) en.dots.push({ ...d });
           });
+          this._emitTriggerFx("contagion", victim.pos, { radius: e.radius ?? 90 });
         }
         break;
       default:

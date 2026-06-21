@@ -17,6 +17,7 @@ import { BOX_RARITY_COLOR, boxRarityName } from "../data/materials.ts";
 import { tierOfBox } from "../core/boxes.ts";
 import { LootFlyFx } from "./lootFlyFx.ts";
 import { BossSkillFx } from "./bossSkillSignatures.ts";
+import { TriggerFx } from "./triggerFx.ts";
 import { itemTex, boxTex } from "../data/assetKeys.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
 import { RARITY_INT, RARITY_HEX } from "../data/rarityColors.ts";
@@ -49,6 +50,8 @@ export class FxLayer {
   private readonly lootFly: LootFlyFx;
   /** Bespoke per-skill boss cast set-pieces (quake/rally/barrier/summon-surge). */
   private readonly bossFx: BossSkillFx;
+  /** Branded flourishes for triggered Unique-item procs (thorns/frost/cheat-death/…). */
+  private readonly trigger: TriggerFx;
   /** Shared bounded reuse pool for one-shot shape primitives (circle/rect/star). */
   private readonly pool: FxPool;
 
@@ -81,6 +84,7 @@ export class FxLayer {
     this.proj = new ProjectileFx(scene, this.fac, this.depth, this.impact, this.pool);
     this.lootFly = new LootFlyFx(scene, this.fac, this.depth);
     this.bossFx = new BossSkillFx(scene, this.fac, this.skillDepth);
+    this.trigger = new TriggerFx(scene, this.fac, this.depth);
   }
 
   play(e: FxEvent): void {
@@ -100,6 +104,9 @@ export class FxLayer {
         break;
       case "chain":
         this.proj.bolt(e.from, e.to, 0x9fe6ff);
+        break;
+      case "trigger":
+        this.trigger.play(e.kind, e.at, e.to, e.radius, e.element);
         break;
       case "death":
         this.deathBurst(e.at, e.boss, e.elite);

@@ -168,6 +168,26 @@ describe("trigger sim handlers", () => {
     expect(b.hero.alive).toBe(false);
   });
 
+  it("emits a `trigger` FX event branded with the proc kind", () => {
+    const b = spawnedWorld();
+    b.triggers.onHurt.push(TRIGGERED_EFFECTS.frostguard);
+    b.fx.length = 0;
+    b.fireOnHurt(b.enemies[0], 50);
+    expect(b.fx.some((e) => e.type === "trigger" && e.kind === "frostguard")).toBe(true);
+  });
+
+  it("emits the UNDYING trigger flourish at the cheat-death moment", () => {
+    const b = spawnedWorld();
+    b.triggers.onHurt.push(TRIGGERED_EFFECTS.undying);
+    b.hero.stats.maxHp = 1000;
+    b.hero.hp = 50;
+    const e = b.enemies[0];
+    e.stats.atk = 1e6;
+    b.fx.length = 0;
+    b.dealDamageToHero(e);
+    expect(b.fx.some((ev) => ev.type === "trigger" && ev.kind === "undying")).toBe(true);
+  });
+
   it("detonate damages a bystander on kill (and does not recurse forever)", () => {
     const stage = mkStage(oneWave("grunt", 2, 0.1), {
       castleHp: 1e9,
