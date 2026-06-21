@@ -178,6 +178,8 @@ export class BattleState {
       mana: 0,
       attackCd: 0,
       alive: true,
+      buffAtkPct: 0,
+      buffAsPct: 0,
     };
 
     if (opts.heroSave) {
@@ -205,6 +207,8 @@ export class BattleState {
         mana: 0,
         attackCd: 0,
         alive: true,
+        buffAtkPct: 0,
+        buffAsPct: 0,
       };
     }
     this._heroSave = opts.heroSave;

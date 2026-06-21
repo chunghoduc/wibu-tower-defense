@@ -34,17 +34,20 @@ export const heroMethods = {
       h.pos = lerp(h.pos, h.moveTarget, step / toTarget);
     }
 
-    const heroAs = cappedAttackSpeed(h.stats.attackSpeed);
+    // Support auras buff the hero too while it stands inside their range
+    // (h.buffAtkPct/h.buffAsPct are recomputed each tick in recomputeTowerBuffs).
+    const heroAs = cappedAttackSpeed(h.stats.attackSpeed * (1 + h.buffAsPct));
     h.attackCd -= dt;
     if (h.attackCd > 0 || heroAs <= 0) return;
 
     const target = selectTarget(h.pos, h.stats.range, this.enemies, HERO_FILTER);
     if (!target) return;
 
+    const effAtk = h.stats.atk * (1 + h.buffAtkPct);
     this.performAttack(
       h,
       h.pos,
-      h.stats.atk,
+      effAtk,
       h.damageType,
       target,
       "hero",

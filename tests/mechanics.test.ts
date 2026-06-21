@@ -26,6 +26,52 @@ describe("support role", () => {
     expect(buffed.buffAtkPct).toBeCloseTo(0.2);
     expect(buffed.buffAsPct).toBeCloseTo(0.1);
   });
+
+  it("buffs the hero while it stands inside the aura", () => {
+    const support = mkTower({
+      id: "support",
+      role: "support",
+      behavior: { buffAura: { radius: 200, atkPct: 0.2, attackSpeedPct: 0.1 } },
+      baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 100 }),
+    });
+    const stage = mkStage(oneWave("grunt", 1), {
+      castleHp: 1e6,
+      slots: [{ x: 150, y: -30 }],
+    });
+    const b = world([mkEnemy()], [support], stage, {
+      hero: {
+        stats: makeStats({ maxHp: 1e9, attackSpeed: 1, range: 0, moveSpeed: 0 }),
+        startPos: { x: 160, y: -30 }, // inside the 200px aura
+      },
+    });
+    b.placeTower("support", 0);
+    runFor(b, 0.1);
+    expect(b.hero.buffAtkPct).toBeCloseTo(0.2);
+    expect(b.hero.buffAsPct).toBeCloseTo(0.1);
+  });
+
+  it("does not buff the hero when it stands outside the aura", () => {
+    const support = mkTower({
+      id: "support",
+      role: "support",
+      behavior: { buffAura: { radius: 200, atkPct: 0.2, attackSpeedPct: 0.1 } },
+      baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 100 }),
+    });
+    const stage = mkStage(oneWave("grunt", 1), {
+      castleHp: 1e6,
+      slots: [{ x: 150, y: -30 }],
+    });
+    const b = world([mkEnemy()], [support], stage, {
+      hero: {
+        stats: makeStats({ maxHp: 1e9, attackSpeed: 1, range: 0, moveSpeed: 0 }),
+        startPos: { x: 600, y: -30 }, // well outside the 200px aura
+      },
+    });
+    b.placeTower("support", 0);
+    runFor(b, 0.1);
+    expect(b.hero.buffAtkPct).toBeCloseTo(0);
+    expect(b.hero.buffAsPct).toBeCloseTo(0);
+  });
 });
 
 describe("debuff role (slow)", () => {

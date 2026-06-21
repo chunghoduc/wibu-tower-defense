@@ -283,6 +283,9 @@ export interface HeroRuntime {
   mana: number;
   attackCd: number;
   alive: boolean;
+  /** Support-aura attack / attack-speed bonuses the hero is standing in (recomputed live each tick). */
+  buffAtkPct: number;
+  buffAsPct: number;
 }
 
 export interface HeroConfig {

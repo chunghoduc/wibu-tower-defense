@@ -22,6 +22,11 @@ export const towerMethods = {
       t.buffAtkPct = 0;
       t.buffAsPct = 0;
     }
+    // The hero shares the same support-aura buff as towers while it stands in range.
+    // Recomputed each tick (this runs every sim step) so it tracks the moving hero.
+    const h = this.hero;
+    h.buffAtkPct = 0;
+    h.buffAsPct = 0;
     for (const s of this.towers) {
       const aura = s.behavior?.buffAura;
       if (!s.alive || s.disabledTimer > 0 || s.def.role !== "support" || !aura) continue;
@@ -31,6 +36,10 @@ export const towerMethods = {
           t.buffAtkPct += aura.atkPct ?? 0;
           t.buffAsPct += aura.attackSpeedPct ?? 0;
         }
+      }
+      if (h.alive && dist(s.pos, h.pos) <= aura.radius) {
+        h.buffAtkPct += aura.atkPct ?? 0;
+        h.buffAsPct += aura.attackSpeedPct ?? 0;
       }
     }
     // Hexer support enemies slow nearby towers (a negative attack-speed buff).
