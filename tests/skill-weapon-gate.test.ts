@@ -72,19 +72,19 @@ describe("flexible magic-class skill gate", () => {
     expect(equipSkill(save, "arcane-nova")).toBe(false);
   });
 
-  it("a magic spell is castable with a magic-archetype weapon (a magic sword)", () => {
-    // Any catalog weapon whose build archetype is magic (skillPower/magicDamage
-    // primary) counts — covers enchanted 'magic swords'.
-    const magicWeapon = ITEM_CATALOG.find(
+  it("a magic spell is NOT castable with a magic-archetype sword (a 'magic sword')", () => {
+    // A spell weapon (staff/tome/scepter) is required. An enchanted sword — even one
+    // with a magic build archetype — is not a caster weapon and cannot cast spells.
+    const magicSword = ITEM_CATALOG.find(
       (d) =>
         d.slot === "Weapon" &&
         d.weaponType === "Sword" &&
         (d.archetype === "magic" ||
           ["magicDamage", "skillPower", "magicPen"].includes(d.primaryAffix.type)),
     );
-    if (!magicWeapon) return; // no magic sword in catalog yet — pure test covers the logic
+    if (!magicSword) return; // no magic sword in catalog yet — pure test covers the logic
     const save = withSkill("mana-burst");
-    giveAndEquip(save, magicWeapon);
-    expect(skillWeaponMet(save, "mana-burst")).toBe(true);
+    giveAndEquip(save, magicSword);
+    expect(skillWeaponMet(save, "mana-burst")).toBe(false);
   });
 });

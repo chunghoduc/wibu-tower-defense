@@ -8,7 +8,6 @@
 import { ITEM_CATALOG_MAP, instanceReqLevel } from "../data/items.ts";
 import { ACTIVE_SKILLS_MAP, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { equipSlotsFor, type ItemSlot, type WeaponType } from "../data/schema.ts";
-import { archetypeFor } from "../data/itemArchetype.ts";
 import { weaponClassMet } from "./weaponClass.ts";
 import type { HeroSave } from "./save.ts";
 
@@ -57,8 +56,9 @@ export function skillWeaponMet(save: HeroSave, skillId: string): boolean {
   if (!skill) return true;
   const def = equippedWeaponDef(save);
   // Flexible class gate (preferred for spells) — magic, melee, or ranged.
+  // Magic requires a dedicated spell weapon (staff/tome/scepter), never a gun/bow/sword.
   if (skill.weaponClass) {
-    return weaponClassMet(skill.weaponClass, def?.weaponType, def && archetypeFor(def));
+    return weaponClassMet(skill.weaponClass, def?.weaponType);
   }
   // Legacy exact-weapon gate.
   if (!skill.requiresWeapon) return true;

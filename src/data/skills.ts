@@ -75,7 +75,8 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     id: "mana-burst",
     name: "Mana Burst",
     rarity: "Common",
-    description: "Release a burst of raw magical energy. Works with any magic weapon.",
+    description:
+      "Release a burst of raw magical energy. Requires a spell weapon (staff, tome, or scepter).",
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 90,
@@ -120,14 +121,14 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     name: "Shadow Curse",
     rarity: "Magic",
     description:
-      "Apply a weakening curse that amplifies all damage taken. Works with any magic weapon.",
+      "Apply a weakening curse that amplifies all damage taken. Requires a spell weapon (staff, tome, or scepter).",
     weaponClass: "magic",
     damageType: "Magic",
     basePower: 95,
     baseAoe: 60,
     artRef: "placeholder",
   }),
-  // --- Spectacular high-VFX spells (castable with any magic weapon). ---
+  // --- Spectacular high-VFX spells (require a spell weapon: staff/tome/scepter). ---
   s({
     id: "meteor-storm",
     name: "Meteor Storm",
@@ -184,7 +185,7 @@ export const ACTIVE_SKILLS: ActiveSkillDef[] = [
     baseAoe: 100,
     artRef: "placeholder",
   }),
-  // --- Summon spells — conjure temporary friendly minions (any magic weapon). ---
+  // --- Summon spells — conjure temporary friendly minions (require a spell weapon). ---
   s({
     id: "conjure-flame-sprites",
     name: "Conjure Flame Sprites",

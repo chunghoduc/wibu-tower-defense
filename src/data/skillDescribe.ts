@@ -79,9 +79,11 @@ export function heroActiveSkillDetail(
   const aoe = Math.round(skillEffectiveAoe(def.baseAoe, level));
   const weapon = def.requiresWeapon
     ? `Requires a ${def.requiresWeapon}`
-    : def.weaponClass
-      ? `Requires a ${def.weaponClass} weapon`
-      : "Any weapon";
+    : def.weaponClass === "magic"
+      ? "Requires a spell weapon (staff/tome/scepter)"
+      : def.weaponClass
+        ? `Requires a ${def.weaponClass} weapon`
+        : "Any weapon";
 
   // ATK is additive (atkCoef×ATK, scaled by the skill's Power); spell power
   // multiplies Magic/True casts only. "spell power N/A" on Physical.
