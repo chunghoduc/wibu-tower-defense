@@ -10,6 +10,7 @@ import {
   type Difficulty,
   type EnemyDef,
   type Immunity,
+  type Rarity,
   type Stats,
   type TargetType,
   type TowerBehavior,
@@ -64,6 +65,8 @@ export type FxEvent =
       radius: number;
       source: "tower" | "hero";
       skillId?: string;
+      /** Caster rarity — drives how powerful the cast VFX looks (skillVfxPower). */
+      rarity?: Rarity;
     }
   | { type: "splash"; at: Vec2; radius: number; damageType: DamageType }
   | { type: "chain"; from: Vec2; to: Vec2 }

@@ -18,8 +18,13 @@ import { renderVolley } from "./projectileVolleyFx.ts";
 import { VfxDraw } from "./vfxDraw.ts";
 import type { FxPool } from "./fxPool.ts";
 import { ACCENT, SkillElementFx } from "./skillElementFx.ts";
+import { vfxPower, type VfxPower } from "../data/skillVfxPower.ts";
+import type { Rarity } from "../data/schema.ts";
 
 type V = { x: number; y: number };
+
+/** Per-wave radius growth + stagger for the rarity-scaled cascade. */
+const WAVE_STAGGER_MS = 150;
 
 export class SkillVfx {
   /** Shared base burst + elemental substance set-pieces (fire/ice/lightning/…). */
@@ -44,24 +49,31 @@ export class SkillVfx {
     radius: number,
     skillId: string | undefined,
     source: "tower" | "hero",
+    rarity?: Rarity,
   ): void {
     const draw = new VfxDraw(this.scene, this.fac, this.depth, this.pool);
     const motif = skillMotif(skillId);
     const spec = skillVfxSpec(skillId);
+    // The caster's rarity sets the spectacle: bigger geometry, denser particles,
+    // and a multi-wave cascade that rolls outward (the apex tiers add a crowning
+    // flourish). A single source of truth for "how powerful does this look".
+    const power = vfxPower(rarity);
     if (spec) {
       // Hero skill: deliver from the source — literal projectiles when the skill
       // fires something (tri-shot → 3 arrows), else the choreographed delivery
       // (melee sweep / sky-fall / ground-erupt / beam) — then the bespoke impact
       // set-piece on arrival. baseBurst carries the icon emblem.
-      const onArrive = () => {
-        this.elements.baseBurst(at, spec.palette.core, radius, skillId);
-        renderSignature(this.scene, this.fac, this.depth, at, spec, radius, this.pool);
-      };
+      const onArrive = () =>
+        this.replayWaves(draw, power, radius, (wr, first, last) => {
+          if (first) this.elements.baseBurst(at, spec.palette.core, wr, skillId, power);
+          renderSignature(this.scene, this.fac, this.depth, at, spec, wr, this.pool, power);
+          if (last && power.grand) draw.grand(at, spec.palette.core, spec.palette.hot, radius);
+        });
       if (motif.kind !== "none") {
         const shots = planVolley(from, at, motif);
         renderVolley(this.scene, this.fac, this.depth, this.pool, motif.kind, shots, spec.palette, onArrive);
       } else {
-        renderDelivery(draw, spec.delivery, from, at, spec.palette, radius, onArrive);
+        renderDelivery(draw, spec.delivery, from, at, spec.palette, radius * power.scale, onArrive);
       }
       return;
     }
@@ -73,14 +85,17 @@ export class SkillVfx {
     const palette = { core: color, hot: accent.hot, deep: accent.deep };
     const shape = skillShapeFor(skillId);
     const onArrive = () => {
-      this.elements.baseBurst(at, color, radius, skillId);
-      renderTowerShape(draw, shape, at, palette, radius); // structural motion (under particles)
-      this.elements.render(style, at, color, radius); // elemental substance (on top)
+      this.replayWaves(draw, power, radius, (wr, first, last) => {
+        if (first) this.elements.baseBurst(at, color, wr, skillId, power);
+        renderTowerShape(draw, shape, at, palette, wr, power); // structural motion (under particles)
+        this.elements.render(style, at, color, wr, power); // elemental substance (on top)
+        if (last && power.grand) draw.grand(at, color, accent.hot, radius);
+      });
       // One weighted shake by SHAPE (heavy blasts/slams shake hardest); never double.
       const heavy = shape === "nova" || shape === "slam";
       const med = shape === "chain" || shape === "beam";
       if (source === "hero" || heavy || med || style === "lightning") {
-        this.scene.cameras.main.shake(heavy ? 200 : 130, heavy ? 0.007 : 0.004);
+        this.scene.cameras.main.shake(heavy ? 200 : 130, (heavy ? 0.007 : 0.004) * power.shake);
       }
     };
     if (motif.kind !== "none") {
@@ -89,7 +104,24 @@ export class SkillVfx {
       renderVolley(this.scene, this.fac, this.depth, this.pool, motif.kind, shots, palette, onArrive);
     } else {
       // Area shapes (nova/slam/cloud/aura) erupt at the target — no projectile.
-      renderDelivery(draw, deliveryForShape(shape), from, at, palette, radius, onArrive);
+      renderDelivery(draw, deliveryForShape(shape), from, at, palette, radius * power.scale, onArrive);
+    }
+  }
+
+  /** Replay the impact set-piece `power.waves` times, each wave staggered and
+   *  growing outward — the "many frames" cascade that makes a Legendary cast read
+   *  as far weightier than a Common one. `draw` provides the delayed-call timer. */
+  private replayWaves(
+    draw: VfxDraw,
+    power: VfxPower,
+    radius: number,
+    wave: (waveRadius: number, isFirst: boolean, isLast: boolean) => void,
+  ): void {
+    for (let i = 0; i < power.waves; i++) {
+      const wr = radius * power.scale * (1 + i * 0.18);
+      const fire = () => wave(wr, i === 0, i === power.waves - 1);
+      if (i === 0) fire();
+      else draw.after(i * WAVE_STAGGER_MS, fire);
     }
   }
 }

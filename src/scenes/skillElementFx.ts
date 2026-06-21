@@ -3,11 +3,14 @@
 // Elemental substance renderers for skill casts — the shared base burst plus
 // the seven per-style set-pieces (erupting fireballs, frost novas, a sky-strike
 // thunderstorm, rotating arcane sigils, toxic miasma, radiant blessings,
-// crossing blade arcs) and their drawing primitives. SkillVfx dispatches here;
-// pure presentation, every object self-destructs via its own tween.
+// crossing blade arcs). Every set-piece scales with the caster's VfxPower so a
+// Legendary cast spits far more substance over a wider, longer-lived area than a
+// Common one. Drawing primitives live in the SkillElementPrims base class.
 import Phaser from "phaser";
 import type { SkillStyle } from "../data/attackStyle.ts";
 import { skillTex } from "../data/assetKeys.ts";
+import { scaleCount, vfxPower, type VfxPower } from "../data/skillVfxPower.ts";
+import { SkillElementPrims } from "./skillElementPrims.ts";
 
 type V = { x: number; y: number };
 
@@ -22,54 +25,57 @@ export const ACCENT: Record<SkillStyle, { hot: number; deep: number }> = {
   arcane: { hot: 0xf0d4ff, deep: 0x7a4fd0 },
 };
 
-export class SkillElementFx {
-  constructor(
-    private readonly scene: Phaser.Scene,
-    private readonly fac: Phaser.GameObjects.GameObjectFactory,
-    private readonly depth: number,
-  ) {}
-
+export class SkillElementFx extends SkillElementPrims {
   /** Dispatch the elemental substance layer for a keyword-derived style. */
-  render(style: SkillStyle, at: V, color: number, radius: number): void {
+  render(style: SkillStyle, at: V, color: number, radius: number, p: VfxPower = vfxPower()): void {
+    const r = radius * p.scale;
     switch (style) {
       case "fire":
-        this.fire(at, color, radius);
+        this.fire(at, color, r, p);
         break;
       case "ice":
-        this.ice(at, color, radius);
+        this.ice(at, color, r, p);
         break;
       case "lightning":
-        this.lightning(at, color, radius);
+        this.lightning(at, color, r, p);
         break;
       case "arcane":
-        this.arcane(at, color, radius);
+        this.arcane(at, color, r, p);
         break;
       case "poison":
-        this.poison(at, color, radius);
+        this.poison(at, color, r, p);
         break;
       case "heal":
-        this.heal(at, color, radius);
+        this.heal(at, color, r, p);
         break;
       case "slash":
-        this.slash(at, color, radius);
+        this.slash(at, color, r, p);
         break;
     }
   }
 
   // ── base burst (shared) ───────────────────────────────────────────────────
-  baseBurst(at: V, color: number, radius: number, skillId: string | undefined): void {
-    this.ring(at, radius, color, 520);
-    this.scene.time.delayedCall(90, () => this.ring(at, radius * 0.6, 0xffffff, 360));
-    const core = this.fac.circle(at.x, at.y, 12, 0xffffff, 0.95).setDepth(this.depth + 3);
+  baseBurst(
+    at: V,
+    color: number,
+    radius: number,
+    skillId: string | undefined,
+    p: VfxPower = vfxPower(),
+  ): void {
+    const r = radius * p.scale;
+    this.ring(at, r, color, 520 * p.duration);
+    this.scene.time.delayedCall(90, () => this.ring(at, r * 0.6, 0xffffff, 360));
+    const core = this.fac.circle(at.x, at.y, 12 * p.scale, 0xffffff, 0.95).setDepth(this.depth + 3);
     this.tween(core, { scale: 0.12, alpha: 0 }, 280);
-    for (let i = 0; i < 12; i++) {
-      const a = (Math.PI * 2 * i) / 12;
+    const rays = scaleCount(12, p);
+    for (let i = 0; i < rays; i++) {
+      const a = (Math.PI * 2 * i) / rays;
       const line = this.fac
         .rectangle(at.x, at.y, 3, 16, color)
         .setOrigin(0.5, 1)
         .setRotation(a)
         .setDepth(this.depth + 1);
-      this.tween(line, { scaleY: 3, alpha: 0 }, 420);
+      this.tween(line, { scaleY: 3 * p.scale, alpha: 0 }, 420 * p.duration);
     }
     // Emblem flare: prefer a dedicated vfx texture, else reuse the skill's icon.
     const key = skillId
@@ -81,18 +87,19 @@ export class SkillElementFx {
         .setDepth(this.depth + 4)
         .setScale(0.3)
         .setAlpha(0.95);
-      this.tween(spr, { scale: 1.7, angle: 50, alpha: 0 }, 460, "Cubic.easeOut");
+      this.tween(spr, { scale: 1.7 * p.scale, angle: 50, alpha: 0 }, 460 * p.duration, "Cubic.easeOut");
     }
   }
 
   // ── fire: erupting fireballs + flame plumes + embers ──────────────────────
-  private fire(at: V, color: number, radius: number): void {
+  private fire(at: V, color: number, radius: number, p: VfxPower): void {
     const { hot, deep } = ACCENT.fire;
-    this.disc(at, 26, hot, 0.85, 1.9, 240); // hot flash core
-    this.lingerRing(at, radius * 1.05, deep, 0.5, 700); // scorch ring
-    for (let i = 0; i < 5; i++) {
+    this.disc(at, 26 * p.scale, hot, 0.85, 1.9, 240); // hot flash core
+    this.lingerRing(at, radius * 1.05, deep, 0.5, 700 * p.duration); // scorch ring
+    const balls = scaleCount(5, p);
+    for (let i = 0; i < balls; i++) {
       // fireballs arcing out + bursting
-      const a = (Math.PI * 2 * i) / 5 + Math.random() * 0.5;
+      const a = (Math.PI * 2 * i) / balls + Math.random() * 0.5;
       const d = radius * (0.55 + Math.random() * 0.4);
       const ball = this.fac
         .circle(at.x, at.y, 6, color)
@@ -111,7 +118,8 @@ export class SkillElementFx {
         },
       });
     }
-    for (let i = 0; i < 7; i++) {
+    const plumes = scaleCount(7, p);
+    for (let i = 0; i < plumes; i++) {
       // rising flame plumes
       const px = at.x + Phaser.Math.Between(-radius * 0.5, radius * 0.5);
       const plume = this.fac
@@ -130,17 +138,18 @@ export class SkillElementFx {
         onComplete: () => plume.destroy(),
       });
     }
-    this.shower(at, radius, 14, () => (Math.random() < 0.5 ? color : hot), -1); // embers rising
+    this.shower(at, radius, scaleCount(14, p), () => (Math.random() < 0.5 ? color : hot), -1);
   }
 
   // ── ice: frost nova + crystal spikes + snowfall ───────────────────────────
-  private ice(at: V, color: number, radius: number): void {
+  private ice(at: V, color: number, radius: number, p: VfxPower): void {
     const { hot, deep } = ACCENT.ice;
-    this.disc(at, 22, hot, 0.6, 2.0, 260);
-    this.lingerRing(at, radius * 0.95, deep, 0.55, 620);
-    for (let i = 0; i < 10; i++) {
+    this.disc(at, 22 * p.scale, hot, 0.6, 2.0, 260);
+    this.lingerRing(at, radius * 0.95, deep, 0.55, 620 * p.duration);
+    const shards = scaleCount(10, p);
+    for (let i = 0; i < shards; i++) {
       // shards radiating + spinning
-      const a = (Math.PI * 2 * i) / 10;
+      const a = (Math.PI * 2 * i) / shards;
       const s = this.fac.star(at.x, at.y, 4, 1.6, 5.5, hot).setDepth(this.depth + 2);
       this.scene.tweens.add({
         targets: s,
@@ -153,9 +162,10 @@ export class SkillElementFx {
         onComplete: () => s.destroy(),
       });
     }
-    for (let i = 0; i < 6; i++) {
+    const spikes = scaleCount(6, p);
+    for (let i = 0; i < spikes; i++) {
       // crystal spikes erupting
-      const a = (Math.PI * 2 * i) / 6 + 0.3;
+      const a = (Math.PI * 2 * i) / spikes + 0.3;
       const tip = { x: at.x + Math.cos(a) * radius * 0.5, y: at.y + Math.sin(a) * radius * 0.5 };
       const spike = this.fac
         .triangle(tip.x, tip.y, 0, 0, 5, -16, 10, 0, color)
@@ -173,27 +183,28 @@ export class SkillElementFx {
         onComplete: () => spike.destroy(),
       });
     }
-    this.shower(at, radius, 16, () => (Math.random() < 0.5 ? 0xffffff : hot), 1); // snow drifting down
+    this.shower(at, radius, scaleCount(16, p), () => (Math.random() < 0.5 ? 0xffffff : hot), 1);
   }
 
   // ── lightning: a sky-strike THUNDERSTORM ──────────────────────────────────
-  private lightning(at: V, color: number, radius: number): void {
+  private lightning(at: V, color: number, radius: number, p: VfxPower): void {
     const { hot, deep } = ACCENT.lightning;
     this.scene.cameras.main.flash(110, 170, 205, 255); // sky flash
-    const strikes = 5;
+    const strikes = scaleCount(5, p);
     for (let i = 0; i < strikes; i++) {
       const sx = at.x + Phaser.Math.Between(-radius, radius);
       const tx = at.x + Phaser.Math.Between(-radius * 0.6, radius * 0.6);
       const ty = at.y + Phaser.Math.Between(-6, 8);
-      this.scene.time.delayedCall(i * 55, () => {
+      this.scene.time.delayedCall(i * 45, () => {
         this.skyBolt({ x: sx, y: at.y - 230 }, { x: tx, y: ty }, i % 2 ? color : hot);
         this.disc({ x: tx, y: ty }, 14, hot, 0.9, 2.2, 200);
         this.spark({ x: tx, y: ty }, color, 7);
       });
     }
-    for (let i = 0; i < 7; i++) {
+    const arcs = scaleCount(7, p);
+    for (let i = 0; i < arcs; i++) {
       // ground arcs from the centre
-      const a = (Math.PI * 2 * i) / 7 + Math.random() * 0.3;
+      const a = (Math.PI * 2 * i) / arcs + Math.random() * 0.3;
       this.jaggedBolt(
         at,
         { x: at.x + Math.cos(a) * radius * 0.9, y: at.y + Math.sin(a) * radius * 0.9 },
@@ -204,13 +215,14 @@ export class SkillElementFx {
   }
 
   // ── arcane: rotating sigil + rune glyphs + imploding orb ───────────────────
-  private arcane(at: V, color: number, radius: number): void {
+  private arcane(at: V, color: number, radius: number, p: VfxPower): void {
     const { hot, deep } = ACCENT.arcane;
     this.sigil(at, radius * 0.95, color, 1); // two counter-rotating rings
     this.sigil(at, radius * 0.62, hot, -1);
-    for (let i = 0; i < 6; i++) {
+    const runes = scaleCount(6, p);
+    for (let i = 0; i < runes; i++) {
       // rune glyphs blinking on the ring
-      const a = (Math.PI * 2 * i) / 6;
+      const a = (Math.PI * 2 * i) / runes;
       const r = this.fac
         .star(at.x + Math.cos(a) * radius * 0.8, at.y + Math.sin(a) * radius * 0.8, 4, 2, 5, hot)
         .setDepth(this.depth + 2)
@@ -234,17 +246,18 @@ export class SkillElementFx {
       ease: "Cubic.easeIn",
       onComplete: () => {
         orb.destroy();
-        this.disc(at, 18, deep, 0.9, 2.4, 240);
-        this.spark(at, hot, 9);
+        this.disc(at, 18 * p.scale, deep, 0.9, 2.4, 240);
+        this.spark(at, hot, scaleCount(9, p));
       },
     });
-    this.spiralMotes(at, radius, hot);
+    this.spiralMotes(at, radius, hot, scaleCount(10, p));
   }
 
   // ── poison: drifting toxic miasma + bubbles ───────────────────────────────
-  private poison(at: V, color: number, radius: number): void {
+  private poison(at: V, color: number, radius: number, p: VfxPower): void {
     const { hot, deep } = ACCENT.poison;
-    for (let i = 0; i < 6; i++) {
+    const blobs = scaleCount(6, p);
+    for (let i = 0; i < blobs; i++) {
       // expanding gas blobs that drift up
       const ox = Phaser.Math.Between(-radius * 0.5, radius * 0.5);
       const blob = this.fac
@@ -255,14 +268,15 @@ export class SkillElementFx {
         scale: Phaser.Math.FloatBetween(1.8, 2.6),
         y: at.y - Phaser.Math.Between(14, 30),
         alpha: 0,
-        duration: Phaser.Math.Between(700, 1000),
+        duration: Phaser.Math.Between(700, 1000) * p.duration,
         ease: "Sine.easeOut",
         onComplete: () => blob.destroy(),
       });
     }
-    for (let i = 0; i < 10; i++) {
+    const bubbles = scaleCount(10, p);
+    for (let i = 0; i < bubbles; i++) {
       // popping bubbles
-      const a = (Math.PI * 2 * i) / 10;
+      const a = (Math.PI * 2 * i) / bubbles;
       const b = this.fac
         .circle(at.x, at.y, Phaser.Math.Between(2, 4), hot, 0.9)
         .setDepth(this.depth + 2);
@@ -276,16 +290,17 @@ export class SkillElementFx {
         onComplete: () => b.destroy(),
       });
     }
-    this.lingerRing(at, radius * 0.9, deep, 0.45, 720);
+    this.lingerRing(at, radius * 0.9, deep, 0.45, 720 * p.duration);
   }
 
   // ── heal: radiant blessing — light pillar + halo + sparkles ───────────────
-  private heal(at: V, color: number, radius: number): void {
+  private heal(at: V, color: number, radius: number, p: VfxPower): void {
     const { hot } = ACCENT.heal;
-    this.pillar(at, hot, 26, 70);
-    this.ring(at, radius, color, 560);
-    this.disc(at, 16, 0xffffff, 0.7, 1.8, 320);
-    for (let i = 0; i < 8; i++) {
+    this.pillar(at, hot, 26, 70 * p.scale);
+    this.ring(at, radius, color, 560 * p.duration);
+    this.disc(at, 16 * p.scale, 0xffffff, 0.7, 1.8, 320);
+    const blessings = scaleCount(8, p);
+    for (let i = 0; i < blessings; i++) {
       // rising plus signs + sparkles
       const x = at.x + Phaser.Math.Between(-radius * 0.6, radius * 0.6);
       const obj =
@@ -312,10 +327,12 @@ export class SkillElementFx {
   }
 
   // ── slash: crossing blade arcs + horizontal shock line ────────────────────
-  private slash(at: V, color: number, radius: number): void {
+  private slash(at: V, color: number, radius: number, p: VfxPower): void {
     const { hot } = ACCENT.slash;
-    [-60, 12, 64].forEach((deg, i) =>
-      this.scene.time.delayedCall(i * 55, () => this.bladeArc(at, i === 1 ? hot : color, deg)),
+    // higher rarity = more crossing arcs (denser flurry of cuts)
+    const angles = p.tier >= 3 ? [-72, -24, 24, 72] : [-60, 12, 64];
+    angles.forEach((deg, i) =>
+      this.scene.time.delayedCall(i * 50, () => this.bladeArc(at, i === 1 ? hot : color, deg)),
     );
     const line = this.fac
       .rectangle(at.x, at.y, 8, 4, hot)
@@ -329,216 +346,6 @@ export class SkillElementFx {
       ease: "Quad.easeOut",
       onComplete: () => line.destroy(),
     });
-    this.spark(at, hot, 8);
-  }
-
-  // ── primitives ────────────────────────────────────────────────────────────
-  private tween(
-    o: Phaser.GameObjects.GameObject,
-    props: Record<string, number>,
-    duration: number,
-    ease = "Quad.easeOut",
-  ): void {
-    this.scene.tweens.add({ targets: o, ...props, duration, ease, onComplete: () => o.destroy() });
-  }
-
-  private ring(at: V, radius: number, color: number, duration: number): void {
-    const c = this.fac
-      .circle(at.x, at.y, 6)
-      .setStrokeStyle(3, color, 0.9)
-      .setFillStyle(color, 0.1)
-      .setDepth(this.depth);
-    this.tween(c, { scale: radius / 6, alpha: 0 }, duration, "Cubic.easeOut");
-  }
-
-  /** A slower, thicker ring that lingers (scorch / frost / miasma ground mark). */
-  private lingerRing(at: V, radius: number, color: number, alpha: number, duration: number): void {
-    const c = this.fac.circle(at.x, at.y, 6).setStrokeStyle(4, color, alpha).setDepth(this.depth);
-    this.tween(c, { scale: radius / 6, alpha: 0 }, duration, "Sine.easeOut");
-  }
-
-  private disc(
-    at: V,
-    r: number,
-    color: number,
-    alpha: number,
-    grow: number,
-    duration: number,
-  ): void {
-    const d = this.fac.circle(at.x, at.y, r, color, alpha).setDepth(this.depth + 3);
-    this.tween(d, { scale: grow, alpha: 0 }, duration, "Cubic.easeOut");
-  }
-
-  private pillar(at: V, color: number, w: number, h: number): void {
-    const col = this.fac
-      .rectangle(at.x, at.y, w, h, color, 0.55)
-      .setOrigin(0.5, 1)
-      .setDepth(this.depth + 1)
-      .setScale(1, 0);
-    this.scene.tweens.add({
-      targets: col,
-      scaleY: 1,
-      duration: 180,
-      ease: "Cubic.easeOut",
-      yoyo: true,
-      hold: 120,
-      onComplete: () => col.destroy(),
-    });
-    const core = this.fac
-      .rectangle(at.x, at.y, w * 0.4, h, 0xffffff, 0.8)
-      .setOrigin(0.5, 1)
-      .setDepth(this.depth + 2)
-      .setScale(1, 0);
-    this.scene.tweens.add({
-      targets: core,
-      scaleY: 1,
-      alpha: 0,
-      duration: 360,
-      ease: "Quad.easeOut",
-      onComplete: () => core.destroy(),
-    });
-  }
-
-  /** Rising (-1) or falling (+1) shower of small motes drifting outward. */
-  private shower(at: V, radius: number, n: number, color: () => number, dir: 1 | -1): void {
-    for (let i = 0; i < n; i++) {
-      const p = this.fac
-        .circle(
-          at.x + Phaser.Math.Between(-radius * 0.6, radius * 0.6),
-          at.y,
-          Phaser.Math.Between(2, 4),
-          color(),
-        )
-        .setDepth(this.depth + 2);
-      this.scene.tweens.add({
-        targets: p,
-        y: at.y + dir * -Phaser.Math.Between(28, 60) * (dir < 0 ? 1 : -1) * -1,
-        x: p.x + Phaser.Math.Between(-12, 12),
-        alpha: 0,
-        scale: 0.2,
-        duration: Phaser.Math.Between(520, 760),
-        ease: "Sine.easeOut",
-        onComplete: () => p.destroy(),
-      });
-    }
-  }
-
-  private spark(at: V, color: number, n = 5): void {
-    for (let i = 0; i < n; i++) {
-      const a = (Math.PI * 2 * i) / n + Math.random() * 0.6;
-      const p = this.fac.circle(at.x, at.y, 2, color).setDepth(this.depth + 2);
-      this.tween(
-        p,
-        { x: at.x + Math.cos(a) * 16, y: at.y + Math.sin(a) * 16, alpha: 0, scale: 0.3 },
-        240,
-      );
-    }
-  }
-
-  private bladeArc(at: V, color: number, deg: number): void {
-    const g = this.fac.graphics({ x: at.x, y: at.y }).setDepth(this.depth + 2);
-    g.lineStyle(4, color, 0.95);
-    g.beginPath();
-    g.arc(0, 0, 20, Phaser.Math.DegToRad(-55), Phaser.Math.DegToRad(55));
-    g.strokePath();
-    g.setScale(0.4).setAngle(deg);
-    this.tween(g, { scale: 1.4, alpha: 0 }, 200);
-  }
-
-  /** A bright jagged bolt + a fading after-image, used for ground arcs. */
-  private jaggedBolt(from: V, to: V, color: number, steps: number): void {
-    const g = this.fac.graphics().setDepth(this.depth + 1);
-    g.lineStyle(2, color, 0.95);
-    g.beginPath();
-    g.moveTo(from.x, from.y);
-    for (let i = 1; i <= steps; i++) {
-      const t = i / steps,
-        j = i < steps ? 7 : 0;
-      g.lineTo(
-        from.x + (to.x - from.x) * t + Phaser.Math.Between(-j, j),
-        from.y + (to.y - from.y) * t + Phaser.Math.Between(-j, j),
-      );
-    }
-    g.strokePath();
-    this.tween(g, { alpha: 0 }, 200);
-  }
-
-  /** A thick sky-to-ground lightning strike with a soft glow halo. */
-  private skyBolt(from: V, to: V, color: number): void {
-    const glow = this.fac.graphics().setDepth(this.depth);
-    glow.lineStyle(7, color, 0.25);
-    const halo = this.fac.graphics().setDepth(this.depth + 1);
-    halo.lineStyle(2.5, 0xffffff, 0.95);
-    for (const g of [glow, halo]) {
-      g.beginPath();
-      g.moveTo(from.x, from.y);
-      const steps = 8;
-      let px: number; // assigned on the first loop pass
-      for (let i = 1; i <= steps; i++) {
-        const t = i / steps,
-          j = i < steps ? 12 : 0;
-        px = from.x + (to.x - from.x) * t + Phaser.Math.Between(-j, j);
-        g.lineTo(px, from.y + (to.y - from.y) * t);
-      }
-      g.strokePath();
-    }
-    this.scene.tweens.add({
-      targets: [glow, halo],
-      alpha: 0,
-      duration: 260,
-      ease: "Quad.easeIn",
-      onComplete: () => {
-        glow.destroy();
-        halo.destroy();
-      },
-    });
-  }
-
-  private sigil(at: V, radius: number, color: number, dir: 1 | -1): void {
-    const g = this.fac
-      .graphics({ x: at.x, y: at.y })
-      .setDepth(this.depth + 1)
-      .setAlpha(0);
-    g.lineStyle(2, color, 0.9);
-    g.strokeCircle(0, 0, radius);
-    const ticks = 12;
-    for (let i = 0; i < ticks; i++) {
-      const a = (Math.PI * 2 * i) / ticks;
-      g.lineBetween(
-        Math.cos(a) * radius * 0.86,
-        Math.sin(a) * radius * 0.86,
-        Math.cos(a) * radius,
-        Math.sin(a) * radius,
-      );
-    }
-    g.setScale(0.5);
-    this.scene.tweens.add({
-      targets: g,
-      alpha: 0.95,
-      scale: 1,
-      angle: dir * 80,
-      duration: 420,
-      ease: "Cubic.easeOut",
-      onComplete: () => this.tween(g, { alpha: 0, scale: 1.15 }, 220),
-    });
-  }
-
-  private spiralMotes(at: V, radius: number, color: number): void {
-    for (let i = 0; i < 10; i++) {
-      const a0 = (Math.PI * 2 * i) / 10;
-      const p = this.fac
-        .circle(at.x + Math.cos(a0) * radius * 0.9, at.y + Math.sin(a0) * radius * 0.9, 2.5, color)
-        .setDepth(this.depth + 2);
-      const a1 = a0 + Math.PI * 1.2;
-      this.scene.tweens.add({
-        targets: p,
-        x: at.x + Math.cos(a1) * radius * 0.15,
-        y: at.y + Math.sin(a1) * radius * 0.15,
-        alpha: 0,
-        duration: 520,
-        ease: "Sine.easeIn",
-        onComplete: () => p.destroy(),
-      });
-    }
+    this.spark(at, hot, scaleCount(8, p));
   }
 }

@@ -418,6 +418,28 @@ export class VfxDraw {
     this.after(Math.round(dur * 0.6), onArrive);
   }
 
+  /** A crowning flourish reserved for the highest-rarity casts: a soft screen
+   *  flash, a vast expanding double halo, a rising pillar of light, and a final
+   *  mote bloom — the "this is an ULTIMATE" punctuation on top of the signature. */
+  grand(at: V, core: number, hot: number, radius: number): void {
+    this.flash(130, 50, 64, 104);
+    this.ring(at, radius * 1.9, core, 720, 6);
+    this.after(90, () => this.ring(at, radius * 1.5, hot, 640, 4));
+    const col = this.mkRect(at.x, at.y, 14, radius * 2.2, core, 0.4)
+      .setOrigin(0.5, 1)
+      .setDepth(this.depth + 1)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setScale(1, 0);
+    this.scene.tweens.add({
+      targets: col,
+      scaleY: 1,
+      duration: 260,
+      ease: "Cubic.easeOut",
+      onComplete: () => this.go(col, { alpha: 0, scaleX: 0.3 }, 320),
+    });
+    this.motes(at, radius * 1.4, 18, () => (Math.random() < 0.5 ? core : hot), -1);
+  }
+
   /** A ground target-marker reticle that blooms then snaps (skyfall telegraph). */
   marker(at: V, radius: number, color: number, dur: number): void {
     const c = this.mkCircle(at.x, at.y, radius)

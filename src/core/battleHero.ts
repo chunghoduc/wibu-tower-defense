@@ -11,6 +11,7 @@ import { heroActiveBurst, awardSkillUseXp } from "./hero.ts";
 import { cappedAttackSpeed } from "./attackSpeedCap.ts";
 import type { BattleState } from "./battle.ts";
 import { HERO_FILTER, MANA_MAX } from "./battleTypes.ts";
+import { heroPowerRarity } from "../data/skillVfxPower.ts";
 
 export const heroMethods = {
   updateHero(this: BattleState, dt: number): void {
@@ -66,6 +67,7 @@ export const heroMethods = {
         h.equippedSkillId,
         undefined,
         h.activeMult ?? 2,
+        heroPowerRarity(this._heroSave?.hero.level ?? 1),
       );
       h.mana = 0;
       // Skill leveling (spec: +1 use-XP per cast, capped at the hero's level).

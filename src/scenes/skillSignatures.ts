@@ -10,65 +10,70 @@ import Phaser from "phaser";
 import type { SkillVfxSpec, SkillSignature } from "../data/skillVfxMeta.ts";
 import { VfxDraw, type V } from "./vfxDraw.ts";
 import type { FxPool } from "./fxPool.ts";
+import { scaleCount, vfxPower, type VfxPower } from "../data/skillVfxPower.ts";
 
 type Fac = Phaser.GameObjects.GameObjectFactory;
 
 // ── signatures ──────────────────────────────────────────────────────────────
-// Each takes the draw kit, the cast point, the skill's spec, and the splash
-// radius. Keep them short and READABLE — the metadata's `appearance` is the spec.
+// Each takes the draw kit, the cast point, the skill's spec, the splash radius,
+// and the caster's VfxPower — sparks/motes/tendril counts scale with rarity so a
+// Legendary cast is visibly denser. (Geometry scale + wave-replay are applied by
+// SkillVfx.cast.) Keep them short and READABLE — `appearance` is the spec.
 
-type SigFn = (d: VfxDraw, at: V, s: SkillVfxSpec, radius: number) => void;
+type SigFn = (d: VfxDraw, at: V, s: SkillVfxSpec, radius: number, w: VfxPower) => void;
 
-const valiantSweep: SigFn = (d, at, s, radius) => {
+const valiantSweep: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   d.crescent(at, core, -200, 200, radius * 0.9, 6, 360, 40);
   d.crescent(at, hot, -190, 180, radius * 0.6, 3, 320, 40);
   d.ring(at, radius, deep, 480, 3);
   d.gleam(at, 25, radius * 1.4, hot, 4); // central cross-gleam
   d.gleam(at, 115, radius * 1.4, hot, 4);
-  d.spark(at, hot, 8, 20);
-  d.motes(at, radius, 10, () => (Math.random() < 0.5 ? core : hot), -1);
+  d.spark(at, hot, scaleCount(8, w), 20);
+  d.motes(at, radius, scaleCount(10, w), () => (Math.random() < 0.5 ? core : hot), -1);
 };
 
-const spiritComet: SigFn = (d, at, s, radius) => {
+const spiritComet: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   // implode → erupt
   d.disc(at, radius * 0.55, core, 0.4, 0.06, 280);
   d.after(260, () => {
     d.disc(at, 16, hot, 0.9, 2.4, 240);
     d.ring(at, radius, core, 460, 3);
-    d.spark(at, hot, 10, 22);
+    d.spark(at, hot, scaleCount(10, w), 22);
     // curling wisp trails
-    for (let i = 0; i < 7; i++) {
-      const a = (Math.PI * 2 * i) / 7;
+    const wisps = scaleCount(7, w);
+    for (let i = 0; i < wisps; i++) {
+      const a = (Math.PI * 2 * i) / wisps;
       d.crack(at, a, radius * 0.8, deep, 360);
     }
   });
-  d.motes(at, radius, 12, () => (Math.random() < 0.5 ? core : hot), -1);
+  d.motes(at, radius, scaleCount(12, w), () => (Math.random() < 0.5 ? core : hot), -1);
 };
 
 // iron-cleave is "a wide arc that cleaves" — lead with ONE dominant broad sweep,
 // backed by a tighter bright arc and a horizontal ground-crack shock.
-const steelCross: SigFn = (d, at, s, radius) => {
+const steelCross: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   d.crescent(at, core, -210, 200, radius, 6, 260, 36); // the wide cleaving arc
   d.crescent(at, hot, -200, 180, radius * 0.7, 3, 240, 36);
   d.beam({ x: at.x - radius * 0.6, y: at.y }, 0, radius * 1.6, deep, 3, 260); // ground-crack shock
-  d.spark(at, hot, 10, 22);
+  d.spark(at, hot, scaleCount(10, w), 22);
 };
 
-const earthshatter: SigFn = (d, at, s, radius) => {
+const earthshatter: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   d.disc(at, 22, hot, 0.7, 2.0, 240);
   d.ring(at, radius * 1.05, deep, 560, 5);
-  d.shards(at, 9, radius, core);
-  for (let i = 0; i < 5; i++)
+  d.shards(at, scaleCount(9, w), radius, core);
+  const puffs = scaleCount(5, w);
+  for (let i = 0; i < puffs; i++)
     d.smoke({ x: at.x + Phaser.Math.Between(-radius * 0.5, radius * 0.5), y: at.y }, deep, 12);
-  d.spark(at, core, 8, 16);
-  d.shake(160, 0.006);
+  d.spark(at, core, scaleCount(8, w), 16);
+  d.shake(160, 0.006 * w.shake);
 };
 
-const guillotine: SigFn = (d, at, s, radius) => {
+const guillotine: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   d.flash(90, 120, 0, 0);
   // a vertical drop slash
@@ -79,14 +84,14 @@ const guillotine: SigFn = (d, at, s, radius) => {
     // lingering blood-red X afterimage
     d.crescent(at, deep, -135, 90, radius * 0.7, 4, 320, 0);
     d.crescent(at, deep, 45, 90, radius * 0.7, 4, 320, 0);
-    d.spark(at, core, 9, 24);
+    d.spark(at, core, scaleCount(9, w), 24);
   });
-  d.shake(120, 0.005);
+  d.shake(120, 0.005 * w.shake);
 };
 
 // The three arrows now FLY IN via the projectile volley; this is just where they
 // land — three small fanned impact sparks + a verdant settle (no full beams).
-const tripleVolley: SigFn = (d, at, s, radius) => {
+const tripleVolley: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   [-32, 0, 32].forEach((deg, i) =>
     d.after(i * 30, () => {
@@ -97,120 +102,128 @@ const tripleVolley: SigFn = (d, at, s, radius) => {
     }),
   );
   d.ring(at, radius * 0.7, deep, 360, 2);
-  d.after(180, () => d.motes(at, radius, 8, () => (Math.random() < 0.5 ? core : hot), -1)); // verdant drift settles
+  d.after(180, () =>
+    d.motes(at, radius, scaleCount(8, w), () => (Math.random() < 0.5 ? core : hot), -1),
+  ); // verdant drift settles
 };
 
-const piercingLance: SigFn = (d, at, s, radius) => {
+const piercingLance: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   d.ring(at, 30, hot, 220, 4); // sonic muzzle ring
   d.beam(at, 0, radius * 2.2, core, 6, 260);
   d.beam(at, 0, radius * 2.2, hot, 2, 220);
   d.after(40, () => d.beam(at, Math.PI, radius * 0.4, deep, 3, 200)); // recoil flick
-  d.spark(at, hot, 7, 16);
+  d.spark(at, hot, scaleCount(7, w), 16);
   d.after(200, () => {
     d.ring(at, radius * 1.1, core, 320, 2);
     d.smoke(at, deep, 8);
   }); // pierce-wake
 };
 
-const manaDetonation: SigFn = (d, at, s, radius) => {
+const manaDetonation: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   [0, 90, 180].forEach((ms, i) =>
     d.after(ms, () => d.ring(at, radius * (0.6 + i * 0.2), core, 460, 3)),
   );
-  d.glyphs(at, radius * 0.7, 6, hot);
+  d.glyphs(at, radius * 0.7, scaleCount(6, w), hot);
   d.disc(at, radius * 0.5, core, 0.3, 0.05, 300);
   d.after(280, () => {
     d.disc(at, 16, hot, 0.9, 2.2, 220);
-    d.spark(at, deep, 9, 20);
+    d.spark(at, deep, scaleCount(9, w), 20);
   });
 };
 
-const arcaneSupernova: SigFn = (d, at, s, radius) => {
+const arcaneSupernova: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   d.flash(100, 150, 90, 200);
   d.ring(at, radius * 1.3, core, 560, 5);
   d.after(90, () => d.ring(at, radius, hot, 460, 3));
   d.sigil(at, radius * 0.95, core, 1);
   d.sigil(at, radius * 0.62, hot, -1);
-  d.glyphs(at, radius * 0.8, 8, hot);
+  d.glyphs(at, radius * 0.8, scaleCount(8, w), hot);
   d.disc(at, radius * 0.7, core, 0.3, 0.05, 320);
   d.after(300, () => {
     d.disc(at, 20, deep, 0.9, 2.6, 260);
-    d.spark(at, hot, 12, 28);
+    d.spark(at, hot, scaleCount(12, w), 28);
   });
-  d.motes(at, radius, 14, () => (Math.random() < 0.5 ? core : hot), -1);
-  d.shake(180, 0.007);
+  d.motes(at, radius, scaleCount(14, w), () => (Math.random() < 0.5 ? core : hot), -1);
+  d.shake(180, 0.007 * w.shake);
 };
 
 // The five bullets now STREAM IN via the projectile volley; this is just the
 // staccato impacts where they hit + the gunsmoke (no muzzle/tracer beams here).
-const muzzleBarrage: SigFn = (d, at, s, radius) => {
+const muzzleBarrage: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   void radius;
-  for (let i = 0; i < 5; i++)
-    d.after(i * 55, () => {
-      const off = { x: at.x + (i - 2) * 7, y: at.y + Phaser.Math.Between(-4, 4) };
+  const rounds = scaleCount(5, w);
+  for (let i = 0; i < rounds; i++)
+    d.after(i * 50, () => {
+      const off = { x: at.x + (i - rounds / 2) * 7, y: at.y + Phaser.Math.Between(-4, 4) };
       d.disc(off, 8, hot, 0.9, 1.5, 150); // impact spit
       d.spark(off, core, 4, 12);
     });
   d.after(320, () => {
-    d.spark(at, hot, 8, 20);
+    d.spark(at, hot, scaleCount(8, w), 20);
     d.smoke(at, deep, 12);
   }); // gunsmoke settles
 };
 
-const concussionBlast: SigFn = (d, at, s, radius) => {
+const concussionBlast: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   d.disc(at, 24, hot, 0.85, 2.0, 220);
   d.ring(at, radius * 1.1, core, 520, 6);
-  for (let i = 0; i < 4; i++)
+  const puffs = scaleCount(4, w);
+  for (let i = 0; i < puffs; i++)
     d.smoke({ x: at.x + Phaser.Math.Between(-radius * 0.4, radius * 0.4), y: at.y }, deep, 12);
-  d.glyphs({ x: at.x, y: at.y - 14 }, radius * 0.45, 6, hot); // ring of spinning stun-stars overhead
-  d.spark(at, core, 8, 18);
-  d.shake(150, 0.0055);
+  d.glyphs({ x: at.x, y: at.y - 14 }, radius * 0.45, scaleCount(6, w), hot); // spinning stun-stars
+  d.spark(at, core, scaleCount(8, w), 18);
+  d.shake(150, 0.0055 * w.shake);
 };
 
-const hexSigil: SigFn = (d, at, s, radius) => {
+const hexSigil: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   d.sigil(at, radius * 0.9, core, -1);
-  d.glyphs(at, radius * 0.7, 5, hot);
+  d.glyphs(at, radius * 0.7, scaleCount(5, w), hot);
   // creeping shadow tendrils
-  for (let i = 0; i < 8; i++) {
-    const a = (Math.PI * 2 * i) / 8 + Math.random() * 0.2;
+  const tendrils = scaleCount(8, w);
+  for (let i = 0; i < tendrils; i++) {
+    const a = (Math.PI * 2 * i) / tendrils + Math.random() * 0.2;
     d.crack(at, a, radius * 0.9, deep, 420);
   }
   d.disc(at, radius * 0.6, deep, 0.4, 0.1, 360);
-  d.motes(at, radius, 8, () => core, 1);
+  d.motes(at, radius, scaleCount(8, w), () => core, 1);
 };
 
-const pureTechnique: SigFn = (d, at, s, radius) => {
+const pureTechnique: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
+  void hot;
   d.flash(120, 255, 255, 255);
   d.disc(at, 20, hot, 1, 2.4, 260);
   d.ring(at, radius, core, 460, 3);
   // golden filament lines converging to a point
-  for (let i = 0; i < 10; i++) {
-    const a = (Math.PI * 2 * i) / 10;
+  const lines = scaleCount(10, w);
+  for (let i = 0; i < lines; i++) {
+    const a = (Math.PI * 2 * i) / lines;
     const from = { x: at.x + Math.cos(a) * radius, y: at.y + Math.sin(a) * radius };
     d.beam(from, a + Math.PI, radius, deep, 1.5, 220);
   }
-  d.spark(at, deep, 10, 22);
+  d.spark(at, deep, scaleCount(10, w), 22);
 };
 
-const voidRift: SigFn = (d, at, s, radius) => {
+const voidRift: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   // void-palm is "a palm strike that tears through reality" — a hard palm thrust
   // lands FIRST, then reality tears open behind it.
   d.gleam(at, 0, radius * 0.9, hot, 5); // palm thrust
   d.disc(at, 14, hot, 0.9, 1.4, 160);
-  d.spark(at, hot, 8, 18);
+  d.spark(at, hot, scaleCount(8, w), 18);
   // a dark rift opens with a glowing rim, cracks space, then snaps shut
   d.after(110, () => d.disc(at, radius * 0.6, deep, 0.85, 1.0, 320)); // black core swell
   d.ring(at, radius * 0.65, hot, 360, 5); // violet rim
-  for (let i = 0; i < 10; i++) {
+  const cracks = scaleCount(10, w);
+  for (let i = 0; i < cracks; i++) {
     // cracks in space
-    const a = (Math.PI * 2 * i) / 10;
+    const a = (Math.PI * 2 * i) / cracks;
     d.crack(at, a, radius, hot, 420);
   }
   d.after(300, () => {
@@ -219,10 +232,10 @@ const voidRift: SigFn = (d, at, s, radius) => {
     d.after(180, () => {
       d.flash(90, 255, 255, 255);
       d.disc(at, 22, hot, 1, 2.6, 220);
-      d.spark(at, hot, 12, 28);
+      d.spark(at, hot, scaleCount(12, w), 28);
     });
   });
-  d.shake(200, 0.007);
+  d.shake(200, 0.007 * w.shake);
 };
 
 const SIGNATURES: Record<SkillSignature, SigFn> = {
@@ -256,7 +269,8 @@ export function renderSignature(
   spec: SkillVfxSpec,
   radius: number,
   pool?: FxPool,
+  w: VfxPower = vfxPower(),
 ): void {
   const d = new VfxDraw(scene, fac, depth, pool);
-  SIGNATURES[spec.signature](d, at, spec, radius);
+  SIGNATURES[spec.signature](d, at, spec, radius, w);
 }

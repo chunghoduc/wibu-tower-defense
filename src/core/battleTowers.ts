@@ -104,6 +104,8 @@ export const towerMethods = {
           t.uid,
           t.def.active ?? undefined,
           t.behavior?.defenseScale,
+          undefined,
+          t.def.rarity,
         );
         // The active skill is the ONLY source of stun, and it locks down a
         // single enemy — its current target — never the whole AoE cluster.

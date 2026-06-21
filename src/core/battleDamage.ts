@@ -4,7 +4,13 @@
  * kill pipeline (bounty + combo + loot). Methods are merged onto the BattleState
  * prototype in `battle.ts`.
  */
-import { DIFFICULTY_SCALING, type DamageType, type Stats, type Vec2 } from "../data/schema.ts";
+import {
+  DIFFICULTY_SCALING,
+  type DamageType,
+  type Rarity,
+  type Stats,
+  type Vec2,
+} from "../data/schema.ts";
 import {
   mitigatedDamage,
   mitigationBreakdown,
@@ -352,6 +358,7 @@ export const damageMethods = {
     skillId?: string,
     defenseScale?: { armor?: number; magicResist?: number; maxHp?: number },
     powerMult = 2,
+    casterRarity?: Rarity,
   ): void {
     this.emit({
       type: "cast",
@@ -362,6 +369,7 @@ export const damageMethods = {
       radius: SPLASH_RADIUS,
       source,
       skillId,
+      rarity: casterRarity,
     });
     const sp = Math.max(1, attacker.skillPower);
     let burst = effAtk * powerMult * sp;
