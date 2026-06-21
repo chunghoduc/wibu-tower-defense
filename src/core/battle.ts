@@ -51,6 +51,8 @@ import { towerMethods, type TowerMethods } from "./battleTowers.ts";
 import { damageMethods, type DamageMethods } from "./battleDamage.ts";
 import { heroMethods, type HeroMethods } from "./battleHero.ts";
 import { placementMethods, type PlacementMethods } from "./battlePlacement.ts";
+import { triggerMethods, type TriggerMethods } from "./battleTriggerFx.ts";
+import { resolveBattleTriggers, EMPTY_TRIGGERS, type BattleTriggers } from "./battleTriggers.ts";
 
 // Re-export the shared vocabulary so existing `import { ... } from "./battle.ts"`
 // callsites (EnemyRuntime, TowerRuntime, FxEvent, BattleOptions, the tuning
@@ -59,7 +61,13 @@ export * from "./battleTypes.ts";
 
 /** The simulation methods split into sibling modules are merged in below. */
 export interface BattleState
-  extends WaveMethods, EnemyMethods, TowerMethods, DamageMethods, HeroMethods, PlacementMethods {}
+  extends WaveMethods,
+    EnemyMethods,
+    TowerMethods,
+    DamageMethods,
+    HeroMethods,
+    PlacementMethods,
+    TriggerMethods {}
 
 export class BattleState {
   readonly stage: StageDef;
@@ -142,6 +150,12 @@ export class BattleState {
   /** @internal Count of waves FULLY cleared (every enemy down) — the boss-rush tier. */
   wavesCleared = 0;
 
+  /** @internal Unique-item triggered effects in play this battle, bucketed by event. */
+  triggers: BattleTriggers = EMPTY_TRIGGERS;
+  /** @internal Reentrancy guard — triggered damage must not re-proc a trigger (only
+   *  the ORIGINAL attack/kill/hurt/cast does). Raised while a fire* handler runs. */
+  _triggerDepth = 0;
+
   constructor(stage: StageDef, catalogs: Catalogs, opts: BattleOptions) {
     this.stage = stage;
     this.cat = catalogs;
@@ -212,6 +226,8 @@ export class BattleState {
       };
     }
     this._heroSave = opts.heroSave;
+    // Resolve the hero's equipped Unique triggered effects once at battle start.
+    if (opts.heroSave) this.triggers = resolveBattleTriggers(opts.heroSave);
 
     // F8: resolve squad synergies once at battle start from the chosen squad.
     if (opts.heroSave?.squad?.length) {
@@ -308,4 +324,5 @@ Object.assign(
   damageMethods,
   heroMethods,
   placementMethods,
+  triggerMethods,
 );

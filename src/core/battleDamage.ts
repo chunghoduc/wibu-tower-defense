@@ -106,6 +106,8 @@ export const damageMethods = {
     if (unit.stats.omnivamp > 0 && dealt > 0) {
       unit.hp = Math.min(unit.stats.maxHp, unit.hp + dealt * unit.stats.omnivamp);
     }
+    // Unique-item on-hit / on-crit triggers (chain, freeze, execute, …).
+    this.fireOnHit(unit, fromPos, target, dealt, didCrit);
   },
 
   /**
@@ -399,11 +401,15 @@ export const damageMethods = {
         );
       }
     }
+    // Unique-item on-cast triggers (echo, cinder field).
+    this.fireOnCast(attacker, center, burst, damageType);
   },
 
   killEnemy(this: BattleState, e: EnemyRuntime): void {
     if (!e.alive) return;
     e.alive = false;
+    // Unique-item on-kill triggers (corpse detonate, heal, gold, contagion).
+    this.fireOnKill(e);
     const scale = DIFFICULTY_SCALING[this.difficulty];
     const eliteBonus = e.elite ? ELITE_BOUNTY_MULT : 1;
     const baseReward =

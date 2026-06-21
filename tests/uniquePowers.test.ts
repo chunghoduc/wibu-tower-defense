@@ -57,12 +57,14 @@ describe("uniquePowerFor", () => {
 });
 
 describe("power contributions", () => {
-  it("every catalog power yields at least one positive stat bucket", () => {
+  it("every catalog power contributes a positive stat bucket OR a trigger behaviour", () => {
     for (const power of Object.values(UNIQUE_POWERS)) {
       const c = power.contribution({ uniqueCount: 1 });
       const all = { ...c.flat, ...c.increased, ...c.more };
       const vals = Object.values(all).filter((v): v is number => typeof v === "number");
-      expect(vals.length, `${power.id} must contribute something`).toBeGreaterThan(0);
+      // A power must DO something: either a stat bucket or a triggered effect.
+      expect(vals.length > 0 || power.trigger != null, `${power.id} must do something`).toBe(true);
+      // Any stat values it does declare must be positive.
       expect(vals.every((v) => v > 0), `${power.id} contributions positive`).toBe(true);
     }
   });

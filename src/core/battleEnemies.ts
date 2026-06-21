@@ -319,9 +319,12 @@ export const enemyMethods = {
       targetAt: { x: this.hero.pos.x, y: this.hero.pos.y },
       target: "hero",
     });
-    this.hero.hp -= mitigatedDamage(packet, this.hero.stats);
+    const incoming = mitigatedDamage(packet, this.hero.stats);
+    this.hero.hp -= incoming;
     this.logEnemyHit(attacker, "hero", packet, this.hero.stats, this.hero.hp);
     if (this.hero.hp <= 0) this.hero.alive = false;
+    // Unique-item on-hurt triggers (thornmail reflect, riposte counter).
+    else this.fireOnHurt(attacker, incoming);
   },
 
   /** Log an enemy's hit on the hero/a tower (these don't run through applyDamage). */
