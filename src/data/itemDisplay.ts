@@ -82,7 +82,7 @@ const AFFIX_PHRASE: Record<string, [string, string]> = {
   manaOnHit: ["+", " Mana on Hit"],
   manaOnKill: ["+", " Mana on Kill"],
   moveSpeed: ["+", " Move Speed"],
-  skillPower: ["+", " Skill Power"],
+  skillPower: ["+", " Skill Power (Magic/True skill damage)"],
   goldFind: ["+", " Gold Found"],
   omnivamp: ["Heals ", " of damage dealt"],
   armorPen: ["Ignores ", " of enemy Armor"],

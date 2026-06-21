@@ -19,6 +19,7 @@ import {
 } from "./damage.ts";
 import { combatLogOn, emitDamageLog } from "./combatLog.ts";
 import { absorbWithShield, ccDuration, dotMaxHpDps } from "./effects.ts";
+import { activeBurst, spellPowerMult, ACTIVE_ATK_COEF } from "./activeDamage.ts";
 import { dist } from "./path.ts";
 import { ELITE_BOUNTY_MULT } from "./elite.ts";
 import { recordKill, bestiaryDamageMul } from "./bestiary.ts";
@@ -389,18 +390,25 @@ export const damageMethods = {
       skillId,
       rarity: casterRarity,
     });
-    const sp = Math.max(1, attacker.skillPower);
-    let burst = effAtk * powerMult * sp;
-    let detail = `atk ${effAtk.toFixed(1)} ×${powerMult.toFixed(2)} ×skillPower ${sp.toFixed(2)}`;
-    if (defenseScale) {
-      // tanker payoff: fold the caster's own defenses into the burst.
-      const defBonus =
-        attacker.armor * (defenseScale.armor ?? 0) +
+    // tanker payoff: fold the caster's own defenses into the burst (flat, post-multiplier).
+    const defBonus = defenseScale
+      ? attacker.armor * (defenseScale.armor ?? 0) +
         attacker.magicResist * (defenseScale.magicResist ?? 0) +
-        attacker.maxHp * (defenseScale.maxHp ?? 0);
-      burst += defBonus;
-      detail += ` + defense ${defBonus.toFixed(1)}`;
-    }
+        attacker.maxHp * (defenseScale.maxHp ?? 0)
+      : 0;
+    // ATK is additive; spell power multiplies (Magic/True only) — see activeDamage.ts.
+    const burst = activeBurst({
+      atk: effAtk,
+      skillPower: attacker.skillPower,
+      powerMult,
+      damageType,
+      defBonus,
+    });
+    const spMult = spellPowerMult(damageType, attacker.skillPower);
+    const detail =
+      `base+${ACTIVE_ATK_COEF[damageType]}×atk ${effAtk.toFixed(1)} ×P ${powerMult.toFixed(2)}` +
+      (spMult !== 1 ? ` ×spell ${spMult.toFixed(2)}` : ``) +
+      (defBonus ? ` + defense ${defBonus.toFixed(1)}` : ``);
     const ctx = this.dmgCtx(`${source}:${uid}`, "active", detail);
     for (const e of this.enemies) {
       if (!e.alive) continue;

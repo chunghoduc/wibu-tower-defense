@@ -10,6 +10,7 @@ import type { SaveManager } from "../core/saveManager.ts";
 import { ACTIVE_SKILLS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { skillXpToLevel } from "../core/hero.ts";
 import { skillAtkMult } from "../core/skillDamage.ts";
+import { activeBurst, spellPowerMult, ACTIVE_ATK_COEF } from "../core/activeDamage.ts";
 import { skillEffectiveAoe } from "../core/hero.ts";
 import { resolveHeroBattleStats } from "../core/heroStats.ts";
 import { defaultHeroStats } from "../data/stage.ts";
@@ -256,17 +257,28 @@ export class SkillsScene extends Phaser.Scene {
           color: "#9fb0c4",
         }),
       );
-      // Damage multiplication + the EXACT pre-mitigation hit this skill lands in
-      // battle: burst = ATK × mult × skillPower (mirrors battleDamage.castActive).
+      // The EXACT pre-mitigation hit this skill lands in battle (mirrors
+      // battleDamage.castActive): ATK is additive (atkCoef×ATK scaled by the
+      // skill's Power); spell power multiplies Magic/True casts only.
       const mult = skillAtkMult(def.basePower, entry.level);
-      const burst = Math.round(heroAtk * mult * heroSkillPower);
+      const burst = Math.round(
+        activeBurst({
+          atk: heroAtk,
+          skillPower: heroSkillPower,
+          powerMult: mult,
+          damageType: def.damageType,
+        }),
+      );
+      const atkCoef = mult * ACTIVE_ATK_COEF[def.damageType];
+      const spMult = spellPowerMult(def.damageType, heroSkillPower);
+      const spNote = def.damageType === "Physical" ? "" : `  ·  ×${spMult.toFixed(2)} SP`;
       const aoe = Math.round(skillEffectiveAoe(def.baseAoe, entry.level));
       this.layer.add(
         crispText(
           this,
           x + 10,
           fy + 14,
-          `×${mult.toFixed(1)} ATK  ·  ≈${burst} ${def.damageType}  ·  ${aoe}px AoE`,
+          `+${atkCoef.toFixed(1)}×ATK${spNote}  ·  ≈${burst} ${def.damageType}  ·  ${aoe}px AoE`,
           { fontSize: "10px", color: DMG_HEX[def.damageType] ?? "#cdd6e6", fontStyle: "bold" },
         ),
       );

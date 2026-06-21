@@ -5,12 +5,14 @@ import { resolveHeroBattleStats } from "../src/core/heroStats.ts";
 import { defaultHeroStats } from "../src/data/stage.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { ACTIVE_SKILLS_MAP } from "../src/data/skills.ts";
+import { activeBurst, ACTIVE_ATK_COEF } from "../src/core/activeDamage.ts";
 
 /**
- * The Skills screen must show the skill's damage multiplication AND the exact
- * number the cast deals in battle. Both are derived here from the same functions
- * the sim uses (heroActiveBurst + resolveHeroBattleStats), so display ≡ battle by
- * construction. See battleDamage.ts castActive: burst = atk × mult × max(1, skillPower).
+ * The Skills screen must show the skill's scaling AND the exact number the cast
+ * deals in battle. Both are derived here from the same functions the sim uses
+ * (heroActiveBurst + resolveHeroBattleStats + activeBurst), so display ≡ battle by
+ * construction. See battleDamage.ts castActive: burst = activeBurst({atk, skillPower,
+ * powerMult, damageType}). ATK is additive; spell power multiplies Magic/True only.
  */
 describe("skillAtkMult", () => {
   it("is the skill's effective Power over the legacy ×2 anchor (50)", () => {
@@ -32,19 +34,26 @@ describe("heroSkillDamage", () => {
     return save;
   };
 
-  it("reproduces the in-battle cast formula EXACTLY (atk × mult × max(1, skillPower))", () => {
+  it("reproduces the in-battle cast formula EXACTLY (activeBurst with the same inputs)", () => {
     const save = equip("arcane-nova", 3);
+    const def = ACTIVE_SKILLS_MAP.get("arcane-nova")!;
     const info = heroSkillDamage(save, "arcane-nova");
 
     // The sim builds the burst from these exact primitives:
     const stats = resolveHeroBattleStats(save, defaultHeroStats()).stats;
-    const mult = heroActiveBurst(save).mult; // = activeMult fed to castActive
-    const expected = stats.atk * mult * Math.max(1, stats.skillPower);
+    const mult = heroActiveBurst(save).mult; // = activeMult (powerMult) fed to castActive
+    const expected = activeBurst({
+      atk: stats.atk,
+      skillPower: stats.skillPower,
+      powerMult: mult,
+      damageType: def.damageType,
+    });
 
     expect(info.burst).toBeCloseTo(expected, 6);
     expect(info.atk).toBeCloseTo(stats.atk, 6);
     expect(info.mult).toBeCloseTo(mult, 6);
     expect(info.skillPower).toBeCloseTo(Math.max(1, stats.skillPower), 6);
+    expect(info.atkCoef).toBeCloseTo(ACTIVE_ATK_COEF[def.damageType], 6);
   });
 
   it("carries the skill's own damage type (the True/Magic override path)", () => {
@@ -64,7 +73,15 @@ describe("heroSkillDamage", () => {
     const info = heroSkillDamage(save, "arcane-nova", base);
     // resolved skillPower may be 0; the burst must use the max(1, …) floor.
     expect(info.skillPower).toBeGreaterThanOrEqual(1);
-    expect(info.burst).toBeCloseTo(info.atk * info.mult * info.skillPower, 6);
+    expect(info.burst).toBeCloseTo(
+      activeBurst({
+        atk: info.atk,
+        skillPower: info.skillPower,
+        powerMult: info.mult,
+        damageType: info.damageType,
+      }),
+      6,
+    );
   });
 
   it("matches the level-aware multiplier shown on the card", () => {

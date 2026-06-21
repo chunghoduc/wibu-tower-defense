@@ -37,8 +37,14 @@ describe("Bloodmad Reaver — frenzy", () => {
     });
     const b = world([reaver], [tower], stage, { seed: 1 });
     b.placeTower("turret", 0);
-    runFor(b, 11);
-    const e = b.enemies[0];
+    // Hold the enemy reference across the run: a kill mutates the same object
+    // (alive=false) but also removes it from b.enemies, so grab the last-seen ref
+    // so the death branch below can still inspect it.
+    let e = b.enemies[0];
+    for (let i = 0; i < Math.round(11 / 0.05); i++) {
+      b.tick(0.05);
+      e = b.enemies[0] ?? e;
+    }
     expect(e).toBeDefined();
     if (e.alive) {
       expect(e.hp / e.stats.maxHp).toBeLessThan(0.5);

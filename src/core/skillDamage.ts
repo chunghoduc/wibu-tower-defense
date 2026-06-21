@@ -3,14 +3,14 @@
  * for", shared by the Skills screen and (by construction) the battle sim.
  *
  * The in-battle cast (battleDamage.ts `castActive`) deals, to every enemy in
- * splash, a pre-mitigation burst of:
+ * splash, the pre-mitigation burst from `activeBurst` (activeDamage.ts):
  *
- *     burst = atk × powerMult × max(1, skillPower)
- *           = atk × (effectivePower / ANCHOR) × max(1, skillPower)
+ *     burst = (powerMult×BASE_FLAT + powerMult×atkCoef×atk) × spellPowerMult
  *
- * where `atk`/`skillPower` come from `resolveHeroBattleStats` and `powerMult`
- * from `heroActiveBurst`. This module recomputes that same number from the same
- * functions, so anything the UI displays is exactly what the cast applies.
+ * ATK is ADDITIVE; spell power MULTIPLIES (Magic/True only). `atk`/`skillPower`
+ * come from `resolveHeroBattleStats` and `powerMult` from `heroActiveBurst`. This
+ * module recomputes that same number from the same functions, so anything the UI
+ * displays is exactly what the cast applies.
  */
 import type { HeroSave } from "./save.ts";
 import type { DamageType, Stats } from "../data/schema.ts";
@@ -18,15 +18,20 @@ import { resolveHeroBattleStats } from "./heroStats.ts";
 import { defaultHeroStats } from "../data/stage.ts";
 import { skillEffectivePower, ACTIVE_POWER_ANCHOR } from "./hero.ts";
 import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
+import { activeBurst, spellPowerMult, ACTIVE_ATK_COEF } from "./activeDamage.ts";
 
 export interface SkillDamageInfo {
-  /** ATK multiplier from the skill's effective Power (level-aware) = effectivePower / ANCHOR. */
+  /** The skill's level-aware intensity P = effectivePower / ANCHOR (drives base + ATK term). */
   mult: number;
   /** Resolved hero ATK fed to the cast — the same value the sim passes (pre aura buffs). */
   atk: number;
   /** Resolved hero skillPower, clamped exactly as the sim does (`max(1, …)`). */
   skillPower: number;
-  /** Pre-mitigation burst dealt to each enemy in splash: atk × mult × skillPower. */
+  /** This type's ATK coefficient (the slope of the additive ATK term). */
+  atkCoef: number;
+  /** Spell-power multiplier applied to this cast — exactly 1 for Physical. */
+  spellMult: number;
+  /** Pre-mitigation burst dealt to each enemy in splash (via `activeBurst`). */
   burst: number;
   /** The skill's own damage type (the only path to a True/Magic burst from a physical hero). */
   damageType: DamageType;
@@ -58,7 +63,14 @@ export function heroSkillDamage(
     mult,
     atk: stats.atk,
     skillPower,
-    burst: stats.atk * mult * skillPower,
+    atkCoef: ACTIVE_ATK_COEF[def.damageType],
+    spellMult: spellPowerMult(def.damageType, skillPower),
+    burst: activeBurst({
+      atk: stats.atk,
+      skillPower,
+      powerMult: mult,
+      damageType: def.damageType,
+    }),
     damageType: def.damageType,
   };
 }

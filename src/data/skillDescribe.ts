@@ -11,13 +11,14 @@ import { towerActiveInfo } from "./passiveSkills.ts";
 import type { HeroSave } from "../core/save.ts";
 import { skillEffectiveAoe } from "../core/hero.ts";
 import { heroSkillDamage } from "../core/skillDamage.ts";
+import { activeBurst, spellPowerMult, ACTIVE_ATK_COEF } from "../core/activeDamage.ts";
 import { ACTIVE_SKILLS_MAP } from "./skills.ts";
 import { SUMMON_MAP } from "./summons.ts";
 import { defaultHeroStats } from "./stage.ts";
 import { DOT_MAXHP_FRAC, DOT_BOSS_FRAC_MULT } from "../core/effects.ts";
 
 const SPLASH_RADIUS = 60; // battle.ts SPLASH_RADIUS
-const ACTIVE_MULT = 2; // battle.ts castActive: burst = effAtk * 2 * skillPower
+const TOWER_ACTIVE_POWER = 2; // battleDamage.castActive default powerMult for towers (no skill levels)
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const n0 = (v: number) => `${Math.round(v)}`;
@@ -26,22 +27,35 @@ const n0 = (v: number) => `${Math.round(v)}`;
 export function activeSkillDetail(def: CharacterDef, stats: Stats): string {
   if (!def.active) return "";
   const info = towerActiveInfo(def.active);
-  const sp = Math.max(1, stats.skillPower);
   const ds = def.behavior?.defenseScale;
   const defBonus = ds
     ? stats.armor * (ds.armor ?? 0) +
       stats.magicResist * (ds.magicResist ?? 0) +
       stats.maxHp * (ds.maxHp ?? 0)
     : 0;
-  const burst = Math.round(stats.atk * ACTIVE_MULT * sp + defBonus);
   const type = def.behavior?.activeType ?? def.damageType;
+  // ATK is additive; spell power multiplies (Magic/True only) — see activeDamage.ts.
+  const burst = Math.round(
+    activeBurst({
+      atk: stats.atk,
+      skillPower: stats.skillPower,
+      powerMult: TOWER_ACTIVE_POWER,
+      damageType: type,
+      defBonus,
+    }),
+  );
+  const spMult = spellPowerMult(type, stats.skillPower);
   const radius = def.behavior?.splashRadius ?? SPLASH_RADIUS;
+  const spNote =
+    type === "Physical"
+      ? `, spell power N/A`
+      : ` ×${spMult.toFixed(2)} spell power`;
   const defNote = ds ? ` + ${n0(defBonus)} from defenses` : "";
   const role = roleEffectDetail(def, stats);
   const stun = def.behavior?.stun;
   const stunNote = stun ? `\n▸ Stuns its single target for ${stun.duration}s.` : "";
   return (
-    `${info.description}\n▸ Burst: ${burst} ${type} (atk ${n0(stats.atk)} ×${ACTIVE_MULT} × ${sp.toFixed(2)} skill power${defNote}), ${radius}px AoE.` +
+    `${info.description}\n▸ Burst: ${burst} ${type} (${ACTIVE_ATK_COEF[type]}×atk ${n0(stats.atk)}${spNote}${defNote}), ${radius}px AoE.` +
     stunNote +
     (role ? `\n▸ ${role}` : "")
   );
@@ -69,10 +83,16 @@ export function heroActiveSkillDetail(
       ? `Requires a ${def.weaponClass} weapon`
       : "Any weapon";
 
+  // ATK is additive (atkCoef×ATK, scaled by the skill's Power); spell power
+  // multiplies Magic/True casts only. "spell power N/A" on Physical.
+  const spNote =
+    def.damageType === "Physical"
+      ? `, spell power N/A`
+      : ` ×${dmg.spellMult.toFixed(2)} spell power`;
   const lines = [
     def.description,
     `▸ ${def.rarity} · ${def.damageType} · Lv ${level}`,
-    `▸ Burst: ≈${n0(dmg.burst)} ${def.damageType} (atk ${n0(dmg.atk)} ×${dmg.mult.toFixed(2)} × ${dmg.skillPower.toFixed(2)} skill power).`,
+    `▸ Burst: ≈${n0(dmg.burst)} ${def.damageType} (${(dmg.mult * dmg.atkCoef).toFixed(2)}×atk ${n0(dmg.atk)}${spNote}).`,
     `▸ ${aoe}px area of effect — its cast VFX fills exactly this zone.`,
     `▸ ${weapon}.`,
   ];
