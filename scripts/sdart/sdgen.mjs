@@ -15,6 +15,8 @@ import {
   HERO_BASE,
   HERO_WEAPON,
   HERO_BATTLE,
+  heroBattleStyle,
+  HERO_BATTLE_NEGATIVE,
   STRUCTURE_VISUAL,
   STRUCTURE_STATE,
   structureStyle,
@@ -161,21 +163,23 @@ function buildJobs() {
       kind: "herobattle",
       id: wt,
       file: `${wt}.png`,
-      prompt: style(`${desc}, ${POSE.idle}`),
+      prompt: heroBattleStyle(desc, POSE.idle),
       seed: sd,
       w: 768,
       h: 1024,
       size: 320,
+      neg: HERO_BATTLE_NEGATIVE,
     });
     jobs.push({
       kind: "herobattle",
       id: `${wt}__attack`,
       file: `${wt}__attack.png`,
-      prompt: style(`${desc}, ${POSE.attack}`),
+      prompt: heroBattleStyle(desc, POSE.attack),
       seed: sd,
       w: 768,
       h: 1024,
       size: 320,
+      neg: HERO_BATTLE_NEGATIVE,
     });
   }
   for (const [id, v] of Object.entries(ENEMY_VISUAL))

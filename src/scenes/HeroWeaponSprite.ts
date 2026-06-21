@@ -45,7 +45,6 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
   private petReady = false;
 
   private _lastConfig: HeroLayerConfig | null = null;
-  private flapTween: Phaser.Tweens.Tween | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
@@ -135,7 +134,11 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
       b.setDisplaySize(baseW * m.scaleX, baseH * m.scaleY);
     }
 
-    this.wingsSprite.setPosition(0, -this.size * 0.42 + hover * 0.6);
+    // Anchor wings behind the shoulders/upper back of the full-body art, not the waist.
+    this.wingsSprite.setPosition(0, -this.size * 0.62 + hover * 0.6);
+    // Always flap — driven procedurally here (not a tween) so the wings never freeze
+    // if the scene's tweens are cleared. ~760ms period, ±6° matches the old flap feel.
+    if (this.hasWings) this.wingsSprite.setAngle(Math.sin(now * 0.0083) * 6);
     this.updatePet(now, dt);
   }
 
@@ -213,12 +216,11 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
       const show = !!config.wingKey && t.exists(config.wingKey);
       if (show) {
         this.wingsSprite.setTexture(config.wingKey!).setVisible(true);
-        this.startFlap();
       } else {
         this.wingsSprite.setVisible(false);
-        this.stopFlap();
+        this.wingsSprite.setAngle(0);
       }
-      this.hasWings = show;
+      this.hasWings = show; // flap is driven procedurally in tick() while hasWings
     }
 
     if (!this._lastConfig || config.petKey !== this._lastConfig.petKey) {
@@ -228,25 +230,6 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
     }
 
     this._lastConfig = config;
-  }
-
-  private startFlap(): void {
-    this.stopFlap();
-    this.flapTween = this.scene.tweens.add({
-      targets: this.wingsSprite,
-      angle: { from: -6, to: 6 },
-      duration: 380,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
-  }
-  private stopFlap(): void {
-    if (this.flapTween) {
-      this.flapTween.stop();
-      this.flapTween = null;
-    }
-    this.wingsSprite.setAngle(0);
   }
 
   private updatePet(now: number, dt: number): void {

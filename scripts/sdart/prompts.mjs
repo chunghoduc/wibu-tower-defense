@@ -146,17 +146,38 @@ export const HERO_WEAPON = {
 // WeaponType). Each is generated in two poses sharing one seed (stance + attack)
 // so the strike reads as the same character. No worn gear — the weapon is baked in;
 // only wings overlay at runtime. Keys: herobattle__<wt> / herobattle__<wt>__attack.
+//
+// These use their OWN richer style (heroBattleStyle below): a semi-realistic
+// high-detail anime KEY-VISUAL / splash-art look with dramatic cinematic lighting,
+// painterly shading and intricate gear detail — beauty above the flat cel-shaded
+// chrome the rest of the roster uses, because the hero is the on-screen star.
 export const HERO_BATTLE = {
   sword:
-    "a heroic armored knight champion with short brown hair, gleaming silver plate armor with gold trim and a flowing blue cape, wielding a large glowing broadsword in one hand and a round kite shield in the other",
-  bow: "a nimble ranger hero with a green hood and leather travel armor, a quiver of arrows on the back, drawing a tall ornate longbow with a glowing nocked arrow",
+    "a heroic armored knight champion with short tousled brown hair and a determined gaze, clad in gleaming ornately-engraved silver plate armour with gold filigree trim and a tattered flowing royal-blue cape, raising a massive broadsword glowing with radiant blue light along the fuller, a battered round kite shield bearing a golden crest, faint embers and dust motes drifting in the air",
+  bow: "a swift elven ranger hero with sharp focused eyes, a deep-green fur-trimmed hooded cloak over layered weathered leather armour, a quiver of fletched arrows across the back, drawing a tall ornately-carved longbow to full draw with a crackling arrow of golden light nocked, wind-blown cloak and hair",
   staff:
-    "a powerful wizard hero with a wide-brimmed pointed hat and long star-patterned blue robes, a long silver beard, raising a tall wooden staff topped with a radiant glowing crystal",
-  gun: "a dashing steampunk gunslinger hero in a long brown leather coat and goggles, brass-and-wood armor plating, brandishing a large ornate hand cannon firearm wreathed in muzzle sparks",
-  tome: "a scholarly warlock hero in a high-collared dark violet coat with golden arcane runes, a floating open spellbook (tome) orbited by glowing magic glyphs, one hand raised channelling purple energy",
-  fist: "a fierce monk martial-artist hero with a bare muscular torso, a red sash and bandaged forearms, glowing golden energy aura around both clenched fists, dynamic kung-fu stance",
-  any: "a versatile adventurer hero with short brown hair, practical leather-and-steel travel armor and a blue tabard, holding a sturdy steel arming sword in a ready guard",
+    "a venerable archmage hero with a long flowing silver beard and wise eyes, in deep-blue star-embroidered robes with intricate runic trim and a wide pointed wizard hat, raising a gnarled ancient wooden staff crowned by a brilliant floating arcane crystal shedding magical light, glowing sigils swirling around him",
+  gun: "a dashing steampunk gunslinger hero with a confident smirk, in a long weathered brown leather coat with brass goggles on a worn hat brim and riveted bronze-and-leather armour plating, brandishing a large ornately-engraved hand cannon belching muzzle-flash sparks and curling smoke",
+  tome: "an arcane warlock hero with luminous glowing eyes, in a high-collared dark-violet coat embroidered with shimmering golden runes, a heavy floating open spellbook orbited by radiant purple glyphs and crackling violet lightning, one gloved hand raised channelling swirling dark-magic energy",
+  fist: "a fierce martial-arts monk hero with a bare muscular sculpted torso, a crimson sash and tightly-bound hand wraps and prayer beads, brilliant golden chi energy blazing around both clenched fists, hair whipped by the energy, a dynamic powerful kung-fu stance",
+  any: "a seasoned versatile adventurer hero with short brown hair and a confident set jaw, in finely-detailed leather-and-steel travel armour with a worn blue tabard and a slung pack, holding a sturdy gleaming steel arming sword in a ready guard, dramatic rim light",
 };
+
+// Battle-hero-only style: a semi-realistic anime KEY-VISUAL / splash-art render —
+// dramatic cinematic rim lighting, volumetric glow, painterly shading with crisp
+// edges, intricate detail. Deliberately richer than the global cel-shaded STYLE so
+// the in-battle hero reads as the polished star of the screen. Background stays a
+// flat plain white so the cutout step trims cleanly.
+const HERO_BATTLE_STYLE =
+  "single full-body anime key-visual splash art of {V}, {P}, highly detailed semi-realistic rendering, intricate ornate detail, dramatic cinematic rim lighting with volumetric glow and god rays, rich painterly shading with crisp clean edges, vibrant saturated color, beautiful, masterpiece, full body visible head to toe, centered, isolated on a pure plain flat white background, empty background";
+export const HERO_BATTLE_NEGATIVE =
+  NEG +
+  ", flat shading, dull washed-out colors, plain, simplistic, low detail, sketch, lineart only, unfinished, chibi, photo, photorealistic, 3d render";
+
+/** Build the battle-hero prompt for a weapon descriptor + a POSE phrase. */
+export function heroBattleStyle(visual, pose) {
+  return HERO_BATTLE_STYLE.replace("{V}", visual).replace("{P}", pose);
+}
 
 // ---- ENEMIES ----
 export const ENEMY_VISUAL = {
