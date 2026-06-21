@@ -181,10 +181,18 @@ export interface ActiveSkillDef {
   name: string;
   description: string;
   rarity: Rarity;
+  /** Legacy exact-weapon gate. Mutually exclusive with `weaponClass`. */
   requiresWeapon?: WeaponType;
+  /**
+   * Flexible weapon-class gate: "magic" is satisfied by a staff, a tome/book, OR
+   * a magic-archetype sword. Prefer this over `requiresWeapon` for spells.
+   */
+  weaponClass?: "magic" | "melee" | "ranged";
   damageType: DamageType;
   /** Explicitly tuned per skill — NOT derived from rarity. */
   basePower: number;
+  /** When present, casting this skill conjures temporary friendly minions. */
+  summon?: { defId: string; count?: number; lifespan?: number };
   artRef: string;
 }
 

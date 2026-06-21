@@ -12,6 +12,7 @@ import { toItemInstanceSave } from "../src/core/itemDrop.ts";
 
 const swordDef = ITEM_CATALOG.find((d) => d.weaponType === "Sword")!;
 const bowDef = ITEM_CATALOG.find((d) => d.weaponType === "Bow")!;
+const staffDef = ITEM_CATALOG.find((d) => d.weaponType === "Staff")!;
 
 function withSkill(skillId: string) {
   const save = createFreshSave();
@@ -53,5 +54,37 @@ describe("skill weapon requirement on equip", () => {
     const save = withSkill("true-strike");
     expect(skillWeaponMet(save, "true-strike")).toBe(true);
     expect(equipSkill(save, "true-strike")).toBe(true);
+  });
+});
+
+describe("flexible magic-class skill gate", () => {
+  it("a magic spell is castable with a staff", () => {
+    const save = withSkill("mana-burst"); // weaponClass: magic
+    giveAndEquip(save, staffDef);
+    expect(skillWeaponMet(save, "mana-burst")).toBe(true);
+    expect(equipSkill(save, "mana-burst")).toBe(true);
+  });
+
+  it("a magic spell is NOT castable with a plain physical sword", () => {
+    const save = withSkill("arcane-nova"); // weaponClass: magic
+    giveAndEquip(save, swordDef);
+    expect(skillWeaponMet(save, "arcane-nova")).toBe(false);
+    expect(equipSkill(save, "arcane-nova")).toBe(false);
+  });
+
+  it("a magic spell is castable with a magic-archetype weapon (a magic sword)", () => {
+    // Any catalog weapon whose build archetype is magic (skillPower/magicDamage
+    // primary) counts — covers enchanted 'magic swords'.
+    const magicWeapon = ITEM_CATALOG.find(
+      (d) =>
+        d.slot === "Weapon" &&
+        d.weaponType === "Sword" &&
+        (d.archetype === "magic" ||
+          ["magicDamage", "skillPower", "magicPen"].includes(d.primaryAffix.type)),
+    );
+    if (!magicWeapon) return; // no magic sword in catalog yet — pure test covers the logic
+    const save = withSkill("mana-burst");
+    giveAndEquip(save, magicWeapon);
+    expect(skillWeaponMet(save, "mana-burst")).toBe(true);
   });
 });

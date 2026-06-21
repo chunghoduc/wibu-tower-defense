@@ -106,6 +106,27 @@ export function validateActiveSkill(s: ActiveSkillDef): ActiveSkillDef {
       `activeSkill ${s.id}: bad requiresWeapon`,
     );
   }
+  if (s.weaponClass !== undefined) {
+    assert(
+      ["magic", "melee", "ranged"].includes(s.weaponClass),
+      `activeSkill ${s.id}: bad weaponClass`,
+    );
+    assert(
+      s.requiresWeapon === undefined,
+      `activeSkill ${s.id}: cannot set both requiresWeapon and weaponClass`,
+    );
+  }
+  if (s.summon !== undefined) {
+    assert(s.summon.defId.trim().length > 0, `activeSkill ${s.id}: summon.defId missing`);
+    assert(
+      s.summon.count === undefined || s.summon.count > 0,
+      `activeSkill ${s.id}: summon.count must be > 0`,
+    );
+    assert(
+      s.summon.lifespan === undefined || s.summon.lifespan > 0,
+      `activeSkill ${s.id}: summon.lifespan must be > 0`,
+    );
+  }
   return s;
 }
 

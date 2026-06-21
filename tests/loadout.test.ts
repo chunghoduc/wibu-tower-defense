@@ -106,7 +106,7 @@ describe("equipSkill", () => {
 
   it("holds at most one skill, the newest replacing the old", () => {
     const save = createFreshSave();
-    const free = ACTIVE_SKILLS.filter((s) => !s.requiresWeapon).slice(0, 3);
+    const free = ACTIVE_SKILLS.filter((s) => !s.requiresWeapon && !s.weaponClass).slice(0, 3);
     for (const s of free) save.hero.obtainedSkills.push({ skillId: s.id, level: 1, useXp: 0 });
     equipSkill(save, free[0].id);
     equipSkill(save, free[1].id); // replaces free[0]

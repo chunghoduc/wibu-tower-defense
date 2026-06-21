@@ -8,6 +8,8 @@
 import { ITEM_CATALOG_MAP, instanceReqLevel } from "../data/items.ts";
 import { ACTIVE_SKILLS_MAP, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { equipSlotsFor, type ItemSlot, type WeaponType } from "../data/schema.ts";
+import { archetypeFor } from "../data/itemArchetype.ts";
+import { weaponClassMet } from "./weaponClass.ts";
 import type { HeroSave } from "./save.ts";
 
 /**
@@ -37,19 +39,30 @@ export function unequipSlot(save: HeroSave, slot: ItemSlot): void {
   delete save.inventory.equipped[slot];
 }
 
-/** The weapon type currently equipped in the hero's Weapon slot, if any. */
-export function equippedWeaponType(save: HeroSave): WeaponType | undefined {
+/** The equipped weapon def in the hero's Weapon slot, if any. */
+function equippedWeaponDef(save: HeroSave) {
   const id = save.inventory.equipped.Weapon;
   const inst = id ? save.inventory.items.find((it) => it.id === id) : undefined;
-  const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
-  return def?.weaponType;
+  return inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
+}
+
+/** The weapon type currently equipped in the hero's Weapon slot, if any. */
+export function equippedWeaponType(save: HeroSave): WeaponType | undefined {
+  return equippedWeaponDef(save)?.weaponType;
 }
 
 /** Whether the skill's weapon requirement is met by the currently-equipped weapon. */
 export function skillWeaponMet(save: HeroSave, skillId: string): boolean {
   const skill = ACTIVE_SKILLS_MAP.get(skillId);
-  if (!skill?.requiresWeapon) return true; // no requirement → always ok
-  return equippedWeaponType(save) === skill.requiresWeapon;
+  if (!skill) return true;
+  const def = equippedWeaponDef(save);
+  // Flexible class gate (preferred for spells) — magic, melee, or ranged.
+  if (skill.weaponClass) {
+    return weaponClassMet(skill.weaponClass, def?.weaponType, def && archetypeFor(def));
+  }
+  // Legacy exact-weapon gate.
+  if (!skill.requiresWeapon) return true;
+  return def?.weaponType === skill.requiresWeapon;
 }
 
 /**
