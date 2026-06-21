@@ -16,7 +16,7 @@ import { crispText } from "./ui.ts";
 import { showBattleLootPanel } from "./rewardPanel.ts";
 import { buildLootSummary } from "../data/rewardTiles.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
-import { activeSkillDetail } from "../data/skillDescribe.ts";
+import { activeSkillDetail, heroActiveSkillDetail } from "../data/skillDescribe.ts";
 import { upgradeSummary } from "../core/towerUpgrade.ts";
 import type { HeroPanelVM, TowerPanelVM, PanelItem } from "./battleInfoPanel.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
@@ -233,7 +233,7 @@ export const inputMethods = {
       .filter((e) => e.def)
       .map((e) => ({
         label: `⚡ ${e.def!.name}`,
-        desc: e.def!.description,
+        desc: heroActiveSkillDetail(save, e.id),
         color: "#a8d8ff",
         iconKey: skillTex(e.id),
       }));

@@ -492,7 +492,7 @@ export class BattleInfoPanel {
         .setOrigin(0)
         .setInteractive({ useHandCursor: true });
       const title = s.label.replace(/^[⚡•▲]\s*/, "");
-      z.on("pointerover", (p: Phaser.Input.Pointer) => this.showTip(`${title}\n${s.desc}`, p, 200));
+      z.on("pointerover", (p: Phaser.Input.Pointer) => this.showTip(`${title}\n${s.desc}`, p, 234));
       z.on("pointerout", () => this.tip.setVisible(false));
       this.add(z);
     });
