@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ITEM_CATALOG } from "../src/data/items.ts";
-import {
-  uniquePowerFor,
-  UNIQUE_POWERS,
-  SIGNATURE_POWERS,
-} from "../src/data/uniquePowers.ts";
+import { uniquePowerFor, UNIQUE_POWERS, SIGNATURE_POWERS } from "../src/data/uniquePowers.ts";
 
 const uniques = ITEM_CATALOG.filter((d) => d.rarity === "Unique");
 const nonUniques = ITEM_CATALOG.filter((d) => d.rarity !== "Unique");
@@ -57,15 +53,18 @@ describe("uniquePowerFor", () => {
 });
 
 describe("power contributions", () => {
-  it("every catalog power contributes a positive stat bucket OR a trigger behaviour", () => {
+  it("every catalog power contributes a positive stat bucket", () => {
     for (const power of Object.values(UNIQUE_POWERS)) {
       const c = power.contribution({ uniqueCount: 1 });
       const all = { ...c.flat, ...c.increased, ...c.more };
       const vals = Object.values(all).filter((v): v is number => typeof v === "number");
-      // A power must DO something: either a stat bucket or a triggered effect.
-      expect(vals.length > 0 || power.trigger != null, `${power.id} must do something`).toBe(true);
-      // Any stat values it does declare must be positive.
-      expect(vals.every((v) => v > 0), `${power.id} contributions positive`).toBe(true);
+      // A power is the stat "affix" half — it must contribute a positive bucket
+      // (the BEHAVIOUR half lives in data/uniqueTriggers.ts).
+      expect(vals.length, `${power.id} must contribute a stat`).toBeGreaterThan(0);
+      expect(
+        vals.every((v) => v > 0),
+        `${power.id} contributions positive`,
+      ).toBe(true);
     }
   });
 
@@ -85,8 +84,39 @@ describe("power contributions", () => {
   });
 
   it("bloodthirst grants omnivamp — a stat no item affix rolls", () => {
-    expect(UNIQUE_POWERS["bloodthirst"].contribution({ uniqueCount: 1 }).flat!.omnivamp).toBeGreaterThan(
-      0,
+    expect(
+      UNIQUE_POWERS["bloodthirst"].contribution({ uniqueCount: 1 }).flat!.omnivamp,
+    ).toBeGreaterThan(0);
+  });
+});
+
+describe("per-instance procedural powers", () => {
+  const proc = (instanceId?: string) =>
+    uniquePowerFor(
+      { id: "proc-phys-unique", rarity: "Unique", primaryAffix: { type: "atk" } },
+      instanceId,
     );
+
+  it("is deterministic for a given instance id", () => {
+    expect(proc("copyA")?.id).toBe(proc("copyA")?.id);
+  });
+
+  it("different copies of the same def can roll different powers", () => {
+    const ids = new Set<string>();
+    for (let i = 0; i < 40; i++) ids.add(proc(`copy-${i}`)!.id);
+    expect(ids.size).toBeGreaterThan(1);
+  });
+
+  it("a signature item ignores the instance id (fixed identity)", () => {
+    const a = uniquePowerFor(
+      { id: "dawnbreaker", rarity: "Unique", primaryAffix: { type: "atk" } },
+      "x",
+    );
+    const b = uniquePowerFor(
+      { id: "dawnbreaker", rarity: "Unique", primaryAffix: { type: "atk" } },
+      "y",
+    );
+    expect(a?.id).toBe("sunflare");
+    expect(b?.id).toBe("sunflare");
   });
 });

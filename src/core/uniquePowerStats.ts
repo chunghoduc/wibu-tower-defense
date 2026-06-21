@@ -17,18 +17,19 @@ export interface UniquePowerStats {
   more: Partial<Stats>[];
 }
 
-/** Defs of every equipped item that resolves to a Unique Power. */
-export function equippedUniqueDefs(save: HeroSave) {
-  const defs = [];
+/** Equipped items that resolve to a Unique Power, keeping the instance id. The id
+ *  seeds the per-instance power/trigger roll, so two copies can differ. */
+export function equippedUniqueInstances(save: HeroSave) {
+  const out: { def: ReturnType<typeof ITEM_CATALOG_MAP.get>; instanceId: string }[] = [];
   for (const instanceId of Object.values(save.inventory.equipped)) {
     if (!instanceId) continue;
     const inst = save.inventory.items.find((it) => it.id === instanceId);
     if (!inst) continue;
     const def = ITEM_CATALOG_MAP.get(inst.defId);
     if (!def) continue;
-    if (uniquePowerFor(def)) defs.push(def);
+    if (uniquePowerFor(def, inst.id)) out.push({ def, instanceId: inst.id });
   }
-  return defs;
+  return out;
 }
 
 /**
@@ -38,10 +39,10 @@ export function equippedUniqueDefs(save: HeroSave) {
  */
 export function buildUniquePowerStats(save: HeroSave): UniquePowerStats {
   const out: UniquePowerStats = { flat: [], increased: [], more: [] };
-  const defs = equippedUniqueDefs(save);
-  const ctx = { uniqueCount: defs.length };
-  for (const def of defs) {
-    const power = uniquePowerFor(def);
+  const insts = equippedUniqueInstances(save);
+  const ctx = { uniqueCount: insts.length };
+  for (const { def, instanceId } of insts) {
+    const power = def ? uniquePowerFor(def, instanceId) : null;
     if (!power) continue;
     const c = power.contribution(ctx);
     if (c.flat) out.flat.push(c.flat);

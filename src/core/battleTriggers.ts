@@ -5,8 +5,8 @@
 // Built ONCE in the BattleState constructor (this.triggers).
 import type { HeroSave } from "./save.ts";
 import type { TriggeredEffect, TriggerEvent } from "../data/triggeredEffects.ts";
-import { uniquePowerFor } from "../data/uniquePowers.ts";
-import { equippedUniqueDefs } from "./uniquePowerStats.ts";
+import { rollTrigger } from "../data/uniqueTriggers.ts";
+import { equippedUniqueInstances } from "./uniquePowerStats.ts";
 
 export interface BattleTriggers {
   onHit: TriggeredEffect[];
@@ -26,8 +26,9 @@ export const EMPTY_TRIGGERS: BattleTriggers = {
 
 export function resolveBattleTriggers(save: HeroSave): BattleTriggers {
   const out: BattleTriggers = { onHit: [], onCrit: [], onKill: [], onHurt: [], onCast: [] };
-  for (const def of equippedUniqueDefs(save)) {
-    const trig = uniquePowerFor(def)?.trigger;
+  for (const { def, instanceId } of equippedUniqueInstances(save)) {
+    if (!def) continue;
+    const trig = rollTrigger(def, instanceId);
     if (trig) out[trig.event as TriggerEvent].push(trig);
   }
   return out;

@@ -1,13 +1,15 @@
 // src/data/uniquePowers.ts
 //
-// Unique Powers — the signature effect that makes a Unique-rarity item more than
-// "a bigger Legendary". Every Unique item carries exactly one named power that a
-// Legendary can never have. Powers are DERIVED from the ItemDef (pure function,
-// not stored on the rolled instance), so every existing copy a player already
-// owns gains its power with zero save migration.
+// Unique Powers — the PASSIVE "affix" half of a Unique-rarity item (the BEHAVIOUR
+// half is data/uniqueTriggers.ts). Every Unique item carries one named stat power
+// a Legendary can never have. Signature items keep a fixed power (their identity);
+// every other Unique rolls its power PER INSTANCE from an archetype pool, seeded by
+// the instance id — so two copies of the same procedural Unique can grant different
+// powers. Derived from id (not stored), so existing copies resolve with zero save
+// migration.
 //
-// A power contributes to the hero stat pipeline through the SAME three buckets
-// the affix/passive systems use (see core/uniquePowerStats.ts):
+// A power contributes to the hero stat pipeline through the SAME three buckets the
+// affix/passive systems use (see core/uniquePowerStats.ts):
 //   - flat       added to the base stat       (fractional stats: crit, omnivamp…)
 //   - increased  additive   (1 + Σi)          (scalar % bonuses)
 //   - more       multiplicative  Π(1 + m)     (THE distinction — only keystones,
@@ -16,7 +18,6 @@
 
 import type { Stats } from "./schema.ts";
 import { archetypeFor, type ItemArchetype } from "./itemArchetype.ts";
-import { TRIGGERED_EFFECTS, type TriggeredEffect } from "./triggeredEffects.ts";
 
 /** What the game knows when resolving a power's magnitude (battle-start statics). */
 export interface UniquePowerContext {
@@ -36,8 +37,6 @@ export interface UniquePowerDef {
   /** Player-facing one-liner with magnitudes embedded; ctx lets count-scaled powers read true. */
   describe(ctx: UniquePowerContext): string;
   contribution(ctx: UniquePowerContext): UniquePowerContribution;
-  /** Optional combat BEHAVIOUR fired by the sim (see data/triggeredEffects.ts). */
-  trigger?: TriggeredEffect;
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -53,21 +52,18 @@ export const UNIQUE_POWERS: Record<string, UniquePowerDef> = {
     name: "Sunflare",
     describe: () => `+${pct(0.18)} more Attack and +${pct(0.25)} Critical Damage`,
     contribution: () => ({ more: { atk: 0.18 }, flat: { critDamage: 0.25 } }),
-    trigger: TRIGGERED_EFFECTS.executioner,
   },
   bulwark: {
     id: "bulwark",
     name: "Aegis Bulwark",
     describe: () => `+${pct(0.2)} more Max Health and +${pct(0.08)} Damage Reduction`,
     contribution: () => ({ more: { maxHp: 0.2 }, flat: { damageReduction: 0.08 } }),
-    trigger: TRIGGERED_EFFECTS.thornmail,
   },
   midas: {
     id: "midas",
     name: "Midas Touch",
     describe: () => `+${pct(0.5)} more Gold Found`,
     contribution: () => ({ more: { goldFind: 0.5 } }),
-    trigger: TRIGGERED_EFFECTS.goldfinger,
   },
 
   // — Archetype pool (procedural Uniques) —
@@ -102,6 +98,12 @@ export const UNIQUE_POWERS: Record<string, UniquePowerDef> = {
     describe: () => `+${pct(0.25)} more Skill Power and +6 Mana on Hit`,
     contribution: () => ({ more: { skillPower: 0.25 }, flat: { manaOnHit: 6 } }),
   },
+  spellweave: {
+    id: "spellweave",
+    name: "Spellweave",
+    describe: () => `+${pct(0.2)} more Skill Power and ignores ${pct(0.15)} of Magic Resist`,
+    contribution: () => ({ more: { skillPower: 0.2 }, flat: { magicPen: 0.15 } }),
+  },
   tempest: {
     id: "tempest",
     name: "Tempest",
@@ -114,97 +116,17 @@ export const UNIQUE_POWERS: Record<string, UniquePowerDef> = {
     describe: () => `+${pct(0.12)} more Attack and +${pct(0.12)} more Max Health`,
     contribution: () => ({ more: { atk: 0.12, maxHp: 0.12 } }),
   },
+  bastion: {
+    id: "bastion",
+    name: "Bastion",
+    describe: () => `+${pct(0.2)} more Magic Resist and +${pct(0.1)} Damage Reduction`,
+    contribution: () => ({ more: { magicResist: 0.2 }, flat: { damageReduction: 0.1 } }),
+  },
   fortune: {
     id: "fortune",
     name: "Fortune's Favor",
     describe: () => `+${pct(0.4)} more Gold Found`,
     contribution: () => ({ more: { goldFind: 0.4 } }),
-  },
-
-  // — Pure-trigger powers (behaviour, no passive stat) —
-  stormlord: {
-    id: "stormlord",
-    name: "Stormlord",
-    describe: () => TRIGGERED_EFFECTS.stormcaller.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.stormcaller,
-  },
-  venomous: {
-    id: "venomous",
-    name: "Venomfang",
-    describe: () => TRIGGERED_EFFECTS.venomstrike.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.venomstrike,
-  },
-  detonator: {
-    id: "detonator",
-    name: "Detonator",
-    describe: () => TRIGGERED_EFFECTS.detonate.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.detonate,
-  },
-  frostbrand: {
-    id: "frostbrand",
-    name: "Frostbrand",
-    describe: () => TRIGGERED_EFFECTS.permafrost.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.permafrost,
-  },
-  echoing: {
-    id: "echoing",
-    name: "Echoing Sigil",
-    describe: () => TRIGGERED_EFFECTS.echo.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.echo,
-  },
-  ember_aura: {
-    id: "ember_aura",
-    name: "Emberbloom",
-    describe: () => TRIGGERED_EFFECTS.cinderbloom.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.cinderbloom,
-  },
-  thorned: {
-    id: "thorned",
-    name: "Thornward",
-    describe: () => TRIGGERED_EFFECTS.thornmail.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.thornmail,
-  },
-  riposting: {
-    id: "riposting",
-    name: "Riposte Guard",
-    describe: () => TRIGGERED_EFFECTS.riposte.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.riposte,
-  },
-  sanguine: {
-    id: "sanguine",
-    name: "Sanguine Crest",
-    describe: () => TRIGGERED_EFFECTS.bloodfeast.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.bloodfeast,
-  },
-  reaper: {
-    id: "reaper",
-    name: "Reaper's Mark",
-    describe: () => TRIGGERED_EFFECTS.cull.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.cull,
-  },
-  plaguebearer: {
-    id: "plaguebearer",
-    name: "Plaguebearer",
-    describe: () => TRIGGERED_EFFECTS.contagion.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.contagion,
-  },
-  shatterer: {
-    id: "shatterer",
-    name: "Shatterer",
-    describe: () => TRIGGERED_EFFECTS.shatterblow.describe(),
-    contribution: () => ({}),
-    trigger: TRIGGERED_EFFECTS.shatterblow,
   },
 };
 
@@ -215,13 +137,13 @@ export const SIGNATURE_POWERS: Record<string, string> = {
   "midas-paw": "midas",
 };
 
-/** Per-archetype power pool for procedural Uniques (id-hash picks within it). */
+/** Per-archetype stat-power pool for procedural Uniques (instance-hash picks within). */
 const ARCHETYPE_POWERS: Record<ItemArchetype, string[]> = {
-  physical: ["deadeye", "bloodthirst", "warlord", "reaper", "detonator", "stormlord"],
-  magic: ["arcane_overflow", "frostbrand", "echoing", "ember_aura", "stormlord"],
-  defense: ["juggernaut", "bulwark", "thorned", "riposting", "sanguine"],
-  utility: ["tempest", "fortune", "venomous", "plaguebearer"],
-  hybrid: ["colossus", "warlord", "shatterer", "detonator"],
+  physical: ["deadeye", "bloodthirst", "warlord", "colossus"],
+  magic: ["arcane_overflow", "spellweave"],
+  defense: ["juggernaut", "bulwark", "bastion"],
+  utility: ["tempest", "fortune"],
+  hybrid: ["colossus", "warlord", "deadeye"],
 };
 
 /** Stable non-negative string hash (FNV-1a) — deterministic power selection. */
@@ -235,19 +157,24 @@ function hashId(id: string): number {
 }
 
 /**
- * The Unique Power of an item, or `null` for any non-Unique item. Signature
- * items use their authored power; every other Unique draws deterministically
- * from its archetype pool by id-hash, so the whole procedural set is covered.
+ * The Unique Power of an item, or `null` for any non-Unique item. Signature items
+ * use their authored power; every other Unique draws from its archetype pool by a
+ * hash of `instanceId` (so copies vary) — or, with no instance id (a bare def
+ * preview), by the def id for a stable default.
  */
-export function uniquePowerFor(def: {
-  id: string;
-  rarity: string;
-  primaryAffix: { type: string };
-  archetype?: ItemArchetype;
-}): UniquePowerDef | null {
+export function uniquePowerFor(
+  def: {
+    id: string;
+    rarity: string;
+    primaryAffix: { type: string };
+    archetype?: ItemArchetype;
+  },
+  instanceId?: string,
+): UniquePowerDef | null {
   if (def.rarity !== "Unique") return null;
   const signature = SIGNATURE_POWERS[def.id];
   if (signature) return UNIQUE_POWERS[signature];
   const pool = ARCHETYPE_POWERS[archetypeFor(def)] ?? ARCHETYPE_POWERS.hybrid;
-  return UNIQUE_POWERS[pool[hashId(def.id) % pool.length]];
+  const seed = instanceId && instanceId.length > 0 ? instanceId : def.id;
+  return UNIQUE_POWERS[pool[hashId(seed) % pool.length]];
 }

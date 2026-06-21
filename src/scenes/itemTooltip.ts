@@ -67,7 +67,7 @@ export function renderItemTooltip(
   const footerH = inst.apex ? 42 : 24;
   // Unique Power: the signature line that sets a Unique apart from a Legendary.
   const power = uniquePowerLine(def);
-  const trigger = uniqueTriggerLine(def);
+  const trigger = uniqueTriggerLine(def, inst.id);
   const powerH = (power ? 40 : 0) + (trigger ? 32 : 0);
   const bodyH = groups.reduce((sum, grp) => sum + sectionH + grp.rows.length * rowH, 0);
   const h = headerH + bodyH + powerH + footerH;

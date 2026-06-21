@@ -41,6 +41,70 @@ describe("trigger sim handlers", () => {
     expect(e.hp).toBeLessThan(hp0);
   });
 
+  it("overkill heals the hero by a fraction of the overkill damage on a kill", () => {
+    const b = spawnedWorld();
+    b.triggers.onKill.push(TRIGGERED_EFFECTS.overkiller);
+    const e = b.enemies[0];
+    e.hp = -500; // 500 overkill below zero
+    b.hero.hp = 1;
+    b.killEnemy(e);
+    // 30% of 500 = 150 healed (clamped to maxHp).
+    expect(b.hero.hp).toBeGreaterThan(1);
+  });
+
+  it("frostnova freezes a bystander when an enemy dies near it", () => {
+    const stage = mkStage(oneWave("grunt", 2, 0.1), {
+      castleHp: 1e9,
+      slots: [{ x: 150, y: -30 }],
+    });
+    const inert = mkTower({ baseStats: makeStats({ attackSpeed: 0, range: 0 }) });
+    const b = world([mkEnemy()], [inert], stage);
+    for (let i = 0; i < 120 && b.enemies.length < 2; i++) b.tick(0.05);
+    expect(b.enemies.length).toBeGreaterThanOrEqual(2);
+    const victim = b.enemies[0];
+    const bystander = b.enemies[1];
+    bystander.pos = { ...victim.pos };
+    b.triggers.onKill.push(TRIGGERED_EFFECTS.frostnova);
+    b.killEnemy(victim);
+    expect(bystander.stunTimer).toBeGreaterThan(0);
+  });
+
+  it("glaciate freezes the attacker that struck the hero", () => {
+    const b = spawnedWorld();
+    b.triggers.onHurt.push(TRIGGERED_EFFECTS.glaciate);
+    const e = b.enemies[0];
+    // chance < 1 — force it by stacking many rolls until one lands (deterministic rng).
+    let stunned = false;
+    for (let i = 0; i < 200 && !stunned; i++) {
+      e.stunTimer = 0;
+      b.fireOnHurt(e, 50);
+      stunned = e.stunTimer > 0;
+    }
+    expect(stunned).toBe(true);
+  });
+
+  it("a fast attacker procs an on-hit chance LESS often than a slow one (proc coefficient)", () => {
+    const slow = spawnedWorld();
+    const fast = spawnedWorld();
+    slow.triggers.onHit.push(TRIGGERED_EFFECTS.permafrost); // chance 0.12
+    fast.triggers.onHit.push(TRIGGERED_EFFECTS.permafrost);
+    slow.hero.stats.attackSpeed = 1; // <= ref → full chance
+    fast.hero.stats.attackSpeed = 5; // capped fast → reduced chance
+    let slowHits = 0;
+    let fastHits = 0;
+    const es = slow.enemies[0];
+    const ef = fast.enemies[0];
+    for (let i = 0; i < 400; i++) {
+      es.stunTimer = 0;
+      ef.stunTimer = 0;
+      slow.fireOnHit(slow.hero, slow.hero.pos, es, 1, false);
+      fast.fireOnHit(fast.hero, fast.hero.pos, ef, 1, false);
+      if (es.stunTimer > 0) slowHits++;
+      if (ef.stunTimer > 0) fastHits++;
+    }
+    expect(slowHits).toBeGreaterThan(fastHits);
+  });
+
   it("detonate damages a bystander on kill (and does not recurse forever)", () => {
     const stage = mkStage(oneWave("grunt", 2, 0.1), {
       castleHp: 1e9,

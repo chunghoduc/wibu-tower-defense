@@ -14,6 +14,7 @@ import type { ItemInstanceSave } from "../core/save.ts";
 import { enhanceBonus } from "../core/enhance.ts";
 import { instanceReqLevel, APEX_STAT_MULT } from "../data/items.ts";
 import { uniquePowerFor } from "./uniquePowers.ts";
+import { rollTrigger } from "./uniqueTriggers.ts";
 
 export type StatSource = "base" | "primary" | "affix";
 export type Quality = "base" | "better" | "worse";
@@ -208,11 +209,13 @@ export function uniquePowerLine(def: ItemDef): { name: string; desc: string } | 
 }
 
 /**
- * The triggered-effect (combat BEHAVIOUR) line for a Unique item, or null when
- * the item has no trigger. Shown beneath the Unique Power as a "⚡ …" row.
+ * The triggered-effect (combat BEHAVIOUR) line for a specific Unique COPY, or null
+ * when the item has no trigger. Each instance rolls its own behaviour from a pool
+ * suitable for the item (seeded by instance id), so pass the instance id to show
+ * that copy's actual proc. Shown beneath the Unique Power as a "⚡ …" row.
  */
-export function uniqueTriggerLine(def: ItemDef): string | null {
-  const trig = uniquePowerFor(def)?.trigger;
+export function uniqueTriggerLine(def: ItemDef, instanceId?: string): string | null {
+  const trig = rollTrigger(def, instanceId);
   return trig ? `⚡ ${trig.describe()}` : null;
 }
 

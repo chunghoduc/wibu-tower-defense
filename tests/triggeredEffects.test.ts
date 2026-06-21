@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { TRIGGERED_EFFECTS } from "../src/data/triggeredEffects.ts";
-import { uniquePowerFor } from "../src/data/uniquePowers.ts";
 
 describe("triggered-effect catalog", () => {
   it("every effect has an event, a kind, a sane chance, and a describe()", () => {
@@ -24,33 +23,24 @@ describe("triggered-effect catalog", () => {
     expect(TRIGGERED_EFFECTS.thornmail.event).toBe("onHurt");
     expect(TRIGGERED_EFFECTS.thornmail.kind).toBe("reflect");
   });
-});
 
-describe("unique power → trigger assignment", () => {
-  const u = (id: string, archetype?: string) =>
-    uniquePowerFor({
-      id,
-      rarity: "Unique",
-      primaryAffix: { type: "atk" },
-      archetype: archetype as never,
-    });
-
-  it("signatures carry both their stat power and a trigger", () => {
-    expect(u("dawnbreaker")?.trigger?.kind).toBe("execute");
-    expect(u("aegis-of-dawn")?.trigger?.kind).toBe("reflect");
-    expect(u("midas-paw")?.trigger?.kind).toBe("gold");
-    expect(u("dawnbreaker")?.contribution({ uniqueCount: 1 }).more?.atk).toBeGreaterThan(0);
+  it("carries the new creative kinds on the right events", () => {
+    expect(TRIGGERED_EFFECTS.timewarp.kind).toBe("slow");
+    expect(TRIGGERED_EFFECTS.timewarp.event).toBe("onHit");
+    expect(TRIGGERED_EFFECTS.deepwound.kind).toBe("bleed");
+    expect(TRIGGERED_EFFECTS.deepwound.event).toBe("onCrit");
+    expect(TRIGGERED_EFFECTS.overkiller.kind).toBe("overkill");
+    expect(TRIGGERED_EFFECTS.frostnova.kind).toBe("frostnova");
+    expect(TRIGGERED_EFFECTS.pyreburst.kind).toBe("pyre");
+    expect(TRIGGERED_EFFECTS.glaciate.event).toBe("onHurt");
+    expect(TRIGGERED_EFFECTS.glaciate.kind).toBe("glaciate");
+    expect(TRIGGERED_EFFECTS.painnova.kind).toBe("painnova");
+    expect(TRIGGERED_EFFECTS.castfrost.event).toBe("onCast");
+    expect(TRIGGERED_EFFECTS.castfrost.kind).toBe("castnova");
   });
 
-  it("a procedural unique resolves to a power deterministically (stable across calls)", () => {
-    const a = u("mythic-stormpiece", "magic");
-    const b = u("mythic-stormpiece", "magic");
-    expect(a?.id).toBe(b?.id);
-  });
-
-  it("non-uniques never get a power", () => {
-    expect(
-      uniquePowerFor({ id: "x", rarity: "Legendary", primaryAffix: { type: "atk" } }),
-    ).toBeNull();
+  it("the slow effect declares a slow magnitude and duration", () => {
+    expect(TRIGGERED_EFFECTS.timewarp.slowPct).toBeGreaterThan(0);
+    expect(TRIGGERED_EFFECTS.timewarp.seconds).toBeGreaterThan(0);
   });
 });

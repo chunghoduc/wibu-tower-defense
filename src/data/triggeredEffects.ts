@@ -1,40 +1,53 @@
 // src/data/triggeredEffects.ts
 //
-// Triggered effects — the BEHAVIOUR half of a Unique Power. Where a UniquePower's
-// `contribution` adds passive stats, its optional `trigger` makes the item *do*
-// something at a combat event. Pure/declarative so the catalog is unit-testable;
-// the battle sim (core/battleTriggerFx.ts) interprets each kind with its own
-// primitives (applySplash/applyStun/addDot/applyDamage/…).
+// Triggered effects — the BEHAVIOUR half of a Unique item. Where a UniquePower's
+// `contribution` adds passive stats (the "affix"), a triggered effect makes the
+// item *do* something at a combat event. Pure/declarative so the catalog is
+// unit-testable; the battle sim (core/battleTriggerFx.ts) interprets each kind
+// with its own primitives (applySplash/applyStun/addDot/applySlow/healHero/…).
+//
+// Each Unique INSTANCE rolls one of these from a pool suitable for the item (see
+// data/uniqueTriggers.ts), seeded by the instance id — so two copies of the same
+// Unique can behave differently.
 import type { DamageType } from "./schema.ts";
 
 export type TriggerEvent = "onHit" | "onCrit" | "onKill" | "onHurt" | "onCast";
 
 export type TriggerKind =
-  | "execute" // instakill a non-boss: by chance, or guaranteed below hpFrac
+  | "execute" // onHit: instakill a non-boss — by chance, or guaranteed below hpFrac
   | "blast" // splash AoE around the target/corpse
   | "chain" // lightning to the N nearest foes
-  | "freeze" // stun for `seconds`
+  | "freeze" // stun the target for `seconds`
+  | "slow" // heavily slow the target (time dilation)
   | "poison" // DoT scaling with the source's attack
-  | "heal" // hero heals (hpFrac of maxHp, or dmgFrac of damage dealt)
-  | "gold" // burst bonus gold on kill
-  | "contagion" // copy the victim's DoTs onto nearby foes
+  | "bleed" // onCrit: a heavy physical DoT
+  | "heal" // hero heals (dmgFrac of damage dealt, or hpFrac of max)
+  | "overkill" // onKill: heal the hero by a fraction of OVERKILL damage
+  | "gold" // onKill: burst bonus gold
+  | "contagion" // onKill: copy the victim's DoTs onto nearby foes
+  | "frostnova" // onKill: freeze enemies around the corpse
+  | "pyre" // onKill: ignite enemies around the corpse
   | "reflect" // onHurt: frac of incoming back to the attacker
   | "riposte" // onHurt: hero counter-attacks the attacker
+  | "glaciate" // onHurt: freeze the attacker that struck the hero
+  | "painnova" // onHurt: blast enemies around the hero
   | "echo" // onCast: re-apply the burst once
-  | "cinder"; // onCast: burning field (DoT) on enemies in radius
+  | "cinder" // onCast: burning field (DoT) on enemies in radius
+  | "castnova"; // onCast: freeze enemies in the cast radius
 
 export interface TriggeredEffect {
   event: TriggerEvent;
   chance: number; // 0..1 ; 1 = guaranteed (the sim skips the RNG roll)
   kind: TriggerKind;
-  type?: DamageType; // damage type for blast/chain/reflect/poison (default Magic)
+  type?: DamageType; // damage type for blast/chain/reflect/poison/bleed/pyre/painnova (default Magic)
   hpFrac?: number; // execute threshold / heal % maxHp / blast % victim maxHp
-  atkFrac?: number; // damage as a fraction of source atk
-  dmgFrac?: number; // fraction of damage dealt (heal) / taken (reflect)
-  radius?: number; // blast / cinder / contagion radius (world units)
+  atkFrac?: number; // damage as a fraction of source atk (poison/bleed/pyre/painnova/blast/chain)
+  dmgFrac?: number; // fraction of damage dealt (heal) / taken (reflect) / overkill (overkill)
+  slowPct?: number; // slow magnitude 0..1 (slow)
+  radius?: number; // blast / cinder / contagion / nova / pyre radius (world units)
   targets?: number; // chain bounce count
   falloff?: number; // chain damage falloff per bounce
-  seconds?: number; // freeze / poison / cinder duration
+  seconds?: number; // freeze / slow / poison / bleed / cinder / nova duration
   describe(): string;
 }
 
@@ -44,8 +57,9 @@ const mk = (e: Omit<TriggeredEffect, "describe">, text: string): TriggeredEffect
   describe: () => text,
 });
 
-/** The catalog. Keys are referenced by data/uniquePowers.ts. Numbers are starting
- *  points — they fire from EVERY player attack (towers + hero), so keep them low. */
+/** The catalog. Keys are referenced by data/uniqueTriggers.ts. Numbers are
+ *  starting points — on-hit/on-crit procs fire from EVERY player attack (towers +
+ *  hero) and are further scaled by a per-attacker proc coefficient, so keep low. */
 export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
   // — onHit —
   executioner: mk(
@@ -64,6 +78,10 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
     { event: "onHit", chance: 0.12, kind: "freeze", seconds: 0.6 },
     `On hit: ${pct(0.12)} chance to freeze the target for 0.6s`,
   ),
+  timewarp: mk(
+    { event: "onHit", chance: 0.2, kind: "slow", slowPct: 0.6, seconds: 1.5 },
+    `On hit: ${pct(0.2)} chance to warp time, slowing the target ${pct(0.6)} for 1.5s`,
+  ),
   venomstrike: mk(
     { event: "onHit", chance: 0.25, kind: "poison", type: "Magic", atkFrac: 0.4, seconds: 3 },
     `On hit: ${pct(0.25)} chance to poison for ${pct(0.4)} attack/s over 3s`,
@@ -77,6 +95,10 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
     { event: "onCrit", chance: 1, kind: "blast", type: "Physical", atkFrac: 0.6, radius: 70 },
     `On critical hit: detonate a blast for ${pct(0.6)} attack around the target`,
   ),
+  deepwound: mk(
+    { event: "onCrit", chance: 1, kind: "bleed", type: "Physical", atkFrac: 0.5, seconds: 4 },
+    `On critical hit: inflict a deep wound bleeding for ${pct(0.5)} attack/s over 4s`,
+  ),
   // — onKill —
   detonate: mk(
     { event: "onKill", chance: 1, kind: "blast", type: "Magic", hpFrac: 0.25, radius: 80 },
@@ -86,6 +108,10 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
     { event: "onKill", chance: 1, kind: "heal", hpFrac: 0.04 },
     `On kill: heal the hero for ${pct(0.04)} of max health`,
   ),
+  overkiller: mk(
+    { event: "onKill", chance: 1, kind: "overkill", dmgFrac: 0.3 },
+    `On kill: heal the hero for ${pct(0.3)} of any OVERKILL damage`,
+  ),
   goldfinger: mk(
     { event: "onKill", chance: 0.2, kind: "gold", dmgFrac: 1 },
     `On kill: ${pct(0.2)} chance to drop bonus gold`,
@@ -93,6 +119,22 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
   contagion: mk(
     { event: "onKill", chance: 1, kind: "contagion", radius: 90 },
     `On kill: spread the victim's burns & poisons to nearby foes`,
+  ),
+  frostnova: mk(
+    { event: "onKill", chance: 1, kind: "frostnova", radius: 90, seconds: 0.8 },
+    `On kill: a frost nova freezes nearby foes for 0.8s`,
+  ),
+  pyreburst: mk(
+    {
+      event: "onKill",
+      chance: 1,
+      kind: "pyre",
+      type: "Magic",
+      atkFrac: 0.3,
+      radius: 90,
+      seconds: 3,
+    },
+    `On kill: ignite nearby foes, burning them for ${pct(0.3)} attack/s over 3s`,
   ),
   // — onHurt —
   thornmail: mk(
@@ -102,6 +144,14 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
   riposte: mk(
     { event: "onHurt", chance: 0.25, kind: "riposte" },
     `When struck: ${pct(0.25)} chance to instantly counter-attack`,
+  ),
+  glaciate: mk(
+    { event: "onHurt", chance: 0.3, kind: "glaciate", seconds: 1 },
+    `When struck: ${pct(0.3)} chance to freeze the attacker for 1s`,
+  ),
+  painnova: mk(
+    { event: "onHurt", chance: 1, kind: "painnova", type: "Physical", atkFrac: 0.6, radius: 80 },
+    `When struck: erupt a nova for ${pct(0.6)} attack around the hero`,
   ),
   // — onCast —
   echo: mk(
@@ -119,5 +169,9 @@ export const TRIGGERED_EFFECTS: Record<string, TriggeredEffect> = {
       seconds: 3,
     },
     `On cast: leave a burning field that scorches enemies for 3s`,
+  ),
+  castfrost: mk(
+    { event: "onCast", chance: 1, kind: "castnova", radius: 80, seconds: 0.8 },
+    `On cast: freeze every enemy caught in the blast for 0.8s`,
   ),
 };
