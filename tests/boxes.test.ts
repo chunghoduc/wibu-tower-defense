@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { openBox, tierOfBox, boxOddsText, boxRarityOdds } from "../src/core/boxes.ts";
+import { boxItemLevelBounds } from "../src/core/boxLevel.ts";
 import {
   boxIdForTier,
   boxRarityName,
@@ -178,8 +179,10 @@ describe("T15 — boss loot boxes", () => {
     expect(rate(5)).toBeGreaterThan(rate(1));
   });
 
-  it("gear level tracks the hero's level, not the box tier", () => {
-    // Same hero level, different tiers ⇒ same level band (tier no longer drives level).
+  it("gear level tracks the hero's level (via the box level), not the box tier", () => {
+    // Same hero level, different tiers ⇒ same level band (tier no longer drives
+    // level). Level now compounds hero→box→item, so the band is the wider
+    // boxItemLevelBounds, not a single ±15% — but it's still tier-independent.
     const band = (tier: number) => {
       const levels: number[] = [];
       for (let s = 1; s <= 120; s++) {
@@ -192,8 +195,7 @@ describe("T15 — boss loot boxes", () => {
       }
       return levels;
     };
-    const lo = Math.round(60 * 0.85),
-      hi = Math.round(60 * 1.15); // ±15% around hero level
+    const [lo, hi] = boxItemLevelBounds(60); // compounded hero→box→item band
     const t1 = band(1),
       t5 = band(5);
     for (const lvl of [...t1, ...t5]) {
@@ -201,7 +203,7 @@ describe("T15 — boss loot boxes", () => {
       expect(lvl).toBeLessThanOrEqual(hi);
     }
     const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
-    expect(Math.abs(avg(t1) - avg(t5))).toBeLessThan(4); // tier doesn't shift the level band
+    expect(Math.abs(avg(t1) - avg(t5))).toBeLessThan(5); // tier doesn't shift the level band
   });
 
   it("rolls gear rarity within one step of the box rarity, weighted to the lower side", () => {
@@ -229,8 +231,7 @@ describe("T15 — boss loot boxes", () => {
     // Rarity and level are orthogonal: a rookie opening a Unique box gets a
     // real Unique, just scaled to level 8 — NOT degraded to a lower rarity.
     const heroLevel = 8;
-    const lo = Math.round(heroLevel * 0.85),
-      hi = Math.round(heroLevel * 1.15);
+    const [lo, hi] = boxItemLevelBounds(heroLevel); // compounded hero→box→item band
     const counts: Record<string, number> = {};
     let seen = 0;
     for (let s = 1; s <= 300; s++) {
@@ -309,7 +310,8 @@ describe("T15 — boss loot boxes", () => {
     expect(text).toMatch(/\d+% Summoning Scroll/);
     expect(text).toMatch(/\d+% Oblivion Orb/);
     expect(text).toMatch(/\d+% Jewel of Chaos/); // wing-craft faucet shown so players see the chance
-    expect(text).toMatch(/gear drops \(each scaled to your level\)/);
+    expect(text).toMatch(/gear drops \(each scaled to the box's level\)/);
+    expect(text).toMatch(/higher-level box pours more/); // material payout scales with box level
     expect(text).toMatch(/100% · 50% · 10% gear drops/); // tier-3 rolls 3 independent gears
     // Rarity odds shown so the tooltip matches what actually drops.
     expect(text).toMatch(/60% Magic/);

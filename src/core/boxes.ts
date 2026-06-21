@@ -13,7 +13,8 @@
  */
 import type { HeroSave, ItemInstanceSave } from "./save.ts";
 import type { Rng } from "./rng.ts";
-import { LOOTABLE_CATALOG, rollItem, MAX_ITEM_REQ_LEVEL } from "../data/items.ts";
+import { LOOTABLE_CATALOG, rollItem } from "../data/items.ts";
+import { rollBoxLevel, rollItemLevelFromBox, boxLevelQtyMul } from "./boxLevel.ts";
 import { type Rarity, RARITIES } from "../data/schema.ts";
 import { toItemInstanceSave } from "./itemDrop.ts";
 import {
@@ -144,12 +145,41 @@ function pickBoxRarity(tier: number, rng: Rng): Rarity {
 
 export interface BoxReward {
   opened: boolean;
+  /** The box's rolled LEVEL — drives gear level and the material payout. */
+  level: number;
   crystals: number;
-  /** Premium diamonds granted this open (tier-scaled, guaranteed). */
+  /** Premium diamonds granted this open (tier- AND level-scaled, guaranteed). */
   diamonds: number;
   materials: Record<string, number>;
   /** Every gear piece rolled this open (0..3) — higher tiers roll more. */
   items: ItemInstanceSave[];
+}
+
+/**
+ * Grant one box of `boxId`, rolling and FREEZING its level from the hero's
+ * current level. The count in `materials` stays authoritative (the UI shows a
+ * stack of N); the rolled level is queued in parallel (FIFO) under the same id
+ * and popped when the box is opened. Every real drop site funnels through here
+ * so a box always remembers the level it dropped at. Returns the rolled level.
+ */
+export function grantBox(save: HeroSave, boxId: string, rng: Rng): number {
+  save.materials[boxId] = (save.materials[boxId] ?? 0) + 1;
+  const level = rollBoxLevel(Math.max(1, save.hero.level), rng);
+  (save.boxLevels ??= {})[boxId] ??= [];
+  save.boxLevels[boxId]!.push(level);
+  return level;
+}
+
+/**
+ * Take the frozen level of the next box of `boxId` (FIFO). If none was queued —
+ * a legacy save, or a box granted via a generic material path that bypassed
+ * {@link grantBox} — lazily derive one from the hero's current level so the open
+ * still behaves sensibly. The count is decremented separately by the caller.
+ */
+function takeBoxLevel(save: HeroSave, boxId: string, rng: Rng): number {
+  const q = save.boxLevels?.[boxId];
+  if (q && q.length > 0) return q.shift()!;
+  return rollBoxLevel(Math.max(1, save.hero.level), rng);
 }
 
 export function tierOfBox(boxId: string): number {
@@ -194,8 +224,9 @@ export function boxOddsText(boxId: string): string {
   return [
     "Opening odds:",
     `• ~${o.crystals} gold + ~${o.diamonds} diamonds + ${o.bless}× Bless Jewel (guaranteed)`,
+    `   ↳ a higher-level box pours more of each`,
     `• ${bonusLine}`,
-    `• ${gearLine} gear drops (each scaled to your level)`,
+    `• ${gearLine} gear drops (each scaled to the box's level)`,
     `   ↳ ${rarityLine}`,
   ].join("\n");
 }
@@ -203,10 +234,22 @@ export function boxOddsText(boxId: string): string {
 /** Open one chest of `boxId`, mutating `save`. Returns the rolled rewards (or
  *  opened:false if the player has none). */
 export function openBox(save: HeroSave, boxId: string, rng: Rng): BoxReward {
-  const empty: BoxReward = { opened: false, crystals: 0, diamonds: 0, materials: {}, items: [] };
+  const empty: BoxReward = {
+    opened: false,
+    level: 0,
+    crystals: 0,
+    diamonds: 0,
+    materials: {},
+    items: [],
+  };
   if (MATERIALS_MAP.get(boxId)?.kind !== "box") return empty;
   if ((save.materials[boxId] ?? 0) <= 0) return empty;
   save.materials[boxId] -= 1;
+
+  // The box's frozen level drives BOTH the gear level and how much stackable
+  // material it pours — a higher-level box is a strictly richer box.
+  const level = takeBoxLevel(save, boxId, rng);
+  const qtyMul = boxLevelQtyMul(level);
 
   const cfg = TIERS[tierOfBox(boxId)];
   const materials: Record<string, number> = {};
@@ -216,11 +259,11 @@ export function openBox(save: HeroSave, boxId: string, rng: Rng): BoxReward {
     materials[id] = (materials[id] ?? 0) + n;
   };
 
-  const crystals = Math.round(cfg.crystals * (0.8 + rng.next() * 0.4));
+  const crystals = Math.round(cfg.crystals * (0.8 + rng.next() * 0.4) * qtyMul);
   save.currency.gold += crystals;
-  const diamonds = Math.round(cfg.diamonds * (0.8 + rng.next() * 0.4));
+  const diamonds = Math.round(cfg.diamonds * (0.8 + rng.next() * 0.4) * qtyMul);
   save.currency.diamonds += diamonds;
-  give(BLESS_JEWEL, cfg.bless);
+  give(BLESS_JEWEL, Math.round(cfg.bless * qtyMul));
   // Independent roll per bonus material (soul / scroll / orb) — tier-scaled.
   for (const b of cfg.bonusMaterials) {
     if (rng.next() < b.chance) give(b.id, 1);
@@ -231,30 +274,34 @@ export function openBox(save: HeroSave, boxId: string, rng: Rng): BoxReward {
   const items: ItemInstanceSave[] = [];
   for (const chance of cfg.itemChances) {
     if (rng.next() >= chance) continue;
-    const item = rollBoxItem(save, tier, rng);
+    const item = rollBoxItem(save, tier, level, rng);
     if (item) {
       save.inventory.items.push(item);
       items.push(item);
     }
   }
 
-  return { opened: true, crystals, diamonds, materials, items };
+  return { opened: true, level, crystals, diamonds, materials, items };
 }
 
 /**
  * Roll one gear piece for a box of `tier`, on two orthogonal axes. LEVEL tracks
- * the hero (±15%), so a drop is always near what you can use, whatever the tier.
- * RARITY tracks the box (a ±1 band around its rarity, lower side favoured — see
- * pickBoxRarity). They compose because the roll bypasses the def's rarity floor,
- * so any rarity lands at the hero's level — a Unique box can give a rookie a
- * level-8 Unique (full Unique multipliers/affixes, level-8 scalars).
+ * the BOX's level (±10%), which itself tracks the hero (±15%) — so a drop is
+ * always near what you can use, whatever the tier, but with a touch more spread
+ * than reading the hero level directly. RARITY tracks the box (a ±1 band around
+ * its rarity, lower side favoured — see pickBoxRarity). They compose because the
+ * roll bypasses the def's rarity floor, so any rarity lands at the box's level —
+ * a Unique box can give a rookie a level-8 Unique (full Unique multipliers/
+ * affixes, level-8 scalars).
  */
-function rollBoxItem(save: HeroSave, tier: number, rng: Rng): ItemInstanceSave | null {
+function rollBoxItem(
+  save: HeroSave,
+  tier: number,
+  boxLevel: number,
+  rng: Rng,
+): ItemInstanceSave | null {
   const heroLevel = Math.max(1, save.hero.level);
-  const reqLevel = Math.max(
-    1,
-    Math.min(MAX_ITEM_REQ_LEVEL, Math.round(heroLevel * (0.85 + rng.next() * 0.3))),
-  );
+  const reqLevel = rollItemLevelFromBox(boxLevel, rng);
   const rarity = pickBoxRarity(tier, rng);
   const pool = LOOTABLE_CATALOG.filter((d) => d.rarity === rarity);
   if (pool.length === 0) return null;

@@ -13,6 +13,7 @@ import {
   boxIdForTier,
 } from "../data/materials.ts";
 import { boxTierForStage, stageNumber } from "../data/stage.ts";
+import { grantBox } from "./boxes.ts";
 import type { HeroSave, ItemInstanceSave, JewelInstanceSave } from "./save.ts";
 import { incrementQuestKey } from "./questTracker.ts";
 import { incrementBountyEvent } from "./bounties.ts";
@@ -156,7 +157,11 @@ export function processStageClear(
   if (rng.next() < BLESS_DROP_CHANCE + diffBonus) giveMat(BLESS_JEWEL, 1);
   if (rng.next() < SOUL_DROP_CHANCE + diffBonus) giveMat(SOUL_JEWEL, 1);
   if (isFirstClear || rng.next() < BOX_REPEAT_CHANCE + diffBonus) {
-    giveMat(boxIdForTier(rollBoxTier(boxTierForStage(stageId), diffBonus, rng)), 1);
+    // grantBox freezes the box's LEVEL (rolled from the hero) alongside its count;
+    // report the count separately so the DropResult still shows the box drop.
+    const boxId = boxIdForTier(rollBoxTier(boxTierForStage(stageId), diffBonus, rng));
+    grantBox(save, boxId, rng);
+    materialsDropped[boxId] = (materialsDropped[boxId] ?? 0) + 1;
   }
   if (rng.next() < SCROLL_DROP_CHANCE + diffBonus * 0.5) giveMat(SUMMON_SCROLL, 1);
   if (rng.next() < ORB_DROP_CHANCE + diffBonus * 0.25) giveMat(OBLIVION_ORB, 1);

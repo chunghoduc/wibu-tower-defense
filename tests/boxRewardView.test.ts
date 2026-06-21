@@ -3,7 +3,14 @@ import { boxRewardEntries } from "../src/data/boxRewardView.ts";
 import { BLESS_JEWEL } from "../src/data/materials.ts";
 import { ITEM_CATALOG } from "../src/data/items.ts";
 
-const baseReward = { opened: true as const, crystals: 80, diamonds: 0, materials: {}, items: [] };
+const baseReward = {
+  opened: true as const,
+  level: 30,
+  crystals: 80,
+  diamonds: 0,
+  materials: {},
+  items: [],
+};
 
 describe("boxRewardEntries", () => {
   it("always leads with a gold entry carrying the rolled amount + gold icon", () => {

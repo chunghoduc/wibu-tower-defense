@@ -8,6 +8,7 @@ import {
 } from "../src/data/items.ts";
 import { rollItemDrop, chapterLevelRange } from "../src/core/itemDrop.ts";
 import { openBox } from "../src/core/boxes.ts";
+import { boxItemLevelBounds } from "../src/core/boxLevel.ts";
 import { createFreshSave } from "../src/core/save.ts";
 import { Rng } from "../src/core/rng.ts";
 
@@ -85,8 +86,7 @@ describe("chapter drop bands", () => {
 
 describe("box gear level tracks the hero, rarity tracks the box", () => {
   it("a level-50 hero pulls box gear around their own level from any tier", () => {
-    const lo = Math.round(50 * 0.85),
-      hi = Math.round(50 * 1.15); // ±15% around hero level
+    const [lo, hi] = boxItemLevelBounds(50); // compounded hero→box→item band
     let seen = 0;
     for (const tier of [1, 5]) {
       const rng = new Rng(9 + tier);

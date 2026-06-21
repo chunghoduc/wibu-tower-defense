@@ -2,7 +2,7 @@ import type { ItemSlot, TowerCollectionEntry } from "../data/schema.ts";
 import { STARTER_SKILL_IDS, MAX_ACTIVE_SKILLS } from "../data/skills.ts";
 import { type MetaSave, defaultMeta, backfillMeta } from "./meta.ts";
 
-export const CURRENT_SAVE_VERSION = 15;
+export const CURRENT_SAVE_VERSION = 16;
 
 export type TowerCollection = Record<string, TowerCollectionEntry>;
 
@@ -147,6 +147,13 @@ export interface HeroSave {
   squad: string[];
   /** Crafting materials & loot boxes, keyed by material id → count (T13/T15). */
   materials: Record<string, number>;
+  /**
+   * Per-box rolled LEVELs, a FIFO queue per box id running parallel to the
+   * `materials` counts (v16). A box pops its level when opened; an empty/missing
+   * queue lazily derives a level from the hero, so legacy saves and boxes granted
+   * via generic material paths stay sane. Optional ⇒ zero migration.
+   */
+  boxLevels?: Record<string, number[]>;
   /** Audio/game settings (T9). */
   settings: GameSettings;
   /** Rotating shop stock (persisted so purchases stay sold). */
@@ -191,6 +198,7 @@ export function createFreshSave(): HeroSave {
     progress: { stageClearMap: {}, achievementFlags: {}, totalTowersPlaced: 0 },
     squad: [],
     materials: {},
+    boxLevels: {},
     settings: defaultSettings(),
     shop: { stock: [], refreshesToday: 0, refreshDate: "" },
     quests: { date: "", progress: {}, claimed: [], allClaimed: false },
@@ -321,6 +329,12 @@ export function loadAndMigrate(raw: unknown): HeroSave {
     // backfill is needed — the slot simply starts empty until the player equips one.
     save = { ...save, version: 15 };
   }
+  if ((save.version ?? 0) < 16) {
+    // Per-box levels: boxes now carry a rolled level. Existing boxes have no
+    // recorded level — start with an empty queue; openBox lazily derives a level
+    // from the hero for any box without one, so no per-box backfill is needed.
+    save = { ...save, boxLevels: save.boxLevels ?? {}, version: 16 };
+  }
   // Defensive backfill: a save persisted AT the current version but missing a
   // field (e.g. a dev save stamped v5 before `materials` was added) skips the
   // versioned hops above and would crash on first access. Ensure every required
@@ -332,6 +346,7 @@ export function loadAndMigrate(raw: unknown): HeroSave {
   }
   save.squad ??= [];
   save.materials ??= {};
+  save.boxLevels ??= {};
   save.currency ??= {
     gold: 0,
     diamonds: 0,

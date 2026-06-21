@@ -5,6 +5,7 @@ import { awardHeroXp } from "./hero.ts";
 import { rollItemDrop } from "./itemDrop.ts";
 import { rollEliteBoxTier } from "./elite.ts";
 import { boxIdForTier } from "../data/materials.ts";
+import { grantBox } from "./boxes.ts";
 
 // Per-kill drops persist immediately (the hero keeps XP/loot even if the stage
 // is abandoned), so the chances are deliberately small — bulk loot still comes
@@ -53,7 +54,7 @@ export function processEnemyKill(
   let boxDropped: string | null = null;
   if (elite) {
     boxDropped = boxIdForTier(rollEliteBoxTier(rng));
-    save.materials[boxDropped] = (save.materials[boxDropped] ?? 0) + 1;
+    grantBox(save, boxDropped, rng); // freezes the box's level alongside its count
   }
 
   return { xp, itemDropped, boxDropped };
