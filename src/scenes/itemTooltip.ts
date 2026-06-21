@@ -7,7 +7,13 @@
 // under Base / Primary / Extra section headers, and a required-level footer.
 import Phaser from "phaser";
 import { panelText } from "./ui.ts";
-import { itemStatRows, SOURCE_COLOR, QUALITY_COLOR } from "../data/itemDisplay.ts";
+import {
+  itemStatRows,
+  uniquePowerLine,
+  UNIQUE_POWER_COLOR,
+  SOURCE_COLOR,
+  QUALITY_COLOR,
+} from "../data/itemDisplay.ts";
 import { archetypeFor, ARCHETYPE_COLOR, ARCHETYPE_LABEL } from "../data/itemArchetype.ts";
 import type { ItemDef, Rarity } from "../data/schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
@@ -58,8 +64,11 @@ export function renderItemTooltip(
     rowH = 17,
     sectionH = 16;
   const footerH = inst.apex ? 42 : 24;
+  // Unique Power: the signature line that sets a Unique apart from a Legendary.
+  const power = uniquePowerLine(def);
+  const powerH = power ? 40 : 0;
   const bodyH = groups.reduce((sum, grp) => sum + sectionH + grp.rows.length * rowH, 0);
-  const h = headerH + bodyH + footerH;
+  const h = headerH + bodyH + powerH + footerH;
   const tx = Phaser.Math.Clamp(x + 30, 0, scene.scale.width - w);
   const ty = Phaser.Math.Clamp(y - 10, 0, 540 - h);
   const g = scene.add.graphics();
@@ -149,6 +158,27 @@ export function renderItemTooltip(
       }
       ry += rowH;
     }
+  }
+
+  // Unique Power block: a gold-divided, gold-tinted signature line that no
+  // Legendary can ever show — the whole point of the item's rarity.
+  if (power) {
+    g.lineStyle(1, 0xffd24a, 0.5).lineBetween(tx + padX, ry + 2, tx + w - padX, ry + 2);
+    c.add(
+      panelText(scene, tx + padX, ry + 7, `◆ ${power.name}`, {
+        fontSize: "11px",
+        color: UNIQUE_POWER_COLOR,
+        fontStyle: "bold",
+      }),
+    );
+    c.add(
+      panelText(scene, tx + padX, ry + 22, power.desc, {
+        fontSize: "10px",
+        color: "#ffe6a8",
+        wordWrap: { width: w - padX * 2 },
+      }),
+    );
+    ry += powerH;
   }
 
   // Footer: required level (the grouped section headers above now serve as the

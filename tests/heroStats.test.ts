@@ -126,6 +126,31 @@ describe("resolveHeroBattleStats — items + passives + jewels add up to hero st
   });
 });
 
+describe("Unique Powers fold into the hero stat pipeline", () => {
+  it("equipping a Unique weapon resolves to strictly higher attack than bare", () => {
+    const bare = resolveHeroBattleStats(createFreshSave(), BASE).stats;
+    // Dawnbreaker → Sunflare: +18% MORE attack (multiplicative, on top of base).
+    const geared = resolveHeroBattleStats(
+      withItem("Weapon", inst({ id: "u", defId: "dawnbreaker" })),
+      BASE,
+    ).stats;
+    expect(geared.atk).toBeGreaterThan(bare.atk);
+    // 100 base × 1.18 more = 118 (the def's base stats are zeroed here, so the
+    // only delta is the Unique Power's more-attack multiplier).
+    expect(geared.atk).toBeCloseTo(118, 4);
+    expect(geared.critDamage).toBeGreaterThan(bare.critDamage); // +25% flat crit dmg
+  });
+
+  it("a Legendary weapon grants NO more-multiplier (no Unique Power)", () => {
+    const bare = resolveHeroBattleStats(createFreshSave(), BASE).stats;
+    const leg = resolveHeroBattleStats(
+      withItem("Weapon", inst({ id: "l", defId: "thunder-cannon" })),
+      BASE,
+    ).stats;
+    expect(leg.atk).toBeCloseTo(bare.atk, 5); // zeroed rolls → identical, no more%
+  });
+});
+
 describe("hero stats add up to tower stats (the 60% share)", () => {
   it("an item that adds +100 hero atk reaches a commanded tower at 60% (+60)", () => {
     const bare = resolveHeroBattleStats(createFreshSave(), BASE).stats;

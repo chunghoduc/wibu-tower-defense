@@ -17,6 +17,7 @@ import { heroRangeForWeapon } from "../data/weaponRange.ts";
 import type { HeroSave } from "./save.ts";
 import { collectPassiveMore, heroStatPipeline } from "./stats.ts";
 import { buildAffixStats } from "./affixStats.ts";
+import { buildUniquePowerStats } from "./uniquePowerStats.ts";
 import { socketedJewelBags } from "./jewelStats.ts";
 import { scaleStatsByEnhance } from "./enhance.ts";
 import { effectiveNode } from "./passiveChoice.ts";
@@ -59,21 +60,32 @@ export function resolveHeroBattleStats(save: HeroSave, base: Stats): ResolvedHer
   // Jewels in allocated sockets empower the hero exactly like passive nodes.
   const jewelBags = socketedJewelBags(save);
 
-  // more% from every allocated node/jewel that declares one (keystones, prestige
-  // gates, Unique jewels) — not gated on type, or a notable's more% would be lost.
-  const keystoneMore = collectPassiveMore([...unlockedNodes, ...jewelBags]);
+  // Unique Powers — the signature effect every equipped Unique-rarity item
+  // carries (data/uniquePowers.ts). They fold into the SAME three buckets as
+  // affixes; the `more` bucket is what a Legendary structurally can't grant.
+  const unique = buildUniquePowerStats(save);
 
-  // Item affixes: fractional flat go straight in; scalar increased% ride in as
-  // synthetic increased-only nodes alongside the passive nodes.
+  // more% from every allocated node/jewel that declares one (keystones, prestige
+  // gates, Unique jewels) plus equipped Unique Powers — not gated on type, or a
+  // notable's more% would be lost.
+  const keystoneMore = [...collectPassiveMore([...unlockedNodes, ...jewelBags]), ...unique.more];
+
+  // Item affixes + Unique Powers: fractional flat go straight in; scalar
+  // increased% ride in as synthetic increased-only nodes alongside the passive
+  // nodes.
   const affix = buildAffixStats(save);
-  const affixNodes = affix.increased.map((increased) => ({ flat: {}, increased, more: undefined }));
+  const increasedNodes = [...affix.increased, ...unique.increased].map((increased) => ({
+    flat: {},
+    increased,
+    more: undefined,
+  }));
 
   const stats = heroStatPipeline(
     base,
     save.hero.level,
-    [...unlockedNodes, ...affixNodes, ...jewelBags],
+    [...unlockedNodes, ...increasedNodes, ...jewelBags],
     itemStats,
-    affix.flat,
+    [...affix.flat, ...unique.flat],
     keystoneMore,
   );
   return { stats, petGoldPerSec, weaponType };

@@ -13,6 +13,7 @@ import type { ItemDef, Stats } from "./schema.ts";
 import type { ItemInstanceSave } from "../core/save.ts";
 import { enhanceBonus } from "../core/enhance.ts";
 import { instanceReqLevel, APEX_STAT_MULT } from "../data/items.ts";
+import { uniquePowerFor } from "./uniquePowers.ts";
 
 export type StatSource = "base" | "primary" | "affix";
 export type Quality = "base" | "better" | "worse";
@@ -190,6 +191,20 @@ export function enhancePreviewRows(
     });
   }
   return rows;
+}
+
+/** Gold-line color for the Unique-Power tooltip row. */
+export const UNIQUE_POWER_COLOR = "#ffd24a";
+
+/**
+ * The Unique Power line for an item's tooltip, or null for non-Unique items.
+ * Static-context (`uniqueCount: 1`) describe — the count-scaled wording in
+ * battle reads from the live loadout; the tooltip shows the per-item baseline.
+ */
+export function uniquePowerLine(def: ItemDef): { name: string; desc: string } | null {
+  const power = uniquePowerFor(def);
+  if (!power) return null;
+  return { name: power.name, desc: power.describe({ uniqueCount: 1 }) };
 }
 
 export function itemStatRows(inst: ItemInstanceSave, def: ItemDef): ItemStatRow[] {
