@@ -17,6 +17,8 @@ import {
   HERO_BATTLE,
   heroBattleStyle,
   HERO_BATTLE_NEGATIVE,
+  HERO_ANIM_POSES,
+  heroAnimStyle,
   HERO_WING,
   WING_POSE,
   heroWingStyle,
@@ -185,6 +187,28 @@ function buildJobs() {
       size: 320,
       neg: HERO_BATTLE_NEGATIVE,
     });
+  }
+  // battle-hero ANIMATION FRAMES: real drawn frames per state so the hero animates
+  // (idle reuses the stance above). Every frame shares the archetype's key-visual
+  // seed + descriptor — only the pose phrase changes — to stay on-model.
+  // Keys/files: heroanim__<wt>__<state>_<i>.
+  for (const [wt, desc] of Object.entries(HERO_BATTLE)) {
+    const sd = seedOf(`herobattle-${wt}`);
+    for (const [state, poses] of Object.entries(HERO_ANIM_POSES)) {
+      poses.forEach((pose, i) => {
+        jobs.push({
+          kind: "heroanim",
+          id: `${wt}__${state}_${i}`,
+          file: `${wt}__${state}_${i}.png`,
+          prompt: heroAnimStyle(desc, pose),
+          seed: sd,
+          w: 768,
+          h: 1024,
+          size: 320,
+          neg: HERO_BATTLE_NEGATIVE,
+        });
+      });
+    }
   }
   // battle-hero worn WINGS: one unique pair per wing item, two flap frames sharing
   // a seed (glide + raised) so HeroWeaponSprite can crossfade a real wing-beat.

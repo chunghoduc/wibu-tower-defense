@@ -11,8 +11,10 @@
 import Phaser from "phaser";
 import { resolveHeroLayers, type HeroLayerConfig } from "./heroEquipVisuals.ts";
 import type { InventorySave } from "../core/save.ts";
-import { weaponArtKeys } from "../data/heroWeaponArt.ts";
+import { weaponArtKeys, weaponArtId } from "../data/heroWeaponArt.ts";
 import { heroWeaponMotion, type WeaponMotionState } from "../data/heroWeaponMotion.ts";
+import { heroWeaponFrame } from "../data/heroWeaponFrames.ts";
+import { heroAnimTex } from "../data/assetKeys.ts";
 import { battleWingKeys, type BattleWingKeys } from "../data/heroWingArt.ts";
 import { heroWingFlap } from "../data/heroWingFlap.ts";
 
@@ -37,6 +39,12 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
   private stanceKey: string | null = null;
   private attackKey: string | null = null;
   private showingAttackPose = false;
+  /** Lower-cased weapon archetype id ("sword"…"any") for the animation frame keys. */
+  private weaponId = "any";
+  /** True when the equipped archetype has drawn per-state animation frames loaded. */
+  private hasAnimFrames = false;
+  /** Currently-shown animation frame texture key (avoids redundant setTexture). */
+  private currentFrameKey: string | null = null;
 
   private walkPhase = 0;
   private oneShot: { kind: OneShotKind; start: number } | null = null;
@@ -125,8 +133,10 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
     const side = this.facingLeft ? -1 : 1;
     const m = heroWeaponMotion(state, phase!, this.size, side);
 
-    // Pose swap (stance ↔ attack) — only touch the texture when it changes.
-    this.setPose(m.useAttackPose);
+    // Drawn animation frames carry the limb motion; the legacy two-pose swap is
+    // the fallback for any archetype whose frames aren't loaded.
+    if (this.hasAnimFrames) this.setFrame(state, phase!);
+    else this.setPose(m.useAttackPose);
 
     const b = this.bodySprite;
     let hover = 0;
@@ -186,6 +196,22 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
     }
   }
 
+  /**
+   * Drive the body texture from the drawn animation frames. `idle` reuses the
+   * legacy stance art (no idle frames generated); other states pull
+   * `heroanim__<wt>__<state>_<i>`. Falls back to the stance key if a frame is
+   * missing, and only swaps the texture when the key actually changes.
+   */
+  private setFrame(state: WeaponMotionState, phase: number): void {
+    const idx = heroWeaponFrame(state, phase);
+    const want = state === "idle" ? this.stanceKey : heroAnimTex(this.weaponId, state, idx);
+    const key = want && this.scene.textures.exists(want) ? want : this.stanceKey;
+    if (!key || key === this.currentFrameKey) return;
+    this.bodySprite.setTexture(key);
+    this.currentFrameKey = key;
+    this.sizeBody();
+  }
+
   playAttack(): void {
     this.beginOneShot("attack");
   }
@@ -236,6 +262,10 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
       const keys = weaponArtKeys(config.weaponType);
       this.stanceKey = keys.stanceKey;
       this.attackKey = t.exists(keys.attackKey) ? keys.attackKey : keys.stanceKey;
+      this.weaponId = weaponArtId(config.weaponType);
+      // Anim mode kicks in only when this archetype's drawn frames are loaded.
+      this.hasAnimFrames = t.exists(heroAnimTex(this.weaponId, "walk", 0));
+      this.currentFrameKey = null;
       const show = t.exists(keys.stanceKey);
       if (show) {
         this.bodySprite.setTexture(keys.stanceKey).setVisible(true);

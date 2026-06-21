@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:cycles": "node scripts/checkCycles.mjs",
+    "repro:heroanim": "node scripts/playtest/repro_hero_anim.mjs",
     "gen:sprites": "vite-node scripts/sdart/sdgen.mjs",
     "gen:sprites:anim": "vite-node scripts/sdart/animgen.mjs",
     "gen:item-visual": "vite-node scripts/genItemVisual.ts",

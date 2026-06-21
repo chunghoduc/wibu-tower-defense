@@ -179,6 +179,45 @@ export function heroBattleStyle(visual, pose) {
   return HERO_BATTLE_STYLE.replace("{V}", visual).replace("{P}", pose);
 }
 
+// ---- BATTLE-HERO ANIMATION FRAMES ----
+// Real drawn frames per animation state so the in-battle hero actually animates
+// instead of sliding two static poses around. Every frame of an archetype shares
+// the SAME seed as its key visual (seedOf("herobattle-<wt>")) and reuses the very
+// same HERO_BATTLE character descriptor — only the POSE PHRASE below changes — so
+// the set stays on-model (the most coherence a text-to-image model can give without
+// img2img). Keys: heroanim__<wt>__<state>_<i>. idle is NOT generated (it reuses the
+// existing herobattle stance). A 4-beat run cycle, a wind-up→apex→follow-through
+// strike, a recoil/stagger flinch, and a gather→channel→release→recoil cast.
+export const HERO_ANIM_POSES = {
+  walk: [
+    "mid-run stride, the right leg striding forward and planted, the left leg trailing far back, torso leaning forward with momentum, arms swinging in counterpose, dynamic running motion",
+    "running passing pose at the top of the stride, both legs gathered together under the body, a slight upward lift, body upright and bounding forward",
+    "mid-run stride, the left leg striding forward and planted, the right leg trailing far back, opposite arm swing, torso leaning forward with momentum, dynamic running motion",
+    "running passing pose dipping low, the legs crossing under the lowered body, weight driving forward into the next step, bounding run",
+  ],
+  attack: [
+    "wind-up anticipation, the weapon drawn far back and the body coiled and twisted away, weight loaded onto the back foot, about to strike",
+    "the strike beginning, the weapon swinging forward and down, weight shifting hard onto the front foot, body uncoiling with force",
+    "the strike at full apex, the weapon fully extended forward at maximum reach mid-strike, body lunging forward, explosive dynamic motion and impact",
+    "the follow-through, the weapon swept all the way past the target, body settled forward and over the front foot after the blow",
+  ],
+  hurt: [
+    "recoiling backward from a heavy hit, head and torso snapped back, off balance, arms flung wide, pained grimace",
+    "staggering and doubled slightly forward, clutching the body where it was struck, knees bent, wincing in pain",
+  ],
+  cast: [
+    "beginning to channel, both hands drawing inward and gathering glowing energy at the chest, head bowed in concentration",
+    "channelling at full charge, arms and weapon raised high, brilliant magical energy swirling and building in a bright aura around the hands",
+    "the cast release at apex, both arms thrust forward unleashing a burst of radiant magical energy outward, blazing light, explosive dynamic motion",
+    "the spell follow-through, streams of spent magical energy trailing outward, body braced and leaning back from the recoil of the release",
+  ],
+};
+
+/** Build a battle-hero animation-frame prompt for a weapon descriptor + pose phrase. */
+export function heroAnimStyle(visual, pose) {
+  return heroBattleStyle(visual, pose);
+}
+
 // ---- BATTLE-HERO WORN WINGS ----
 // Dedicated back-view wing art for the in-battle hero — one unique pair per wing
 // item, rendered in TWO flap frames sharing a seed (glide vs raised up-stroke) so
