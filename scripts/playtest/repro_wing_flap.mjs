@@ -113,7 +113,7 @@ async function main() {
       await shoot(name);
     };
     await frame(0, `flap_${wingId}_down`);
-    await frame(450, `flap_${wingId}_up`);
+    await frame(470, `flap_${wingId}_up`); // ~top of the up-stroke (period 760ms)
     console.log("captured", wingId);
   }
 

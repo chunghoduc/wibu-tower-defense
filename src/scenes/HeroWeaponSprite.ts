@@ -158,28 +158,33 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
   }
 
   /**
-   * Drive the worn wings. Dedicated battle art crossfades a swept-down and a
-   * raised frame on a procedural flap cycle (heroWingFlap) — a real wing-beat
-   * unique to each wing's art — plus a slight rise/squash. The legacy single-icon
-   * wing keeps the old ±6° rock. Procedural (not a tween) so it never freezes if
-   * the scene's tweens are cleared.
+   * Drive the worn wings. Dedicated battle art is SPLIT into a left and a right
+   * half (each a crop of the same back-view pair, pivoted at the spine) and the two
+   * halves are rotated up/down on a procedural flap cycle (heroWingFlap) — a genuine
+   * articulated wing-beat rather than a crossfade between two static frames. The
+   * legacy single-icon wing keeps the old ±6° rock. Procedural (not a tween) so it
+   * never freezes if the scene's tweens are cleared.
    */
   private animateWings(now: number, hover: number): void {
-    const baseY = -this.size * 0.62 + hover * 0.6;
+    // Wings ride high on the shoulders (well above the old mid-back anchor).
+    const baseY = -this.size * 0.82 + hover * 0.6;
     if (this.battleWings) {
       const f = heroWingFlap(now);
-      const baseH = this.size * 1.95;
-      const y = baseY - f.rise * this.size * 0.07;
-      for (const w of [this.wingsSprite, this.wingUpSprite]) {
+      const baseH = this.size * 2.0;
+      const y = baseY - f.lift * this.size * 0.08;
+      const left = this.wingsSprite,
+        right = this.wingUpSprite;
+      for (const w of [left, right]) {
         if (!w.height) continue;
         const aspect = w.width / w.height;
         w.setDisplaySize(baseH * aspect * f.scaleX, baseH * f.scaleY);
         w.setPosition(0, y);
-        w.setAngle(f.swayDeg);
         w.setFlipX(this.facingLeft);
       }
-      this.wingsSprite.setAlpha(f.downAlpha);
-      this.wingUpSprite.setAlpha(f.upAlpha);
+      // Each half pivots at the spine (origin set in syncEquipment); mirror angles.
+      // flipX already mirrors geometry when facing left, so the raw angles suffice.
+      left.setAngle(f.beatDeg);
+      right.setAngle(-f.beatDeg);
     } else {
       this.wingsSprite.setPosition(0, baseY);
       this.wingsSprite.setAngle(Math.sin(now * 0.0083) * 6);
@@ -279,26 +284,37 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
 
     if (!this._lastConfig || config.wingId !== this._lastConfig.wingId) {
       const bw = battleWingKeys(config.wingId);
-      if (bw && t.exists(bw.downKey) && t.exists(bw.upKey)) {
-        // Dedicated battle wing art — two crossfading flap frames.
+      if (bw && t.exists(bw.downKey)) {
+        // Dedicated battle wing art — split the back-view pair into a left and a
+        // right half (a crop of the SAME frame), each pivoting at the spine so the
+        // two halves articulate a real flap. The up-frame art is no longer needed.
         this.battleWings = bw;
-        this.wingsSprite.setTexture(bw.downKey).setVisible(true).setAlpha(1);
-        this.wingUpSprite.setTexture(bw.upKey).setVisible(true).setAlpha(0);
+        const dk = bw.downKey;
+        this.wingsSprite.setTexture(dk).setVisible(true).setAlpha(1).setOrigin(0.5, 0.4);
+        this.wingUpSprite.setTexture(dk).setVisible(true).setAlpha(1).setOrigin(0.5, 0.4);
+        const fw = this.wingsSprite.width,
+          fh = this.wingsSprite.height,
+          half = fw / 2,
+          ov = Math.round(fw * 0.03); // small seam overlap so no gap opens mid-beat
+        this.wingsSprite.setCrop(0, 0, half + ov, fh); // left half
+        this.wingUpSprite.setCrop(half - ov, 0, half + ov, fh); // right half
         this.hasWings = true;
       } else if (config.wingKey && t.exists(config.wingKey)) {
         // Legacy single-icon wing (no dedicated battle art yet).
         this.battleWings = null;
         this.wingsSprite
+          .setCrop()
+          .setOrigin(0.5, 0.5)
           .setTexture(config.wingKey)
           .setVisible(true)
           .setAlpha(1)
           .setScale((this.size / 96) * 1.85);
-        this.wingUpSprite.setVisible(false);
+        this.wingUpSprite.setCrop().setVisible(false);
         this.hasWings = true;
       } else {
         this.battleWings = null;
-        this.wingsSprite.setVisible(false).setAngle(0);
-        this.wingUpSprite.setVisible(false);
+        this.wingsSprite.setCrop().setOrigin(0.5, 0.5).setVisible(false).setAngle(0);
+        this.wingUpSprite.setCrop().setVisible(false);
         this.hasWings = false;
       }
     }

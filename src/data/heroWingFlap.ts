@@ -1,45 +1,53 @@
 // src/data/heroWingFlap.ts
 //
-// Procedural flap motion for the battle hero's two-frame worn wings. Returns the
-// crossfade alphas for the down/up frames plus subtle transform multipliers that
-// sell a real wing-beat (the wings rise, narrow and stretch at the top of the
-// stroke) rather than a single static image rotated back and forth. Driven from
-// the render clock so the wings never freeze if a scene's tweens are cleared.
+// Procedural wing-beat for the battle hero's worn wings. The wings are split into
+// a LEFT and a RIGHT half (each a crop of the same back-view pair art) and pivoted
+// at the spine, so this returns a real articulated flap — the two halves rotate up
+// and down around the shoulders — instead of a crossfade between two static images
+// (which only ever read as a morph/ghost, never a beat). Driven from the render
+// clock so the wings never freeze if a scene's tweens are cleared.
 // Pure / Phaser-free / deterministic — tested directly.
 
 export interface WingFlap {
-  /** 0 at the bottom of the beat → 1 at the top of the up-stroke → 0. */
+  /** 0 at the bottom of the beat (wings spread) → 1 at the top (wings raised). */
   rise: number;
-  /** Alpha for the raised/up frame (0..1). upAlpha + downAlpha === 1. */
-  upAlpha: number;
-  /** Alpha for the swept-down/glide frame (0..1). */
-  downAlpha: number;
-  /** Horizontal display multiplier — wings narrow slightly at the top of the beat. */
+  /**
+   * Signed rotation for the LEFT wing half, in degrees. The right half uses the
+   * mirror (`-beatDeg`). Spread/glide is the rest pose; the half sweeps UP through
+   * the up-stroke. The numeric sign is mirrored again by the sprite's flipX when
+   * the hero faces left.
+   */
+  beatDeg: number;
+  /** Extra upward lift fraction (0..1), peaks at the top of the up-stroke. */
+  lift: number;
+  /** Horizontal squash — the span narrows a touch as the wings sweep up. */
   scaleX: number;
-  /** Vertical display multiplier — wings stretch slightly at the top of the beat. */
+  /** Vertical stretch — the wings lengthen a touch as they sweep up. */
   scaleY: number;
-  /** Small banking sway in degrees, for life. */
-  swayDeg: number;
 }
 
 const TAU = Math.PI * 2;
+/** Rest (glide) pose of the left half: wings held high and spread over the back. */
+const SPREAD_DEG = 8;
+/** Bottom of the power-stroke: wings beat down for thrust (kept off the torso). */
+const RAISED_DEG = -24;
 
 /**
- * Flap state at `nowMs`. `periodMs` is one full beat (default ~900ms ≈ a graceful
- * 1.1 Hz). The crossfade is sharpened so the wings spend most of the cycle reading
- * as a clean down or up pose and only blend briefly through the middle.
+ * Flap state at `nowMs`. `periodMs` is one full beat (default 760ms ≈ a brisk
+ * 1.3 Hz). The down-stroke is quick and the recovery slower (a skewed beat), which
+ * reads more like a real wing than a pure sine.
  */
-export function heroWingFlap(nowMs: number, periodMs = 900): WingFlap {
+export function heroWingFlap(nowMs: number, periodMs = 760): WingFlap {
   const t = (((nowMs % periodMs) + periodMs) % periodMs) / periodMs; // 0..1, wraps safely
-  const rise = (1 - Math.cos(TAU * t)) / 2; // 0 → 1 → 0, smooth
-  // Push the crossfade toward the endpoints so mid-beat ghosting is brief.
-  const upAlpha = Math.max(0, Math.min(1, (rise - 0.5) * 2 + 0.5));
+  // Skew the phase so the wings spend longer gliding/spread and snap up briskly.
+  const skewed = t < 0.5 ? t * 0.7 : 0.35 + (t - 0.5) * 1.3;
+  const rise = (1 - Math.cos(TAU * skewed)) / 2; // 0 → 1 → 0, smooth, asymmetric
+  const beatDeg = SPREAD_DEG + (RAISED_DEG - SPREAD_DEG) * rise;
   return {
     rise,
-    upAlpha,
-    downAlpha: 1 - upAlpha,
-    scaleX: 1 - rise * 0.08,
-    scaleY: 1 + rise * 0.05,
-    swayDeg: Math.sin(TAU * t) * 2,
+    beatDeg,
+    lift: rise,
+    scaleX: 1 - rise * 0.06,
+    scaleY: 1 + rise * 0.04,
   };
 }
