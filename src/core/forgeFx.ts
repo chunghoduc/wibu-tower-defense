@@ -89,5 +89,15 @@ export function forgeFxSpec(station: StationId, success: boolean): ForgeFxSpec {
         durationMs: 950,
         rise: false,
       };
+    case "reroll":
+      return {
+        kind: "transmute",
+        primary: 0xd64f6a,
+        accent: 0xff9db0,
+        glyph: "✨",
+        particles: 7,
+        durationMs: 800,
+        rise: false,
+      };
   }
 }

@@ -445,7 +445,7 @@ export class ShopScene extends Phaser.Scene {
     this.tooltip.setVisible(false);
     const save = this.mgr.getSave();
     const chaos = rarity ? smeltYield(rarity) : 1;
-    const cost = rarity ? reforgeCost(rarity) : null;
+    const cost = rarity ? reforgeCost(rarity, inst.rerollCount ?? 0) : null;
     const W = this.scale.width,
       H = this.scale.height;
     const c = this.add.container(0, 0).setDepth(300);
@@ -499,12 +499,12 @@ export class ShopScene extends Phaser.Scene {
     // Reforge — Rare+ only, re-rolls all affixes for gold + chaos.
     if (cost) {
       const have =
-        (save.materials[CHAOS_JEWEL] ?? 0) >= cost.chaos && save.currency.gold >= cost.gold;
+        (save.materials[CHAOS_JEWEL] ?? 0) >= cost.entropy && save.currency.gold >= cost.gold;
       const reforge = crispText(
         this,
         W / 2,
         by + 108,
-        `⟳ Reforge affixes\n🪙 ${cost.gold} + ❖ ${cost.chaos}`,
+        `⟳ Reforge affixes\n🪙 ${cost.gold} + ❖ ${cost.entropy}`,
         {
           fontSize: "12px",
           color: have ? "#fff" : "#9aa6b8",

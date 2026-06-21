@@ -55,6 +55,9 @@ export interface ItemInstanceSave {
   rolledAffixes: RolledAffix[];
   /** Item enhancement level (+0..+15), see core/enhance.ts (T13). */
   enhanceLevel: number;
+  /** Times this copy has been affix-rerolled (drives the rising reforge cost).
+   *  Optional for backward compat — absent means 0. */
+  rerollCount?: number;
 }
 
 export interface HeroSkillEntry {

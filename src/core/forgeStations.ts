@@ -6,7 +6,12 @@
  * shape of what goes in and what comes out.
  */
 import { ALCHEMY_RECIPES, COPIES_PER_CRYSTAL } from "../data/alchemy.ts";
-import { AWAKENING_CRYSTAL, JEWEL_OF_CHAOS, MATERIALS_MAP } from "../data/materials.ts";
+import {
+  AWAKENING_CRYSTAL,
+  JEWEL_OF_CHAOS,
+  CHAOS_JEWEL,
+  MATERIALS_MAP,
+} from "../data/materials.ts";
 import { MAX_AWAKENING, awakeningCost } from "./awakening.ts";
 import { materialIcon, towerIcon } from "../data/rewardIcon.ts";
 
@@ -30,7 +35,7 @@ export interface ForgeRecipeVM {
   note?: string;
 }
 
-export type StationId = "awaken" | "alchemy" | "copies" | "wings" | "spark";
+export type StationId = "awaken" | "alchemy" | "copies" | "wings" | "spark" | "reroll";
 
 /** A station tile on the grid: emblem + readiness + its recipes + a mini preview. */
 export interface StationVM {
@@ -103,9 +108,7 @@ export function awakeningVMs(rows: AwakenTowerInput[]): ForgeRecipeVM[] {
       inputs: max ? [] : [matIngredient(AWAKENING_CRYSTAL, cost, t.crystalsHave)],
       outputs: [towerIngredient(t.id, t.name)],
       canCraft: !max && t.crystalsHave >= cost,
-      note: max
-        ? "Fully Awakened (+30% atk/hp)"
-        : `✦${t.rank} → ✦${t.rank + 1}   ·   +10% atk/hp`,
+      note: max ? "Fully Awakened (+30% atk/hp)" : `✦${t.rank} → ✦${t.rank + 1}   ·   +10% atk/hp`,
     };
   });
 }
@@ -124,7 +127,10 @@ export function copyExchangeVMs(rows: CopyTowerInput[]): ForgeRecipeVM[] {
       id: t.id,
       label: t.name,
       inputs: [
-        { ...towerIngredient(t.id, t.name, COPIES_PER_CRYSTAL, t.copies), label: `${t.name} copies` },
+        {
+          ...towerIngredient(t.id, t.name, COPIES_PER_CRYSTAL, t.copies),
+          label: `${t.name} copies`,
+        },
       ],
       outputs: [matIngredient(AWAKENING_CRYSTAL, 1)],
       canCraft: true,
@@ -142,7 +148,9 @@ export function sparkVM(
   return {
     id: "spark",
     label: "Spark Guarantee",
-    inputs: [{ iconKey: "", emoji: "✦", color: 0xffe07a, qty: pity, have: sparks, label: "Sparks" }],
+    inputs: [
+      { iconKey: "", emoji: "✦", color: 0xffe07a, qty: pity, have: sparks, label: "Sparks" },
+    ],
     outputs: [{ ...towerIngredient(featuredId, featuredName), label: featuredName }],
     canCraft: can,
     note: can ? "Claim a guaranteed featured Unique!" : `${pity - sparks} more sparks needed`,
@@ -162,6 +170,25 @@ export function wingsStationVM(jewels: number, feathers: number, gearCount: numb
     preview: {
       input: { ...matIngredient(JEWEL_OF_CHAOS, 1, jewels) },
       output: { iconKey: "", emoji: "🪽", color: 0xe9b8ff, qty: 1, label: "Wings" },
+    },
+  };
+}
+
+/** Affix-reroll station: spend Jewel of Entropy to re-roll a Rare+ item's affixes.
+ *  Ready when the player owns any entropy AND has at least one eligible item. */
+export function rerollStationVM(entropy: number, eligibleCount: number): StationVM {
+  const ready = entropy >= 1 && eligibleCount >= 1;
+  return {
+    id: "reroll",
+    title: "Reroll Affixes",
+    emoji: "🎲",
+    accent: 0xd64f6a,
+    recipes: [],
+    ready,
+    badge: eligibleCount >= 1 ? `${eligibleCount} eligible` : "No Rare+ gear",
+    preview: {
+      input: { ...matIngredient(CHAOS_JEWEL, 1, entropy) },
+      output: { iconKey: "", emoji: "✨", color: 0xff9db0, qty: 1, label: "New affixes" },
     },
   };
 }

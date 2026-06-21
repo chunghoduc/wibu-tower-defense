@@ -17,7 +17,9 @@ import { playForgeFx } from "./forgeFxPlayer.ts";
 import { forgeFxSpec } from "../core/forgeFx.ts";
 import type { SaveManager } from "../core/saveManager.ts";
 import { TOWERS } from "../data/towers.ts";
-import { AWAKENING_CRYSTAL, JEWEL_OF_CHAOS, FEATHER } from "../data/materials.ts";
+import { AWAKENING_CRYSTAL, JEWEL_OF_CHAOS, FEATHER, CHAOS_JEWEL } from "../data/materials.ts";
+import { openAffixRerollDialog } from "./affixRerollDialog.ts";
+import { rerollEligibleItems, rerollAffixRows } from "../data/rerollView.ts";
 import { materialTex } from "../data/assetKeys.ts";
 import { ALCHEMY_RECIPES } from "../data/alchemy.ts";
 import { featuredForWeek, SPARK_PITY } from "../core/banner.ts";
@@ -34,6 +36,7 @@ import {
   sparkVM,
   stationFromRecipes,
   wingsStationVM,
+  rerollStationVM,
   forgeGridLayout,
   type StationVM,
   type StationId,
@@ -130,12 +133,28 @@ export class ForgeScene extends Phaser.Scene {
     const feat = featuredForWeek(isoWeekKey(new Date()));
     return [
       stationFromRecipes("awaken", "Awakening", "✦", 0x8a5cc0, awakeningVMs(this.awakenRows())),
-      stationFromRecipes("alchemy", "Alchemy", "⚗", 0x3a6a9a, alchemyRecipeVMs(this.alchemyHaves())),
-      stationFromRecipes("copies", "Copy Exchange", "♻", 0x4a8a6a, copyExchangeVMs(this.copyRows())),
+      stationFromRecipes(
+        "alchemy",
+        "Alchemy",
+        "⚗",
+        0x3a6a9a,
+        alchemyRecipeVMs(this.alchemyHaves()),
+      ),
+      stationFromRecipes(
+        "copies",
+        "Copy Exchange",
+        "♻",
+        0x4a8a6a,
+        copyExchangeVMs(this.copyRows()),
+      ),
       wingsStationVM(
         this.mgr.getMaterial(JEWEL_OF_CHAOS),
         this.mgr.getMaterial(FEATHER),
         this.unequippedGearCount(),
+      ),
+      rerollStationVM(
+        this.mgr.getMaterial(CHAOS_JEWEL),
+        rerollEligibleItems(this.mgr.getSave()).length,
       ),
       stationFromRecipes("spark", "Spark Guarantee", "★", 0xffc94d, [
         sparkVM(this.mgr.sparks(), SPARK_PITY, feat.unique, NAME.get(feat.unique) ?? "—"),
@@ -189,6 +208,10 @@ export class ForgeScene extends Phaser.Scene {
       this.openWingCraft();
       return;
     }
+    if (vm.id === "reroll") {
+      this.openReroll();
+      return;
+    }
     const secondary =
       vm.id === "spark" && UNIQUES.length > 1
         ? { label: "Cycle Wishlist", run: () => this.cycleWishlist() }
@@ -236,6 +259,37 @@ export class ForgeScene extends Phaser.Scene {
     const next = UNIQUES[(idx + 1) % UNIQUES.length];
     this.mgr.setWishlist(next.id);
     this.showToast(`Wishlist → ${next.name}`);
+  }
+
+  private openReroll(): void {
+    const affixRowsFor = (id: string) => {
+      const save = this.mgr.getSave();
+      const inst = save.inventory.items.find((it) => it.id === id);
+      const def = inst ? ITEM_CATALOG_MAP.get(inst.defId) : undefined;
+      return inst && def ? rerollAffixRows(inst, def) : [];
+    };
+    openAffixRerollDialog(this, {
+      state: () => {
+        const save = this.mgr.getSave();
+        return {
+          items: rerollEligibleItems(save),
+          entropy: this.mgr.getMaterial(CHAOS_JEWEL),
+          gold: save.currency.gold ?? 0,
+        };
+      },
+      affixRows: affixRowsFor,
+      reroll: (id) => {
+        const before = affixRowsFor(id);
+        const r = this.mgr.reforgeItem(id);
+        if (!r.ok) {
+          this.showToast("Cannot reroll — check materials.");
+          return { ok: false, before, after: before };
+        }
+        playForgeFx(this, W / 2, this.scale.height / 2, forgeFxSpec("alchemy", true));
+        return { ok: true, before, after: affixRowsFor(id) };
+      },
+      onClose: () => this.rebuild(),
+    });
   }
 
   private openWingCraft(): void {

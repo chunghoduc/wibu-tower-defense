@@ -215,6 +215,9 @@ export interface ItemInstance {
   rolledAffixes: RolledAffix[];
   /** Enhancement level (+0..+15); scales primary stats & affix (T13). */
   enhanceLevel: number;
+  /** Times this copy has been reforged/affix-rerolled. Drives the rising reroll
+   *  cost. Optional for backward compat — absent means 0. */
+  rerollCount?: number;
 }
 
 /**
