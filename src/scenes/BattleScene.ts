@@ -41,6 +41,7 @@ import { drawDamageBadge } from "./damageBadgeFx.ts";
 import { fadeIn, DUR } from "./uiKit.ts";
 import { BattleInfoPanel } from "./battleInfoPanel.ts";
 import { FxLayer } from "./fx.ts";
+import { MinionLayer } from "./minionLayer.ts";
 import { DEPTH } from "./battleDepths.ts";
 import { Sfx } from "./audio.ts";
 import type { ChallengeEffects } from "../data/challengeModifiers.ts";
@@ -129,6 +130,9 @@ export class BattleScene extends Phaser.Scene {
   _menuBtn: Phaser.GameObjects.Text | null = null;
   killSaveDirty = false; // kill XP/loot pending a debounced flush
   lastKillFlush = 0;
+
+  /** Procedural renderer for friendly summoned minions (rebuilt each create()). */
+  minionLayer?: MinionLayer;
 
   // Pixel-art sprite pools (keyed by entity uid); fall back to shapes if missing.
   towerSprites = new Map<number, Phaser.GameObjects.Sprite>();
@@ -241,6 +245,8 @@ export class BattleScene extends Phaser.Scene {
     this.dynGfx = this.add.graphics().setDepth(5); // bars/rings above sprites (depth 2)
     this.world.add([this.staticGfx, this.dynGfx]);
     this.fx = new FxLayer(this, DEPTH.FX, this.world, DEPTH.SKILL_FX_UNDER);
+    this.minionLayer?.destroy();
+    this.minionLayer = new MinionLayer(this, this.world);
     this.drawStatic();
 
     // The panel OVERLAYS the battlefield (does not resize it). battleW = full width.

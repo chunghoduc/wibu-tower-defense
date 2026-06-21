@@ -11,6 +11,7 @@ import type { SkillVfxSpec, SkillSignature } from "../data/skillVfxMeta.ts";
 import { VfxDraw, type V } from "./vfxDraw.ts";
 import type { FxPool } from "./fxPool.ts";
 import { scaleCount, vfxPower, type VfxPower } from "../data/skillVfxPower.ts";
+import { SIGNATURES_B } from "./skillSignaturesB.ts";
 
 type Fac = Phaser.GameObjects.GameObjectFactory;
 
@@ -239,6 +240,7 @@ const voidRift: SigFn = (d, at, s, radius, w) => {
 };
 
 const SIGNATURES: Record<SkillSignature, SigFn> = {
+  ...SIGNATURES_B,
   "valiant-sweep": valiantSweep,
   "spirit-comet": spiritComet,
   "steel-cross": steelCross,

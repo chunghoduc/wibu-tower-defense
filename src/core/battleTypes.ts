@@ -18,6 +18,7 @@ import {
   type WeaponType,
 } from "../data/schema.ts";
 import type { Dot } from "./effects.ts";
+import type { SummonDef } from "../data/summons.ts";
 import type { AuraMods } from "./enemyAuras.ts";
 import type { HeroSave } from "./save.ts";
 import type { TargetFilter } from "./targeting.ts";
@@ -264,6 +265,25 @@ export interface TowerRuntime {
   battleLevel: number;
   /** Total gold sunk into this tower (cost + upgrades), for sell refund. */
   goldSpent: number;
+}
+
+/**
+ * A temporary friendly minion conjured by a summon active skill. Stationary
+ * (tower-like targeting, no pathing), fades when `lifespan` reaches 0. Friendly:
+ * never targeted by enemies, never on a route, immune to enemy debuffs.
+ */
+export interface MinionRuntime {
+  uid: number;
+  def: SummonDef;
+  stats: Stats;
+  pos: Vec2;
+  hp: number;
+  attackCd: number;
+  alive: boolean;
+  /** Seconds remaining before the minion fades. */
+  lifespan: number;
+  /** Original duration — drives the render-time lifespan arc. */
+  maxLifespan: number;
 }
 
 export interface HeroRuntime {

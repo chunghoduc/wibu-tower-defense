@@ -66,7 +66,17 @@ export type SkillSignature =
   | "concussion-blast"
   | "hex-sigil"
   | "pure-technique"
-  | "void-rift";
+  | "void-rift"
+  // new spectacular spells
+  | "meteor-storm"
+  | "frost-nova"
+  | "infernal-wave"
+  | "prism-beam"
+  | "storm-call"
+  // summon conjuring circles
+  | "conjure-fire"
+  | "conjure-ice"
+  | "conjure-storm";
 
 /** How a cast travels from its origin to the impact point (the "fly-from-source" beat). */
 export type DeliveryKind = "bolt" | "beam" | "skyfall" | "ground" | "cast";
@@ -212,6 +222,82 @@ export const SKILL_VFX: Record<string, SkillVfxSpec> = {
     appearance:
       "A black void-rift tears open with a glowing violet rim; cracks in space radiate outward, " +
       "then the rift collapses to a point and snaps shut in a white reality-tear flash. The most dramatic cast.",
+  },
+
+  // ── new spectacular spells ────────────────────────────────────────────────
+  "meteor-storm": {
+    signature: "meteor-storm",
+    delivery: "skyfall",
+    motif: { kind: "none", count: 0, spread: "single" },
+    palette: { core: 0xff6a2a, hot: 0xffe07a, deep: 0x7a1c08 },
+    appearance:
+      "A barrage of blazing meteors plummets from the sky in a scattered cluster, each " +
+      "slamming down with a fireball burst, scorch ring and a shower of rising embers.",
+  },
+  "glacial-nova": {
+    signature: "frost-nova",
+    delivery: "ground",
+    motif: { kind: "none", count: 0, spread: "single" },
+    palette: { core: 0x6fc6ff, hot: 0xe8f7ff, deep: 0x2b78c8 },
+    appearance:
+      "A double ring of frost erupts outward, radiating jagged ice crystals and a cold " +
+      "white flash, with snow motes drifting up from the frozen ground.",
+  },
+  "infernal-wave": {
+    signature: "infernal-wave",
+    delivery: "ground",
+    motif: { kind: "none", count: 0, spread: "single" },
+    palette: { core: 0xff7a2a, hot: 0xffd06a, deep: 0xb01808 },
+    appearance:
+      "A rolling wall of flame sweeps out from the caster, throwing up rising fire plumes " +
+      "and leaving a glowing scorch line that lingers on the ground.",
+  },
+  "prism-beam": {
+    signature: "prism-beam",
+    delivery: "beam",
+    motif: { kind: "none", count: 0, spread: "single" },
+    palette: { core: 0xc77dde, hot: 0xffffff, deep: 0x5a8cff },
+    appearance:
+      "A thick prismatic lance of light fires in a straight line — layered violet, white " +
+      "and azure bands — with concentric sonic rings and bright spark filaments along its length.",
+  },
+  "storm-call": {
+    signature: "storm-call",
+    delivery: "ground",
+    motif: { kind: "none", count: 0, spread: "single" },
+    palette: { core: 0x9fe6ff, hot: 0xffffff, deep: 0x3a6fd0 },
+    appearance:
+      "The sky flashes white as a volley of lightning bolts crashes down across the target zone, " +
+      "with jagged ground arcs leaping outward from each strike.",
+  },
+
+  // ── summon conjuring circles ──────────────────────────────────────────────
+  "conjure-flame-sprites": {
+    signature: "conjure-fire",
+    delivery: "ground",
+    motif: { kind: "none", count: 0, spread: "single" },
+    palette: { core: 0xff7a2a, hot: 0xffd06a, deep: 0xb01808 },
+    appearance:
+      "A fiery summoning rune flares on the ground and three ember-orbs bloom from it as " +
+      "the flame sprites take form, trailing sparks.",
+  },
+  "summon-frost-golem": {
+    signature: "conjure-ice",
+    delivery: "ground",
+    motif: { kind: "none", count: 0, spread: "single" },
+    palette: { core: 0x6fc6ff, hot: 0xe8f7ff, deep: 0x2b78c8 },
+    appearance:
+      "An icy glyph crystallises on the ground, a frost ring spreads, and shards of ice rise " +
+      "as the frost golem forms.",
+  },
+  "call-storm-hawks": {
+    signature: "conjure-storm",
+    delivery: "ground",
+    motif: { kind: "none", count: 0, spread: "single" },
+    palette: { core: 0x9fe6ff, hot: 0xffffff, deep: 0x3a6fd0 },
+    appearance:
+      "A crackling storm-glyph snaps open with quick sky-flickers and a ring of sparks as the " +
+      "storm hawks are called down.",
   },
 };
 

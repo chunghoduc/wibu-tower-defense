@@ -38,6 +38,7 @@ import {
   type EnemyRuntime,
   type TowerRuntime,
   type HeroRuntime,
+  type MinionRuntime,
   type BattleOptions,
   type ScheduledSpawn,
   type SpawnRequest,
@@ -52,6 +53,7 @@ import { damageMethods, type DamageMethods } from "./battleDamage.ts";
 import { heroMethods, type HeroMethods } from "./battleHero.ts";
 import { placementMethods, type PlacementMethods } from "./battlePlacement.ts";
 import { triggerMethods, type TriggerMethods } from "./battleTriggerFx.ts";
+import { minionMethods, type MinionMethods } from "./battleMinions.ts";
 import { resolveBattleTriggers, EMPTY_TRIGGERS, type BattleTriggers } from "./battleTriggers.ts";
 
 // Re-export the shared vocabulary so existing `import { ... } from "./battle.ts"`
@@ -67,12 +69,15 @@ export interface BattleState
     DamageMethods,
     HeroMethods,
     PlacementMethods,
-    TriggerMethods {}
+    TriggerMethods,
+    MinionMethods {}
 
 export class BattleState {
   readonly stage: StageDef;
   readonly enemies: EnemyRuntime[] = [];
   readonly towers: TowerRuntime[] = [];
+  /** Temporary friendly minions conjured by summon active skills. */
+  readonly minions: MinionRuntime[] = [];
   /** Visual events for the current tick (cleared each tick). */
   readonly fx: FxEvent[] = [];
   readonly hero: HeroRuntime;
@@ -267,9 +272,11 @@ export class BattleState {
     this.updateEnemies(dt);
     this.updateStealthReveal();
     this.updateTowers(dt);
+    this.updateMinions(dt);
     this.updateHero(dt);
     this.flushPending();
     this.cleanupDead();
+    this.cleanupMinions();
     // Campaign clear-credit runs post-cleanup so a wave wiped out this tick pays
     // its perfect-wave bonus before checkOutcome can declare victory.
     if (this.usesCadence()) this.creditClearedWaves();
@@ -325,4 +332,5 @@ Object.assign(
   heroMethods,
   placementMethods,
   triggerMethods,
+  minionMethods,
 );

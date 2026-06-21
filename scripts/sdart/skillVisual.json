@@ -72,6 +72,54 @@
     "look": "A dark pentacle hex-sigil blooms on the ground, purple glyphs orbit it, and creeping shadow tendrils claw outward before sinking away. Ominous, dim, violet-on-black."
   },
   {
+    "id": "meteor-storm",
+    "name": "Meteor Storm",
+    "rarity": "Legendary",
+    "look": "A barrage of blazing meteors plummets from the sky in a scattered cluster, each slamming down with a fireball burst, scorch ring and a shower of rising embers."
+  },
+  {
+    "id": "glacial-nova",
+    "name": "Glacial Nova",
+    "rarity": "Rare",
+    "look": "A double ring of frost erupts outward, radiating jagged ice crystals and a cold white flash, with snow motes drifting up from the frozen ground."
+  },
+  {
+    "id": "infernal-wave",
+    "name": "Infernal Wave",
+    "rarity": "Rare",
+    "look": "A rolling wall of flame sweeps out from the caster, throwing up rising fire plumes and leaving a glowing scorch line that lingers on the ground."
+  },
+  {
+    "id": "prism-beam",
+    "name": "Prismatic Beam",
+    "rarity": "Legendary",
+    "look": "A thick prismatic lance of light fires in a straight line — layered violet, white and azure bands — with concentric sonic rings and bright spark filaments along its length."
+  },
+  {
+    "id": "storm-call",
+    "name": "Storm Call",
+    "rarity": "Legendary",
+    "look": "The sky flashes white as a volley of lightning bolts crashes down across the target zone, with jagged ground arcs leaping outward from each strike."
+  },
+  {
+    "id": "conjure-flame-sprites",
+    "name": "Conjure Flame Sprites",
+    "rarity": "Rare",
+    "look": "A fiery summoning rune flares on the ground and three ember-orbs bloom from it as the flame sprites take form, trailing sparks."
+  },
+  {
+    "id": "summon-frost-golem",
+    "name": "Summon Frost Golem",
+    "rarity": "Legendary",
+    "look": "An icy glyph crystallises on the ground, a frost ring spreads, and shards of ice rise as the frost golem forms."
+  },
+  {
+    "id": "call-storm-hawks",
+    "name": "Call Storm Hawks",
+    "rarity": "Legendary",
+    "look": "A crackling storm-glyph snaps open with quick sky-flickers and a ring of sparks as the storm hawks are called down."
+  },
+  {
     "id": "true-strike",
     "name": "True Strike",
     "rarity": "Legendary",

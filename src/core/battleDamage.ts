@@ -29,6 +29,9 @@ import { incrementBountyEvent } from "./bounties.ts";
 import { isoWeekKey } from "./meta.ts";
 import { addMasteryXp, MASTERY_XP_PER_KILL } from "./mastery.ts";
 import { adaptiveImmuneType } from "./enemyAdaptive.ts";
+import { ACTIVE_SKILLS_MAP } from "../data/skills.ts";
+import { SUMMON_MAP } from "../data/summons.ts";
+import { summonRing } from "./battleMinions.ts";
 import type { BattleState } from "./battle.ts";
 import {
   type DmgCtx,
@@ -403,6 +406,19 @@ export const damageMethods = {
     }
     // Unique-item on-cast triggers (echo, cinder field).
     this.fireOnCast(attacker, center, burst, damageType);
+
+    // Summon actives conjure temporary friendly minions around the cast center.
+    const skillDef = skillId ? ACTIVE_SKILLS_MAP.get(skillId) : undefined;
+    if (skillDef?.summon) {
+      const sd = SUMMON_MAP.get(skillDef.summon.defId);
+      if (sd) {
+        const count = skillDef.summon.count ?? sd.count;
+        const life = skillDef.summon.lifespan ?? sd.lifespan;
+        for (const p of summonRing(center, count)) {
+          this.summonMinion(sd, p, effAtk, attacker.maxHp, life);
+        }
+      }
+    }
   },
 
   killEnemy(this: BattleState, e: EnemyRuntime): void {

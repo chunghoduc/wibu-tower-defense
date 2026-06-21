@@ -75,6 +75,7 @@ export const renderMethods = {
     }
 
     this.manageSprites();
+    this.minionLayer?.update(this.battle.minions);
     // Batched in update(): replays nothing on 0-step frames, drops nothing on
     // multi-step frames (the old direct read did both under fast-forward).
     for (const ev of this.pendingFx) this.playFx(ev);
