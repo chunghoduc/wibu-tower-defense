@@ -482,9 +482,9 @@ export function achievementIconStyle(visual) {
 // ---- BATTLE CTA EMBLEM (home-screen hero call-to-action) ----
 // One bold combat sigil rendered on the BATTLE button. Full-colour, NOT tinted.
 export const BATTLE_EMBLEM_VISUAL =
-  "two crossed steel longswords over a small round war shield, a single upright orange flame rising behind the blades";
+  "two large beautiful crossed longswords with gleaming polished silver blades and ornate golden hilts laid over a big powerful ornate war shield with a bold radiant gold trim and a raised central boss";
 const BATTLE_EMBLEM_STYLE =
-  "a single bold flat vector game UI emblem icon of {V}, ONE compact heraldic crest, very thick uniform clean gold outline, fiery crimson and ember orange with steel accents, high contrast, flat cel-shaded, centered, instantly readable at 24 pixels, isolated on a pure plain flat white background, empty background, no text";
+  "a single bold flat vector game UI emblem icon of {V}, ONE majestic centered heraldic war crest, the shield large and dominant with the two swords crossing over it, very thick uniform clean gold outline, deep crimson and ember orange shield face with bright steel-silver blades and radiant gold accents, high contrast, flat cel-shaded, heroic and powerful, centered, instantly readable at 48 pixels, isolated on a pure plain flat white background, empty background, no text";
 const BATTLE_EMBLEM_NEG =
   "character, person, creature, hero, knight figure, full body, anime girl, realistic, 3d render, photo, complex scene, landscape, multiple objects, busy, gradient background, drop shadow, watermark, text, letters, signature, frame, border";
 export const BATTLE_EMBLEM_NEGATIVE = BATTLE_EMBLEM_NEG;

@@ -339,7 +339,7 @@ function buildJobs() {
     seed: seedOf("battle-emblem"),
     w: 768,
     h: 768,
-    size: 96,
+    size: 128,
     neg: BATTLE_EMBLEM_NEGATIVE,
   });
   const items = existsSync(ITEM_VISUAL_PATH)

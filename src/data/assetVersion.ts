@@ -14,7 +14,7 @@
 // Pure / Phaser-free.
 
 /** Cache-bust token appended to generated-asset URLs. Bump on art redeploys. */
-export const ASSET_VERSION = "2026-06-21i";
+export const ASSET_VERSION = "2026-06-21j";
 
 /**
  * Append the cache-bust query to a generated-asset path. No-ops for absolute

@@ -43,7 +43,9 @@ export interface NavCell {
 }
 export interface NavLayout {
   panel: Rect;
-  primary: Rect;
+  /** Big square primary BATTLE call-to-action, anchored in the bottom-right
+   *  corner — larger than every menu icon so it reads as the one main action. */
+  battle: Rect;
   left: NavCell[];
   right: NavCell[];
   bottom: NavCell[];
@@ -56,8 +58,8 @@ const RAIL_GAP = 14;
 const RAIL_CENTER_Y = 0.46; // fraction of H — vertical midpoint of each rail stack
 const BOTTOM_CELL_W = 132;
 const BOTTOM_CELL_H = 46;
-const PRIMARY_H = 64;
-const PRIMARY_GAP = 10;
+const BATTLE_SIZE = 112; // square side — clearly bigger than the 44–52px menu icons
+const BATTLE_MARGIN = 14; // gap from the screen corner
 
 /** A vertically centered rail of `n` cells at a fixed x. */
 function rail(n: number, x: number, H: number): NavCell[] {
@@ -72,8 +74,9 @@ function rail(n: number, x: number, H: number): NavCell[] {
 
 /**
  * Home navigation framed around the diorama: a left rail + right rail of icon
- * buttons at the screen edges, and a bottom dock holding the wide primary
- * BATTLE CTA above a single centered row of `counts.bottom` cells.
+ * buttons at the screen edges, a centered bottom dock holding the system row of
+ * `counts.bottom` cells, and the big square BATTLE CTA in the bottom-right
+ * corner (the one primary action, larger than every menu icon).
  */
 export function homeNavLayout(
   counts: { left: number; right: number; bottom: number },
@@ -83,21 +86,16 @@ export function homeNavLayout(
   const left = rail(counts.left, MARGIN + RAIL_W / 2, H);
   const right = rail(counts.right, W - MARGIN - RAIL_W / 2, H);
 
+  // Centered dock: just the secondary system row now that BATTLE has moved out.
   const rowW = counts.bottom * BOTTOM_CELL_W;
-  const panelH = PRIMARY_H + PRIMARY_GAP + BOTTOM_CELL_H + MARGIN * 2;
+  const panelH = BOTTOM_CELL_H + MARGIN * 2;
   const panel: Rect = {
     x: Math.round(W / 2 - rowW / 2 - MARGIN),
     y: Math.round(H - panelH - 8),
     w: rowW + MARGIN * 2,
     h: panelH,
   };
-  const primary: Rect = {
-    x: panel.x + MARGIN,
-    y: panel.y + MARGIN,
-    w: panel.w - MARGIN * 2,
-    h: PRIMARY_H,
-  };
-  const y0 = primary.y + PRIMARY_H + PRIMARY_GAP + BOTTOM_CELL_H / 2;
+  const y0 = panel.y + MARGIN + BOTTOM_CELL_H / 2;
   const x0 = W / 2 - rowW / 2 + BOTTOM_CELL_W / 2;
   const bottom: NavCell[] = [];
   for (let i = 0; i < counts.bottom; i++) {
@@ -108,5 +106,13 @@ export function homeNavLayout(
       h: BOTTOM_CELL_H,
     });
   }
-  return { panel, primary, left, right, bottom };
+
+  // Big square BATTLE button hugging the bottom-right corner.
+  const battle: Rect = {
+    x: W - BATTLE_MARGIN - BATTLE_SIZE,
+    y: H - BATTLE_MARGIN - BATTLE_SIZE,
+    w: BATTLE_SIZE,
+    h: BATTLE_SIZE,
+  };
+  return { panel, battle, left, right, bottom };
 }

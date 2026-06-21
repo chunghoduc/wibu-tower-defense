@@ -67,11 +67,12 @@ describe("homeNavLayout (rails + bottom row)", () => {
     }
   });
 
-  it("primary CTA sits above every bottom cell and inside the panel", () => {
+  it("BATTLE square hugs the bottom-right corner, on-screen", () => {
     const l = lay();
-    expect(l.primary.x).toBeGreaterThanOrEqual(l.panel.x);
-    expect(l.primary.x + l.primary.w).toBeLessThanOrEqual(l.panel.x + l.panel.w);
-    for (const c of l.bottom) expect(c.y).toBeGreaterThan(l.primary.y);
+    expect(l.battle.x + l.battle.w).toBeLessThanOrEqual(W);
+    expect(l.battle.y + l.battle.h).toBeLessThanOrEqual(H);
+    expect(l.battle.x).toBeGreaterThan(W * 0.6);
+    expect(l.battle.y).toBeGreaterThan(H * 0.5);
   });
 
   it("bottom row sits inside the dock, ascends in x, centered on W/2", () => {
@@ -95,18 +96,17 @@ describe("homeNavLayout (rails + bottom row)", () => {
   });
 });
 
-describe("homeNavLayout primary CTA prominence", () => {
-  it("makes the primary CTA taller than the secondary bottom cells", () => {
+describe("homeNavLayout BATTLE square prominence", () => {
+  it("is square and clearly larger than every menu icon", () => {
     const l = homeNavLayout({ left: 4, right: 4, bottom: 3 }, W, H);
+    expect(l.battle.w).toBe(l.battle.h);
     const bottomH = l.bottom[0].h;
-    expect(l.primary.h).toBeGreaterThan(bottomH);
-    expect(l.primary.h).toBe(64);
+    expect(l.battle.h).toBeGreaterThan(bottomH);
+    expect(l.battle.w).toBeGreaterThan(60); // bigger than the 44–52px rail icons
   });
-  it("grows the dock panel to fully contain the taller primary + the row", () => {
+  it("sits to the right of the centered system dock without overlapping it", () => {
     const l = homeNavLayout({ left: 4, right: 4, bottom: 3 }, W, H);
-    expect(l.primary.y).toBeGreaterThanOrEqual(l.panel.y);
-    const lastBottom = l.bottom[l.bottom.length - 1];
-    expect(lastBottom.y + lastBottom.h / 2).toBeLessThanOrEqual(l.panel.y + l.panel.h);
-    expect(l.panel.y + l.panel.h).toBeLessThanOrEqual(H);
+    expect(l.battle.x).toBeGreaterThanOrEqual(l.panel.x + l.panel.w);
+    expect(l.battle.y + l.battle.h).toBeLessThanOrEqual(H);
   });
 });
