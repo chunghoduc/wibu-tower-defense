@@ -197,7 +197,9 @@ export class SkillElementFx extends SkillElementPrims {
   // ── lightning: a sky-strike THUNDERSTORM ──────────────────────────────────
   private lightning(at: V, color: number, radius: number, p: VfxPower): void {
     const { hot, deep } = ACCENT.lightning;
-    this.scene.cameras.main.flash(110, 170, 205, 255); // sky flash
+    // A localized sky-glow over the strike zone (was a full-screen camera flash
+    // that strobed the whole screen every storm cast).
+    this.disc({ x: at.x, y: at.y - radius * 0.6 }, radius * 1.1, hot, 0.45, 1.6, 240);
     const strikes = scaleCount(5, p);
     for (let i = 0; i < strikes; i++) {
       const sx = at.x + Phaser.Math.Between(-radius, radius);

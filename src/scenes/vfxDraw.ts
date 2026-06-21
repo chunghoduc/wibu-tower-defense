@@ -68,8 +68,20 @@ export class VfxDraw {
     this.scene.cameras.main.shake(dur, intensity);
   }
 
-  flash(dur: number, r: number, g: number, b: number): void {
-    this.scene.cameras.main.flash(dur, r, g, b);
+  /** A localized burst of light at the cast point: a bright additive core that
+   *  blooms and fades behind a soft halo. Replaces the old full-screen camera
+   *  flash, which strobed the ENTIRE screen on every (auto-)cast — with many
+   *  towers + the hero casting constantly that read as relentless flicker. The
+   *  light now stays where the skill actually happens. */
+  flash(at: V, color: number, dur = 220, peak = 0.9): void {
+    const core = this.mkCircle(at.x, at.y, 30, color, peak)
+      .setDepth(this.depth + 4)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.go(core, { scale: 2.6, alpha: 0 }, dur, "Cubic.easeOut");
+    const halo = this.mkCircle(at.x, at.y, 52, color, peak * 0.4)
+      .setDepth(this.depth + 3)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.go(halo, { scale: 2.0, alpha: 0 }, Math.round(dur * 1.25), "Cubic.easeOut");
   }
 
   /** Expanding stroked ring. */
@@ -418,11 +430,11 @@ export class VfxDraw {
     this.after(Math.round(dur * 0.6), onArrive);
   }
 
-  /** A crowning flourish reserved for the highest-rarity casts: a soft screen
-   *  flash, a vast expanding double halo, a rising pillar of light, and a final
+  /** A crowning flourish reserved for the highest-rarity casts: a localized light
+   *  bloom, a vast expanding double halo, a rising pillar of light, and a final
    *  mote bloom — the "this is an ULTIMATE" punctuation on top of the signature. */
   grand(at: V, core: number, hot: number, radius: number): void {
-    this.flash(130, 50, 64, 104);
+    this.flash(at, core, 280, 0.7);
     this.ring(at, radius * 1.9, core, 720, 6);
     this.after(90, () => this.ring(at, radius * 1.5, hot, 640, 4));
     const col = this.mkRect(at.x, at.y, 14, radius * 2.2, core, 0.4)

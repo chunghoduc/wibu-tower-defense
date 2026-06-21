@@ -34,7 +34,7 @@ const meteorStorm: SigFn = (d, at, s, radius, w) => {
 // Expanding double frost ring + radiating crystal shards + cold flash.
 const frostNova: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
-  d.flash(120, 180, 220, 255);
+  d.flash(at, core, 240);
   d.disc(at, 20, hot, 0.6, 2.2, 260);
   d.ring(at, radius * 0.6, core, 420, 4);
   d.after(110, () => d.ring(at, radius * 1.05, deep, 560, 5));
@@ -80,7 +80,7 @@ const prismBeam: SigFn = (d, at, s, radius, w) => {
 // A lightning volley crashing down across the zone with radial ground arcs.
 const stormCall: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
-  d.flash(140, 170, 205, 255);
+  d.flash(at, core, 260);
   const n = scaleCount(5, w);
   for (let i = 0; i < n; i++) {
     const ox = (Math.random() - 0.5) * radius * 2.2;

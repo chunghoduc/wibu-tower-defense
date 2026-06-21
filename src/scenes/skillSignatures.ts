@@ -76,7 +76,7 @@ const earthshatter: SigFn = (d, at, s, radius, w) => {
 
 const guillotine: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
-  d.flash(90, 120, 0, 0);
+  d.flash(at, deep, 220);
   // a vertical drop slash
   const top = { x: at.x, y: at.y - radius };
   d.beam(top, Math.PI / 2, radius * 2, core, 7, 200);
@@ -136,7 +136,7 @@ const manaDetonation: SigFn = (d, at, s, radius, w) => {
 
 const arcaneSupernova: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
-  d.flash(100, 150, 90, 200);
+  d.flash(at, core, 240);
   d.ring(at, radius * 1.3, core, 560, 5);
   d.after(90, () => d.ring(at, radius, hot, 460, 3));
   d.sigil(at, radius * 0.95, core, 1);
@@ -198,7 +198,7 @@ const hexSigil: SigFn = (d, at, s, radius, w) => {
 const pureTechnique: SigFn = (d, at, s, radius, w) => {
   const { core, hot, deep } = s.palette;
   void hot;
-  d.flash(120, 255, 255, 255);
+  d.flash(at, 0xffffff, 240);
   d.disc(at, 20, hot, 1, 2.4, 260);
   d.ring(at, radius, core, 460, 3);
   // golden filament lines converging to a point
@@ -231,7 +231,7 @@ const voidRift: SigFn = (d, at, s, radius, w) => {
     // collapse → snap shut
     d.disc(at, radius * 0.5, core, 0.5, 0.04, 220);
     d.after(180, () => {
-      d.flash(90, 255, 255, 255);
+      d.flash(at, 0xffffff, 220);
       d.disc(at, 22, hot, 1, 2.6, 220);
       d.spark(at, hot, scaleCount(12, w), 28);
     });

@@ -108,13 +108,11 @@ export class BossFxKit {
     }
   }
 
-  /** Camera punch tuned by a 0..1 weight: shake + a tinted flash. */
+  /** Camera punch tuned by a 0..1 weight: a brief shake for impact. The old
+   *  full-screen tinted flash was removed — it strobed the whole screen on every
+   *  boss cast; the set-piece's own localized VFX carries the punctuation now. */
   punch(weight: number, color: number): void {
-    const cam = this.scene.cameras.main;
-    cam.shake(180 + weight * 140, 0.004 + weight * 0.007);
-    const r = (color >> 16) & 0xff,
-      g = (color >> 8) & 0xff,
-      b = color & 0xff;
-    cam.flash(110 + weight * 90, Math.round(r * 0.5), Math.round(g * 0.5), Math.round(b * 0.5));
+    void color;
+    this.scene.cameras.main.shake(180 + weight * 140, 0.004 + weight * 0.007);
   }
 }
