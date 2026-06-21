@@ -18,6 +18,8 @@ export interface HeroLayerConfig {
   /** Equipped weapon's family — drives the hero's hold pose & attack motion. */
   weaponType: WeaponType | null;
   wingKey: string | null;
+  /** Equipped wing's item id — selects dedicated battle wing art (heroWingArt). */
+  wingId: string | null;
   petKey: string | null;
   /** Worn-armour overlays composited on the body (null when the slot is empty). */
   gear: Record<WornGearSlot, GearLayer | null>;
@@ -38,6 +40,7 @@ export function resolveHeroLayers(inventory: InventorySave): HeroLayerConfig {
     weaponKey: weapon ? itemTex(weapon.id) : null,
     weaponType: weapon?.weaponType ?? null,
     wingKey: _resolveWing(inventory),
+    wingId: _instanceDef(inventory, "Wing")?.id ?? null,
     petKey: _resolvePet(inventory),
     gear,
   };

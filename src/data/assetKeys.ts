@@ -48,6 +48,10 @@ export const heroPoseTex = (family: string): string => `hero__${family}`;
 export const heroBattleTex = (weapon: string): string => `herobattle__${weapon}`;
 /** Battle-hero attack-pose art (the strike money-shot) for an equipped weapon type. */
 export const heroBattleAttackTex = (weapon: string): string => `herobattle__${weapon}__attack`;
+/** Battle-hero worn-wing art, swept-down/glide frame, per wing item id (256×256). */
+export const heroWingTex = (id: string): string => `herowing__${id}`;
+/** Battle-hero worn-wing art, raised/up-stroke frame, per wing item id (256×256). */
+export const heroWingUpTex = (id: string): string => `herowing__${id}__up`;
 /** Worn-on-body overlay art for a gear item (transparent, slot-framed). */
 export const wornTex = (id: string): string => `worn__${id}`;
 export const CASTLE_TEX = structureTex("castle");

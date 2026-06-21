@@ -13,6 +13,8 @@ import { resolveHeroLayers, type HeroLayerConfig } from "./heroEquipVisuals.ts";
 import type { InventorySave } from "../core/save.ts";
 import { weaponArtKeys } from "../data/heroWeaponArt.ts";
 import { heroWeaponMotion, type WeaponMotionState } from "../data/heroWeaponMotion.ts";
+import { battleWingKeys, type BattleWingKeys } from "../data/heroWingArt.ts";
+import { heroWingFlap } from "../data/heroWingFlap.ts";
 
 type OneShotKind = "attack" | "cast" | "hurt";
 const PRIO: Record<OneShotKind, number> = { attack: 1, cast: 2, hurt: 3 };
@@ -21,12 +23,17 @@ const NORMAL_TINT = 0xffffff;
 
 export class HeroWeaponSprite extends Phaser.GameObjects.Container {
   private readonly bodySprite: Phaser.GameObjects.Sprite;
+  /** Swept-down / glide frame (also the legacy single-icon wing). */
   private readonly wingsSprite: Phaser.GameObjects.Sprite;
+  /** Raised / up-stroke frame (battle wing art only; hidden for the legacy icon). */
+  private readonly wingUpSprite: Phaser.GameObjects.Sprite;
   readonly petSprite: Phaser.GameObjects.Sprite;
 
   private size = 54;
   private facingLeft = false;
   private hasWings = false;
+  /** Dedicated battle wing frame keys when the equipped wing has art; else null. */
+  private battleWings: BattleWingKeys | null = null;
   private stanceKey: string | null = null;
   private attackKey: string | null = null;
   private showingAttackPose = false;
@@ -51,9 +58,11 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
     this.heroX = x;
     this.heroY = y;
     this.wingsSprite = scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.5);
+    this.wingUpSprite = scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.5);
     // Body anchored near the feet so the hero stands on the world position.
     this.bodySprite = scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.66);
-    this.add([this.wingsSprite, this.bodySprite]);
+    // Both wing frames sit behind the body; the up frame crossfades over the down.
+    this.add([this.wingsSprite, this.wingUpSprite, this.bodySprite]);
     this.petSprite = scene.add
       .sprite(x + 30, y + 8, "__missing")
       .setVisible(false)
@@ -134,12 +143,37 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
       b.setDisplaySize(baseW * m.scaleX, baseH * m.scaleY);
     }
 
-    // Anchor wings behind the shoulders/upper back of the full-body art, not the waist.
-    this.wingsSprite.setPosition(0, -this.size * 0.62 + hover * 0.6);
-    // Always flap — driven procedurally here (not a tween) so the wings never freeze
-    // if the scene's tweens are cleared. ~760ms period, ±6° matches the old flap feel.
-    if (this.hasWings) this.wingsSprite.setAngle(Math.sin(now * 0.0083) * 6);
+    if (this.hasWings) this.animateWings(now, hover);
     this.updatePet(now, dt);
+  }
+
+  /**
+   * Drive the worn wings. Dedicated battle art crossfades a swept-down and a
+   * raised frame on a procedural flap cycle (heroWingFlap) — a real wing-beat
+   * unique to each wing's art — plus a slight rise/squash. The legacy single-icon
+   * wing keeps the old ±6° rock. Procedural (not a tween) so it never freezes if
+   * the scene's tweens are cleared.
+   */
+  private animateWings(now: number, hover: number): void {
+    const baseY = -this.size * 0.62 + hover * 0.6;
+    if (this.battleWings) {
+      const f = heroWingFlap(now);
+      const baseH = this.size * 1.95;
+      const y = baseY - f.rise * this.size * 0.07;
+      for (const w of [this.wingsSprite, this.wingUpSprite]) {
+        if (!w.height) continue;
+        const aspect = w.width / w.height;
+        w.setDisplaySize(baseH * aspect * f.scaleX, baseH * f.scaleY);
+        w.setPosition(0, y);
+        w.setAngle(f.swayDeg);
+        w.setFlipX(this.facingLeft);
+      }
+      this.wingsSprite.setAlpha(f.downAlpha);
+      this.wingUpSprite.setAlpha(f.upAlpha);
+    } else {
+      this.wingsSprite.setPosition(0, baseY);
+      this.wingsSprite.setAngle(Math.sin(now * 0.0083) * 6);
+    }
   }
 
   private setPose(attack: boolean): void {
@@ -212,15 +246,30 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
       }
     }
 
-    if (!this._lastConfig || config.wingKey !== this._lastConfig.wingKey) {
-      const show = !!config.wingKey && t.exists(config.wingKey);
-      if (show) {
-        this.wingsSprite.setTexture(config.wingKey!).setVisible(true);
+    if (!this._lastConfig || config.wingId !== this._lastConfig.wingId) {
+      const bw = battleWingKeys(config.wingId);
+      if (bw && t.exists(bw.downKey) && t.exists(bw.upKey)) {
+        // Dedicated battle wing art — two crossfading flap frames.
+        this.battleWings = bw;
+        this.wingsSprite.setTexture(bw.downKey).setVisible(true).setAlpha(1);
+        this.wingUpSprite.setTexture(bw.upKey).setVisible(true).setAlpha(0);
+        this.hasWings = true;
+      } else if (config.wingKey && t.exists(config.wingKey)) {
+        // Legacy single-icon wing (no dedicated battle art yet).
+        this.battleWings = null;
+        this.wingsSprite
+          .setTexture(config.wingKey)
+          .setVisible(true)
+          .setAlpha(1)
+          .setScale((this.size / 96) * 1.85);
+        this.wingUpSprite.setVisible(false);
+        this.hasWings = true;
       } else {
-        this.wingsSprite.setVisible(false);
-        this.wingsSprite.setAngle(0);
+        this.battleWings = null;
+        this.wingsSprite.setVisible(false).setAngle(0);
+        this.wingUpSprite.setVisible(false);
+        this.hasWings = false;
       }
-      this.hasWings = show; // flap is driven procedurally in tick() while hasWings
     }
 
     if (!this._lastConfig || config.petKey !== this._lastConfig.petKey) {

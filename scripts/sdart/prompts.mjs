@@ -179,6 +179,50 @@ export function heroBattleStyle(visual, pose) {
   return HERO_BATTLE_STYLE.replace("{V}", visual).replace("{P}", pose);
 }
 
+// ---- BATTLE-HERO WORN WINGS ----
+// Dedicated back-view wing art for the in-battle hero — one unique pair per wing
+// item, rendered in TWO flap frames sharing a seed (glide vs raised up-stroke) so
+// HeroWeaponSprite can crossfade a real wing-beat. Keys: herowing__<id> /
+// herowing__<id>__up. Same semi-realistic key-visual polish as the battle hero,
+// but a WINGS-ONLY subject (no wearer) so the cutout is a clean transparent pair.
+export const HERO_WING = {
+  "fledgling-wings":
+    "small delicate snow-white feathered angel wings with soft downy plumage and a faint pale-gold halo glow",
+  "tempest-wings":
+    "large translucent storm-energy wings of glowing electric-blue feathers crackling with arcs of lightning and shedding sparks of wind",
+  "worn-skywings":
+    "broad weathered slate-grey feathered wings with frayed battle-worn tips and a faint dull sky-blue edge light",
+  "fine-skywings":
+    "broad clean slate-and-white feathered wings neatly preened and rimmed with soft sky-blue light",
+  "masterwork-skywings":
+    "broad pristine steel-white feathered wings with silver-tipped flight pinions and bright sky-blue rim light",
+  "heroic-skywings":
+    "radiant white feathered wings shot through with glowing blue energy feathers and a luminous sky-blue aura",
+  "mythic-skywings":
+    "luminous celestial white-and-blue wings blazing with a brilliant blue-white aura and drifting motes of light",
+  "valkyrie-pinions":
+    "broad regal white-feathered valkyrie wings tipped with gleaming polished golden flight-pinions and warm golden rim light",
+  "phoenix-pinions":
+    "blazing phoenix wings of flame-feathers burning from deep orange through bright gold, trailing soft glowing embers",
+};
+
+// Two beats of the flap, same seed → same wings in two poses.
+export const WING_POSE = {
+  spread: "the wings spread wide and sweeping gently downward in a relaxed glide",
+  raised: "the wings swept upward and high at the peak of a powerful wing-beat",
+};
+
+const HERO_WING_STYLE =
+  "a single matched symmetric pair of {V}, {P}, seen from behind as if worn on a hero's back, both wings fully visible and centered, highly detailed semi-realistic painterly rendering with crisp clean edges, dramatic rim lighting and soft volumetric glow, vibrant saturated color, beautiful, masterpiece, no character, no body, no person, no head, no wearer, just the pair of wings, isolated on a pure plain flat white background, empty background";
+export const HERO_WING_NEGATIVE =
+  NEG +
+  ", person, human, body, torso, character, head, face, hair, arms, legs, wearer, mannequin, armor, clothing, single wing, one wing, asymmetric wings, flat shading, dull washed-out colors, low detail, chibi, sketch, photo, photorealistic, 3d render";
+
+/** Build a battle-wing prompt for a wing descriptor + a WING_POSE phrase. */
+export function heroWingStyle(visual, pose) {
+  return HERO_WING_STYLE.replace("{V}", visual).replace("{P}", pose);
+}
+
 // ---- ENEMIES ----
 export const ENEMY_VISUAL = {
   grunt:
@@ -293,8 +337,7 @@ export const ROLE_VISUAL = {
   dot: "one bold venom poison droplet teardrop with a tiny rising bubble and a small drip below, toxic green",
   support: "one bold thick solid upward pointing arrow rising, warm gold",
   debuff: "one bold thick solid downward pointing arrow falling, teal cyan",
-  tanker:
-    "one bold sturdy knight heater shield with a small round center boss stud, steel grey",
+  tanker: "one bold sturdy knight heater shield with a small round center boss stud, steel grey",
 };
 const ROLEICON_STYLE =
   "a single bold flat vector game UI emblem icon of {V}, ONE simple solid shape, very thick uniform clean outline, high contrast, flat cel-shaded, centered, no fine interior detail, instantly readable at 16 pixels, isolated on a pure plain flat white background, empty background, no text";
@@ -346,8 +389,7 @@ export const ACHIEVEMENT_VISUAL = {
     "a bronze medal embossed with three small raised banner flags in a row, green accents",
   "own-25-towers":
     "a silver medal embossed with a horned war helm over two crossed banners, crimson accents",
-  "codex-50":
-    "a silver medal embossed with a half-open glowing spellbook, indigo accents",
+  "codex-50": "a silver medal embossed with a half-open glowing spellbook, indigo accents",
   "codex-100":
     "a gold medal embossed with a fully open radiant spellbook marked with a check, violet accents",
   // Engineering
@@ -464,7 +506,9 @@ export const WORN_NEGATIVE = WORN_NEG;
  *  `single` selects the single-limb framing (one boot/gauntlet) for the per-limb rig. */
 export function wornStyleFor(look, slot, rarity, single = false) {
   const framing =
-    (single && WORN_FRAMING_SINGLE[slot]) || WORN_FRAMING[slot] || "shown alone, front view, centered";
+    (single && WORN_FRAMING_SINGLE[slot]) ||
+    WORN_FRAMING[slot] ||
+    "shown alone, front view, centered";
   const rim = RARITY_RIM[rarity] || RARITY_RIM.Common;
   return WORN_STYLE.replace("{V}", `${look}, ${framing}, ${rim}`);
 }

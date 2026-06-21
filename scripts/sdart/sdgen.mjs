@@ -17,6 +17,10 @@ import {
   HERO_BATTLE,
   heroBattleStyle,
   HERO_BATTLE_NEGATIVE,
+  HERO_WING,
+  WING_POSE,
+  heroWingStyle,
+  HERO_WING_NEGATIVE,
   STRUCTURE_VISUAL,
   STRUCTURE_STATE,
   structureStyle,
@@ -180,6 +184,33 @@ function buildJobs() {
       h: 1024,
       size: 320,
       neg: HERO_BATTLE_NEGATIVE,
+    });
+  }
+  // battle-hero worn WINGS: one unique pair per wing item, two flap frames sharing
+  // a seed (glide + raised) so HeroWeaponSprite can crossfade a real wing-beat.
+  for (const [id, desc] of Object.entries(HERO_WING)) {
+    const sd = seedOf(`herowing-${id}`);
+    jobs.push({
+      kind: "herowing",
+      id,
+      file: `${id}.png`,
+      prompt: heroWingStyle(desc, WING_POSE.spread),
+      seed: sd,
+      w: 768,
+      h: 768,
+      size: 256,
+      neg: HERO_WING_NEGATIVE,
+    });
+    jobs.push({
+      kind: "herowing",
+      id: `${id}__up`,
+      file: `${id}__up.png`,
+      prompt: heroWingStyle(desc, WING_POSE.raised),
+      seed: sd,
+      w: 768,
+      h: 768,
+      size: 256,
+      neg: HERO_WING_NEGATIVE,
     });
   }
   for (const [id, v] of Object.entries(ENEMY_VISUAL))
