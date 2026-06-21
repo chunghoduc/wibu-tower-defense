@@ -46,11 +46,23 @@ burst    = additive × spellPowerMult(type, skillPower)  +  defBonus
 
 ### Type coefficients
 
-| Type     | `atkCoef` (ATK term) | `spellGain` (spell-power slope) |
-| -------- | -------------------- | ------------------------------- |
-| Physical | **1.0** (lives on ATK) | **0** → `spellPowerMult ≡ 1` (locked out) |
-| True     | 0.8 (hybrid)         | 0.75 (hybrid)                   |
-| Magic    | 0.6 (leans on SP)    | **1.5** (lives on spell power)  |
+> **Tuning update (2026-06-22, follow-up):** the original coefficients sat too
+> close together — Magic still leaned meaningfully on ATK (0.6 vs Physical 1.0,
+> only 1.7×). Per the sharper design intent ("x should be **much larger** than y,
+> so Physical skills rely heavily on ATK and Magic skills rely heavily on spell
+> power"), the gap was widened to **~8.3×** and Magic/True's spell-power gain was
+> raised so a built caster's burst is mostly spell power. Current values below.
+
+| Type     | `atkCoef` (ATK term, x/y) | `spellGain` (spell-power slope) |
+| -------- | ------------------------- | ------------------------------- |
+| Physical | **1.5** (x — lives on ATK) | **0** → `spellPowerMult ≡ 1` (locked out) |
+| True     | 0.35 (hybrid, low ATK)    | 1.6 (hybrid)                    |
+| Magic    | **0.18** (y — tiny ATK)   | **3.0** (lives on spell power)  |
+
+`x / y = 1.5 / 0.18 ≈ 8.3×`. Worked burst (`atk = 300`, `P = 1.7`):
+Physical = **796** at any spell power; Magic = **122** (sp 1) → **857** (sp 3) →
+**1591** (sp 5); True = **209 → 878 → 1547**. Physical leads with raw ATK; Magic/True
+overtake once spell power is invested.
 
 ```
 spellPowerMult(type, sp) = 1 + (max(1, sp) − 1) × spellGain(type)

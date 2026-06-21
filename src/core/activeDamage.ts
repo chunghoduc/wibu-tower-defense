@@ -20,25 +20,28 @@ import type { DamageType } from "../data/schema.ts";
 
 /**
  * ATK coefficient per damage type — the slope of the additive `atkCoef × ATK`
- * term. Physical lives on ATK (full 1.0); Magic leans on spell power instead
- * (0.6); True is the hybrid (0.8).
+ * term, i.e. the "x% of ATK" inside the parenthesis.
+ *
+ * Physical's x (1.5) MASSIVELY exceeds Magic/True's y (0.18 / 0.35): a physical
+ * cast lives on ATK, while ATK is nearly a rounding error on a magic cast — which
+ * instead rides spell power (see ACTIVE_SPELL_GAIN). True is the hybrid in between.
  */
 export const ACTIVE_ATK_COEF: Record<DamageType, number> = {
-  Physical: 1.0,
-  True: 0.8,
-  Magic: 0.6,
+  Physical: 1.5, // x — heavy ATK reliance
+  True: 0.35, // hybrid, low ATK
+  Magic: 0.18, // y — tiny ATK; magic lives on spell power
 };
 
 /**
  * How strongly SPELL POWER multiplies a cast, per type: the burst is multiplied
  * by `1 + (skillPower − 1) × gain`. Physical is 0 → the multiplier is locked to
- * ×1 (it cannot use the stat). Magic gets the full payoff (1.5); True is the
- * hybrid (0.75).
+ * ×1 (it cannot use the stat, it lives on ATK). Magic gets the dominant payoff
+ * (3.0) so a built caster's burst is mostly spell power; True is the hybrid (1.6).
  */
 export const ACTIVE_SPELL_GAIN: Record<DamageType, number> = {
   Physical: 0,
-  True: 0.75,
-  Magic: 1.5,
+  True: 1.6,
+  Magic: 3.0,
 };
 
 /**

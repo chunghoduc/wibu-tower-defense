@@ -11,7 +11,12 @@ import { towerActiveInfo } from "./passiveSkills.ts";
 import type { HeroSave } from "../core/save.ts";
 import { skillEffectiveAoe } from "../core/hero.ts";
 import { heroSkillDamage } from "../core/skillDamage.ts";
-import { activeBurst, spellPowerMult, ACTIVE_ATK_COEF } from "../core/activeDamage.ts";
+import {
+  activeBurst,
+  spellPowerMult,
+  ACTIVE_ATK_COEF,
+  ACTIVE_BASE_FLAT,
+} from "../core/activeDamage.ts";
 import { ACTIVE_SKILLS_MAP } from "./skills.ts";
 import { SUMMON_MAP } from "./summons.ts";
 import { defaultHeroStats } from "./stage.ts";
@@ -46,16 +51,21 @@ export function activeSkillDetail(def: CharacterDef, stats: Stats): string {
   );
   const spMult = spellPowerMult(type, stats.skillPower);
   const radius = def.behavior?.splashRadius ?? SPLASH_RADIUS;
-  const spNote =
+  // Show the two-part structure: (base + x%·ATK) for Physical, the same
+  // parenthesised and ×spell power for Magic/True (which lives on spell power).
+  const baseFlat = TOWER_ACTIVE_POWER * ACTIVE_BASE_FLAT;
+  const atkTerm = TOWER_ACTIVE_POWER * ACTIVE_ATK_COEF[type];
+  const atkPart = `${n0(baseFlat)} base + ${atkTerm.toFixed(2)}×atk ${n0(stats.atk)}`;
+  const formula =
     type === "Physical"
-      ? `, spell power N/A`
-      : ` ×${spMult.toFixed(2)} spell power`;
+      ? `${atkPart}, spell power N/A`
+      : `(${atkPart}) ×${spMult.toFixed(2)} spell power`;
   const defNote = ds ? ` + ${n0(defBonus)} from defenses` : "";
   const role = roleEffectDetail(def, stats);
   const stun = def.behavior?.stun;
   const stunNote = stun ? `\n▸ Stuns its single target for ${stun.duration}s.` : "";
   return (
-    `${info.description}\n▸ Burst: ${burst} ${type} (${ACTIVE_ATK_COEF[type]}×atk ${n0(stats.atk)}${spNote}${defNote}), ${radius}px AoE.` +
+    `${info.description}\n▸ Burst: ${burst} ${type} = ${formula}${defNote}, ${radius}px AoE.` +
     stunNote +
     (role ? `\n▸ ${role}` : "")
   );
@@ -85,16 +95,20 @@ export function heroActiveSkillDetail(
         ? `Requires a ${def.weaponClass} weapon`
         : "Any weapon";
 
-  // ATK is additive (atkCoef×ATK, scaled by the skill's Power); spell power
-  // multiplies Magic/True casts only. "spell power N/A" on Physical.
-  const spNote =
+  // ATK is additive (base + atkCoef×ATK, both scaled by the skill's Power); spell
+  // power then MULTIPLIES Magic/True casts only. Physical lives on ATK (its big
+  // coefficient), Magic on spell power (its tiny ATK coefficient × big multiplier).
+  const baseFlat = dmg.mult * ACTIVE_BASE_FLAT;
+  const atkTerm = dmg.mult * dmg.atkCoef;
+  const atkPart = `${n0(baseFlat)} base + ${atkTerm.toFixed(2)}×ATK ${n0(dmg.atk)}`;
+  const burstLine =
     def.damageType === "Physical"
-      ? `, spell power N/A`
-      : ` ×${dmg.spellMult.toFixed(2)} spell power`;
+      ? `▸ Burst: ≈${n0(dmg.burst)} Physical = ${atkPart}. Scales with ATK (spell power N/A).`
+      : `▸ Burst: ≈${n0(dmg.burst)} ${def.damageType} = (${atkPart}) ×${dmg.spellMult.toFixed(2)} spell power. Scales with spell power.`;
   const lines = [
     def.description,
     `▸ ${def.rarity} · ${def.damageType} · Lv ${level}`,
-    `▸ Burst: ≈${n0(dmg.burst)} ${def.damageType} (${(dmg.mult * dmg.atkCoef).toFixed(2)}×atk ${n0(dmg.atk)}${spNote}).`,
+    burstLine,
     `▸ ${aoe}px area of effect — its cast VFX fills exactly this zone.`,
     `▸ ${weapon}.`,
   ];

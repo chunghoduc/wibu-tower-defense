@@ -15,6 +15,10 @@ import type { DamageType } from "../src/data/schema.ts";
  *
  * ATK is ADDITIVE; spell power is MULTIPLICATIVE and gated to Magic/True.
  * Physical lives on ATK; Magic lives on spell power; True is the hybrid.
+ *
+ * The defining relationship (per design): Physical's ATK coefficient (x) is
+ * MUCH larger than Magic/True's (y), so a Physical skill leans heavily on the
+ * ATK stat while Magic/True skills lean heavily on spell power instead.
  */
 describe("active-damage coefficients", () => {
   it("ATK scaling is ordered Physical > True > Magic", () => {
@@ -22,10 +26,22 @@ describe("active-damage coefficients", () => {
     expect(ACTIVE_ATK_COEF.True).toBeGreaterThan(ACTIVE_ATK_COEF.Magic);
   });
 
+  it("Physical's ATK coefficient (x) MASSIVELY exceeds Magic's (y) — physical lives on ATK, magic on spell power", () => {
+    // x ≫ y: at least 5× so the ATK term dominates a physical cast but is a
+    // rounding error on a magic cast (which rides spell power instead).
+    expect(ACTIVE_ATK_COEF.Physical).toBeGreaterThanOrEqual(ACTIVE_ATK_COEF.Magic * 5);
+    expect(ACTIVE_ATK_COEF.Physical).toBeGreaterThan(ACTIVE_ATK_COEF.True * 3);
+  });
+
   it("spell-power gain is ordered Magic > True > Physical, and Physical is locked to 0", () => {
     expect(ACTIVE_SPELL_GAIN.Physical).toBe(0);
     expect(ACTIVE_SPELL_GAIN.Magic).toBeGreaterThan(ACTIVE_SPELL_GAIN.True);
     expect(ACTIVE_SPELL_GAIN.True).toBeGreaterThan(0);
+  });
+
+  it("Magic and True both ride spell power hard (their burst more than triples by spellPower 3)", () => {
+    expect(spellPowerMult("Magic", 3)).toBeGreaterThan(3);
+    expect(spellPowerMult("True", 3)).toBeGreaterThan(3);
   });
 });
 
@@ -109,10 +125,12 @@ describe("activeBurst", () => {
     expect(withDef - noDef).toBeCloseTo(250, 6);
   });
 
-  it("a fresh-hero Physical cast stays in the ballpark of the legacy atk×powerMult", () => {
+  it("a fresh-hero Physical cast scales hard on ATK (its ONLY scaler) — above the legacy atk×powerMult, never a nerf", () => {
     const legacy = base.atk * base.powerMult; // old: atk × powerMult × 1
     const now = activeBurst({ ...base, skillPower: 1, damageType: "Physical" });
     expect(now).toBeGreaterThan(legacy); // never a silent nerf for physical
-    expect(now / legacy).toBeLessThan(1.2); // and not an inflation either
+    // Physical now leans HARD on ATK (coef 1.5 + base flat), so it sits well
+    // above the old 1.0×atk line — but within a sane multiple, not runaway.
+    expect(now / legacy).toBeLessThan(2.0);
   });
 });
