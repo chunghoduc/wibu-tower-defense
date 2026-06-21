@@ -74,6 +74,57 @@ describe("support role", () => {
   });
 });
 
+describe("damage-over-time scaling", () => {
+  const burner = () =>
+    mkTower({
+      id: "burner",
+      role: "dot",
+      behavior: { dot: { dps: 10, duration: 8 } },
+      baseStats: makeStats({ atk: 20, attackSpeed: 2, range: 600, maxHp: 100 }),
+    });
+  const auraTower = () =>
+    mkTower({
+      id: "aura",
+      role: "support",
+      behavior: { buffAura: { radius: 800, atkPct: 1 } }, // +100% attack
+      baseStats: makeStats({ atk: 0, attackSpeed: 0, range: 0, maxHp: 100 }),
+    });
+
+  // Place a dot tower (optionally next to an attack-buffing support aura), let it
+  // apply its burn, and read the dps actually stored on the enemy.
+  const appliedDps = (withAura: boolean): number => {
+    const towers = withAura ? [burner(), auraTower()] : [burner()];
+    const slots = [
+      { x: 150, y: -30 },
+      { x: 160, y: -30 },
+    ];
+    const enemy = mkEnemy({ baseStats: makeStats({ maxHp: 1e7, moveSpeed: 1, atk: 0 }) });
+    const stage = mkStage(oneWave("grunt", 1), {
+      castleHp: 1e7,
+      slots,
+      path: [
+        { x: 0, y: 0 },
+        { x: 2000, y: 0 }, // long lane so the slow enemy stays in range
+      ],
+    });
+    const b = world([enemy], towers, stage);
+    b.placeTower("burner", 0);
+    if (withAura) b.placeTower("aura", 1);
+    (b as unknown as { startNextWave(): void }).startNextWave(); // skip the 30s opening cadence
+    runFor(b, 2);
+    return b.enemies[0]?.dots[0]?.dps ?? 0;
+  };
+
+  it("a dot tower's burn scales with its effective attack (aura doubles the burn)", () => {
+    const base = appliedDps(false);
+    const buffed = appliedDps(true);
+    expect(base).toBeGreaterThan(0);
+    // A +100% attack aura doubles the tower's effective attack, so the burn dps
+    // it stamps onto the enemy doubles too — the dot scales with stats.
+    expect(buffed).toBeCloseTo(base * 2, 1);
+  });
+});
+
 describe("debuff role (slow)", () => {
   it("a pure-slow tower delays the enemy reaching the castle", () => {
     const enemy = mkEnemy({

@@ -47,12 +47,14 @@ describe("T12 — per-role tower upgrade scaling", () => {
     expect(effectiveBehavior(d, 4).chainTargets).toBe(base + 2);
   });
 
-  it("dot dps and duration grow", () => {
+  it("dot duration grows per star (dps now scales with the tower's attack at runtime)", () => {
     const d = def("bram-thornling");
     const b0 = effectiveBehavior(d, 0).dot!;
     const b5 = effectiveBehavior(d, 5).dot!;
-    expect(b5.dps).toBeGreaterThan(b0.dps);
     expect(b5.duration).toBeGreaterThan(b0.duration);
+    // dps is no longer scaled here — it scales with effAtk in applyRoleEffect, so
+    // the authored burn rate is carried through unchanged by effectiveBehavior.
+    expect(b5.dps).toBe(b0.dps);
   });
 
   it("debuff slow strengthens and lengthens (capped)", () => {

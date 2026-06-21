@@ -100,10 +100,11 @@ export function effectiveBehavior(def: CharacterDef, battleLevel: number): Tower
       b.chainFalloff = clamp((b.chainFalloff ?? 0.6) + 0.04 * L, 0, 0.95); // retains more dmg
       break;
     case "dot":
-      // dot power lives in the burn, not the on-hit — scale its dps ~+50%/star so
-      // a dot tower's real damage rises in step with the +60% attack headline.
-      if (b.dot)
-        b.dot = { ...b.dot, dps: b.dot.dps * (1 + 0.5 * L), duration: b.dot.duration + 0.15 * L };
+      // dot power lives in the burn. Its dps now scales with the tower's resolved
+      // ATTACK at runtime (see battleTowers.applyRoleEffect), which already folds in
+      // the ~+60%/star attack headline — so a star-up lifts the burn through that
+      // same channel. Here we only STRETCH the burn's duration per star.
+      if (b.dot) b.dot = { ...b.dot, duration: b.dot.duration + 0.15 * L };
       break;
     case "debuff":
       if (b.slow)

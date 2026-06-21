@@ -144,10 +144,17 @@ export const towerMethods = {
         break;
       case "dot":
         if (bhv?.dot) {
+          // The burn scales with the tower's ATTACK, exactly like its direct hit:
+          // authored dps is the burn at the tower's baseline attack, and it rises
+          // in lockstep as the real attack grows (collection stars, hero share,
+          // synergies, support auras, in-battle star-ups). effAtk already folds in
+          // the attack buff; t.def.baseStats.atk is the role×rarity baseline.
+          const baseAtk = Math.max(1, t.def.baseStats.atk);
+          const scaledDps = bhv.dot.dps * (effAtk / baseAtk);
           this.addDot(
             target,
             bhv.dot.damageType ?? t.def.damageType,
-            bhv.dot.dps,
+            scaledDps,
             bhv.dot.duration,
             t.stats,
           );
