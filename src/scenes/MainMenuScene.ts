@@ -17,9 +17,8 @@ import { homeTopBar, homeNavLayout } from "./homeLayout.ts";
 import { drawPill, drawBattleCta } from "./homeBarFx.ts";
 import { fadeIn, fadeToScene } from "./uiKit.ts";
 import { claimableQuestCount } from "../core/questTracker.ts";
-import { towerTex, itemTex, menuTex, heroPoseTex } from "../data/assetKeys.ts";
-import { resolveHeroLayers } from "./heroEquipVisuals.ts";
-import { heroPoseFamily } from "../data/heroPose.ts";
+import { towerTex, itemTex, menuTex } from "../data/assetKeys.ts";
+import { HeroWeaponSprite } from "./HeroWeaponSprite.ts";
 
 /** A menu destination: a painted icon button in the bottom navigation dock. */
 interface MenuItem {
@@ -57,6 +56,7 @@ const ATMOSPHERE_SEED = 4242; // stable look every time the menu is entered
 export class MainMenuScene extends Phaser.Scene {
   private badges: Record<string, number> = {};
   private pet?: Phaser.GameObjects.Image; // re-init in create() (scene reuse)
+  private heroSprite?: HeroWeaponSprite; // throne hero (battle art); re-init in create()
   private backdropFx?: MenuBackdropFx; // re-init in create() (scene reuse)
   private elapsed = 0;
 
@@ -73,6 +73,7 @@ export class MainMenuScene extends Phaser.Scene {
     const W = this.scale.width,
       H = this.scale.height;
     this.pet = undefined; // scene instances are reused — reset per-entry state
+    this.heroSprite = undefined; // drawHero rebuilds it
     this.backdropFx = undefined; // drawBackdrop rebuilds it
     this.elapsed = 0;
     fadeIn(this);
@@ -94,6 +95,8 @@ export class MainMenuScene extends Phaser.Scene {
   update(t: number, dtMs: number): void {
     this.elapsed += dtMs;
     this.backdropFx?.update(t);
+    // Throne hero idles in place using the battle-hero procedural motion.
+    this.heroSprite?.tick(t, false, false);
     if (!this.pet) return;
     const p = petWander(this.elapsed, this.scale.width, this.scale.height);
     this.pet.setPosition(p.x, p.y);
@@ -117,21 +120,17 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private drawHero(save: ReturnType<SaveManager["getSave"]>, W: number, H: number): void {
-    const family = heroPoseFamily(resolveHeroLayers(save.inventory).weaponType);
-    const poseKey = family ? heroPoseTex(family) : null;
-    // Weapon-class pose if the equipped weapon has pose art; else animated idle.
-    const key = poseKey && this.textures.exists(poseKey) ? poseKey : "hero__hero";
-    if (!this.textures.exists(key)) return;
-    const HERO_H = 104,
-      cy = H * 0.5;
-    const hero = this.add
-      .sprite(W / 2, cy, key)
-      .setOrigin(0.5, 0.85)
-      .setDepth(2);
-    hero.setScale(HERO_H / hero.height);
-    // Only the multi-frame base sheet animates; the single-frame pose stays still.
-    if (key === "hero__hero" && this.anims.exists("hero__hero_idle")) hero.play("hero__hero_idle");
-    // NOTE: bare hero — no dressHero. Equipped gear is shown on the wall hangers.
+    // The throne hero is the SAME art as the battle hero: a HeroWeaponSprite that
+    // wears the equipped weapon's drawn combat art (+ wings) and animates its idle
+    // procedurally — instead of the old static weapon-class pose. The pet keeps
+    // its own free wander above the throne (drawPet), so we suppress this sprite's
+    // built-in pet to avoid a double.
+    const hero = new HeroWeaponSprite(this, W / 2, H * 0.5);
+    hero.scaleToHeight(150).setDepth(2);
+    hero.syncEquipment(save.inventory);
+    hero.petSprite.setVisible(false);
+    this.heroSprite = hero;
+    // NOTE: equipped gear is also shown on the wall hangers (drawHangers).
   }
 
   // ── equipped gear hanging on the two side walls ─────────────────────────────
