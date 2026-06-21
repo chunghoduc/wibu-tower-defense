@@ -36,24 +36,31 @@ interface Attach {
 }
 
 // back→front draw order encoded in depth: boots(2) < pants(2.5) < body(3) < gloves(4) < helmet(5).
+// Anchors are tuned to ANATOMY: each piece is seated on its bone so it sits ON the
+// solid body (heroBodyShape) rather than floating beside a stick figure.
 const SINGLE: Record<WornGearSlot, Attach> = {
-  Boots: { bone: "pelvis", ox: 0, oy: 0.4, scale: 0.3, depth: 2 },
+  Boots: { bone: "pelvis", ox: 0, oy: 0.4, scale: 0.26, depth: 2 },
   // Legguards ride the pelvis and cover the upper legs (waist → knees).
-  Pants: { bone: "pelvis", ox: 0, oy: 0.26, scale: 0.4, depth: 2.5 },
-  BodyArmor: { bone: "torso", ox: 0, oy: 0.06, scale: 0.42, depth: 3 },
-  Gloves: { bone: "handR", ox: 0, oy: 0, scale: 0.18, depth: 4 },
-  Helmet: { bone: "head", ox: 0, oy: 0, scale: 0.3, depth: 5 },
+  Pants: { bone: "pelvis", ox: 0, oy: 0.18, scale: 0.34, depth: 2.5 },
+  // Breastplate covers shoulders→waist; draped low so its skirt hides the legguard
+  // top at the waist (no bright sliver between trunk and legs).
+  BodyArmor: { bone: "torso", ox: 0, oy: 0.12, scale: 0.54, depth: 3 },
+  Gloves: { bone: "handR", ox: 0, oy: 0, scale: 0.15, depth: 4 },
+  // Helmet caps the skull: raised slightly so its bottom edge meets the neck.
+  Helmet: { bone: "head", ox: 0, oy: -0.03, scale: 0.34, depth: 5 },
 };
 
-// Per-limb (phase 2) overrides for the split slots.
+// Per-limb (phase 2) overrides for the split slots: each piece seats on its own
+// foot/hand bone so it tracks that limb and meets the solid leg/arm above it.
 const PER_LIMB: Partial<Record<WornGearSlot, { L: Attach; R: Attach }>> = {
   Boots: {
-    L: { bone: "footL", ox: 0, oy: 0.02, scale: 0.2, depth: 2 },
-    R: { bone: "footR", ox: 0, oy: 0.02, scale: 0.2, depth: 2 },
+    // Seated at the ankle (slightly up) so the cuff meets the shin — no float/gap.
+    L: { bone: "footL", ox: 0, oy: -0.02, scale: 0.17, depth: 2 },
+    R: { bone: "footR", ox: 0, oy: -0.02, scale: 0.17, depth: 2 },
   },
   Gloves: {
-    L: { bone: "handL", ox: 0, oy: 0, scale: 0.16, depth: 4 },
-    R: { bone: "handR", ox: 0, oy: 0, scale: 0.16, depth: 4 },
+    L: { bone: "handL", ox: 0, oy: 0, scale: 0.14, depth: 4 },
+    R: { bone: "handR", ox: 0, oy: 0, scale: 0.14, depth: 4 },
   },
 };
 

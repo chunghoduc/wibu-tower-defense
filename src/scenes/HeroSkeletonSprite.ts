@@ -13,6 +13,7 @@ import type { InventorySave } from "../core/save.ts";
 import { resolveSkeleton, type BoneId, type BoneXform } from "../data/heroSkeleton.ts";
 import { poseSkeleton, type AnimState } from "../data/heroSkeletonAnim.ts";
 import { placeWorn, partsForSlot, WORN_GEAR_SLOTS } from "../data/heroWornRig.ts";
+import { heroBodyShape, type BodyCover } from "../data/heroBodyShape.ts";
 import { weaponHold } from "../data/heroWeaponHold.ts";
 import type { WeaponType } from "../data/schema.ts";
 
@@ -66,7 +67,10 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
     this.anchor = scene.add.sprite(0, 0, "__missing").setVisible(false);
     this.weaponSprite = scene.add.sprite(0, 0, "__missing").setVisible(false).setOrigin(0.5, 0.85);
     this.add([this.wingsSprite, this.bodyGfx, this.anchor, this.weaponSprite]);
-    this.petSprite = scene.add.sprite(x + 30, y + 8, "__missing").setVisible(false).setScale(0.32);
+    this.petSprite = scene.add
+      .sprite(x + 30, y + 8, "__missing")
+      .setVisible(false)
+      .setScale(0.32);
     scene.add.existing(this);
   }
 
@@ -131,31 +135,93 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
     this.updatePet(now, dt);
   }
 
-  /** Redraw the procedural base body (capsule limbs + head) from the resolved bones. */
+  /**
+   * Worn-gear coverage. Only DROP a body part when its gear fully replaces it —
+   * the hands (gloves) and head (helmet). The torso/legs/feet stay drawn so the
+   * solid body always fills the silhouette under partial-coverage gear (the
+   * breastplate + pants don't cover the whole trunk), with `torso` shaded so the
+   * undersuit reads as *behind* the plate rather than poking past it.
+   */
+  private coveredBody(): BodyCover {
+    const gear = this._lastConfig.gear;
+    return {
+      head: !!this.pickGearKey(gear.Helmet),
+      torso: !!this.pickGearKey(gear.BodyArmor),
+      hands: !!this.pickGearKey(gear.Gloves),
+    };
+  }
+
+  /**
+   * Redraw the SOLID procedural base body from the resolved bones. Filled torso +
+   * rounded-capsule limbs + neck bridge + head, each stroked with one dark outline
+   * so the figure reads as a single silhouette — and body parts hidden under worn
+   * gear are dropped so nothing pokes through.
+   */
   private drawBody(b: Record<BoneId, BoneXform>): void {
     const g = this.bodyGfx;
     g.clear();
-    const skin = 0xe8b88c,
-      cloth = 0x44506a,
-      line = 0x20242e;
-    const limb = (a: BoneXform, c: BoneXform, w: number, col: number) => {
-      g.lineStyle(w, line, 1);
-      g.lineBetween(a.x, a.y, c.x, c.y);
-      g.lineStyle(Math.max(1, w - 2), col, 1);
-      g.lineBetween(a.x, a.y, c.x, c.y);
-    };
-    const lw = this.size * 0.12;
-    limb(b.thighL, b.footL, lw, cloth);
-    limb(b.thighR, b.footR, lw, cloth);
-    limb(b.pelvis, b.thighL, lw, cloth);
-    limb(b.pelvis, b.thighR, lw, cloth);
-    limb(b.armUpperL, b.handL, lw * 0.8, skin);
-    limb(b.armUpperR, b.handR, lw * 0.8, skin);
-    limb(b.pelvis, b.torso, lw * 1.6, cloth); // torso column
-    g.fillStyle(skin, 1);
-    g.lineStyle(2, line, 1);
-    g.fillCircle(b.head.x, b.head.y, this.size * 0.12);
-    g.strokeCircle(b.head.x, b.head.y, this.size * 0.12);
+    const shape = heroBodyShape({ bones: b, size: this.size, cover: this.coveredBody() });
+    const { color: oc, width: ow } = shape.outline;
+
+    // Contact shadow (under everything).
+    g.fillStyle(0x000000, shape.shadow.alpha);
+    g.fillEllipse(shape.shadow.x, shape.shadow.y, shape.shadow.rx * 2, shape.shadow.ry * 2);
+
+    // Capsules: an outline pass (wider) then a fill pass, with round end-caps.
+    for (const c of shape.capsules) {
+      g.lineStyle(c.width + ow * 2, oc, 1);
+      g.lineBetween(c.ax, c.ay, c.bx, c.by);
+    }
+    for (const c of shape.capsules) {
+      g.lineStyle(c.width, c.color, 1);
+      g.lineBetween(c.ax, c.ay, c.bx, c.by);
+      g.fillStyle(c.color, 1);
+      g.fillCircle(c.ax, c.ay, c.width * 0.5);
+      g.fillCircle(c.bx, c.by, c.width * 0.5);
+    }
+
+    // Torso polygons (outline then fill).
+    for (const p of shape.polys) {
+      g.fillStyle(oc, 1);
+      g.fillPoints(this.inflate(p.points, ow), true);
+      g.fillStyle(p.color, 1);
+      g.fillPoints(this.toPoints(p.points), true);
+    }
+
+    // Discs (joints, rounded shoulders, head) — outline ring then fill.
+    for (const d of shape.discs) {
+      g.fillStyle(oc, 1);
+      g.fillCircle(d.x, d.y, d.r + ow);
+      g.fillStyle(d.color, 1);
+      g.fillCircle(d.x, d.y, d.r);
+    }
+  }
+
+  private toPoints(flat: number[]): Phaser.Geom.Point[] {
+    const out: Phaser.Geom.Point[] = [];
+    for (let i = 0; i < flat.length; i += 2) out.push(new Phaser.Geom.Point(flat[i], flat[i + 1]));
+    return out;
+  }
+
+  /** A polygon inflated outward from its centroid by `pad` px (for the outline pass). */
+  private inflate(flat: number[], pad: number): Phaser.Geom.Point[] {
+    let cx = 0,
+      cy = 0;
+    const n = flat.length / 2;
+    for (let i = 0; i < flat.length; i += 2) {
+      cx += flat[i];
+      cy += flat[i + 1];
+    }
+    cx /= n;
+    cy /= n;
+    const out: Phaser.Geom.Point[] = [];
+    for (let i = 0; i < flat.length; i += 2) {
+      const dx = flat[i] - cx,
+        dy = flat[i + 1] - cy;
+      const d = Math.hypot(dx, dy) || 1;
+      out.push(new Phaser.Geom.Point(flat[i] + (dx / d) * pad, flat[i + 1] + (dy / d) * pad));
+    }
+    return out;
   }
 
   private positionGear(bones: Record<BoneId, BoneXform>, facing: number): void {
@@ -228,9 +294,10 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
       config.weaponType !== this._lastConfig.weaponType
     ) {
       this.weaponType = config.weaponType;
-      if (config.weaponKey && t.exists(config.weaponKey))
+      if (config.weaponKey && t.exists(config.weaponKey)) {
         this.weaponSprite.setTexture(config.weaponKey).setVisible(true);
-      else this.weaponSprite.setVisible(false);
+        this.applyGearFx(this.weaponSprite);
+      } else this.weaponSprite.setVisible(false);
     }
     if (config.wingKey !== this._lastConfig.wingKey) {
       const show = !!config.wingKey && t.exists(config.wingKey);
@@ -266,10 +333,23 @@ export class HeroSkeletonSprite extends Phaser.GameObjects.Container {
             this.gearSprites.set(id, spr);
           }
           spr.setTexture(key).setVisible(true);
+          this.applyGearFx(spr);
         } else if (spr) spr.setVisible(false);
       }
     }
     this._lastConfig = config;
+  }
+
+  /**
+   * Ground a worn sprite with a soft drop shadow so the mismatched paper-doll art
+   * reads as one figure sitting on the body, not a floating sticker. preFX is
+   * WebGL-only and absent in headless/Canvas, so this is a no-op there.
+   */
+  private applyGearFx(spr: Phaser.GameObjects.Sprite): void {
+    const fx = spr.preFX;
+    if (!fx || (spr as unknown as { _gearFx?: boolean })._gearFx) return;
+    fx.addShadow(-2, 3, 0.06, 1, 0x0a0810, 6, 0.5);
+    (spr as unknown as { _gearFx?: boolean })._gearFx = true;
   }
 
   private pickGearKey(layer: GearLayer | null): string | null {

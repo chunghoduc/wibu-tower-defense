@@ -45,13 +45,13 @@ const REST_TILT: Record<WeaponType, number> = {
 // fists/tomes are small. These keep the held weapon proportionate to the body
 // instead of scaled to the (much longer) arm bone.
 const SCALE: Record<WeaponType, number> = {
-  Sword: 0.6,
-  Fist: 0.3,
-  Bow: 0.72,
-  Gun: 0.4,
-  Staff: 0.82,
-  Tome: 0.36,
-  Any: 0.58,
+  Sword: 0.46,
+  Fist: 0.26,
+  Bow: 0.58,
+  Gun: 0.34,
+  Staff: 0.64,
+  Tome: 0.3,
+  Any: 0.44,
 };
 
 // Inventory icons draw the weapon diagonally with the hilt toward the lower-inner
