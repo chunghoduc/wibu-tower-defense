@@ -16,7 +16,11 @@ import { crispText } from "./ui.ts";
 import { showBattleLootPanel } from "./rewardPanel.ts";
 import { buildLootSummary } from "../data/rewardTiles.ts";
 import { passiveInfo, towerActiveInfo } from "../data/passiveSkills.ts";
-import { activeSkillDetail, heroActiveSkillDetail } from "../data/skillDescribe.ts";
+import {
+  activeSkillDetail,
+  heroActiveSkillDetail,
+  heroSkillBadgeTooltip,
+} from "../data/skillDescribe.ts";
 import { upgradeSummary } from "../core/towerUpgrade.ts";
 import type { HeroPanelVM, TowerPanelVM, PanelItem } from "./battleInfoPanel.ts";
 import { ITEM_CATALOG_MAP } from "../data/items.ts";
@@ -37,6 +41,32 @@ import type { BattleScene } from "./BattleScene.ts";
 import { towerTex, itemTex, skillTex } from "../data/assetKeys.ts";
 
 export const inputMethods = {
+  /** Reveal the full detail of every equipped hero active above the HUD "Skill" badge. */
+  showHeroSkillTip(this: BattleScene): void {
+    const text = heroSkillBadgeTooltip(this.saveManager.getSave());
+    if (!text) {
+      this.hudSkillTip.setVisible(false);
+      return;
+    }
+    const padX = 9,
+      padY = 7,
+      wrapW = 230;
+    this.hudSkillTipText.setText(text).setWordWrapWidth(wrapW, true).setPosition(padX, padY);
+    const w = Math.min(wrapW, this.hudSkillTipText.width) + padX * 2;
+    const h = this.hudSkillTipText.height + padY * 2;
+    // Park it just above the bottom-left badge, growing upward; clamp on-screen.
+    const x = 8;
+    const y = Phaser.Math.Clamp(104 - h, 4, this.scale.height - h - 4);
+    this.hudSkillTipBg
+      .clear()
+      .fillStyle(0x070b12, 0.98)
+      .fillRoundedRect(0, 0, w, h, 6)
+      .lineStyle(1.5, 0x9a6cc0, 1)
+      .strokeRoundedRect(0, 0, w, h, 6);
+    this.hudSkillTip.setPosition(x, y).setVisible(true);
+    this.hudSkillTip.parentContainer?.bringToTop(this.hudSkillTip);
+  },
+
   updateSpeedBtn(this: BattleScene): void {
     const label = this.gameSpeed === 0 ? "⏸ Paused" : `▶ ${this.gameSpeed}×`;
     this.speedBtn.setText(label).setBackgroundColor(this.gameSpeed === 0 ? "#5a3a2a" : "#243a5a");

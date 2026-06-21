@@ -123,6 +123,10 @@ export class BattleScene extends Phaser.Scene {
   sfx = new Sfx();
   hudLevelText!: Phaser.GameObjects.Text;
   hudSkillText!: Phaser.GameObjects.Text;
+  // Hover/tap tooltip for the bottom-left "Skill" HUD badge (full skill detail).
+  hudSkillTip!: Phaser.GameObjects.Container;
+  hudSkillTipBg!: Phaser.GameObjects.Graphics;
+  hudSkillTipText!: Phaser.GameObjects.Text;
 
   _victoryProcessed = false;
   _defeatPlayed = false;
@@ -287,6 +291,25 @@ export class BattleScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(20)
       .setVisible(false);
+    // The "Skill" badge is hoverable/tappable: it reveals the full detail of every
+    // equipped active (level, damage calc, AoE) without opening the unit panel.
+    this.hudSkillTipBg = this.add.graphics();
+    this.hudSkillTipText = crispText(this, 0, 0, "", {
+      fontSize: "11px",
+      color: "#e6eef6",
+      lineSpacing: 2,
+    });
+    this.hudSkillTip = this.add
+      .container(0, 0, [this.hudSkillTipBg, this.hudSkillTipText])
+      .setDepth(60)
+      .setVisible(false);
+    this.hudSkillText
+      .setInteractive({ useHandCursor: true })
+      .on("pointerover", () => this.showHeroSkillTip())
+      .on("pointerout", () => this.hudSkillTip.setVisible(false))
+      .on("pointerdown", () =>
+        this.hudSkillTip.visible ? this.hudSkillTip.setVisible(false) : this.showHeroSkillTip(),
+      );
     this.gameSpeed = 1;
     // Speed / mute float above the panel (depth 50) at the top-right.
     this.speedBtn = crispText(this, this.scale.width - 12, 8, "", {
@@ -344,6 +367,7 @@ export class BattleScene extends Phaser.Scene {
       this.info,
       this.hudLevelText,
       this.hudSkillText,
+      this.hudSkillTip,
       this.speedBtn,
       muteBtn,
       this.callWaveBtn,

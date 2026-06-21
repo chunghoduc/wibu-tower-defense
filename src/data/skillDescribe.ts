@@ -126,6 +126,23 @@ export function heroActiveSkillDetail(
   return lines.join("\n");
 }
 
+/**
+ * Hover text for the always-visible in-battle "Skill" HUD badge: every equipped
+ * active, its name followed by the COMPLETE detail body (`heroActiveSkillDetail`),
+ * blank-line separated. Lets a player read level + damage calc + AoE straight off
+ * the badge without opening the unit panel. Empty string if nothing is equipped.
+ */
+export function heroSkillBadgeTooltip(save: HeroSave, base: Stats = defaultHeroStats()): string {
+  return save.hero.equippedSkillIds
+    .map((id) => {
+      const def = ACTIVE_SKILLS_MAP.get(id);
+      if (!def) return "";
+      return `⚡ ${def.name}\n${heroActiveSkillDetail(save, id, base)}`;
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+
 /** Exact on-hit role mechanic for this tower (splash/chain/DoT/control/aura). */
 export function roleEffectDetail(def: CharacterDef, stats: Stats): string | null {
   const b = def.behavior;
