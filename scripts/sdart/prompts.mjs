@@ -185,10 +185,16 @@ export function heroBattleStyle(visual, pose) {
 // the SAME seed as its key visual (seedOf("herobattle-<wt>")) and reuses the very
 // same HERO_BATTLE character descriptor — only the POSE PHRASE below changes — so
 // the set stays on-model (the most coherence a text-to-image model can give without
-// img2img). Keys: heroanim__<wt>__<state>_<i>. idle is NOT generated (it reuses the
-// existing herobattle stance). A 4-beat run cycle, a wind-up→apex→follow-through
-// strike, a recoil/stagger flinch, and a gather→channel→release→recoil cast.
+// img2img). Keys: heroanim__<wt>__<state>_<i>. idle is a dedicated 2-beat breathing
+// loop drawn in THIS family (NOT the off-style herobattle stance) so it stays
+// on-model with the rest. A breathing ready stance, a 4-beat run cycle, a
+// wind-up→apex→follow-through strike, a recoil/stagger flinch, and a
+// gather→channel→release→recoil cast.
 export const HERO_ANIM_POSES = {
+  idle: [
+    "a steady ready combat stance at rest, weight settled evenly on both planted feet, weapon held low and ready at the side, shoulders down and chest at the bottom of a calm breath, alert and poised",
+    "the same grounded ready stance at the top of a slow breath, chest and shoulders lifted slightly, the weapon hand easing up a touch, a subtle living idle, otherwise unchanged",
+  ],
   walk: [
     "mid-run stride, the right leg striding forward and planted, the left leg trailing far back, torso leaning forward with momentum, arms swinging in counterpose, dynamic running motion",
     "running passing pose at the top of the stride, both legs gathered together under the body, a slight upward lift, body upright and bounding forward",

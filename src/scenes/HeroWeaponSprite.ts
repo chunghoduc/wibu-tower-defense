@@ -197,14 +197,15 @@ export class HeroWeaponSprite extends Phaser.GameObjects.Container {
   }
 
   /**
-   * Drive the body texture from the drawn animation frames. `idle` reuses the
-   * legacy stance art (no idle frames generated); other states pull
-   * `heroanim__<wt>__<state>_<i>`. Falls back to the stance key if a frame is
-   * missing, and only swaps the texture when the key actually changes.
+   * Drive the body texture from the drawn animation frames. Every state — idle
+   * included — pulls `heroanim__<wt>__<state>_<i>`, so idle is the same on-model
+   * family as the action frames (the old off-style stance reuse caused a visual
+   * mismatch). Falls back to the stance key only if a frame is missing, and only
+   * swaps the texture when the key actually changes.
    */
   private setFrame(state: WeaponMotionState, phase: number): void {
     const idx = heroWeaponFrame(state, phase);
-    const want = state === "idle" ? this.stanceKey : heroAnimTex(this.weaponId, state, idx);
+    const want = heroAnimTex(this.weaponId, state, idx);
     const key = want && this.scene.textures.exists(want) ? want : this.stanceKey;
     if (!key || key === this.currentFrameKey) return;
     this.bodySprite.setTexture(key);

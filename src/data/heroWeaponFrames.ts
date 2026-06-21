@@ -8,9 +8,11 @@
 
 import type { WeaponMotionState } from "./heroWeaponMotion.ts";
 
-/** How many drawn frames exist per state (idle reuses the legacy stance art). */
+/** How many drawn frames exist per state. Idle has its own 2-beat breathing loop
+ *  drawn in the same heroanim family as the action frames (no longer the off-style
+ *  stance reuse), so every state reads as the same character. */
 export const FRAME_COUNTS: Record<WeaponMotionState, number> = {
-  idle: 1,
+  idle: 2,
   walk: 4,
   attack: 4,
   hurt: 2,
