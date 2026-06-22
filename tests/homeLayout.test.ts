@@ -110,3 +110,23 @@ describe("homeNavLayout BATTLE square prominence", () => {
     expect(l.battle.y + l.battle.h).toBeLessThanOrEqual(H);
   });
 });
+
+describe("homeNavLayout ENDLESS square (bottom-left twin)", () => {
+  it("hugs the bottom-left corner, on-screen", () => {
+    const l = homeNavLayout({ left: 4, right: 4, bottom: 4 }, W, H);
+    expect(l.endless.x).toBeGreaterThanOrEqual(0);
+    expect(l.endless.y + l.endless.h).toBeLessThanOrEqual(H);
+    expect(l.endless.x).toBeLessThan(W * 0.2);
+    expect(l.endless.y).toBeGreaterThan(H * 0.5);
+  });
+  it("matches the BATTLE square's size — a mirrored pair", () => {
+    const l = homeNavLayout({ left: 4, right: 4, bottom: 4 }, W, H);
+    expect(l.endless.w).toBe(l.battle.w);
+    expect(l.endless.h).toBe(l.battle.h);
+    expect(l.endless.y).toBe(l.battle.y); // same baseline
+  });
+  it("sits to the left of the centered system dock without overlapping it", () => {
+    const l = homeNavLayout({ left: 4, right: 4, bottom: 4 }, W, H);
+    expect(l.endless.x + l.endless.w).toBeLessThanOrEqual(l.panel.x);
+  });
+});

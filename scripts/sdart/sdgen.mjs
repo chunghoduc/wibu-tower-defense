@@ -37,6 +37,9 @@ import {
   BATTLE_EMBLEM_VISUAL,
   battleEmblemStyle,
   BATTLE_EMBLEM_NEGATIVE,
+  ENDLESS_EMBLEM_VISUAL,
+  endlessEmblemStyle,
+  ENDLESS_EMBLEM_NEGATIVE,
   RARITY_GEM_VISUAL,
   rarityGemStyle,
   RARITY_GEM_NEGATIVE,
@@ -341,6 +344,18 @@ function buildJobs() {
     h: 768,
     size: 128,
     neg: BATTLE_EMBLEM_NEGATIVE,
+  });
+  // endless CTA emblem — the abyss-violet eternal-siege twin of the battle crest.
+  jobs.push({
+    kind: "ui",
+    id: "endless-emblem",
+    file: `endless-emblem.png`,
+    prompt: endlessEmblemStyle(ENDLESS_EMBLEM_VISUAL),
+    seed: seedOf("endless-emblem"),
+    w: 768,
+    h: 768,
+    size: 128,
+    neg: ENDLESS_EMBLEM_NEGATIVE,
   });
   const items = existsSync(ITEM_VISUAL_PATH)
     ? JSON.parse(readFileSync(ITEM_VISUAL_PATH, "utf8"))

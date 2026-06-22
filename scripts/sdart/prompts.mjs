@@ -493,6 +493,19 @@ export function battleEmblemStyle(visual) {
   return BATTLE_EMBLEM_STYLE.replace("{V}", visual);
 }
 
+// ---- ENDLESS CTA EMBLEM (home-screen eternal-siege call-to-action) ----
+// One ominous eternal-waves sigil rendered on the ENDLESS button. Full-colour,
+// abyss-violet — the dark twin of the crimson BATTLE crest. NOT tinted.
+export const ENDLESS_EMBLEM_VISUAL =
+  "a glowing amethyst-violet infinity loop symbol entwined around a single upright silver longsword, rising over a cresting wave of shadowy enemy horde silhouettes, radiant purple arcane energy";
+const ENDLESS_EMBLEM_STYLE =
+  "a single bold flat vector game UI emblem icon of {V}, ONE majestic centered heraldic eternal-siege crest, the violet infinity loop large and dominant with the sword crossing through it, very thick uniform clean luminous violet outline, deep abyss purple and indigo face with bright steel-silver blade and radiant amethyst accents, high contrast, flat cel-shaded, ominous and powerful, centered, instantly readable at 48 pixels, isolated on a pure plain flat white background, empty background, no text";
+export const ENDLESS_EMBLEM_NEGATIVE = BATTLE_EMBLEM_NEG;
+/** Endless-emblem prompt from a visual description. */
+export function endlessEmblemStyle(visual) {
+  return ENDLESS_EMBLEM_STYLE.replace("{V}", visual);
+}
+
 // ---- RARITY GEM EMBLEMS (expedition slot-requirement icons) ----
 // One faceted gemstone per rarity tier, tinted to its hue (Common grey →
 // Unique red). Full-colour baked; the renderer draws it untinted with a

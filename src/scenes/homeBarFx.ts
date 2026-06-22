@@ -10,7 +10,47 @@ import { crispText, UI_FONT_FAMILY } from "./ui.ts";
 import { fadeToScene } from "./uiKit.ts";
 import type { Rect } from "./homeLayout.ts";
 import { battleSquarePlan } from "./battleSquare.ts";
-import { battleEmblemTex } from "../data/assetKeys.ts";
+import { battleEmblemTex, endlessEmblemTex } from "../data/assetKeys.ts";
+
+/** Colour palette for a forged corner CTA square (BATTLE / ENDLESS share chrome,
+ *  differ only in hue so the two corners read as a matched-but-distinct pair). */
+interface ForgedTheme {
+  glow: number; // breathing halo colour (additive)
+  underRim: number; // dark under-rim beneath the face
+  faceTop: number; // gradient top of the tile face
+  faceBot: number; // gradient bottom
+  rim: number; // bright outer rim stroke
+  ribbonFill: number; // dark ribbon plate
+  ribbonStroke: number; // ribbon trim
+  labelColor: string; // ribbon label fill
+  labelStroke: string; // ribbon label outline
+}
+
+const CRIMSON_THEME: ForgedTheme = {
+  glow: 0xff7a2c,
+  underRim: 0x6e4410,
+  faceTop: 0xb52a17,
+  faceBot: 0x6e1208,
+  rim: 0xffe6a8,
+  ribbonFill: 0x1a0e08,
+  ribbonStroke: 0xffe6a8,
+  labelColor: "#ffe6a8",
+  labelStroke: "#2a0805",
+};
+
+// Abyss-violet twin for the ENDLESS corner — eternal, ominous, distinct from the
+// crimson campaign CTA while sharing the exact same forged geometry.
+const ABYSS_THEME: ForgedTheme = {
+  glow: 0x9a5cff,
+  underRim: 0x2a1d52,
+  faceTop: 0x5b2a9e,
+  faceBot: 0x190a3a,
+  rim: 0xd9c2ff,
+  ribbonFill: 0x140826,
+  ribbonStroke: 0xd9c2ff,
+  labelColor: "#ecdcff",
+  labelStroke: "#1a0838",
+};
 
 /** A framed resource pill: dark translucent plate + gold stroke + icon + value. */
 export function drawPill(
@@ -63,17 +103,79 @@ function drawSwordMark(g: Phaser.GameObjects.Graphics, ox: number, oy: number, s
   g.fillStyle(GOLD, 1).fillCircle(ox, gripBot - s * 0.02, s * 0.07);
 }
 
-/** The big square BATTLE CTA: a gold-rimmed crimson tile carrying the SDXL war
- *  crest (twin crossed swords over a powerful shield) with a "BATTLE" ribbon
- *  along the bottom and a breathing glow that marks it as the one main action.
- *  Static chrome from battleSquarePlan; the emblem degrades to a vector sword
- *  mark when its texture is missing. Launches `targetScene`. */
+/** Paint a glowing violet infinity-loop mark centred on the origin, fitting a box
+ *  of side `s`. The vector fallback for the ENDLESS emblem (eternal waves). */
+function drawInfinityMark(g: Phaser.GameObjects.Graphics, ox: number, oy: number, s: number): void {
+  const VIOLET = 0xd9c2ff,
+    CORE = 0xb98cff;
+  const r = s * 0.22; // lobe radius
+  const dx = s * 0.26; // lobe horizontal offset
+  for (const [cx, dir] of [
+    [ox - dx, 1],
+    [ox + dx, -1],
+  ] as const) {
+    g.lineStyle(s * 0.12, CORE, 0.6).strokeCircle(cx, oy, r + s * 0.04);
+    g.lineStyle(s * 0.1, VIOLET, 1).strokeCircle(cx, oy, r);
+    void dir;
+  }
+  // Bright crossing node at the centre where the two loops meet.
+  g.fillStyle(0xffffff, 0.95).fillCircle(ox, oy, s * 0.06);
+}
+
+/** The big square BATTLE CTA — see drawForgedSquare. Gold-rimmed crimson tile
+ *  with the SDXL war crest; navigates to `targetScene`. */
 export function drawBattleSquare(
   scene: Phaser.Scene,
   label: string,
   targetScene: string,
   r: Rect,
 ): void {
+  drawForgedSquare(scene, {
+    rect: r,
+    label,
+    theme: CRIMSON_THEME,
+    emblemKey: battleEmblemTex(),
+    fallback: (g, x, y, s) => drawSwordMark(g, x, y, s * 0.8),
+    onActivate: () => fadeToScene(scene, targetScene),
+  });
+}
+
+/** The big square ENDLESS CTA — the abyss-violet twin of BATTLE in the bottom-
+ *  left corner. SDXL endless emblem (infinity-loop fallback). Runs `onActivate`
+ *  (gating + entry payment + launch live in the caller). */
+export function drawEndlessSquare(
+  scene: Phaser.Scene,
+  label: string,
+  onActivate: () => void,
+  r: Rect,
+): void {
+  drawForgedSquare(scene, {
+    rect: r,
+    label,
+    theme: ABYSS_THEME,
+    emblemKey: endlessEmblemTex(),
+    fallback: drawInfinityMark,
+    onActivate,
+  });
+}
+
+interface ForgedSquareOpts {
+  rect: Rect;
+  label: string;
+  theme: ForgedTheme;
+  emblemKey: string;
+  /** Vector emblem fallback when the SDXL texture is missing. */
+  fallback: (g: Phaser.GameObjects.Graphics, x: number, y: number, s: number) => void;
+  onActivate: () => void;
+}
+
+/** A big forged square corner CTA: a rim-framed gradient tile carrying an SDXL
+ *  emblem with a label ribbon along the bottom and a breathing glow that marks
+ *  it as a primary action. Static chrome from battleSquarePlan; the emblem
+ *  degrades to a vector mark when its texture is missing. Themed by palette so
+ *  BATTLE (crimson) and ENDLESS (abyss-violet) share one implementation. */
+function drawForgedSquare(scene: Phaser.Scene, o: ForgedSquareOpts): void {
+  const { rect: r, label, theme: t } = o;
   const cx = r.x + r.w / 2,
     cy = r.y + r.h / 2;
   const p = battleSquarePlan(r);
@@ -86,7 +188,7 @@ export function drawBattleSquare(
   // — Breathing glow halo (additive, alpha pulses) behind everything.
   const glow = scene.add
     .graphics()
-    .fillStyle(0xff7a2c, 1)
+    .fillStyle(t.glow, 1)
     .fillRoundedRect(lx(p.glow.x), ly(p.glow.y), p.glow.w, p.glow.h, p.radius + 6);
   glow.setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.18);
   c.add(glow);
@@ -99,15 +201,15 @@ export function drawBattleSquare(
     repeat: -1,
   });
 
-  // — Tile chrome: drop shadow, dark-gold under-rim, crimson gradient face.
+  // — Tile chrome: drop shadow, dark under-rim, themed gradient face.
   const g = scene.add.graphics();
   g.fillStyle(0x000000, 0.34).fillRoundedRect(lx(r.x), ly(r.y) + 4, r.w, r.h, p.radius);
-  g.fillStyle(0x6e4410, 1).fillRoundedRect(lx(r.x), ly(r.y), r.w, r.h, p.radius); // under-rim
+  g.fillStyle(t.underRim, 1).fillRoundedRect(lx(r.x), ly(r.y), r.w, r.h, p.radius); // under-rim
   c.add(g);
 
-  // Ember→garnet vertical gradient, clipped to the rounded face via a mask.
+  // Vertical gradient face, clipped to the rounded tile via a mask.
   const grad = scene.add.graphics();
-  grad.fillGradientStyle(0xb52a17, 0xb52a17, 0x6e1208, 0x6e1208, 1);
+  grad.fillGradientStyle(t.faceTop, t.faceTop, t.faceBot, t.faceBot, 1);
   grad.fillRect(lx(p.inner.x), ly(p.inner.y), p.inner.w, p.inner.h);
   const faceMask = scene.make
     .graphics({ x: 0, y: 0 })
@@ -116,39 +218,38 @@ export function drawBattleSquare(
   grad.setMask(faceMask.createGeometryMask());
   c.add(grad);
 
-  // Bright gold rim stroke framing the tile.
+  // Bright rim stroke framing the tile.
   const trim = scene.add.graphics();
-  trim.lineStyle(p.rim, 0xffe6a8, 1).strokeRoundedRect(lx(r.x), ly(r.y), r.w, r.h, p.radius);
+  trim.lineStyle(p.rim, t.rim, 1).strokeRoundedRect(lx(r.x), ly(r.y), r.w, r.h, p.radius);
   c.add(trim);
 
-  // — War-crest emblem (SDXL). Falls back to a vector sword mark if missing.
-  const emKey = battleEmblemTex();
-  if (scene.textures.exists(emKey)) {
-    const img = scene.add.image(lx(p.emblem.x), ly(p.emblem.y), emKey).setOrigin(0.5);
+  // — Emblem (SDXL). Falls back to a themed vector mark if missing.
+  if (scene.textures.exists(o.emblemKey)) {
+    const img = scene.add.image(lx(p.emblem.x), ly(p.emblem.y), o.emblemKey).setOrigin(0.5);
     img.setScale(p.emblem.size / Math.max(img.width, img.height));
     c.add(img);
   } else {
     const mark = scene.add.graphics();
-    drawSwordMark(mark, lx(p.emblem.x), ly(p.emblem.y), p.emblem.size * 0.8);
+    o.fallback(mark, lx(p.emblem.x), ly(p.emblem.y), p.emblem.size);
     c.add(mark);
   }
 
-  // — BATTLE ribbon along the bottom: dark plate + gold trim + gold label.
+  // — Label ribbon along the bottom: dark plate + themed trim + themed label.
   const ribbon = scene.add.graphics();
   const rad = Math.min(6, p.ribbon.h / 2);
   ribbon
-    .fillStyle(0x1a0e08, 0.86)
+    .fillStyle(t.ribbonFill, 0.86)
     .fillRoundedRect(lx(p.ribbon.x), ly(p.ribbon.y), p.ribbon.w, p.ribbon.h, rad)
-    .lineStyle(1.5, 0xffe6a8, 0.95)
+    .lineStyle(1.5, t.ribbonStroke, 0.95)
     .strokeRoundedRect(lx(p.ribbon.x), ly(p.ribbon.y), p.ribbon.w, p.ribbon.h, rad);
   c.add(ribbon);
   const labelText = scene.add
     .text(lx(p.ribbon.x + p.ribbon.w / 2), ly(p.ribbon.y + p.ribbon.h / 2), label, {
       fontFamily: UI_FONT_FAMILY,
-      fontSize: `${Math.round(p.ribbon.h * 0.62)}px`,
-      color: "#ffe6a8",
+      fontSize: `${Math.round(p.ribbon.h * (label.length > 6 ? 0.5 : 0.62))}px`,
+      color: t.labelColor,
       fontStyle: "bold",
-      stroke: "#2a0805",
+      stroke: t.labelStroke,
       strokeThickness: 3,
     })
     .setOrigin(0.5);
@@ -180,7 +281,7 @@ export function drawBattleSquare(
       scale: 0.92,
       duration: 80,
       yoyo: true,
-      onComplete: () => fadeToScene(scene, targetScene),
+      onComplete: o.onActivate,
     }),
   );
 }

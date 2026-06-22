@@ -46,6 +46,9 @@ export interface NavLayout {
   /** Big square primary BATTLE call-to-action, anchored in the bottom-right
    *  corner — larger than every menu icon so it reads as the one main action. */
   battle: Rect;
+  /** Big square ENDLESS BATTLE call-to-action, mirroring `battle` in the
+   *  bottom-LEFT corner so the two forged corners frame the dock. */
+  endless: Rect;
   left: NavCell[];
   right: NavCell[];
   bottom: NavCell[];
@@ -114,5 +117,13 @@ export function homeNavLayout(
     w: BATTLE_SIZE,
     h: BATTLE_SIZE,
   };
-  return { panel, battle, left, right, bottom };
+  // Twin ENDLESS button mirrored into the bottom-left corner. Same size so the
+  // two forged corners read as a matched pair framing the centered dock.
+  const endless: Rect = {
+    x: BATTLE_MARGIN,
+    y: H - BATTLE_MARGIN - BATTLE_SIZE,
+    w: BATTLE_SIZE,
+    h: BATTLE_SIZE,
+  };
+  return { panel, battle, endless, left, right, bottom };
 }

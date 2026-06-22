@@ -25,6 +25,9 @@ export function achievementIconStyle(visual: string): string;
 export const BATTLE_EMBLEM_VISUAL: string;
 export const BATTLE_EMBLEM_NEGATIVE: string;
 export function battleEmblemStyle(visual: string): string;
+export const ENDLESS_EMBLEM_VISUAL: string;
+export const ENDLESS_EMBLEM_NEGATIVE: string;
+export function endlessEmblemStyle(visual: string): string;
 /** One faceted-gem emblem description per rarity tier. */
 export const RARITY_GEM_VISUAL: Record<string, string>;
 export const RARITY_GEM_NEGATIVE: string;

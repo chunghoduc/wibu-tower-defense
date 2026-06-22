@@ -33,6 +33,7 @@ import {
   achievementTex,
   rarityTex,
   battleEmblemTex,
+  endlessEmblemTex,
 } from "../data/assetKeys.ts";
 import { TOWER_ROLES, RARITIES } from "../data/schemaEnums.ts";
 import { ACHIEVEMENTS } from "../data/achievements.ts";
@@ -128,6 +129,8 @@ export class PreloadScene extends Phaser.Scene {
     // Home BATTLE CTA war crest (SDXL): twin swords over a powerful shield,
     // shown on the big square corner button. Missing → vector sword-mark fallback.
     this.load.image(battleEmblemTex(), versioned("assets/sprites/ui/battle-emblem.png"));
+    // Home ENDLESS CTA eternal-siege crest (SDXL). Missing → infinity-loop fallback.
+    this.load.image(endlessEmblemTex(), versioned("assets/sprites/ui/endless-emblem.png"));
     // Additive-blend VFX textures (box-open burst/glow/sparkle).
     for (const id of FX_IDS) this.load.image(fxTex(id), versioned(`assets/sprites/fx/${id}.png`));
     // Crafting-material icons (enhance jewels + summon scroll).

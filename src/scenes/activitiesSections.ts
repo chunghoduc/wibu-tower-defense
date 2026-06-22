@@ -93,49 +93,8 @@ export function drawTrials(ctx: ActivitiesSectionsCtx, y: number): number {
     y += h + 8;
   }
 
-  // F11 Endless Survival (needs a cleared stage).
-  {
-    const h = 56;
-    const best = cleared ? ctx.mgr.bestEndlessWave(cleared.id) : 0;
-    const cost = cleared ? ctx.mgr.endlessEntryCost(cleared.id) : 0;
-    const canPay = !!cleared && save.currency.gold >= cost;
-    ctx.panel(y, h, 0x2c3a4f);
-    ctx.layer.add(
-      crispText(ctx.scene, PANEL_X + 14, y + 8, "🌊 Endless Survival", {
-        fontSize: "14px",
-        color: "#ffe9b0",
-        fontStyle: "bold",
-      }),
-    );
-    ctx.layer.add(
-      crispText(
-        ctx.scene,
-        PANEL_X + 14,
-        y + 28,
-        cleared
-          ? `Waves never stop — boss every 10. Best wave: ${best}. · Entry 🪙${cost}`
-          : "Clear a stage first to unlock.",
-        { fontSize: "11px", color: "#aab8cc" },
-      ),
-    );
-    ctx.button(
-      PANEL_X + PANEL_W - 14,
-      y + h / 2,
-      cleared ? `Play 🪙${cost}` : "Play",
-      "#3a6a9a",
-      canPay,
-      () => {
-        if (!cleared) return;
-        const paid = ctx.mgr.payEndlessEntry(cleared.id);
-        if (paid < 0) {
-          ctx.showToast(`Need 🪙${cost} gold to enter`);
-          return;
-        }
-        ctx.launch(cleared.id, "Nightmare", { kind: "endless" });
-      },
-    );
-    y += h + 8;
-  }
+  // Endless Survival has MOVED to the home screen's bottom-left ENDLESS CTA
+  // (the sole entry point now). See MainMenuScene.launchEndless.
 
   // F12 Boss Rush (weekly).
   {

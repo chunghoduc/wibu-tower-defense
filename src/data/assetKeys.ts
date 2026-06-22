@@ -34,6 +34,8 @@ export const roleTex = (role: string): string => `roleicon__${role}`;
 export const achievementTex = (id: string): string => `achievement__${id}`;
 /** Combat emblem rendered on the home-screen BATTLE call-to-action (single icon). */
 export const battleEmblemTex = (): string => `ui__battle-emblem`;
+/** Eternal-siege emblem on the home-screen ENDLESS call-to-action (single icon). */
+export const endlessEmblemTex = (): string => `ui__endless-emblem`;
 /** Faceted rarity-gem emblem icon (one per rarity tier). */
 export const rarityTex = (rarity: string): string => `rarity__${rarity}`;
 
